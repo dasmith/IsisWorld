@@ -1,0 +1,13 @@
+salespitch=
+textures=boy-texture.png 
+rigged-models=boymodel 
+name=Boy Balloon1
+license=CCA 2.0
+other-files=thumbs.db 
+id=boyballoon
+date=2003-10-23
+keywords=Boy, Balloon
+animations=boyanimation 
+modeler=Brian Schrank
+painter=Jina Huh
+animator=Brian Schrank

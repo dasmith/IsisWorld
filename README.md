@@ -1,29 +1,13 @@
 # Isis World Simulator
 
+The IsisWorld simulator is available to researchers for building and evaluating problem solving and language learning systems with everyday problems that take place in a kitchen (on a campground?  house coming soon!).  Some documentation and arguments about theoretical underpinnings aimed toward the metareasoning community are available in this paper: 
+ 
+    * [An open source commonsense simulator for AI researchers](http://web.media.mit.edu/~dustin/simulator_metacog_@ai_2010.pdf).  Dustin Smith and Bo Morgan.  *Submitted to AAAI-10 Workshop on Metacognition*.
+    
+## Improvements for the simulator
 
-# To do in simulator
-
-1. Physical Motion Class
  - rotation and translation, w.r.t, velocities
-
-2. picture in picture to see ralph's visual frame
-
-3. action primitives to impolement:
- -  Look up/down/left/right
- - use x with y
- - drop (stop pick up)
- - pick up
- - sense
-   - add to senses: location in frustrum (x,y) 
-
-4. Step simulator action
- - move objects down if not on other objects
- - physics does next thing on queue (sequential list of things to do)
- - walk to
-
-# Improvements for the simulator
-
-- general module for loading components
+  - general module for loading components
   - representing spatial relations of containment (in) and surface contact (on)
   - allowing objects to be nested
   - generative parameter ranges (perhaps a distribution) to accommodate variance 
@@ -37,12 +21,12 @@
  
 
 ## Vision
-- consult with Pinto about 'vision' perceptual slot
+ - consult with Pinto about 'vision' perceptual slot
 
 
 ## Multi-client
-- experiment with builtin connection libraries
-- multiplayer/agent (use Panda3D libraries along with server)
+  - experiment with builtin connection libraries
+  - multiplayer/agent (use Panda3D libraries along with server)
 
 
 # Improvements for agent
@@ -53,8 +37,6 @@
  - decentralized detection of whether a critic goes on or off?
 
 # Improvements for Learning system
-
- - use intervaltree (could be list, as long as they are non-overlapping) to represent ranges of numeric values.  Right now, it (slightly uselessly) only recognizes a _larger_ number as a generalization of another. It can only find valid hypotheses **if all negative examples have numeric values that are strictly less than the lowest positive example's value**.  This is unrealistic, and we could represent numeric values as conjunctions of intervals (most general being (-inf,inf), of which there are infinite specializations -- requiring working: 
  - lazy hypothesis generation.  This is currently implemented, but was omitted because sometimes the first generated working hypotheses is invalidated by a second example.  
  - generalize to work with dictionaries (recursive structures)
 

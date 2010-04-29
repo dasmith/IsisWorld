@@ -102,7 +102,8 @@ class Command_Handler(object):
                 utterance = args['message']
             else:
                 return 'failure: need to define \'message\' slot for say command.'
-            return self.agent_simulator.agent.control__say(message)
+            self.agent_simulator.agent.control__say(utterance)
+            return 'success'
         elif cmd == 'step_simulation':
             seconds = 0.05
             if args.has_key('seconds'):

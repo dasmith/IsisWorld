@@ -2,7 +2,7 @@
 
 The IsisWorld simulator is available to researchers for building and evaluating problem solving and language learning systems with everyday problems that take place in a kitchen (on a campground?  house coming soon!).  Some documentation and arguments about theoretical underpinnings aimed toward the metareasoning community are available in this paper: 
  
-    * [An open source commonsense simulator for AI researchers](http://web.media.mit.edu/~dustin/simulator_metacog_@ai_2010.pdf).  Dustin Smith and Bo Morgan.  *Submitted to AAAI-10 Workshop on Metacognition*.
+   * [An open source commonsense simulator for AI researchers](http://web.media.mit.edu/~dustin/simulator_metacog_@ai_2010.pdf).  Dustin Smith and Bo Morgan.  *Submitted to AAAI-10 Workshop on Metacognition*.
     
 ## Improvements for the simulator
 

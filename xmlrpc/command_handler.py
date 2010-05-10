@@ -4,8 +4,6 @@ The object that handles commands received via xmlrpc
 Created Jan 23, 2010
 By Gleb Kuznetsov (glebk@mit.edu)
 '''
-from visual.visual_object import Visual_Object
-
 from pandac.PandaModules import VBase3
 
 class Command_Handler(object):
@@ -150,27 +148,29 @@ class Command_Handler(object):
             return 'command not recognized'
     
     def handle_pickup_action(pickup_array):
-        pass    
+        raise NotImplementedError, "handle_pickup_action through xmlrpc not implemented"    
 
      
     # teraforming methods 
     def handle_object(self, args):
         """ Do appropriate thing with object type command """
         def handle_add_object(object_array):
-            ''' Handles an object added to the world '''
-            id = 0 # default for now
-            name = object_array[0]
-            position = map(lambda(x): int(x), object_array[1:4])
-            if len(object_array) == 5:
-                model = object_array[4]
-            else: model = 'models/sphere'
-            vo = Visual_Object(id, name, position, model=model)
-            world_name = self.agent_simulator.put_object_in_world(vo)
-            return 'object added as: ' + world_name
+            
+            raise NotImplementedError, "handle_add_object through xmlrpc not implemented"
+            #''' Handles an object added to the world '''
+            #id = 0 # default for now
+            #name = object_array[0]
+            #position = map(lambda(x): int(x), object_array[1:4])
+            #if len(object_array) == 5:
+            #    model = object_array[4]
+            #else: model = 'models/sphere'
+            #vo = Visual_Object(id, name, position, model=model)
+            #world_name = self.agent_simulator.put_object_in_world(vo)
+            #return 'object added as: ' + world_name
 
         def handle_remove_object(object_name):
             ''' Remove object from world using object_name '''
-            return self.agent_simulator.remove_object_from_world(object_name)
+            raise NotImplementedError, "handle_remove_object through xmlrpc not implemented"
        
         # TODO: update to dict-style arguments
         object_array = args.split(' ')

@@ -168,23 +168,7 @@ class Ralph(odeKinematicCharacterController):
                     print o.getName(), object_dict
         return in_view
 
-    def enableInput(self):
-        inputState.watchWithModifiers("forward", "w")
-        inputState.watchWithModifiers("backward", "s")
-        inputState.watchWithModifiers("strafeLeft", "a")
-        inputState.watchWithModifiers("strafeRight", "d")
-        inputState.watchWithModifiers("run", "shift")
-        inputState.watchWithModifiers("crouch", "control")
 
-        """
-        We need to watch for both mouse3 and control-mouse3
-        because otherwise using objects when crouching would
-        be impossible.
-        """
-
-        self.accept("space", self.jump)
-        self.accept("f", self.toggleFlashlight)
-            
             
     def control__turn_left__start(self):
         self.setControl("turn_left",  1)

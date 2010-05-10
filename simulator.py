@@ -116,7 +116,7 @@ class IsisWorld(ShowBase):
         self.counter.setPosHpr(2,3,-2.51,0,0,0)
         self.counter.setScale(0.006)
         self.counterTop = self.counter#.find("**/ID60")
-        self.counterTop.showTightBounds()
+        #self.counterTop.showTightBounds()
         boundingBox, offset=getOBB(self.counterTop)
 
         counterGeom = OdeBoxGeom(self.worldManager.space,*boundingBox)
@@ -190,10 +190,12 @@ class IsisWorld(ShowBase):
         props.setTitle( 'IsisWorld v%s' % ISIS_VERSION )
         base.win.requestProperties( props )
         
+        # TODO: re-write these instructions
         text = "\n"
-        text += "IsisWorld\n"
-        text += "TODO: rewrite these instructions\n"
-        text += "\nPress [?] to hide/show this text\n"
+        text += "IsisWorld v%s\n" % (ISIS_VERSION)
+        text += "\n\n"
+        text += "\nPress [i] to hide/show this text\n"
+        text += "\n[o] lists objects in Ralph's f.o.v.\n"
         text += "\n[a,s,d,f] to move or zoom camera\n"
         text += "\n[Esc] to quit\n\n\n"
 
@@ -201,7 +203,7 @@ class IsisWorld(ShowBase):
         self.textObject = OnscreenText(
                 text = text,
                 fg = (.98, .9, .9, 1),
-                bg = (.1, .1, .1, 0.3),
+                bg = (.1, .1, .1, 0.8),
                 pos = (-1.2, .9),
                 scale = 0.04,
                 align = TextNode.ALeft,
@@ -244,7 +246,7 @@ class IsisWorld(ShowBase):
         # atomic actions
         base.accept("space",          self.ralph.control__jump,     [])
 
-        base.accept("?", hideText)
+        base.accept("i", hideText)
 
         # key input
         #self.accept("escape",         self.user_requests_quit)
@@ -289,7 +291,33 @@ class IsisWorld(ShowBase):
                 'body_p': p, 'body_r': r, 'neck_h':nh,'neck_p':np,'neck_r':nr, 'in_left_hand': left_hand_obj, 'in_right_hand':right_hand_obj}
 
     def get_agent_vision(self):
+        return []
+        # FIXME: this screenshot function causes a crash
+        def make_screenshot(widthPixels=100,heightPixels=100): 
+            tex=Texture() 
+            width=widthPixels*4 
+            height=heightPixels*4
+            mybuffer=base.win.makeTextureBuffer('ScreenShotBuff',width,height,tex,True)  
+            dis = mybuffer.makeDisplayRegion()
+            cam=Camera('ScreenShotCam') 
+            cam.setLens(self.ralph.fov.node().getLens().makeCopy()) 
+            cam.getLens().setAspectRatio(width/height) 
+            mycamera = base.makeCamera(mybuffer,useCamera=self.ralph.fov) 
+            myscene = base.render 
+            dis.setCamera(self.ralph.fov)
+            mycamera.node().setScene(myscene) 
+            print "a" 
+            base.graphicsEngine.renderFrame() 
+            print "a" 
+            tex = mybuffer.getTexture() 
+            print "a" 
+            mybuffer.setActive(False) 
+            print "a" 
+            tex.write("screenshots/ralph_screen_"+str(time())+".jpg")
+            print "a" 
+            base.graphicsEngine.removeWindow(mybuffer)
         # TODO: not yet implemented (needs to print out and read image from camera)
+        make_screenshot()
         return []# str(self.agent.fov.node().getCameraMask())
 
     def get_objects(self):

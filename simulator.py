@@ -138,7 +138,7 @@ class IsisWorld(ShowBase):
            """
            Add a counter to the room """
            
-           self.counter = loader.loadModel("./models/kitchen_models/counter")
+           self.counter = loader.loadModel("./models3/counter")
            self.counter.reparentTo(self.render)
            self.counter.setPosHpr(2.8,2,0,180,0,0)
            self.counter.setScale(0.59)

@@ -12,15 +12,15 @@ class DeliberativeRalph(CriticSelectorArchitecture):
 
     def __init__(self,*args,**kwargs):
         CriticSelectorArchitecture.__init__(self)
-       
+
         # define mental resources, components of selectors (including DifferenceEngines, LearnedDifferenceEngines) and critics
-        # 
+        #
         # since Lab 2, DifferencesEngines are (two parts):
         #  (1) conditions: return True if some difference does not exist (goal met), or description of difference
         #  (2) actions: given description of differece (diff), try to remove the difference:
         #     - actions return True when they are active (require continuation at next cognitive cycle)
         #     - upon success or when stuck, they return False.
-        
+
         def selector__react__looking_straight_ahead(resource):
             print "DE3-condition (head not aligned with body)"
             if abs(resource.mind.perceptions['position']['neck_p']) < 2:
@@ -41,7 +41,7 @@ class DeliberativeRalph(CriticSelectorArchitecture):
                 resource.mind.env.do('turn_right-stop')
                 resource.mind.env.do('turn_left-stop')
                 return False
-        
+
         def selector__react__has_in_center_of_view(resource,item='piece_of_toast'):
             print "DE2/DE4-(sub)condition (item in view)"
             if not resource.mind.perceptions['objects'].has_key(item):
@@ -65,7 +65,7 @@ class DeliberativeRalph(CriticSelectorArchitecture):
                 resource.mind.env.do('turn_right-stop')
                 resource.mind.env.do('turn_left-stop')
                 self.diff_eng__turn_body_to_look_straight_ahead.is_on = False
-                return False# we're done 
+                return False# we're done
             elif diff > 0.2:
                 #print "DE4-action (center in view): done, diff > 0.2."
                 resource.mind.env.do('look_right-start')
@@ -76,11 +76,11 @@ class DeliberativeRalph(CriticSelectorArchitecture):
                 return True
             #else:
                 #print "DE4-action (center in view): we'll be shut off soon."
-        
+
         def selector__react__has_in_view(resource, item='piece_of_toast'):
             print "DE1/DE5-condition (has item in view)"
             return resource.mind.perceptions['objects'].has_key(item)
-        
+
         def selector__react__is_within_reach(resource, item='piece_of_toast'):
             print "DE1/DE2-condition (can reach)"
             # if looking straight ahead at toast
@@ -103,7 +103,7 @@ class DeliberativeRalph(CriticSelectorArchitecture):
                 print "STOPPING MOVING"
                 resource.mind.env.do('move_forward-stop')
                 return False
-        
+
         def selector__react__pick_up_item_with_left_hand(resource,diff,item='piece_of_toast'):
             print "DE1-action (pick up item='piece_of_toast'), diff=",diff
             if diff == True:
@@ -130,7 +130,7 @@ class DeliberativeRalph(CriticSelectorArchitecture):
                 return True
             else:
                 return False
-        
+
         def selector__react__drop_item_in_left_hand(resource,diff):
             print "DE7-action (drop item from left hand), diff=",diff
             if diff == True:
@@ -154,7 +154,7 @@ class DeliberativeRalph(CriticSelectorArchitecture):
             else:
                 resource.mind.env.do('turn_right-stop')
                 return False # done
-        
+
         def selector__reflect__some_reactive_resource_is_active(resource):
             print "DE6-condition (?)"
             return len(filter(lambda d: d.is_on and d.is_active, resource.mind.reactive_resources))!=0
@@ -163,10 +163,10 @@ class DeliberativeRalph(CriticSelectorArchitecture):
             print "DE6-action (?)"
             if len(resource.mind.perceptions['objects'].keys()) != 0:
                 resource.mind.env.do('turn_left-stop')
-                return False 
+                return False
             else:
                 resource.mind.env.do('turn_left-start')
-                return True 
+                return True
 
         def critic__react__nothing_in_left_hand(resource):
             if resource.mind.perceptions['position']['in_left_hand'] == '':
@@ -188,19 +188,19 @@ class DeliberativeRalph(CriticSelectorArchitecture):
                 return True
             else:
                 return False
-        
+
         def critic__react__listen_for_drop_command(resource):
             if resource.mind.perceptions['language'].__contains__('drop'):
                 return True
             else:
                 return False
-        
+
         def critic__react__listen_for_pick_up_toast_command(resource):
             if resource.mind.perceptions['language'].__contains__('pick up toast'):
                 return True
             else:
                 return False
-        
+
         def diffeng__react__toast_in_left_hand(resource):
             if resource.mind.perceptions['position']['in_left_hand'] == 'piece_of_toast':
                 return True
@@ -220,9 +220,9 @@ class DeliberativeRalph(CriticSelectorArchitecture):
 
         #### "scripted find-and-pick up toast" mental resources, (improved version of Lab 1) ####
 
-        # Initialize difference engines 
+        # Initialize difference engines
         self.diff_eng__turn_body_to_look_straight_ahead                    = DifferenceEngine(self, selector__react__looking_straight_ahead, selector__react__align_body_with_head)
-        self.diff_eng__locate_toast_by_turning_head                        = DifferenceEngine(self, selector__react__has_in_view, selector__react__turn_body) 
+        self.diff_eng__locate_toast_by_turning_head                        = DifferenceEngine(self, selector__react__has_in_view, selector__react__turn_body)
         self.diff_eng__fixate_on_toast_by_moving_head                      = DifferenceEngine(self, selector__react__has_in_center_of_view, selector__react__center_in_view,\
                                                                                     [self.diff_eng__turn_body_to_look_straight_ahead,\
                                                                                      self.diff_eng__locate_toast_by_turning_head])
@@ -238,10 +238,10 @@ class DeliberativeRalph(CriticSelectorArchitecture):
                                                                                     [self.diff_eng__pick_up_piece_of_toast]))
         self.critic__pick_up_toast.is_on = False  # set to true to turn on "pick up toast"
 
-        
-        
+
+
         ####  "learning picking up toast preconditions" mental resources (Lab 2) ####
-        
+
         # This is the learning engine, which turns on _until_ it receives a positive example
         self.learning_to_pick_up_toast_diff_eng = self.add_reactive_resource(LearningDifferenceEngine(self, diffeng__react__toast_in_left_hand, diffeng__react__pick_up_toast))
         self.learning_to_pick_up_toast_diff_eng.is_on = False
@@ -256,20 +256,20 @@ class DeliberativeRalph(CriticSelectorArchitecture):
 
         # This Critic-Selector pair waits for someone to type "learn" into the terminal and
         # then turns on the learn-to-pick-up-toast difference engine
-        self.add_reactive_resource(Critic(self,critic__react__listen_for_teacher, [self.learning_to_pick_up_toast_diff_eng])).is_on = True 
+        self.add_reactive_resource(Critic(self,critic__react__listen_for_teacher, [self.learning_to_pick_up_toast_diff_eng])).is_on = True
         # this should be turned on by deliberative learning critic
-        
+
         # This Critic-Selector pair waits for someone to type "drop" into the terminal and
         # then turns on the drop-object-in-left-hand difference engine
-        self.add_reactive_resource(Critic(self,critic__react__listen_for_drop_command, [self.drop_item_in_left_hand_diff_eng])).is_on = True 
-        
+        self.add_reactive_resource(Critic(self,critic__react__listen_for_drop_command, [self.drop_item_in_left_hand_diff_eng])).is_on = True
+
         # This Critic-Selector pair waits for someone to type "pick up toast" into the terminal and
         # then turns on the pick-up-piece-of-toast difference engine
-        self.add_reactive_resource(Critic(self,critic__react__listen_for_pick_up_toast_command, [self.diff_eng__pick_up_piece_of_toast])).is_on = True 
+        self.add_reactive_resource(Critic(self,critic__react__listen_for_pick_up_toast_command, [self.diff_eng__pick_up_piece_of_toast])).is_on = True
 
-        
-        
-     
+
+
+
 # initialize the cog arch
 ralph = DeliberativeRalph(debug=False)
 
@@ -277,4 +277,3 @@ ralph = DeliberativeRalph(debug=False)
 # ralph.run(100,seconds=0.3)
 # run ralph forever
 ralph.run(0,seconds=0.3)
-

@@ -17,20 +17,20 @@ History:
 from som.arch import CriticSelectorArchitecture, DifferenceEngine, Critic, Selector
 
 class ReactiveRalph(CriticSelectorArchitecture):
-    """ Reactive Ralph has critic selector pairs for 
+    """ Reactive Ralph has critic selector pairs for
 
-       Upon initialization, it creates a connection with the XML-RPC server 
+       Upon initialization, it creates a connection with the XML-RPC server
     """
 
     def __init__(self,*args,**kwargs):
         CriticSelectorArchitecture.__init__(self,*args,**kwargs)
-       
+
         # define components of difference engines
         # conditions: return True if some difference does not exist (goal met), or description of difference
         # actions: given description of differece (diff), try to remove the difference:
         #   - actions return True when they are active (require continuation at next cognitive cycle)
         #   - upon success or when stuck, they return False.
-        
+
         def looking_straight_ahead(resource):
             print "DE3-condition (head not aligned with body)"
             if abs(resource.mind.perceptions['position']['neck_p']) < 2:
@@ -49,9 +49,9 @@ class ReactiveRalph(CriticSelectorArchitecture):
             else:
                 print "****** stopping turning ***"
                 resource.mind.env.do('turn_right-stop')
-                resource.mind.env.do('turn_left-stop') 
+                resource.mind.env.do('turn_left-stop')
                 return False
-        
+
         def has_in_center_of_view(resource,item='piece_of_toast'):
             print "DE2/DE4-(sub)condition (item in view)"
             if not resource.mind.perceptions['objects'].has_key(item):
@@ -77,12 +77,12 @@ class ReactiveRalph(CriticSelectorArchitecture):
                     # stop moving head
                     resource.mind.env.do('look_right-stop')
                     resource.mind.env.do('look_left-stop')
-                    return False# we're done 
-        
+                    return False# we're done
+
         def has_in_view(resource, item='piece_of_toast'):
             print "DE1/DE5-condition (has item in view)"
             return resource.mind.perceptions['objects'].has_key(item)
-        
+
         def is_within_reach(resource, item='piece_of_toast'):
             print "DE1/DE2-condition (can reach)"
             # if looking straight ahead at toast
@@ -104,7 +104,7 @@ class ReactiveRalph(CriticSelectorArchitecture):
                 print "STOPPING MOVING"
                 return False
                 resource.mind.env.do('move_forward-stop')
-        
+
         def pick_up_item_with_left_hand(resource,diff,item='piece_of_toast'):
             print "DE1-action (pick up item='piece_of_toast'), diff=",diff
             if diff == True:
@@ -122,7 +122,7 @@ class ReactiveRalph(CriticSelectorArchitecture):
             else:
                 resource.mind.env.do('turn_right-stop')
                 return False # done
-        
+
         def some_reactive_resource_is_active(resource):
             print "DE6-condition (?)"
             return len(filter(lambda d: d.is_on and d.is_active, resource.mind.reactive_resources))!=0
@@ -131,10 +131,10 @@ class ReactiveRalph(CriticSelectorArchitecture):
             print "DE6-action (?)"
             if len(resource.mind.perceptions['objects'].keys()) != 0:
                 resource.mind.env.do('turn_left-stop')
-                return False 
+                return False
             else:
                 resource.mind.env.do('turn_left-start')
-                return True 
+                return True
 
         def nothing_in_left_hand(resource):
             print 'CRITIC CALLED'
@@ -144,8 +144,8 @@ class ReactiveRalph(CriticSelectorArchitecture):
             else:
                 return False
 
-       
-        # initialize difference engines 
+
+        # initialize difference engines
         locate_toast_by_turning_head                             = DifferenceEngine(self, has_in_view, turn_body)
         fixate_on_toast_by_moving_head                           = DifferenceEngine(self, has_in_center_of_view, center_in_view, [locate_toast_by_turning_head])
         turn_body_to_look_straight_ahead                         = DifferenceEngine(self, looking_straight_ahead, align_body_with_head)
@@ -163,11 +163,11 @@ class ReactiveRalph(CriticSelectorArchitecture):
             return True
 
         #self.add_reflective_resource(Selector(self,debug_selector)).is_on = True
-        
+
         # end __init__()
-        
+
 ralph = ReactiveRalph(debug=True) # set debug=False to hide many output messagesFKJ<LeftMouse>K<LeftMouse>
 ralph.step()   # to step ralph once
 # ralph.run(1) # to step ralph once
-# ralph.run(2) # to run ralph 2x 
+# ralph.run(2) # to run ralph 2x
 # ralph.run()  # to run ralph indefinitely

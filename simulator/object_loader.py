@@ -168,8 +168,8 @@ def generate_object_file():
     knife = IsisObjectGenerator('knife', models={'default':'models/kitchen_models/knife'}, posHpr=(-1.0, 3.1, 3, 0, 0, 0), scale=0.01,mass=1)
     toaster = IsisObjectGenerator('toaster',models={'default': 'models/kitchen_models/toaster','with_bread': 'models/kitchen_models/toaster_with_bread'}, posHpr=(4.5,1,3,260,0,0), scale=0.7, mass=3)
     bread = IsisObjectGenerator('slice_of_bread',models={'default': 'models/kitchen_models/slice_of_bread'},scale=0.7,posHpr=(3,1,0,0,0,0), mass=0.8)
-    counter = IsisObjectGenerator('counter',models={'default': 'models/kitchen_models/counter'}, posHpr=(2, 1.8, -2.5, 180, 0, 0), scale=0.6, mass=200000)
-    objects = [counter,knife,toaster,bread]
+    #counter = IsisObjectGenerator('counter',models={'default': 'models3/counter'}, posHpr=(2, 1.8, -2.5, 180, 0, 0), scale=0.6, mass=200000)
+    objects = [knife,toaster,bread]
     # create and save YAML file
     of = open('objects.yaml','w')
     yaml.dump_all(objects,of, explicit_start=True)

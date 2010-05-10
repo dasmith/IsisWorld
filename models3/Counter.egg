@@ -1,10 +1,10 @@
 <CoordinateSystem> { y-up-left }
 
-<Texture> CounterClean { "maps/CounterClean.tif"
+<Texture> CounterClean { "textures/CounterClean.tif"
 	<Scalar> format { rgb }
 	<Scalar> wrap { repeat }
 }
-<Texture> FaucetTex { "maps/FaucetTex.tif"
+<Texture> FaucetTex { "textures/FaucetTex.tif"
 	<Scalar> format { rgb }
 	<Scalar> wrap { repeat }
 }

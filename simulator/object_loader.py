@@ -152,13 +152,13 @@ def load_objects_file():
 def load_objects_in_world(worldManager, renderParent):
     # add each object to the world
     iobjects = load_objects_file()
-    world_objects = []
+    world_objects = {}
     
     for iobj in sorted(iobjects,key=lambda x: x.density, reverse=True):
         # TODO: ensure name is unique
         if iobj.models.has_key('default'):
             mobj = iobj.generate_instance(worldManager, renderParent)
-            world_objects.append(mobj)
+            world_objects[iobj.name] = mobj
             print "Creating object %s" % (iobj.name) 
         else:
             print "No default model for object %s" % (iobj.name)

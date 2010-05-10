@@ -1,6 +1,6 @@
 
 #cp COPYING $(SIM_NAME)_$(SIM_VERSION)/
-SIM_VERSION=0.3.2
+SIM_VERSION=0.4
 SIM_NAME=isis_world
 tar: *.py
 	touch som/test.pyc
@@ -11,7 +11,7 @@ tar: *.py
 
 
 package:
-	packp3d -o isis_world.p3d -d . -m simulator.py -r morepy -e py -p xmlrpc -p som -c auto_start=1
+	packp3d -o isis_world.p3d -d . -m simulator.py -r morepy -e py -p xmlrpc -p simulator -p som -c auto_start=1
 
 
 build: package 

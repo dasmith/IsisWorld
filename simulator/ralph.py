@@ -24,6 +24,7 @@ from direct.interval.IntervalGlobal import *
 from direct.actor.Actor import Actor
 from direct.gui.DirectGui import DirectLabel
 from pandac.PandaModules import PandaNode,NodePath,Camera
+import math
 
 class Ralph(odeKinematicCharacterController):
     def __init__(self, worldManager, agentSimulator):
@@ -103,30 +104,45 @@ class Ralph(odeKinematicCharacterController):
 
 
     def get_objects(self):
-        """ Looks up all of the model nodes that are 'isInView' of the camera
-        and returns them in the in_view dictionary (as long as they are also
-        in the self.world_objects -- otherwise this includes points defined
-        within the environment/terrain). 
+        """ Looks up all of the model nodes that are 'isInView' of the camera"""
 
-        TODO:  1) include more geometric information about the object (size, mass, etc)
-        """
+        def project_carelessly(lens, point): 
+           ''' Similar to Lens.project(), but never returns None-- returning
+           inverted image when object is BEHIND camera
+           
+           code from https://www.panda3d.org/phpbb2/viewtopic.php?p=20245 ''' 
 
-        def map3dToAspect2d(node, point):
-            """Maps the indicated 3-d point (a Point3), which is relative to 
-            the indicated NodePath, to the corresponding point in the aspect2d 
-            scene graph. Returns the corresponding Point3 in aspect2d. 
-            Returns None if the point is not onscreen. """ 
-            # Convert the point to the 3-d space of the camera 
-            p3 = self.fov.getRelativePoint(node, point) 
+           projection_mat = lens.getProjectionMat() 
+           full = projection_mat.xform( VBase4(point[0], point[1], point[2], 1.0) ) 
+           if full[3] == 0.0: 
+              # There is no meaningful projection for the nodal point of the lens. 
+              # So return a value that is Very Far Away. 
+              return (1000000.0, 1000000.0, -1000000.0) 
 
-            # Convert it through the lens to render2d coordinates 
-            p2 = Point2()
-            if not self.fov.node().getLens().project(p3, p2):
-                return None 
-            r2d = Point3(p2[0], 0, p2[1])
-            # And then convert it to aspect2d coordinates 
-            a2d = aspect2d.getRelativePoint(render2d, r2d)
-            return a2d
+           recip_full3 = 1.0 / full[3] 
+           return (full[0] * recip_full3, 
+                   full[1] * recip_full3, 
+                   full[2] * recip_full3) 
+
+        def map3dToAspect2d(node, point): 
+           """Maps the indicated 3-d point (a Point3), which is relative to 
+              the indicated NodePath, to the corresponding point in the aspect2d 
+              scene graph. Returns the corresponding Point3 in aspect2d. 
+              Returns None if the point is not onscreen. """ 
+
+           # Convert the point to the 3-d space of the camera 
+           p3 = self.fov.getRelativePoint(node, point) 
+
+           # Convert from camera 3d space to camera 2d space. 
+           # Manual override. 
+           p2 = project_carelessly(self.fov.node().getLens(), p3) 
+
+           r2d = Point3(p2[0], 0, p2[1]) 
+
+           # And then convert it to aspect2d coordinates 
+           a2d = aspect2d.getRelativePoint(render2d, r2d) 
+
+           return a2d
 
         objs = render.findAllMatches("**/+ModelNode")
         in_view = {}
@@ -165,8 +181,6 @@ class Ralph(odeKinematicCharacterController):
         because otherwise using objects when crouching would
         be impossible.
         """
-        #self.accept("mouse3", self.useAimed)
-        #self.accept("control-mouse3", self.useAimed)
 
         self.accept("space", self.jump)
         self.accept("f", self.toggleFlashlight)

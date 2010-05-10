@@ -4,10 +4,9 @@ from pandac.PandaModules import loadPrcFileData
 loadPrcFileData("", "sync-video 0")
 loadPrcFileData("", "win-size 800 600")
 loadPrcFileData("", "textures-power-2 none") 
-loadPrcFileData("", "basic-shaders-only f")
+#loadPrcFileData("", "basic-shaders-only f")
 
 from direct.showbase.ShowBase import ShowBase
-
 from random import randint, random
 import sys
 from direct.gui.OnscreenText import OnscreenText
@@ -22,6 +21,9 @@ from simulator.odeWorldManager import *
 from simulator.door import *
 from simulator.ralph import *
 from simulator.object_loader import *
+from xmlrpc.xmlrpc_server import HomeSim_XMLRPC_Server
+from xmlrpc.command_handler import Command_Handler
+import threading
 
 ISIS_VERSION = 0.4
 
@@ -51,7 +53,16 @@ class IsisWorld(ShowBase):
         self.world_objects = load_objects_in_world(self.worldManager,self.room)
         # start simulation
         self.worldManager.startSimulation()
-    
+        # start server
+        # xmlrpc server command handler
+        xmlrpc_command_handler = Command_Handler(self)
+	
+        # xmlrpc server
+        self.server_object = HomeSim_XMLRPC_Server()
+        self.server = self.server_object.server
+        self.server.register_function(xmlrpc_command_handler.command_handler,'do')
+        self.server_thread = threading.Thread(group=None, target=self.server.serve_forever, name='xmlrpc')
+        self.server_thread.start()
         
     def timeUpdated(self, task):
         self.skydomeNP.skybox.setShaderInput('time', task.time)
@@ -59,122 +70,78 @@ class IsisWorld(ShowBase):
  
  
     def setupMap(self):
-           # GROUND
+        # GROUND
+        cm = CardMaker("ground")
+        groundTexture = loader.loadTexture("textures/env_ground.jpg")
+        cm.setFrame(-100, 100, -100, 100)
+        groundNP = render.attachNewNode(cm.generate())
+        groundNP.setTexture(groundTexture)
+        groundNP.setPos(0, 0, 0)
+        groundNP.lookAt(0, 0, -1)
+        #groundNP.setAlphaScale(0.5)
+        groundNP.setTransparency(TransparencyAttrib.MAlpha)
+        groundGeom = OdePlaneGeom(self.worldManager.space, Vec4(0, 0, 1, 0))
+        groundGeom.setCollideBits(BitMask32(0x00000021))
+        groundGeom.setCategoryBits(BitMask32(0x00000012))
+        groundData = odeGeomData()
+        groundData.name = "ground"
+        groundData.surfaceFriction = 2.0
+        self.worldManager.setGeomData(groundGeom, groundData, None)
 
-           cm = CardMaker("ground")
-           groundTexture = loader.loadTexture("textures/env_ground.jpg")
-           cm.setFrame(-100, 100, -100, 100)
-           groundNP = render.attachNewNode(cm.generate())
-           groundNP.setTexture(groundTexture)
-           groundNP.setPos(0, 0, 0)
-           groundNP.lookAt(0, 0, -1)
-           #groundNP.setAlphaScale(0.5)
-           groundNP.setTransparency(TransparencyAttrib.MAlpha)
-           groundGeom = OdePlaneGeom(self.worldManager.space, Vec4(0, 0, 1, 0))
-           groundGeom.setCollideBits(BitMask32(0x00000021))
-           groundGeom.setCategoryBits(BitMask32(0x00000012))
-           groundData = odeGeomData()
-           groundData.name = "ground"
-           groundData.surfaceFriction = 2.0
-           self.worldManager.setGeomData(groundGeom, groundData, None)
-           
-           self.skydomeNP = skydome2.SkyDome2(render)
-           self.skydomeNP.setStandardControl()
-           self.skydomeNP.att_skycolor.setColor(Vec4(0.3,0.3,0.3,1))
-           self.skydomeNP.setPos(Vec3(0,0,-500))
-
-           if False:
-               # this was an attempt at a sun, which isn't working.
-               cm = CardMaker('card') 
-               sun = render.attachNewNode(cm.generate()) 
-               sun.setBillboardPointWorld() 
-               sun_tex = loader.loadTexture("textures/circlex.png") 
-               sun.setTexture(sun_tex) 
-               sun.setTransparency(TransparencyAttrib.MBinary) 
-               sun.setPos(-2,500, 90) 
-               sun.setScale(50, 50, 50) 
-
-               fltr = CommonFilters(base.win, base.cam) 
-               fltr.setBloom(blend=(0.3, 0.4, 0.3, 0.0), mintrigger=0.6, maxtrigger=7.0, desat=5.6, intensity=10.0, size="big") 
-
-               dc=0.5 
-               up=True 
-               def vlght_upd(task): 
-                   global dc 
-                   global up 
-
-                   if dc>=1.000 and up==True: 
-                       up=False 
-                   elif dc<=.5 and up ==False: 
-                       up=True 
-
-                   if up==True: 
-                       dc += 0.001 
-                   else: 
-                       dc -= 0.001 
+        self.skydomeNP = skydome2.SkyDome2(render)
+        self.skydomeNP.setStandardControl()
+        self.skydomeNP.att_skycolor.setColor(Vec4(0.3,0.3,0.3,1))
+        self.skydomeNP.setPos(Vec3(0,0,-500))
 
 
-                   fltr.setVolumetricLighting(sun, 64, 0.5, dc, 0.05) 
-                   return task.again 
+        """
+        Get the map's panda node. This will allow us to find the objects
+        that the map consists of.
+        """
+        #self.mapNode = self.env.find("**/Ground")
+        self.map = loader.loadModel("./models3/kitchen")
+        self.map.reparentTo(render)
+        self.mapNode = self.map.find("-PandaNode")
+        self.room = self.mapNode.find("Wall")
+        roomGeomData = OdeTriMeshData(self.room, True)
+        roomGeom = OdeTriMeshGeom(self.worldManager.space, roomGeomData)
+        roomGeom.setPosition(self.room.getPos(render))
+        roomGeom.setQuaternion(self.room.getQuat(render))
+        self.worldManager.setGeomData(roomGeom, groundData, False)
+        """
+        Add a counter to the room """
 
-               upd_vlght = taskMgr.doMethodLater(0.03, vlght_upd, 'woo!')
+        self.counter = loader.loadModel("./models3/table/table")
+        self.counter.reparentTo(self.room)
+        self.counter.setPosHpr(2,3,-2.51,0,0,0)
+        self.counter.setScale(0.006)
+        self.counterTop = self.counter#.find("**/ID60")
+        self.counterTop.showTightBounds()
+        boundingBox, offset=getOBB(self.counterTop)
+
+        counterGeom = OdeBoxGeom(self.worldManager.space,*boundingBox)
+        counterGeom.setPosition(self.counterTop.getPos(render))
+        counterGeom.setQuaternion(self.counterTop.getQuat(render))
+        self.worldManager.setGeomData(counterGeom, groundData, False)
 
 
+        """
+        Steps is yet another part of the map.
+        Meant, obviously, to demonstrate the ability to climb stairs.
+        """
+        self.steps = self.mapNode.find("Steps")
+        stepsGeomData = OdeTriMeshData(self.steps, True)
+        stepsGeom = OdeTriMeshGeom(self.worldManager.space, stepsGeomData)
+        stepsGeom.setPosition(self.steps.getPos(render))
+        stepsGeom.setQuaternion(self.steps.getQuat(render))
+        self.worldManager.setGeomData(stepsGeom, groundData, None)
 
-           """
-           Get the map's panda node. This will allow us to find the objects
-           that the map consists of.
-           """
-           #self.mapNode = self.env.find("**/Ground")
-           self.map = loader.loadModel("./models3/kitchen")
-           self.map.reparentTo(render)
-           self.mapNode = self.map.find("-PandaNode")
-           self.room = self.mapNode.find("Wall")
-           roomGeomData = OdeTriMeshData(self.room, True)
-           roomGeom = OdeTriMeshGeom(self.worldManager.space, roomGeomData)
-           roomGeom.setPosition(self.room.getPos(render))
-           roomGeom.setQuaternion(self.room.getQuat(render))
-           self.worldManager.setGeomData(roomGeom, groundData, False)
-           """
-           Add a counter to the room """
-           
-           self.counter = loader.loadModel("./models3/table/table")
-           self.counter.reparentTo(self.room)
-           #self.counter.setPosHpr(0,2,0,0,0,0)
-           #self.counter.setScale(0.07)
-           self.counter.setPosHpr(2,3,-2.51,0,0,0)
-           self.counter.setScale(0.006)
-           self.counterTop = self.counter#.find("**/ID60")
-           self.counterTop.showTightBounds()
-           boundingBox, offset=getOBB(self.counterTop)
-           #counterGeom = OdePlaneGeom(self.worldManager.space, Vec4(0, 0, 1, 0))
-           #counterGeom = OdeTriMeshGeom(self.worldManager.space,OdeTriMeshData(self.counterTop,True))
-           
-           counterGeom = OdeBoxGeom(self.worldManager.space,*boundingBox)
-           counterGeom.setPosition(self.counterTop.getPos(render))
-           counterGeom.setQuaternion(self.counterTop.getQuat(render))
-
-           
-           self.worldManager.setGeomData(counterGeom, groundData, False)
-           
-           
-           """
-           Steps is yet another part of the map.
-           Meant, obviously, to demonstrate the ability to climb stairs.
-           """
-           self.steps = self.mapNode.find("Steps")
-           stepsGeomData = OdeTriMeshData(self.steps, True)
-           stepsGeom = OdeTriMeshGeom(self.worldManager.space, stepsGeomData)
-           stepsGeom.setPosition(self.steps.getPos(render))
-           stepsGeom.setQuaternion(self.steps.getQuat(render))
-           self.worldManager.setGeomData(stepsGeom, groundData, None)
-
-           """
-           Door functionality is also provided here.
-           More on door in the appropriate file.
-           """
-           self.door = self.mapNode.find("Door")
-           self.myDoor = door(self.worldManager, self.door)
+        """
+        Door functionality is also provided here.
+        More on door in the appropriate file.
+        """
+        self.door = self.mapNode.find("Door")
+        self.myDoor = door(self.worldManager, self.door)
 
         
     def setupCameras(self):
@@ -211,6 +178,12 @@ class IsisWorld(ShowBase):
         render.clearLight()
         render.setLight(alightNP)
         render.setLight(dlightNP)
+
+    def setupAgent(self):
+        self.ralph = Ralph(self.worldManager, self)
+        self.ralph.actor.setH(180)
+        self.ralph.setGeomPos(Vec3(-1,0,0))
+        self.ralph.control__say("Hi, I'm Ralph. Please build me.")
         
     def setupControls(self):
         props = WindowProperties( )
@@ -220,15 +193,15 @@ class IsisWorld(ShowBase):
         text = "\n"
         text += "IsisWorld\n"
         text += "TODO: rewrite these instructions\n"
-        text += "\nPress [H] to hide/show this text\n"
+        text += "\nPress [?] to hide/show this text\n"
         text += "\n[a,s,d,f] to move or zoom camera\n"
         text += "\n[Esc] to quit\n\n\n"
 
         self.textObjectVisisble = True
         self.textObject = OnscreenText(
                 text = text,
-                fg = (.98, .63, .80, 1),
-                bg = (.1, .1, .1, 0.5),
+                fg = (.98, .9, .9, 1),
+                bg = (.1, .1, .1, 0.3),
                 pos = (-1.2, .9),
                 scale = 0.04,
                 align = TextNode.ALeft,
@@ -271,25 +244,23 @@ class IsisWorld(ShowBase):
         # atomic actions
         base.accept("space",          self.ralph.control__jump,     [])
 
-        base.accept("H", hideText)
+        base.accept("?", hideText)
 
         # key input
         #self.accept("escape",         self.user_requests_quit)
         #self.accept("space",          self.step_simulation, [.1]) # argument is amount of second to advance
-        self.accept("o",               self.ralph.get_objects, []) # displays objects in field of view
+        self.accept("o",               self.print_objects, []) # displays objects in field of view
         #self.accept("p",              self.toggle_paused)
         #self.accept("r",              self.reset_simulation)
 
         self.teacher_utterances = [] # last message typed
         # main dialogue box
         def disable_keys(x):
-            # print "disabling"
             x.command_box.enterText("")
             x.command_box.suppressKeys=True
             x.command_box["frameColor"]=(0.631, 0.219, 0.247,1)
 
         def enable_keys(x):
-            # print "enabling"
             x.command_box["frameColor"]=(0.631, 0.219, 0.247,.25)
             x.command_box.suppressKeys=False
 
@@ -302,11 +273,42 @@ class IsisWorld(ShowBase):
         base.win.setClearColor(Vec4(0,0,0,1))
 
 
-    def setupAgent(self):
-        self.ralph = Ralph(self.worldManager, self)
-        self.ralph.actor.setH(180)
-        self.ralph.setGeomPos(Vec3(-1,0,0))
-        self.ralph.control__say("Hi, I'm Ralph. Please build me.")
+    def get_camera_position(self):
+        print base.camera.getPos()
+        print base.camera.getHpr()
+
+    def get_agent_position(self):
+        x,y,z = self.ralph.actor.getPos()
+        h,p,r = self.ralph.actor.getHpr()
+        nh,np,nr = self.ralph.actor_neck.getHpr()
+        left_hand_obj = "" 
+        right_hand_obj = "" 
+        if self.agent.left_hand_holding_object:  left_hand_obj = self.ralph.left_hand_holding_object.getName()
+        if self.agent.right_hand_holding_object: right_hand_obj = self.ralph.right_hand_holding_object.getName()
+        return {'body_x': x, 'body_y': y, 'body_z': z,'body_h':h,\
+                'body_p': p, 'body_r': r, 'neck_h':nh,'neck_p':np,'neck_r':nr, 'in_left_hand': left_hand_obj, 'in_right_hand':right_hand_obj}
+
+    def get_agent_vision(self):
+        # TODO: not yet implemented (needs to print out and read image from camera)
+        return []# str(self.agent.fov.node().getCameraMask())
+
+    def get_objects(self):
+        return self.ralph.get_objects()
+
+    def get_utterances(self):
+        """ Clear out the buffer of things that the teacher has typed,
+        FIXME: perpahs these should be timestamped if they are not 
+         at the right time? """
+        utterances = self.teacher_utterances
+        self.teacher_utterances = []
+        return utterances
+
+
+    def print_objects(self):
+        text = "Objects in FOV: "+ ", ".join(self.get_objects().keys())
+        print text
+
+
             
             
    

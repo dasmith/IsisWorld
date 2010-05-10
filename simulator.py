@@ -48,7 +48,7 @@ class IsisWorld(ShowBase):
         taskMgr.add(self.timeUpdated, "timeUpdated")
         
         # load objects
-        self.objects = load_objects_in_world(self.worldManager,self.room)
+        self.world_objects = load_objects_in_world(self.worldManager,self.room)
         # start simulation
         self.worldManager.startSimulation()
     
@@ -134,31 +134,28 @@ class IsisWorld(ShowBase):
            roomGeom = OdeTriMeshGeom(self.worldManager.space, roomGeomData)
            roomGeom.setPosition(self.room.getPos(render))
            roomGeom.setQuaternion(self.room.getQuat(render))
-           self.worldManager.setGeomData(roomGeom, groundData, None)
+           self.worldManager.setGeomData(roomGeom, groundData, False)
            """
            Add a counter to the room """
            
-           self.counter = loader.loadModel("./models3/counter")
-           self.counter.reparentTo(self.render)
-           self.counter.setPosHpr(2.8,2,0,180,0,0)
-           self.counter.setScale(0.59)
-           #self.counter.place()
-           self.counterTop = self.counter.find("**/top")
+           self.counter = loader.loadModel("./models3/table/table")
+           self.counter.reparentTo(self.room)
+           #self.counter.setPosHpr(0,2,0,0,0,0)
+           #self.counter.setScale(0.07)
+           self.counter.setPosHpr(2,3,-2.51,0,0,0)
+           self.counter.setScale(0.006)
+           self.counterTop = self.counter#.find("**/ID60")
            self.counterTop.showTightBounds()
            boundingBox, offset=getOBB(self.counterTop)
-           print offset
+           #counterGeom = OdePlaneGeom(self.worldManager.space, Vec4(0, 0, 1, 0))
            #counterGeom = OdeTriMeshGeom(self.worldManager.space,OdeTriMeshData(self.counterTop,True))
+           
            counterGeom = OdeBoxGeom(self.worldManager.space,*boundingBox)
            counterGeom.setPosition(self.counterTop.getPos(render))
            counterGeom.setQuaternion(self.counterTop.getQuat(render))
+
            
-           counterGeom.setCollideBits(BitMask32(0x00000021))
-           counterGeom.setCategoryBits(BitMask32(0x00000012))
-           #counterGeom.setCollideBits(BitMask32(0x00000002))
-           #counterGeom.setCategoryBits(BitMask32(0x00000001))
-           #counterGeom.setBody(boxBody)
-           
-           self.worldManager.setGeomData(counterGeom, groundData, None)
+           self.worldManager.setGeomData(counterGeom, groundData, False)
            
            
            """
@@ -230,7 +227,7 @@ class IsisWorld(ShowBase):
         self.textObjectVisisble = True
         self.textObject = OnscreenText(
                 text = text,
-                fg = (.98, .63, .20, 1),
+                fg = (.98, .63, .80, 1),
                 bg = (.1, .1, .1, 0.5),
                 pos = (-1.2, .9),
                 scale = 0.04,
@@ -279,7 +276,7 @@ class IsisWorld(ShowBase):
         # key input
         #self.accept("escape",         self.user_requests_quit)
         #self.accept("space",          self.step_simulation, [.1]) # argument is amount of second to advance
-        #self.accept("o",              self.print_objects) # displays objects in field of view
+        self.accept("o",               self.ralph.get_objects, []) # displays objects in field of view
         #self.accept("p",              self.toggle_paused)
         #self.accept("r",              self.reset_simulation)
 

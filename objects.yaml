@@ -1,21 +1,21 @@
 --- !IsisObjectGenerator
-mass: 1
-models: {default: models/kitchen_models/knife}
+density: 10000
+models: {default: models3/knife}
 name: knife
-posHpr: !!python/tuple [-1.0, 3.1000000000000001, 0, 0, 0, 0]
+posHpr: !!python/tuple [0.0, 3.1000000000000001, 0, 0, 0, 0]
 scale: 0.01
 states: []
 --- !IsisObjectGenerator
-mass: 3
+density: 9000
 models: {default: models/kitchen_models/toaster, with_bread: models/kitchen_models/toaster_with_bread}
 name: toaster
-posHpr: !!python/tuple [4.5, 1, 0, 260, 0, 0]
+posHpr: !!python/tuple [2.5, 2.5, 0, 260, 0, 0]
 scale: 0.69999999999999996
 states: []
 --- !IsisObjectGenerator
-mass: 0.80000000000000004
+density: 4000
 models: {default: models/kitchen_models/slice_of_bread}
 name: slice_of_bread
-posHpr: !!python/tuple [3, 1, 0, 0, 0, 0]
+posHpr: !!python/tuple [0, 2.5, 0, 0, 0, 0]
 scale: 0.69999999999999996
 states: []

@@ -17,7 +17,7 @@ except:
 
 class IsisObject(DirectObject):
     
-    def  __init__(self, worldManager, activeModel, models, states=[], mass=1):
+    def  __init__(self, worldManager, activeModel, models, states=[], density=2000):
         self.state = "close"
         self.speed = 15
 
@@ -26,30 +26,35 @@ class IsisObject(DirectObject):
         self.models = models
         
         self.NP = activeModel
-        boundingBox, offset = getOBB(self.NP)
         self.InitialHpr = self.NP.getHpr()
-        boxBody = OdeBody(worldManager.world)
+        
+        # set up physical body
+        boundingBox, offset = getOBB(self.NP)
+
         M = OdeMass()
-        M.setBox(mass, *boundingBox) # mass should be density
-        boxBody.setMass(M)
-        boxBody.setPosition(self.NP.getPos(render))
-        boxBody.setQuaternion(self.NP.getQuat(render))
+        # water has density of 1000 (kg/m^3)
+        # copper between 8920 and 8960 
+        # 11340 is lead
+        M.setBox(density, *boundingBox) # density should be density
+        
+        self.body = OdeBody(worldManager.world)
+        self.body.setMass(M)
+        self.body.setPosition(self.NP.getPos(render))
+        self.body.setQuaternion(self.NP.getQuat(render))
         # Create a BoxGeom
         self.geom = OdeBoxGeom(self.worldManager.space,*boundingBox)
         self.geom.setCollideBits(BitMask32(0x00000002))
         self.geom.setCategoryBits(BitMask32(0x00000001))
-        self.geom.setBody(boxBody)
+        self.geom.setBody(self.body)
     
         self.data = odeGeomData()
         self.data.name = self.NP.getName()
         self.data.surfaceFriction = 15.0
         self.data.selectionCallback = self.select
 
-        self.worldManager.setGeomData(self.geom, self.data, self, False)
+        self.worldManager.setGeomData(self.geom, self.data, self, True)
         #if self.data.name == "knife": self.NP.place()
         
-    def setPosQuat(self,x,a,b):
-        return self.NP.setPosQuat(a,b)
         
     def select(self, character, direction):
         if self.state == "close":
@@ -105,25 +110,20 @@ class IsisObject(DirectObject):
         animated Panda Node. This method is what makes our object
         a kinematic one.
         """
-        #print "Called update for", self.data.name
-        quat = self.NP.getQuat(render)
-        pos = self.NP.getPos(render)
-
-        self.geom.setPosition(pos)
-        self.geom.setQuaternion(quat)
+        self.NP.setPosQuat(render, self.body.getPosition(), Quat(self.body.getQuaternion()))
 
 
 
 class IsisObjectGenerator(yaml.YAMLObject):
     yaml_tag = u'!IsisObjectGenerator'
-    def __init__(self, name, models, posHpr=(0,0,0,0,0,0), states = [], scale=1, mass=1):
+    def __init__(self, name, models, posHpr=(0,0,0,0,0,0), states = [], scale=1, density=1):
         """ This defines a generator object from which instances are derived."""
         self.name = name
         self.posHpr = posHpr # default position and orientation
         self.states = states 
         self.models = models 
         self.scale = scale
-        self.mass = mass
+        self.density = density
    
     def generate_instance(self, worldManager, renderParent, options={}):
         """ Generates a new object and adds it to the world"""
@@ -134,11 +134,11 @@ class IsisObjectGenerator(yaml.YAMLObject):
         active_model.setScale(self.scale)
         active_model.setPosHpr(*self.posHpr)
         
-        new_obj = IsisObject(worldManager, active_model, self.models, self.states, self.mass)
+        new_obj = IsisObject(worldManager, active_model, self.models, self.states, self.density)
         return new_obj
 
     def __repr__(self):
-        return "%s(name=%r, posHpr=%r, states=%r, models=%r, scale=%r, mass=%r)" % (self.__class__.__name__, self.name, self.posHpr, self.states, self.models, self.scale, self.mass)
+        return "%s(name=%r, posHpr=%r, states=%r, models=%r, scale=%r, density=%r)" % (self.__class__.__name__, self.name, self.posHpr, self.states, self.models, self.scale, self.density)
 
 
 def load_objects_file():
@@ -154,7 +154,7 @@ def load_objects_in_world(worldManager, renderParent):
     iobjects = load_objects_file()
     world_objects = []
     
-    for iobj in sorted(iobjects,key=lambda x: x.mass, reverse=True):
+    for iobj in sorted(iobjects,key=lambda x: x.density, reverse=True):
         # TODO: ensure name is unique
         if iobj.models.has_key('default'):
             mobj = iobj.generate_instance(worldManager, renderParent)
@@ -165,10 +165,10 @@ def load_objects_in_world(worldManager, renderParent):
     return world_objects    
     
 def generate_object_file():
-    knife = IsisObjectGenerator('knife', models={'default':'models/kitchen_models/knife'}, posHpr=(-1.0, 3.1, 3, 0, 0, 0), scale=0.01,mass=1)
-    toaster = IsisObjectGenerator('toaster',models={'default': 'models/kitchen_models/toaster','with_bread': 'models/kitchen_models/toaster_with_bread'}, posHpr=(4.5,1,3,260,0,0), scale=0.7, mass=3)
-    bread = IsisObjectGenerator('slice_of_bread',models={'default': 'models/kitchen_models/slice_of_bread'},scale=0.7,posHpr=(3,1,0,0,0,0), mass=0.8)
-    #counter = IsisObjectGenerator('counter',models={'default': 'models3/counter'}, posHpr=(2, 1.8, -2.5, 180, 0, 0), scale=0.6, mass=200000)
+    knife = IsisObjectGenerator('knife', models={'default':'models/kitchen_models/knife'}, posHpr=(-1.0, 3.1, 0, 0, 0, 0), scale=0.01,density=10000)
+    toaster = IsisObjectGenerator('toaster',models={'default': 'models/kitchen_models/toaster','with_bread': 'models/kitchen_models/toaster_with_bread'}, posHpr=(4.5,1,0,260,0,0), scale=0.7, density=5000)
+    bread = IsisObjectGenerator('slice_of_bread',models={'default': 'models/kitchen_models/slice_of_bread'},scale=0.7,posHpr=(3,1,0,0,0,0), density=1000)
+    #counter = IsisObjectGenerator('counter',models={'default': 'models3/counter'}, posHpr=(2, 1.8, -2.5, 180, 0, 0), scale=0.6, density=200000)
     objects = [knife,toaster,bread]
     # create and save YAML file
     of = open('objects.yaml','w')

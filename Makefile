@@ -11,7 +11,7 @@ tar: *.py
 
 
 package:
-	packp3d -o isis_world.p3d -d . -m simulator.py -r morepy -e py -p xmlrpc -p simulator -p som -c auto_start=1
+	packp3d -o isis_world.p3d -r ode -r morepy -d . -m simulator.py  -e py -p xmlrpc -p simulator -p som -c auto_start=1
 
 
 build: package 

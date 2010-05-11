@@ -446,8 +446,9 @@ class Ralph(odeKinematicCharacterController):
 
         Note the usage of the doRaycast method from the odeWorldManager.
         """
-        dir = render.getRelativeVector(base.cam, Vec3(0, 1.0, 0))
-        pos = base.cam.getPos(render)
+        dir = render.getRelativeVector(self.fov, Vec3(0, 1.0, 0))
+        pos = self.actor.getPos() 
+        print "relative vector", pos
         self.aimRay.set(pos, dir)
 
         # raycast

@@ -8,12 +8,6 @@ from pandac.PandaModules import BitMask32, CardMaker, Vec4, Quat
 from random import randint, random
 import sys, re, time
 
-try:
-    import yaml
-except:
-    print "YAML not installed"
-    sys.exit()
-
 
 class IsisObject(DirectObject):
     
@@ -114,8 +108,8 @@ class IsisObject(DirectObject):
 
 
 
-class IsisObjectGenerator(yaml.YAMLObject):
-    yaml_tag = u'!IsisObjectGenerator'
+class IsisObjectGenerator():
+   # yaml_tag = u'!IsisObjectGenerator'
     def __init__(self, name, models, posHpr=(0,0,0,0,0,0), states = [], scale=1, density=1):
         """ This defines a generator object from which instances are derived."""
         self.name = name
@@ -142,47 +136,51 @@ class IsisObjectGenerator(yaml.YAMLObject):
 
 
 def load_objects_file():
-    try:
-        objects = yaml.load_all(open('objects.yaml','r'))
-    except:
-        print "Cannot open 'objects.yml' file."
-    return objects
-    #return (IsisObject(*o) for o in objects)
+    return map(lambda x: x.strip(), open('kitchen.isis','r').readlines())
+    
 
 def load_objects_in_world(worldManager, renderParent):
     # add each object to the world
-    iobjects = load_objects_file()
+    world_generator_instructions = load_objects_file()
+    generators = load_object_generators()
     world_objects = {}
     
-    for iobj in sorted(iobjects,key=lambda x: x.density, reverse=True):
-        # TODO: ensure name is unique
-        if iobj.models.has_key('default'):
-            mobj = iobj.generate_instance(worldManager, renderParent)
-            world_objects[iobj.name] = mobj
-            print "Creating object %s" % (iobj.name) 
+    for instruction in world_generator_instructions:
+        item = instruction.split("\t")[0]
+        
+        if generators.has_key(item):
+            mobj = generators[item].generate_instance(worldManager,renderParent)
+            world_objects[item] = mobj
+            print "Creating object %s" % (item) 
         else:
-            print "No default model for object %s" % (iobj.name)
+            print "No default model for object %s" % (item)
     return world_objects    
     
-def generate_object_file():
-    knife = IsisObjectGenerator('knife', models={'default':'models/kitchen_models/knife'}, posHpr=(-1.0, 3.1, 0, 0, 0, 0), scale=0.01,density=10000)
-    toaster = IsisObjectGenerator('toaster',models={'default': 'models/kitchen_models/toaster','with_bread': 'models/kitchen_models/toaster_with_bread'}, posHpr=(4.5,1,0,260,0,0), scale=0.7, density=5000)
-    bread = IsisObjectGenerator('slice_of_bread',models={'default': 'models/kitchen_models/slice_of_bread'},scale=0.7,posHpr=(3,1,0,0,0,0), density=1000)
-    #counter = IsisObjectGenerator('counter',models={'default': 'models3/counter'}, posHpr=(2, 1.8, -2.5, 180, 0, 0), scale=0.6, density=200000)
-    objects = [knife,toaster,bread]
-    # create and save YAML file
-    of = open('objects.yaml','w')
-    yaml.dump_all(objects,of, explicit_start=True)
-    
-    #new_object = Visual_Object(0, 'toaster_with_bread', posHpr, model='models/kitchen_models/toaster_with_bread')
-    #new_object = Visual_Object(0, 'loaf_of_bread', posHpr, model='models/kitchen_models/loaf_of_bread')
-   
+def load_object_generators():
+    generators = {'knife': IsisObjectGenerator('knife', models={'default':'models3/knife'}, posHpr=(-1.0, 3.1, 0, 0, 0, 0), scale=0.01,density=10000),
+    'toaster': IsisObjectGenerator('toaster',models={'default': 'models/kitchen_models/toaster','with_bread': 'models/kitchen_models/toaster_with_bread'}, posHpr=(4.5,3.1,0,260,0,0), scale=0.7, density=5000),
+    'bread': IsisObjectGenerator('slice_of_bread',models={'default': 'models/kitchen_models/slice_of_bread'},scale=0.5,posHpr=(3,1,3.1,0,0,0), density=1000),
+    'loaf': IsisObjectGenerator('loaf',models={'default': 'models/kitchen_models/loaf_of_bread'},scale=0.7,posHpr=(4,1,3.1,0,0,0), density=1000) }
+    return generators
 
+
+def load_generators_from_yaml():
+    import yaml
+    try:
+        objects = yaml.load_all(open('commonsense/object_generators.yaml','r'))
+    except:
+        print "Cannot open 'objects.yml' file."
+    return objects
+
+def dump_generators_to_yaml():
+    import yaml
+    of = open('commonsense/object_generators.yaml','w')
+    objects = load_object_generators()
+    yaml.dump_all(objects,of, explicit_start=True)
 
 if __name__ == "__main__":
     # define the original objects
-    generate_object_file()
-    objects = load_objects_file()
+    dump_generators_to_yaml()
     
     
         

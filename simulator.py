@@ -109,20 +109,18 @@ class IsisWorld(ShowBase):
         roomGeom.setQuaternion(self.room.getQuat(render))
         self.worldManager.setGeomData(roomGeom, groundData, False)
         """
-        Add a counter to the room """
+        Add a table to the room """
 
-        self.counter = loader.loadModel("./models3/table/table")
-        self.counter.reparentTo(self.room)
-        self.counter.setPosHpr(2,3,-2.51,0,0,0)
-        self.counter.setScale(0.006)
-        self.counterTop = self.counter#.find("**/ID60")
-        #self.counterTop.showTightBounds()
-        boundingBox, offset=getOBB(self.counterTop)
+        self.table = loader.loadModel("./models3/table/table")
+        self.table.reparentTo(self.room)
+        self.table.setPosHpr(2,3,-2.51,0,0,0)
+        self.table.setScale(0.007)
+        boundingBox, offset=getOBB(self.table)
 
-        counterGeom = OdeBoxGeom(self.worldManager.space,*boundingBox)
-        counterGeom.setPosition(self.counterTop.getPos(render))
-        counterGeom.setQuaternion(self.counterTop.getQuat(render))
-        self.worldManager.setGeomData(counterGeom, groundData, False)
+        tableGeom = OdeBoxGeom(self.worldManager.space,*boundingBox)
+        tableGeom.setPosition(self.table.getPos(render))
+        tableGeom.setQuaternion(self.table.getQuat(render))
+        self.worldManager.setGeomData(tableGeom, groundData, False)
 
 
         """

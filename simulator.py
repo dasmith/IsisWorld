@@ -4,7 +4,7 @@ from pandac.PandaModules import loadPrcFileData
 loadPrcFileData("", "sync-video 0")
 loadPrcFileData("", "win-size 800 600")
 loadPrcFileData("", "textures-power-2 none") 
-#loadPrcFileData("", "basic-shaders-only f")
+loadPrcFileData("", "basic-shaders-only f")
 
 from direct.showbase.ShowBase import ShowBase
 from random import randint, random
@@ -226,10 +226,10 @@ class IsisWorld(ShowBase):
         self.accept("f",    self.floating_camera.setControl, ["zoom-out",  1])
         self.accept("f-up", self.floating_camera.setControl, ["zoom-out",  0])
         # control keys to move the character
-        base.accept("arrow_left",     self.ralph.control__move_left__start,     [])
-        base.accept("arrow_left-up",  self.ralph.control__move_left__stop,      [])
-        base.accept("arrow_right",    self.ralph.control__move_right__start,    [])
-        base.accept("arrow_right-up", self.ralph.control__move_right__stop,     [])
+        base.accept("arrow_left",     self.ralph.control__turn_left__start,     [])
+        base.accept("arrow_left-up",  self.ralph.control__turn_left__stop,      [])
+        base.accept("arrow_right",    self.ralph.control__turn_right__start,    [])
+        base.accept("arrow_right-up", self.ralph.control__turn_right__stop,     [])
         base.accept("arrow_up",       self.ralph.control__move_forward__start,  [])
         base.accept("arrow_up-up",    self.ralph.control__move_forward__stop,   [])
         base.accept("arrow_down",     self.ralph.control__move_backward__start, [])
@@ -245,6 +245,7 @@ class IsisWorld(ShowBase):
         base.accept("l-up",           self.ralph.control__look_right__stop,     [])
         # atomic actions
         base.accept("space",          self.ralph.control__jump,     [])
+        base.accept("u",              self.ralph.useAimed,     [])
 
         base.accept("i", hideText)
 

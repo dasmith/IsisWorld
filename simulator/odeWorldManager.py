@@ -329,11 +329,15 @@ class odeKinematicCharacterController:
         self.footRay.setCategoryBits(bits)
     
     def setH(self, h):
+        self.actor.setH(h)
         quat = self.getQuat()
         hpr = quat.getHpr()
         hpr[0] = h
         quat.setHpr(hpr)
         self.setQuat(quat)
+    
+    def getH(self):
+        return self.actor.getH()
         
     def setQuat(self, quat):
         self.capsuleGeom.setQuaternion(Quat(quat))

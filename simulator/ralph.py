@@ -150,7 +150,7 @@ class Ralph(odeKinematicCharacterController):
             o.hideBounds() # in case previously turned on
             o_pos = o.getPos(self.fov)
             if self.fov.node().isInView(o_pos):
-                if self.agent_simulator.world_objects.has_key(o.getName()):
+                if True:#self.agent_simulator.world_objects.has_key(o.getName()):
                     b_min, b_max =  o.getTightBounds()
                     a_min = map3dToAspect2d(render, b_min)
                     a_max = map3dToAspect2d(render, b_max)

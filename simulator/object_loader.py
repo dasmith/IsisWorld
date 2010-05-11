@@ -127,6 +127,7 @@ class IsisObjectGenerator():
         active_model.reparentTo(renderParent) 
         active_model.setScale(self.scale)
         active_model.setPosHpr(*self.posHpr)
+        active_model.flattenStrong()
         
         new_obj = IsisObject(worldManager, active_model, self.models, self.states, self.density)
         return new_obj
@@ -139,7 +140,7 @@ def load_objects_file():
     return map(lambda x: x.strip(), open('kitchen.isis','r').readlines())
     
 
-def load_objects_in_world(worldManager, renderParent):
+def load_objects_in_world(worldManager, renderParent, otherItems):
     # add each object to the world
     world_generator_instructions = load_objects_file()
     generators = load_object_generators()
@@ -147,20 +148,37 @@ def load_objects_in_world(worldManager, renderParent):
     
     for instruction in world_generator_instructions:
         item = instruction.split("\t")[0]
-        
-        if generators.has_key(item):
-            mobj = generators[item].generate_instance(worldManager,renderParent)
-            world_objects[item] = mobj
-            print "Creating object %s" % (item) 
-        else:
-            print "No default model for object %s" % (item)
+        if len(instruction.split("\t")) > 1:
+            itemRenderParent = renderParent
+            for option in instruction.split("\t")[1:]:
+                key,val = option.split(" ")
+                if key == "on":
+                    itemRenderParent = otherItems[val]
+            if generators.has_key(item):
+                mobj = generators[item].generate_instance(worldManager,renderParent)
+                world_objects[item] = mobj
+                print "Creating object %s" % (item) 
+            else:
+                print "No default model for object %s" % (item)
     return world_objects    
-    
+
+"""    Material	Density (kg/m^3)
+    Balsa wood	120
+    Brick	2000
+    Copper	8900
+    Cork	250
+    Diamond	3300
+    Glass	2500
+    Gold	19300
+    Iron	7900
+    Lead	11300
+    Styrofoam	100
+"""
 def load_object_generators():
     generators = {'knife': IsisObjectGenerator('knife', models={'default':'models3/knife'}, posHpr=(-1.0, 3.1, 0, 0, 0, 0), scale=0.01,density=10000),
     'toaster': IsisObjectGenerator('toaster',models={'default': 'models/kitchen_models/toaster','with_bread': 'models/kitchen_models/toaster_with_bread'}, posHpr=(4.5,3.1,0,260,0,0), scale=0.7, density=5000),
     'bread': IsisObjectGenerator('slice_of_bread',models={'default': 'models/kitchen_models/slice_of_bread'},scale=0.5,posHpr=(3,1,3.1,0,0,0), density=1000),
-    'loaf': IsisObjectGenerator('loaf',models={'default': 'models/kitchen_models/loaf_of_bread'},scale=0.7,posHpr=(4,1,3.1,0,0,0), density=1000) }
+    'loaf': IsisObjectGenerator('loaf',models={'default': 'models/kitchen_models/loaf_of_bread'},scale=0.3,posHpr=(4,1,0,0,0,0), density=1000) }
     return generators
 
 

@@ -4,7 +4,7 @@ from pandac.PandaModules import loadPrcFileData
 loadPrcFileData("", "sync-video 0")
 loadPrcFileData("", "win-size 800 600")
 loadPrcFileData("", "textures-power-2 none") 
-loadPrcFileData("", "basic-shaders-only f")
+#loadPrcFileData("", "basic-shaders-only f")
 
 from direct.showbase.ShowBase import ShowBase
 from random import randint, random
@@ -38,7 +38,7 @@ class IsisWorld(ShowBase):
         base.camLens.setFov(75)
         base.camLens.setNear(0.2)
         base.disableMouse()
-
+        self.world_objects = {}
         # initialize ODE world
         self.worldManager = odeWorldManager()
         # setup components
@@ -50,7 +50,7 @@ class IsisWorld(ShowBase):
         taskMgr.add(self.timeUpdated, "timeUpdated")
         
         # load objects
-        self.world_objects = load_objects_in_world(self.worldManager,self.room)
+        self.world_objects.update(load_objects_in_world(self.worldManager,self.room, self.world_objects))
         # start simulation
         self.worldManager.startSimulation()
         # start server
@@ -115,6 +115,8 @@ class IsisWorld(ShowBase):
         self.table.reparentTo(self.room)
         self.table.setPosHpr(2,3,-2.51,0,0,0)
         self.table.setScale(0.007)
+        
+        self.world_objects['table'] = self.table
         boundingBox, offset=getOBB(self.table)
 
         tableGeom = OdeBoxGeom(self.worldManager.space,*boundingBox)
@@ -138,8 +140,14 @@ class IsisWorld(ShowBase):
         Door functionality is also provided here.
         More on door in the appropriate file.
         """
-        self.door = self.mapNode.find("Door")
-        self.myDoor = door(self.worldManager, self.door)
+        self.doorNP = self.mapNode.find("Door")
+        self.door = door(self.worldManager, self.doorNP)
+        self.world_objects['door'] = door
+        
+        self.map.flattenStrong()
+        self.table.flattenStrong()
+        self.steps.flattenStrong()
+        self.doorNP.flattenStrong()
 
         
     def setupCameras(self):

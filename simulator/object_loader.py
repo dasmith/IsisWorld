@@ -37,9 +37,9 @@ class IsisObject(DirectObject):
         self.body.setQuaternion(self.NP.getQuat(render))
         # Create a BoxGeom
         self.geom = OdeBoxGeom(self.worldManager.space,*boundingBox)
-        self.geom.setCollideBits(BitMask32(0x00000002))
-        self.geom.setCategoryBits(BitMask32(0x00000001))
-        #groundGeom.setCollideBits(BitMask32(0x00000021))
+        self.geom.setCollideBits(BitMask32(0x00000021))
+        self.geom.setCategoryBits(BitMask32(0x00000012))
+        #groundGeom.setCollideBits(BitMk32(0x00000021))
         #groundGeom.setCategoryBits(BitMask32(0x00000012))
         self.geom.setBody(self.body)
     
@@ -179,8 +179,8 @@ def load_objects_in_world(worldManager, renderParent, otherItems):
 def load_object_generators():
     generators = {'knife': IsisObjectGenerator('knife', models={'default':'models3/knife'}, posHpr=(-1.0, 3.1, 0, 0, 0, 0), scale=0.01,density=10000),
     'toaster': IsisObjectGenerator('toaster',models={'default': 'models/kitchen_models/toaster','with_bread': 'models/kitchen_models/toaster_with_bread'}, posHpr=(4.5,3.1,0,260,0,0), scale=0.7, density=5000),
-    'bread': IsisObjectGenerator('slice_of_bread',models={'default': 'models/kitchen_models/slice_of_bread'},scale=0.5,posHpr=(3,1,3.1,0,0,0), density=1000),
-    'loaf': IsisObjectGenerator('loaf',models={'default': 'models/kitchen_models/loaf_of_bread'},scale=0.3,posHpr=(4,1,0,0,0,0), density=1000) }
+    'bread': IsisObjectGenerator('slice_of_bread',models={'default': 'models/kitchen_models/slice_of_bread'},scale=0.5,posHpr=(0,0,2,0,0,0), density=1000),
+    'loaf': IsisObjectGenerator('loaf',models={'default': 'models/kitchen_models/loaf_of_bread'},scale=0.3,posHpr=(0,1,0,0,0,0), density=1000) }
     return generators
 
 

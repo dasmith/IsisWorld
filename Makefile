@@ -10,8 +10,10 @@ tar: *.py
 	scp simulator-$(SIM_VERSION).tar.gz dustin@ml.media.mit.edu:public_html/6.868/
 
 
-package:
-	packp3d -o isis_world.p3d  -d . -D -r ode -r morepy -m simulator.py -e isis -e py -p xmlrpc -p shaders -p models -p models3 -p textures -p simulator -p som -c auto_start=1
+#panda3d makescripts/packp3d.p3d
+
+package: simulator.py
+	python /Developer/Panda3D/lib/direct/p3d/packp3d.py -o isis_world.p3d  -d . -D -r ode -r morepy -m simulator.py -e isis -e py -p xmlrpc -p shaders -p models -p models3 -p textures -p simulator -p som -c auto_start=1
 
 
 build: 

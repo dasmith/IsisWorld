@@ -26,7 +26,7 @@
   <Scalar> wrap { REPEAT }
 }
 <Texture> wall.png {
-  "./tiles.jpg"
+  "./textures/tiles.jpg"
   <Scalar> saved-result { 1 }
   <Scalar> envtype { MODULATE }
   <Scalar> minfilter { LINEAR }

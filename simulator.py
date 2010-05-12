@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 
 from pandac.PandaModules import loadPrcFileData
-loadPrcFileData("", "sync-video 0")
-loadPrcFileData("", "win-size 800 600")
-loadPrcFileData("", "textures-power-2 none") 
+loadPrcFileData("", "sync-video #f")
+#loadPrcFileData("", "win-size 800 600")
+#loadPrcFileData("", "textures-power-2 none") 
 #loadPrcFileData("", "basic-shaders-only f")
 
-from direct.showbase.ShowBase import ShowBase
+#from direct.showbase.ShowBase import ShowBase
 from random import randint, random
 import sys
 from direct.gui.OnscreenText import OnscreenText
@@ -15,6 +15,8 @@ from pandac.PandaModules import *
 from direct.filter.CommonFilters import CommonFilters 
 from simulator.floating_camera import FloatingCamera
 from direct.gui.DirectGui import DirectEntry
+
+from direct.showbase.DirectObject import DirectObject
 
 import simulator.skydome2 as skydome2
 from simulator.odeWorldManager import *
@@ -28,9 +30,9 @@ import threading
 ISIS_VERSION = 0.4
 
         
-class IsisWorld(ShowBase):
+class IsisWorld(DirectObject):
     def __init__(self):
-        ShowBase.__init__(self)
+        #ShowBase.__init__(self)
         base.accept("escape", sys.exit)
         base.setFrameRateMeter(True)
         base.setBackgroundColor(.2, .2, .2)
@@ -38,6 +40,7 @@ class IsisWorld(ShowBase):
         base.camLens.setFov(75)
         base.camLens.setNear(0.2)
         base.disableMouse()
+        print "Loading..."
         self.world_objects = {}
         # initialize ODE world
         self.worldManager = odeWorldManager()
@@ -352,9 +355,6 @@ class IsisWorld(ShowBase):
 
 w = IsisWorld()
 
-def detonate():
-    explosion(w.worldManager, Vec3(0, 0, 0))
-
 #base.accept("b", detonate)
 
-w.run()
+run()

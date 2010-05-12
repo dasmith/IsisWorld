@@ -39,6 +39,8 @@ class IsisObject(DirectObject):
         self.geom = OdeBoxGeom(self.worldManager.space,*boundingBox)
         self.geom.setCollideBits(BitMask32(0x00000002))
         self.geom.setCategoryBits(BitMask32(0x00000001))
+        #groundGeom.setCollideBits(BitMask32(0x00000021))
+        #groundGeom.setCategoryBits(BitMask32(0x00000012))
         self.geom.setBody(self.body)
     
         self.data = odeGeomData()
@@ -126,7 +128,7 @@ class IsisObjectGenerator():
         active_model.setName(self.name)
         active_model.reparentTo(renderParent) 
         active_model.setScale(self.scale)
-        active_model.setPosHpr(*self.posHpr)
+        active_model.setPosHpr(renderParent,*self.posHpr)
         active_model.flattenStrong()
         
         new_obj = IsisObject(worldManager, active_model, self.models, self.states, self.density)

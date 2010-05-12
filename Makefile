@@ -11,15 +11,15 @@ tar: *.py
 
 
 package:
-	packp3d -o isis_world.p3d  -r morepy -d . -m simulator.py  -e py -p xmlrpc -p simulator -p som -c auto_start=1
+	packp3d -o isis_world.p3d  -d . -D -r ode -r morepy -m simulator.py -e isis -e py -p xmlrpc -p shaders -p models -p models3 -p textures -p simulator -p som -c auto_start=1
 
 
-build: package 
+build: 
 	echo "Packaging isis_world.p3d"
-	pdeploy -n isis_world -N "IsisWorld v$(SIM_VERSION)"  -l "GPL v3" -L COPYING -t width=800 -t height=600  -v $(SIM_VERSION)  -s isis_world.p3d standalone 
+	python /Developer/Panda3D/lib/direct/p3d/pdeploy.py -n isis_world -N "IsisWorld v$(SIM_VERSION)"  -l "GPL v3" -L COPYING -t width=800 -t height=600  -v $(SIM_VERSION)  -s isis_world.p3d standalone 
 
-mac: package
-	pdeploy -n isis_world -N "IsisWorld v$(SIM_VERSION)"  -l "GPL v3" -L COPYING -t width=800 -t height=600  -v $(SIM_VERSION)  -P osx_i386 -s isis_world.p3d installer 
+mac:
+	python /Developer/Panda3D/lib/direct/p3d/pdeploy.py -n isis_world -N "IsisWorld v$(SIM_VERSION)"  -l "GPL v3" -L COPYING -t width=800 -t height=600  -v $(SIM_VERSION)  -P osx_i386 -s isis_world.p3d standalone 
 
 deploy: build
 	echo "Making cross-platform builds and uploading them"

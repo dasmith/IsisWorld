@@ -6,6 +6,7 @@ loadPrcFileData("", "win-size 800 600")
 loadPrcFileData("", "textures-power-2 none") 
 #loadPrcFileData("", "basic-shaders-only f")
 
+
 from direct.showbase.ShowBase import ShowBase
 from random import randint, random
 import sys

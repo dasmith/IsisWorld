@@ -99,9 +99,9 @@ class DifferenceEngine(Selector):
             return reduce_difference_function(myself,diff)
 
         Selector.__init__(self,mind,take_action_to_reduce_difference,backchains)
-        level = goal_test_function.__name__.split("__")[1]
-        fnames = "%s_%s" % (goal_test_function.__name__, reduce_difference_function.__name__)
-        self.name = "diffeng__%s__%s" % (level,fnames.replace("__","_"))
+        #level = goal_test_function.__name__.split("__")[1]
+        #fnames = "%s_%s" % (goal_test_function.__name__, reduce_difference_function.__name__)
+        #self.name = "diffeng__%s__%s" % (level,fnames.replace("__","_"))
 
 class LearningDifferenceEngine(DifferenceEngine):
     def __init__(self, mind, goal_test_function, action_function, backchains=[]):
@@ -130,14 +130,15 @@ class LearningDifferenceEngine(DifferenceEngine):
 
 class CriticSelectorArchitecture():
 
-    def __init__(self,debug=True,*args,**kwargs):
+    def __init__(self,name="Ralph",debug=True,*args,**kwargs):
         # simulator overhead, connect agent to world
         #try:
+        self.name =name
         if True:
             # connect to environment via XML-RPC
             self.env = xmlrpclib.ServerProxy('http://localhost:8001')
             start = time.clock()
-            self.env.do('step_simulation',{'seconds':0.02})
+            self.env.do('step_simulation',{'seconds':0.02, 'agent':self.name})
             self.delay = time.clock()-start
             print "Delay: ", self.delay
         #except:
@@ -216,7 +217,7 @@ class CriticSelectorArchitecture():
     def sense(self):
         """ This method asks the environment to return a frame-structure of perceptual
         data, and is called each step.  It prints the sensory frame to the terminal. """
-        self.perceptions = self.env.do('sense')
+        self.perceptions = self.env.do('sense',{'agent':self.name})
         if self.debug:
             print "Perceiving: "
             for modality, data in self.perceptions.items():
@@ -249,7 +250,7 @@ class CriticSelectorArchitecture():
         for resource in self.turned_off:
             dprint(x.name,"OFF: ")
         
-        self.env.do('step_simulation',{'seconds':seconds}) # simulator is paused by default, run for X seconds
+        self.env.do('step_simulation',{'seconds':seconds, 'agent':self.name}) # simulator is paused by default, run for X seconds
         time.sleep(seconds+(self.delay*2)) # make sure agent waits as long as simulator
         return True
 

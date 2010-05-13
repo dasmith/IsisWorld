@@ -194,7 +194,7 @@ class IsisWorld(ShowBase):
     def setupAgent(self):
 
         self.agents = []
-
+        self.agentNamesToIDs = {'Ralph':0, 'Lauren':1, 'David':2}
         self.agents.append(Ralph(self.worldManager, self))
         self.agents[0].actor.setH(180)
         self.agents[0].setGeomPos(Vec3(-1,0,0))
@@ -368,18 +368,24 @@ class IsisWorld(ShowBase):
         print base.camera.getPos()
         print base.camera.getHpr()
 
-    def get_agent_position(self):
-        x,y,z = self.agents[self.agentNum].actor.getPos()
-        h,p,r = self.agents[self.agentNum].actor.getHpr()
-        nh,np,nr = self.agents[self.agentNum].actor_neck.getHpr()
+    def get_agent_position(self, agent_id=None):
+        if agent_id == None:
+            agent_id = self.agentNum
+        x,y,z = self.agents[agent_id].actor.getPos()
+        h,p,r = self.agents[agent_id].actor.getHpr()
+        nh,np,nr = self.agents[agent_id].actor_neck.getHpr()
         left_hand_obj = "" 
         right_hand_obj = "" 
-        if self.agent.left_hand_holding_object:  left_hand_obj = self.agents[self.agentNum].left_hand_holding_object.getName()
-        if self.agent.right_hand_holding_object: right_hand_obj = self.agents[self.agentNum].right_hand_holding_object.getName()
+        if self.agents[agent_id].left_hand_holding_object:  
+            left_hand_obj = self.agents[agent_id].left_hand_holding_object.getName()
+        if self.agents[agent_id].right_hand_holding_object: 
+            right_hand_obj = self.agents[agent_id].right_hand_holding_object.getName()
         return {'body_x': x, 'body_y': y, 'body_z': z,'body_h':h,\
                 'body_p': p, 'body_r': r, 'neck_h':nh,'neck_p':np,'neck_r':nr, 'in_left_hand': left_hand_obj, 'in_right_hand':right_hand_obj}
 
-    def get_agent_vision(self):
+    def get_agent_vision(self,agent_id=None):
+        if agent_id == None:
+            agent_id = self.agentNum
         return []
         # FIXME: this screenshot function causes a crash
         def make_screenshot(widthPixels=100,heightPixels=100): 
@@ -409,8 +415,10 @@ class IsisWorld(ShowBase):
         make_screenshot()
         return []# str(self.agent.fov.node().getCameraMask())
 
-    def get_objects(self):
-        return self.agents[self.agentNum].get_objects()
+    def get_objects(self, agent_id=None):
+        if agent_id == None:
+            agent_id = self.agentNum
+        return self.agents[agent_id].get_objects()
 
     def get_utterances(self):
         """ Clear out the buffer of things that the teacher has typed,

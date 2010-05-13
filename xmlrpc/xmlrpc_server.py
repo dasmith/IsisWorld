@@ -37,7 +37,7 @@ class HomeSim_XMLRPC_Server(object):
 #        return 'Done!'
 
     def __init__(self):
-        self.server = SimpleXMLRPCServer(("localhost", 8001), requestHandler=RequestHandler)
+        self.server = SimpleXMLRPCServer(("", 8001), requestHandler=RequestHandler)
         self.server.register_introspection_functions()
         self.server.register_function(self.print_command)
 

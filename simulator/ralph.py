@@ -492,8 +492,8 @@ class Ralph(odeKinematicCharacterController):
         def bound(i, mn = -1, mx = 1): return min(max(i, mn), mx)
         # move the character if any of the move controls are activated.
 
-        if (self.controlMap["turn_left"]!=0):        self.setH(self.getH() + stepSize*40)
-        if (self.controlMap["turn_right"]!=0):       self.setH(self.getH() - stepSize*40)
+        if (self.controlMap["turn_left"]!=0):        self.setH(self.getH() + stepSize*80)
+        if (self.controlMap["turn_right"]!=0):       self.setH(self.getH() - stepSize*80)
         if (self.controlMap["move_forward"]!=0):     self.speed[1] = -moveAtSpeed
         if (self.controlMap["move_backward"]!=0):    self.speed[1] = moveAtSpeed
         if (self.controlMap["move_left"]!=0):        self.speed[0] = -moveAtSpeed

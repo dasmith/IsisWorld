@@ -30,7 +30,6 @@ from pandac.PandaModules import Vec3,Vec4,BitMask32
 from direct.gui.OnscreenText import OnscreenText 
 from direct.actor.Actor import Actor 
 from direct.task.Task import Task 
-from direct.showbase.DirectObject import DirectObject 
 import random, sys, os, math
 
 class FloatingCamera: 

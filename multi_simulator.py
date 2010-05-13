@@ -1,26 +1,9 @@
 #!/usr/bin/env python
-"""
-IsisWorld Simulator for AI Research
-Copyright (C) 2010  Dustin Smith, Bo Morgan; MIT Media Lab.
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
-"""
 
 from pandac.PandaModules import loadPrcFileData
-loadPrcFileData("", "sync-video #f")
-#loadPrcFileData("", "win-size 800 600")
-#loadPrcFileData("", "textures-power-2 none") 
+loadPrcFileData("", "sync-video 0")
+loadPrcFileData("", "win-size 800 600")
+loadPrcFileData("", "textures-power-2 none") 
 #loadPrcFileData("", "basic-shaders-only f")
 
 from direct.showbase.ShowBase import ShowBase
@@ -33,12 +16,11 @@ from direct.filter.CommonFilters import CommonFilters
 from simulator.floating_camera import FloatingCamera
 from direct.gui.DirectGui import DirectEntry
 
-from direct.showbase.DirectObject import DirectObject
-
 import simulator.skydome2 as skydome2
 from simulator.odeWorldManager import *
 from simulator.door import *
 from simulator.ralph import *
+#from simulator.david import *
 from simulator.object_loader import *
 from xmlrpc.xmlrpc_server import HomeSim_XMLRPC_Server
 from xmlrpc.command_handler import Command_Handler
@@ -57,7 +39,6 @@ class IsisWorld(ShowBase):
         base.camLens.setFov(75)
         base.camLens.setNear(0.2)
         base.disableMouse()
-        print "Loading..."
         self.world_objects = {}
         # initialize ODE world
         self.worldManager = odeWorldManager()
@@ -67,10 +48,10 @@ class IsisWorld(ShowBase):
         self.setupAgent()
         self.setupCameras()
         self.setupControls()
-        #taskMgr.add(self.timeUpdated, "timeUpdated")
+        taskMgr.add(self.timeUpdated, "timeUpdated")
         
         # load objects
-        #self.world_objects.update(load_objects_in_world(self.worldManager,self.room, self.world_objects))
+        self.world_objects.update(load_objects_in_world(self.worldManager,self.room, self.world_objects))
         # start simulation
         self.worldManager.startSimulation()
         # start server
@@ -83,7 +64,10 @@ class IsisWorld(ShowBase):
         self.server.register_function(xmlrpc_command_handler.command_handler,'do')
         self.server_thread = threading.Thread(group=None, target=self.server.serve_forever, name='xmlrpc')
         self.server_thread.start()
-        
+
+    agentNum = 0
+
+              
     def timeUpdated(self, task):
         self.skydomeNP.skybox.setShaderInput('time', task.time)
         return task.cont
@@ -173,7 +157,7 @@ class IsisWorld(ShowBase):
     def setupCameras(self):
         # Set up the camera 
         ### Set up displays and cameras ###
-        self.floating_camera = FloatingCamera(self.ralph.actor)
+        self.floating_camera = FloatingCamera(self.agents[self.agentNum].actor)
 
         # set up picture in picture
         dr = base.camNode.getDisplayRegion(0)
@@ -182,7 +166,7 @@ class IsisWorld(ShowBase):
         pip_size = 0.40 # percentage of width of screen
         dr_pip = window.makeDisplayRegion(1-pip_size,1,0,\
              (1.0 / aspect_ratio) * float(dr.getPixelWidth())/float(dr.getPixelHeight()) * pip_size)
-        dr_pip.setCamera(self.ralph.fov)
+        dr_pip.setCamera(self.agents[self.agentNum].fov)
         dr_pip.setSort(dr.getSort())
         dr_pip.setClearColor(VBase4(0, 0, 0, 1))
         dr_pip.setClearColorActive(True)
@@ -206,12 +190,27 @@ class IsisWorld(ShowBase):
         render.setLight(dlightNP)
 
     def setupAgent(self):
-        self.ralph = Ralph(self.worldManager, self)
-        self.ralph.actor.setH(180)
-        self.ralph.setGeomPos(Vec3(-1,0,0))
-        self.ralph.control__say("Hi, I'm Ralph. Please build me.")
+
+        self.agents = []
+
+        self.agents.append(Ralph(self.worldManager, self))
+        self.agents[0].actor.setH(180)
+        self.agents[0].setGeomPos(Vec3(-1,0,0))
+        self.agents[0].control__say("Hi, I'm Ralph. Please build me.")
+
+        self.agents.append(Ralph(self.worldManager, self))
+        self.agents[1].actor.setH(0)
+        self.agents[1].setGeomPos(Vec3(-3,-3,0))
+        self.agents[1].control__say("Hi, I'm Lauren. Please build me.")
+
+        self.agents.append(Ralph(self.worldManager, self))
+        self.agents[2].actor.setH(90)
+        self.agents[2].setGeomPos(Vec3(3,-3,0))
+        self.agents[2].control__say("Hi, I'm David. Please build me.")
+
         
     def setupControls(self):
+        
         props = WindowProperties( )
         props.setTitle( 'IsisWorld v%s' % ISIS_VERSION )
         base.win.requestProperties( props )
@@ -242,6 +241,57 @@ class IsisWorld(ShowBase):
             else:
                 self.textObject.reparentTo(aspect2d)
                 self.textObjectVisisble = True
+
+
+        def changeAgent():
+            if (self.agentNum == (len(self.agents)-1)):
+                self.agentNum = 0
+                
+            else:
+                self.agentNum += 1
+
+            self.setupCameras()
+
+        base.accept("9", changeAgent, [])
+
+        def relayAgentControl(controlText):
+
+            if controlText == "turn_left__start":
+                self.agents[self.agentNum].control__turn_left__start()
+            elif controlText == "turn_left__stop":
+                self.agents[self.agentNum].control__turn_left__stop()
+            elif controlText == "turn_right__start":
+                self.agents[self.agentNum].control__turn_right__start()
+            elif controlText == "turn_right__stop":
+                self.agents[self.agentNum].control__turn_right__stop()
+            elif controlText == "move_forward__start":
+                self.agents[self.agentNum].control__move_forward__start()
+            elif controlText == "move_forward__stop":
+                self.agents[self.agentNum].control__move_forward__stop()
+            elif controlText == "move_backward__start":
+                self.agents[self.agentNum].control__move_backward__start()
+            elif controlText == "look_up__start":
+                self.agents[self.agentNum].control__look_up__start()
+            elif controlText == "look_up__stop":
+                self.agents[self.agentNum].control__look_up__stop()
+            elif controlText == "look_down__start":
+                self.agents[self.agentNum].control__look_down__start()
+            elif controlText == "look_down__stop":
+                self.agents[self.agentNum].control__look_down__stop()
+            elif controlText == "look_left__start":
+                self.agents[self.agentNum].control__look_left__start()
+            elif controlText == "look_left__stop":
+                self.agents[self.agentNum].control__look_left__stop()
+            elif controlText == "look_right__start":
+                self.agents[self.agentNum].control__look_right__start()
+            elif controlText == "look_right__stop":
+                self.agents[self.agentNum].control__look_right__stop()
+            elif controlText == "__jump":
+                self.agents[self.agentNum].control__jump()
+            elif controlText == "useAimed":
+                self.agents[self.agentNum].control__useAimed()
+                    
+        
         # Accept some keys to move the camera.
         self.accept("a-up", self.floating_camera.setControl, ["right", 0])
         self.accept("a",    self.floating_camera.setControl, ["right", 1])
@@ -251,27 +301,30 @@ class IsisWorld(ShowBase):
         self.accept("d-up", self.floating_camera.setControl, ["zoom-in",  0])
         self.accept("f",    self.floating_camera.setControl, ["zoom-out",  1])
         self.accept("f-up", self.floating_camera.setControl, ["zoom-out",  0])
+        #if self.is_ralph == True:
         # control keys to move the character
-        base.accept("arrow_left",     self.ralph.control__turn_left__start,     [])
-        base.accept("arrow_left-up",  self.ralph.control__turn_left__stop,      [])
-        base.accept("arrow_right",    self.ralph.control__turn_right__start,    [])
-        base.accept("arrow_right-up", self.ralph.control__turn_right__stop,     [])
-        base.accept("arrow_up",       self.ralph.control__move_forward__start,  [])
-        base.accept("arrow_up-up",    self.ralph.control__move_forward__stop,   [])
-        base.accept("arrow_down",     self.ralph.control__move_backward__start, [])
-        base.accept("arrow_down-up",  self.ralph.control__move_backward__stop,  [])
+        base.accept("arrow_left",     relayAgentControl, ["turn_left__start"])
+        base.accept("arrow_left-up",  relayAgentControl, ["turn_left__stop"])
+        base.accept("arrow_right",    relayAgentControl, ["turn_right__start"])
+        base.accept("arrow_right-up", relayAgentControl, ["turn_right__stop"])
+        base.accept("arrow_up",       relayAgentControl, ["move_forward__start"])
+        base.accept("arrow_up-up",    relayAgentControl, ["move_forward__stop"])
+        base.accept("arrow_down",     relayAgentControl, ["move_backward__start"])
+        base.accept("arrow_down-up",  relayAgentControl, ["move_backward__stop"])
         # head movement controls (vi direction map)
-        base.accept("k",              self.ralph.control__look_up__start,       [])
-        base.accept("k-up",           self.ralph.control__look_up__stop,        [])
-        base.accept("j",              self.ralph.control__look_down__start,     [])
-        base.accept("j-up",           self.ralph.control__look_down__stop,      [])
-        base.accept("h",              self.ralph.control__look_left__start,     [])
-        base.accept("h-up",           self.ralph.control__look_left__stop,      [])
-        base.accept("l",              self.ralph.control__look_right__start,    [])
-        base.accept("l-up",           self.ralph.control__look_right__stop,     [])
+        base.accept("k",              relayAgentControl, ["look_up__start"])
+        base.accept("k-up",           relayAgentControl, ["look_up__stop"])
+        base.accept("j",              relayAgentControl, ["look_down__start"])
+        base.accept("j-up",           relayAgentControl, ["look_down__stop"])
+        base.accept("h",              relayAgentControl, ["look_left__start"])
+        base.accept("h-up",           relayAgentControl, ["look_left__stop"])
+        base.accept("l",              relayAgentControl, ["look_right__start"])
+        base.accept("l-up",           relayAgentControl, ["look_right__stop"])
         # atomic actions
-        base.accept("space",          self.ralph.control__jump,     [])
-        base.accept("u",              self.ralph.useAimed,     [])
+        base.accept("space",          relayAgentControl, ["__jump"])
+        base.accept("u",              relayAgentControl, ["useAimed"])
+
+            
 
         base.accept("i", hideText)
 
@@ -307,13 +360,13 @@ class IsisWorld(ShowBase):
         print base.camera.getHpr()
 
     def get_agent_position(self):
-        x,y,z = self.ralph.actor.getPos()
-        h,p,r = self.ralph.actor.getHpr()
-        nh,np,nr = self.ralph.actor_neck.getHpr()
+        x,y,z = self.agents[self.agentNum].actor.getPos()
+        h,p,r = self.agents[self.agentNum].actor.getHpr()
+        nh,np,nr = self.agents[self.agentNum].actor_neck.getHpr()
         left_hand_obj = "" 
         right_hand_obj = "" 
-        if self.agent.left_hand_holding_object:  left_hand_obj = self.ralph.left_hand_holding_object.getName()
-        if self.agent.right_hand_holding_object: right_hand_obj = self.ralph.right_hand_holding_object.getName()
+        if self.agent.left_hand_holding_object:  left_hand_obj = self.agents[self.agentNum].left_hand_holding_object.getName()
+        if self.agent.right_hand_holding_object: right_hand_obj = self.agents[self.agentNum].right_hand_holding_object.getName()
         return {'body_x': x, 'body_y': y, 'body_z': z,'body_h':h,\
                 'body_p': p, 'body_r': r, 'neck_h':nh,'neck_p':np,'neck_r':nr, 'in_left_hand': left_hand_obj, 'in_right_hand':right_hand_obj}
 
@@ -327,11 +380,11 @@ class IsisWorld(ShowBase):
             mybuffer=base.win.makeTextureBuffer('ScreenShotBuff',width,height,tex,True)  
             dis = mybuffer.makeDisplayRegion()
             cam=Camera('ScreenShotCam') 
-            cam.setLens(self.ralph.fov.node().getLens().makeCopy()) 
+            cam.setLens(self.agents[self.agentNum].fov.node().getLens().makeCopy()) 
             cam.getLens().setAspectRatio(width/height) 
-            mycamera = base.makeCamera(mybuffer,useCamera=self.ralph.fov) 
+            mycamera = base.makeCamera(mybuffer,useCamera=self.agents[self.agentNum].fov) 
             myscene = base.render 
-            dis.setCamera(self.ralph.fov)
+            dis.setCamera(self.agents[self.agentNum].fov)
             mycamera.node().setScene(myscene) 
             print "a" 
             base.graphicsEngine.renderFrame() 
@@ -348,7 +401,7 @@ class IsisWorld(ShowBase):
         return []# str(self.agent.fov.node().getCameraMask())
 
     def get_objects(self):
-        return self.ralph.get_objects()
+        return self.agents[self.agentNum].get_objects()
 
     def get_utterances(self):
         """ Clear out the buffer of things that the teacher has typed,
@@ -372,6 +425,9 @@ class IsisWorld(ShowBase):
 
 w = IsisWorld()
 
+def detonate():
+    explosion(w.worldManager, Vec3(0, 0, 0))
+
 #base.accept("b", detonate)
 
-run()
+w.run()

@@ -20,7 +20,6 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from pandac.PandaModules import *
-from direct.showbase.DirectObject import DirectObject
 from direct.showbase.InputStateGlobal import inputState
 
 def getOBB(collObj):

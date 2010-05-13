@@ -132,16 +132,17 @@ class CriticSelectorArchitecture():
 
     def __init__(self,debug=True,*args,**kwargs):
         # simulator overhead, connect agent to world
-        try:
+        #try:
+        if True:
             # connect to environment via XML-RPC
             self.env = xmlrpclib.ServerProxy('http://localhost:8001')
             start = time.clock()
             self.env.do('step_simulation',{'seconds':0.02})
             self.delay = time.clock()-start
             print "Delay: ", self.delay
-        except:
-            print "Error: Cannot connect to the simulator." 
-            sys.exit()
+        #except:
+        #    print "Error: Cannot connect to the simulator." 
+        #    sys.exit()
         self.debug = debug  # outputs error messages
         # sensory representation of the immediate world state (updated each step())
         self.perceptions = {}

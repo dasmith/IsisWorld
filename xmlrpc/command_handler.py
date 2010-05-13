@@ -106,7 +106,7 @@ class Command_Handler(object):
             seconds = 0.05
             if args.has_key('seconds'):
                 seconds = args['seconds']
-            self.agent_simulator.step_simulation_time(seconds)
+            self.agent_simulator.step_simulation(seconds)
             return 'success'
 #        elif cmd in ['move','move to']:
 #            return self.handle_move_action(args)

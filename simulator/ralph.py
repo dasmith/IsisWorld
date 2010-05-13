@@ -439,7 +439,7 @@ class Ralph(odeKinematicCharacterController):
             self.movementParent = self.capsuleGeom
 
 
-    def useAimed(self):
+    def control__use_aimed(self):
         """
         Try to use the object that we aim at.
         A similar mechanics can be used to create a gun.

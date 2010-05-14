@@ -25,7 +25,7 @@ from direct.actor.Actor import Actor
 from direct.gui.DirectGui import DirectLabel
 from pandac.PandaModules import PandaNode,NodePath,Camera
 import math
-import time
+#import time
 
 class Ralph(odeKinematicCharacterController):
     def __init__(self, worldManager, agentSimulator, myName):
@@ -84,7 +84,7 @@ class Ralph(odeKinematicCharacterController):
 	
         self.current_frame_count = 0.
 
-        self.name = "Ralph"
+        #self.name = "Ralph"
 
         """
         The ray sticking out of the camera and meant for clicking at
@@ -169,6 +169,12 @@ class Ralph(odeKinematicCharacterController):
                                    'orientation': o.getH(self.fov)}
                     in_view[o.getName()]=object_dict
                     print o.getName(), object_dict
+                    print o.getAncestor(1).getName()
+                    print o.getAncestor(1).listTags()
+                    print self.actor_neck.getH()
+##                    if (o.getAncestor(1).getName() == "Ralph"):
+##                       for agent in self.agent_simulator.agents:
+##                           if agent.
         return in_view
 
 

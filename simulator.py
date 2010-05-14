@@ -198,7 +198,7 @@ class IsisWorld(ShowBase):
         self.agentNamesToIDs = {'Ralph':0, 'Lauren':1, 'David':2}
         
         self.agents.append(Ralph(self.worldManager, self, "Ralph"))
-        self.agents[0].actor.setH(180)
+        self.agents[0].actor.setH(0)
         self.agents[0].setGeomPos(Vec3(-1,0,0))
         self.agents[0].control__say("Hi, I'm Ralph. Please build me.")
 

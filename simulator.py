@@ -196,17 +196,18 @@ class IsisWorld(ShowBase):
 
         self.agents = []
         self.agentNamesToIDs = {'Ralph':0, 'Lauren':1, 'David':2}
-        self.agents.append(Ralph(self.worldManager, self))
+        
+        self.agents.append(Ralph(self.worldManager, self, "Ralph"))
         self.agents[0].actor.setH(180)
         self.agents[0].setGeomPos(Vec3(-1,0,0))
         self.agents[0].control__say("Hi, I'm Ralph. Please build me.")
 
-        self.agents.append(Ralph(self.worldManager, self))
+        self.agents.append(Ralph(self.worldManager, self, "Lauren"))
         self.agents[1].actor.setH(0)
         self.agents[1].setGeomPos(Vec3(-3,-3,0))
         self.agents[1].control__say("Hi, I'm Lauren. Please build me.")
 
-        self.agents.append(Ralph(self.worldManager, self))
+        self.agents.append(Ralph(self.worldManager, self, "David"))
         self.agents[2].actor.setH(90)
         self.agents[2].setGeomPos(Vec3(3,-3,0))
         self.agents[2].control__say("Hi, I'm David. Please build me.")
@@ -238,7 +239,7 @@ class IsisWorld(ShowBase):
                 wordwrap = 15,
         )
         def hideText():
-            if self.textObjectVisisble:
+            if self.gObjectVisisble:
                 self.textObject.detachNode()
                 self.textObjectVisisble = False
             else:
@@ -354,6 +355,9 @@ class IsisWorld(ShowBase):
             x.command_box.suppressKeys=False
 
         def accept_message(message,x):
+            if message.startswith("talk"):
+                msg = message.split()
+                self.communicate(msg[1],msg[2],msg[3])
             x.teacher_utterances.append(message)
             x.command_box.enterText("")
 
@@ -363,6 +367,11 @@ class IsisWorld(ShowBase):
 
     def step_simulation(self,time=5):
         pass
+
+
+    def communicate(self, speakerName, listenerName, message):
+        self.agents[self.agentNamesToIDs[listenerName]].hear(speakerName, message)
+        
 
 
     def get_camera_position(self):

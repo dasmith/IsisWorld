@@ -25,9 +25,12 @@ from direct.actor.Actor import Actor
 from direct.gui.DirectGui import DirectLabel
 from pandac.PandaModules import PandaNode,NodePath,Camera
 import math
+import time
 
 class Ralph(odeKinematicCharacterController):
-    def __init__(self, worldManager, agentSimulator):
+    def __init__(self, worldManager, agentSimulator, myName):
+
+        self.name = myName
 
         self.agent_simulator = agentSimulator
 	
@@ -252,6 +255,16 @@ class Ralph(odeKinematicCharacterController):
     def control__say(self, message):
        self.speech_bubble['text'] = message
        self.last_spoke = 0
+
+    def talk_to_agent(self, agentName, message):
+        self.agent_simulator.communicate(self.name, agentName, message)
+
+    #here one can tell the agent what to do when someone talks with him.
+    def hear(self, speaker, text):
+        #self.control__jump()
+        self.control__say(("I hear ya, " + speaker))
+
+        
 
     def control__pick_up_with_right_hand(self, pick_up_object):
         print "attempting to pick up " + pick_up_object + " with right hand.\n"

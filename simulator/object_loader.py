@@ -26,21 +26,16 @@ class IsisObject(DirectObject):
         boundingBox, offset = getOBB(self.NP)
 
         M = OdeMass()
-        # water has density of 1000 (kg/m^3)
-        # copper between 8920 and 8960 
-        # 11340 is lead
         M.setBox(density, *boundingBox) # density should be density
         
         self.body = OdeBody(worldManager.world)
         self.body.setMass(M)
-        self.body.setPosition(self.NP.getPos(render))
-        self.body.setQuaternion(self.NP.getQuat(render))
+        self.body.setPosition(self.NP.getPos())
+        self.body.setQuaternion(self.NP.getQuat())
         # Create a BoxGeom
         self.geom = OdeBoxGeom(self.worldManager.space,*boundingBox)
         self.geom.setCollideBits(BitMask32(0x00000021))
         self.geom.setCategoryBits(BitMask32(0x00000012))
-        #groundGeom.setCollideBits(BitMk32(0x00000021))
-        #groundGeom.setCategoryBits(BitMask32(0x00000012))
         self.geom.setBody(self.body)
     
         self.data = odeGeomData()
@@ -124,9 +119,11 @@ class IsisObjectGenerator():
     def generate_instance(self, worldManager, renderParent, options={}):
         """ Generates a new object and adds it to the world"""
         # TODO, check to see if name exists.
+        print "Adding %s as a child of %s" % (self.name, renderParent)
         active_model = loader.loadModel(self.models['default']) 
         active_model.setName(self.name)
         active_model.reparentTo(renderParent) 
+        print "ancestor", active_model.getAncestor(1)
         active_model.setScale(self.scale)
         active_model.setPosHpr(renderParent,*self.posHpr)
         active_model.flattenStrong()
@@ -155,9 +152,11 @@ def load_objects_in_world(worldManager, renderParent, otherItems):
             for option in instruction.split("\t")[1:]:
                 key,val = option.split(" ")
                 if key == "on":
+                    print "Found render parent", val
+                    print otherItems[val]
                     itemRenderParent = otherItems[val]
             if generators.has_key(item):
-                mobj = generators[item].generate_instance(worldManager,renderParent)
+                mobj = generators[item].generate_instance(worldManager,itemRenderParent)
                 world_objects[item] = mobj
                 print "Creating object %s" % (item) 
             else:
@@ -177,10 +176,10 @@ def load_objects_in_world(worldManager, renderParent, otherItems):
     Styrofoam	100
 """
 def load_object_generators():
-    generators = {'knife': IsisObjectGenerator('knife', models={'default':'models3/knife'}, posHpr=(-1.0, 3.1, 0, 0, 0, 0), scale=0.01,density=10000),
-    'toaster': IsisObjectGenerator('toaster',models={'default': 'models/kitchen_models/toaster','with_bread': 'models/kitchen_models/toaster_with_bread'}, posHpr=(4.5,3.1,0,260,0,0), scale=0.7, density=5000),
-    'bread': IsisObjectGenerator('slice_of_bread',models={'default': 'models/kitchen_models/slice_of_bread'},scale=0.5,posHpr=(0,0,2,0,0,0), density=1000),
-    'loaf': IsisObjectGenerator('loaf',models={'default': 'models/kitchen_models/loaf_of_bread'},scale=0.3,posHpr=(0,1,0,0,0,0), density=1000) }
+    generators = {'knife': IsisObjectGenerator('knife', models={'default':'models3/knife'}, posHpr=(0,0,0, 0, 0, 0 ), scale=0.01,density=10000),
+    'toaster': IsisObjectGenerator('toaster',models={'default': 'models/kitchen_models/toaster','with_bread': 'models/kitchen_models/toaster_with_bread'}, posHpr=(0,0,0,0,0,0), scale=0.7, density=5000),
+    'bread': IsisObjectGenerator('slice_of_bread',models={'default': 'models/kitchen_models/slice_of_bread'},scale=0.5,posHpr=(0,0,0,0,0,0), density=1000),
+    'loaf': IsisObjectGenerator('loaf',models={'default': 'models/kitchen_models/loaf_of_bread'},scale=0.3,posHpr=(0,0,0,0,0,0), density=1000) }
     return generators
 
 

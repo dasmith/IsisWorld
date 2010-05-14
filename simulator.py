@@ -6,7 +6,6 @@ loadPrcFileData("", "win-size 800 600")
 loadPrcFileData("", "textures-power-2 none") 
 #loadPrcFileData("", "basic-shaders-only f")
 
-
 from direct.showbase.ShowBase import ShowBase
 from random import randint, random
 import sys
@@ -54,7 +53,7 @@ class IsisWorld(ShowBase):
         self.paused = True
 
         # load objects
-        self.world_objects.update(load_objects_in_world(self.worldManager,self.room, self.world_objects))
+        self.world_objects.update(load_objects_in_world(self.worldManager,render, self.world_objects))
         # start simulation
         self.worldManager.startSimulation()
         # start server
@@ -105,7 +104,6 @@ class IsisWorld(ShowBase):
         Get the map's panda node. This will allow us to find the objects
         that the map consists of.
         """
-        #self.mapNode = self.env.find("**/Ground")
         self.map = loader.loadModel("./models3/kitchen")
         self.map.reparentTo(render)
         self.mapNode = self.map.find("-PandaNode")
@@ -119,17 +117,18 @@ class IsisWorld(ShowBase):
         Add a table to the room """
 
         self.table = loader.loadModel("./models3/table/table")
-        self.table.reparentTo(self.room)
-        self.table.setPosHpr(2,3,-2.51,0,0,0)
+        self.table.reparentTo(self.map)
+        self.table.setPosHpr(0,2.8,0,0,0,0)
         self.table.setScale(0.007)
         
         self.world_objects['table'] = self.table
         boundingBox, offset=getOBB(self.table)
 
         tableGeom = OdeBoxGeom(self.worldManager.space,*boundingBox)
-        tableGeom.setPosition(self.table.getPos(render))
-        tableGeom.setQuaternion(self.table.getQuat(render))
+        tableGeom.setPosition(self.table.getPos())
+        tableGeom.setQuaternion(self.table.getQuat())
         self.worldManager.setGeomData(tableGeom, groundData, False)
+
 
 
         """
@@ -147,14 +146,14 @@ class IsisWorld(ShowBase):
         Door functionality is also provided here.
         More on door in the appropriate file.
         """
-        self.doorNP = self.mapNode.find("Door")
-        self.door = door(self.worldManager, self.doorNP)
-        self.world_objects['door'] = door
+        #self.doorNP = self.mapNode.find("Door")
+        #self.door = door(self.worldManager, self.doorNP)
+        #self.world_objects['door'] = door
         
         self.map.flattenStrong()
         self.table.flattenStrong()
         self.steps.flattenStrong()
-        self.doorNP.flattenStrong()
+        #Jself.doorNP.flattenStrong()
 
         
     def setupCameras(self):
@@ -195,13 +194,12 @@ class IsisWorld(ShowBase):
     def setupAgent(self):
 
         self.agents = []
-        self.agentNamesToIDs = {'Ralph':0, 'Lauren':1, 'David':2}
-        
+        self.agentsNameToIDs = {'Ralph':0, 'Lauren':1, 'David':2}
         self.agents.append(Ralph(self.worldManager, self, "Ralph"))
-        self.agents[0].actor.setH(0)
+        self.agents[0].actor.setH(180)
         self.agents[0].setGeomPos(Vec3(-1,0,0))
         self.agents[0].control__say("Hi, I'm Ralph. Please build me.")
-
+        
         self.agents.append(Ralph(self.worldManager, self, "Lauren"))
         self.agents[1].actor.setH(0)
         self.agents[1].setGeomPos(Vec3(-3,-3,0))
@@ -239,7 +237,7 @@ class IsisWorld(ShowBase):
                 wordwrap = 15,
         )
         def hideText():
-            if self.gObjectVisisble:
+            if self.textObjectVisisble:
                 self.textObject.detachNode()
                 self.textObjectVisisble = False
             else:
@@ -355,9 +353,6 @@ class IsisWorld(ShowBase):
             x.command_box.suppressKeys=False
 
         def accept_message(message,x):
-            if message.startswith("talk"):
-                msg = message.split()
-                self.communicate(msg[1],msg[2],msg[3])
             x.teacher_utterances.append(message)
             x.command_box.enterText("")
 
@@ -367,11 +362,6 @@ class IsisWorld(ShowBase):
 
     def step_simulation(self,time=5):
         pass
-
-
-    def communicate(self, speakerName, listenerName, message):
-        self.agents[self.agentNamesToIDs[listenerName]].hear(speakerName, message)
-        
 
 
     def get_camera_position(self):
@@ -386,10 +376,8 @@ class IsisWorld(ShowBase):
         nh,np,nr = self.agents[agent_id].actor_neck.getHpr()
         left_hand_obj = "" 
         right_hand_obj = "" 
-        if self.agents[agent_id].left_hand_holding_object:  
-            left_hand_obj = self.agents[agent_id].left_hand_holding_object.getName()
-        if self.agents[agent_id].right_hand_holding_object: 
-            right_hand_obj = self.agents[agent_id].right_hand_holding_object.getName()
+        if self.agent.left_hand_holding_object:  left_hand_obj = self.agents[agent_id].left_hand_holding_object.getName()
+        if self.agent.right_hand_holding_object: right_hand_obj = self.agents[agent_id].right_hand_holding_object.getName()
         return {'body_x': x, 'body_y': y, 'body_z': z,'body_h':h,\
                 'body_p': p, 'body_r': r, 'neck_h':nh,'neck_p':np,'neck_r':nr, 'in_left_hand': left_hand_obj, 'in_right_hand':right_hand_obj}
 

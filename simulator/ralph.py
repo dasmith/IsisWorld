@@ -466,7 +466,7 @@ class Ralph(odeKinematicCharacterController):
         Note the usage of the doRaycast method from the odeWorldManager.
         """
         dir = render.getRelativeVector(self.fov, Vec3(0, 1.0, 0))
-        pos = self.actor.getPos() 
+        pos = self.fov.getPos(render) 
         print "relative vector", pos
         self.aimRay.set(pos, dir)
 
@@ -476,6 +476,7 @@ class Ralph(odeKinematicCharacterController):
             return
         print "Closest geom", closestEntry
         data = self.worldManager.getGeomData(closestGeom)
+        print data.name
         if data.selectionCallback:
             data.selectionCallback(self, dir)
 

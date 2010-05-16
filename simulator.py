@@ -42,6 +42,7 @@ class IsisWorld(ShowBase):
         # initialize ODE world
         self.worldManager = odeWorldManager()
         # setup components
+        self.agentNum = 0
         self.setupMap()
         self.setupLights()
         self.setupAgent()
@@ -66,7 +67,6 @@ class IsisWorld(ShowBase):
         self.server_thread = threading.Thread(group=None, target=self.server.serve_forever, name='xmlrpc')
         self.server_thread.start()
 
-        self.agentNum = 0
 
               
     def timeUpdated(self, task):
@@ -193,7 +193,7 @@ class IsisWorld(ShowBase):
     def setupAgent(self):
 
         self.agents = []
-        self.agentsNameToIDs = {'Ralph':0, 'Lauren':1, 'David':2}
+        self.agentsNamesToIDs = {'Ralph':0, 'Lauren':1, 'David':2}
         self.agents.append(Ralph(self.worldManager, self, "Ralph"))
         self.agents[0].actor.setH(180)
         self.agents[0].setGeomPos(Vec3(-1,0,0))

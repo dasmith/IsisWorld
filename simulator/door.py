@@ -44,8 +44,8 @@ class door():
 
         self.doorGeomData = OdeTriMeshData(self.doorNP, True)
         self.doorGeom = OdeTriMeshGeom(self.worldManager.space, self.doorGeomData)
-        self.doorGeom.setPosition(self.doorNP.getPos(render))
-        self.doorGeom.setQuaternion(self.doorNP.getQuat(render))
+        self.doorGeom.setPosition(self.doorNP.getPos())
+        self.doorGeom.setQuaternion(self.doorNP.getQuat())
 
         self.doorData = odeGeomData()
         self.doorData.name = "door"

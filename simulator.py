@@ -10,7 +10,7 @@ from direct.showbase.ShowBase import ShowBase
 from random import randint, random
 import sys
 from direct.gui.OnscreenText import OnscreenText
-from direct.task import Task
+from direct.task import Task, TaskManagerGlobal
 from pandac.PandaModules import *
 from direct.filter.CommonFilters import CommonFilters 
 from simulator.floating_camera import FloatingCamera
@@ -32,12 +32,11 @@ ISIS_VERSION = 0.4
 class IsisWorld(ShowBase):
     def __init__(self):
         ShowBase.__init__(self)
-        base.accept("escape", sys.exit)
         base.setFrameRateMeter(True)
         base.setBackgroundColor(.2, .2, .2)
         render.setShaderAuto()
         base.camLens.setFov(75)
-        base.camLens.setNear(0.2)
+        base.camLens.setNear(0.2) 
         base.disableMouse()
         self.world_objects = {}
         # initialize ODE world
@@ -67,7 +66,7 @@ class IsisWorld(ShowBase):
         self.server_thread = threading.Thread(group=None, target=self.server.serve_forever, name='xmlrpc')
         self.server_thread.start()
 
-    agentNum = 0
+        self.agentNum = 0
 
               
     def timeUpdated(self, task):
@@ -146,14 +145,14 @@ class IsisWorld(ShowBase):
         Door functionality is also provided here.
         More on door in the appropriate file.
         """
-        #self.doorNP = self.mapNode.find("Door")
-        #self.door = door(self.worldManager, self.doorNP)
-        #self.world_objects['door'] = door
+        self.doorNP = self.mapNode.find("Door")
+        self.door = door(self.worldManager, self.doorNP)
+        self.world_objects['door'] = door
         
         self.map.flattenStrong()
         self.table.flattenStrong()
         self.steps.flattenStrong()
-        #Jself.doorNP.flattenStrong()
+        self.doorNP.flattenStrong()
 
         
     def setupCameras(self):
@@ -335,12 +334,12 @@ class IsisWorld(ShowBase):
         base.accept("i", hideText)
 
         # key input
-        #self.accept("escape",         self.user_requests_quit)
-        #self.accept("space",          self.step_simulation, [.1]) # argument is amount of second to advance
+        self.accept("space",           self.step_simulation, [.1]) # argument is amount of second to advance
         self.accept("o",               self.printObjects, []) # displays objects in field of view
         self.accept("p",               togglePaused)
         #self.accept("r",              self.reset_simulation)
-
+        base.accept("escape",         sys.exit)
+    
         self.teacher_utterances = [] # last message typed
         # main dialogue box
         def disable_keys(x):

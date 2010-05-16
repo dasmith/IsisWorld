@@ -838,7 +838,7 @@ class odeWorldManager:
             return True
         return False
         
-    def simulationTask(self, task):
+    def simulationTask(self, task, time=.1):
         """
         As you can see, I do not use autoCollide here at all.
         Instead I only use the space's collide method pointing

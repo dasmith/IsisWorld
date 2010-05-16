@@ -21,19 +21,18 @@ class Command_Handler(object):
 
         agent_to_control = 0
 
-        if args.has_key('agent') and args['agent'] in self.simulator.agentNamesToIDs.keys():
-            agent_to_control = self.simulator.agentNamesToIDs[args['agent']]
+        if args.has_key('agent') and args['agent'] in self.simulator.agentsNamesToIDs.keys():
+            agent_to_control = self.simulator.agentsNamesToIDs[args['agent']]
         elif args.has_key('agent_id') and int(args['agent_id']) < len(self.simulator.agents[agent_to_control]):
             agent_to_control = int(args['agent_id'])
         else:
             print "Error: you must supply an agent either through 'agent'= name or 'agent_id' = id argument\n"
             print "Available agents:"
-            for agent,id in self.simulator.agentNamesToIDs.items():
+            for agent,id in self.simulator.agentsNamesToIDs.items():
                 print "\t (%i)  %s\n" % (id,agent)
             return 'failure'
 
         if cmd == 'sense':
-            print "got here"
             return self.handle_perception(agent_to_control, args)
         elif cmd == 'turn_left-start':
             self.agents[agent_to_control].control__turn_left__start()
@@ -136,16 +135,12 @@ class Command_Handler(object):
         """ perceives the world, returns percepts dict """
         percepts = dict()
         # eyes: visual matricies
-        print "a "
         percepts['vision'] = self.simulator.get_agent_vision(agent_to_control)
         # objects in purview (cheating object recognition)
-        print "a "
         percepts['objects'] = self.simulator.get_objects(agent_to_control)
-        print "a "
         # global position in environment - our robots can have GPS :)
         percepts['position'] = self.simulator.get_agent_position(agent_to_control)
-        # language: get last utterances that were typed 
-        print "a "
+        # language: get last utterances that were typed
         percepts['language'] = self.simulator.get_utterances()
         return percepts
 

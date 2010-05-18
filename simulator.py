@@ -20,7 +20,6 @@ import simulator.skydome2 as skydome2
 from simulator.odeWorldManager import *
 from simulator.door import *
 from simulator.ralph import *
-#from simulator.david import *
 from simulator.object_loader import *
 from xmlrpc.xmlrpc_server import HomeSim_XMLRPC_Server
 from xmlrpc.command_handler import Command_Handler
@@ -40,7 +39,7 @@ class IsisWorld(ShowBase):
         base.disableMouse()
         self.world_objects = {}
         # initialize ODE world
-        self.worldManager = odeWorldManager()
+        self.worldManager = PhysicsWorldManager()
         # setup components
         self.agentNum = 0
         self.setupMap()
@@ -53,19 +52,19 @@ class IsisWorld(ShowBase):
         self.paused = True
 
         # load objects
-        self.world_objects.update(load_objects_in_world(self.worldManager,render, self.world_objects))
+        #self.world_objects.update(load_objects_in_world(self.worldManager,render, self.world_objects))
         # start simulation
-        self.worldManager.startSimulation()
+        self.worldManager.startPhysics()
         # start server
         # xmlrpc server command handler
-        xmlrpc_command_handler = Command_Handler(self)
+        #xmlrpc_command_handler = Command_Handler(self)
 	
         # xmlrpc server
-        self.server_object = HomeSim_XMLRPC_Server()
-        self.server = self.server_object.server
-        self.server.register_function(xmlrpc_command_handler.command_handler,'do')
-        self.server_thread = threading.Thread(group=None, target=self.server.serve_forever, name='xmlrpc')
-        self.server_thread.start()
+        #self.server_object = HomeSim_XMLRPC_Server()
+        #self.server = self.server_object.server
+        #self.server.register_function(xmlrpc_command_handler.command_handler,'do')
+        #self.server_thread = threading.Thread(group=None, target=self.server.serve_forever, name='xmlrpc')
+        #self.server_thread.start()
 
 
               
@@ -77,7 +76,7 @@ class IsisWorld(ShowBase):
     def setupMap(self):
         # GROUND
         cm = CardMaker("ground")
-        groundTexture = loader.loadTexture("textures/env_ground.jpg")
+        groundTexture = loader.loadTexture("./textures/env_ground.jpg")
         cm.setFrame(-100, 100, -100, 100)
         groundNP = render.attachNewNode(cm.generate())
         groundNP.setTexture(groundTexture)
@@ -85,13 +84,15 @@ class IsisWorld(ShowBase):
         groundNP.lookAt(0, 0, -1)
         #groundNP.setAlphaScale(0.5)
         groundNP.setTransparency(TransparencyAttrib.MAlpha)
-        groundGeom = OdePlaneGeom(self.worldManager.space, Vec4(0, 0, 1, 0))
-        groundGeom.setCollideBits(BitMask32(0x00000021))
-        groundGeom.setCategoryBits(BitMask32(0x00000012))
-        groundData = odeGeomData()
-        groundData.name = "ground"
-        groundData.surfaceFriction = 2.0
-        self.worldManager.setGeomData(groundGeom, groundData, None)
+
+
+#        groundGeom = OdePlaneGeom(self.worldManager.space, Vec4(0, 0, 1, 0))
+#        groundGeom.setCollideBits(self.worldManager.ENV_BITMASK)#BitMask32(0x00000021))
+#        groundGeom.setCategoryBits(self.worldManager.ENV_BITMASK)
+#        #groundData = odeGeomData()
+#        groundData.name = "ground"
+#        groundData.surfaceFriction = 2.0
+#        self.worldManager.setGeomData(groundGeom, groundData, None)
 
         self.skydomeNP = skydome2.SkyDome2(render)
         self.skydomeNP.setStandardControl()
@@ -107,11 +108,15 @@ class IsisWorld(ShowBase):
         self.map.reparentTo(render)
         self.mapNode = self.map.find("-PandaNode")
         self.room = self.mapNode.find("Wall")
-        roomGeomData = OdeTriMeshData(self.room, True)
-        roomGeom = OdeTriMeshGeom(self.worldManager.space, roomGeomData)
-        roomGeom.setPosition(self.room.getPos(render))
-        roomGeom.setQuaternion(self.room.getQuat(render))
-        self.worldManager.setGeomData(roomGeom, groundData, False)
+        #roomGeomData = OdeTriMeshData(self.room, True)
+        #roomGeom = OdeTriMeshGeom(self.worldManager.space, roomGeomData)
+#        roomGeom.setPosition(self.room.getPos(render))
+#        roomGeom.setQuaternion(self.room.getQuat(render))
+#        self.worldManager.setGeomData(roomGeom, groundData, False)
+
+        x = PhysicsTrimesh(world=self.worldManager.world, space=self.worldManager.space,pythonObject=self.room,density=800,surfaceFriction=10)
+        x.name = "ground"
+        self.worldManager.addItem(x,False)
         """
         Add a table to the room """
 
@@ -119,14 +124,15 @@ class IsisWorld(ShowBase):
         self.table.reparentTo(self.map)
         self.table.setPosHpr(0,2.8,0,0,0,0)
         self.table.setScale(0.007)
+        #self.worldManager.addBox(self.table,density=3000,is_kinematic=True,)
         
         self.world_objects['table'] = self.table
-        boundingBox, offset=getOBB(self.table)
 
-        tableGeom = OdeBoxGeom(self.worldManager.space,*boundingBox)
-        tableGeom.setPosition(self.table.getPos())
-        tableGeom.setQuaternion(self.table.getQuat())
-        self.worldManager.setGeomData(tableGeom, groundData, False)
+        self.worldManager.addItem(PhysicsBox(world=self.worldManager.world, space=self.worldManager.space,pythonObject=self.table,density=800,surfaceFriction=10),False)
+        #tableGeom = OdeBoxGeom(self.worldManager.space,*boundingBox)
+        #tableGeom.setPosition(self.table.getPos())
+        #tableGeom.setQuaternion(self.table.getQuat())
+        #self.worldManager.setGeomData(tableGeom, groundData, False)
 
 
 
@@ -135,24 +141,25 @@ class IsisWorld(ShowBase):
         Meant, obviously, to demonstrate the ability to climb stairs.
         """
         self.steps = self.mapNode.find("Steps")
-        stepsGeomData = OdeTriMeshData(self.steps, True)
-        stepsGeom = OdeTriMeshGeom(self.worldManager.space, stepsGeomData)
-        stepsGeom.setPosition(self.steps.getPos(render))
-        stepsGeom.setQuaternion(self.steps.getQuat(render))
-        self.worldManager.setGeomData(stepsGeom, groundData, None)
+#        stepsGeomData = OdeTriMeshData(self.steps, True)
+#        stepsGeom = OdeTriMeshGeom(self.worldManager.space, stepsGeomData)
+#        stepsGeom.setPosition(self.steps.getPos(render))
+#        stepsGeom.setQuaternion(self.steps.getQuat(render))
+#        self.worldManager.setGeomData(stepsGeom, groundData, None)
 
+        self.worldManager.addItem(PhysicsTrimesh(world=self.worldManager.world, space=self.worldManager.space,pythonObject=self.steps,density=800,surfaceFriction=10),False)
         """
         Door functionality is also provided here.
         More on door in the appropriate file.
         """
         self.doorNP = self.mapNode.find("Door")
-        self.door = door(self.worldManager, self.doorNP)
-        self.world_objects['door'] = door
+        #self.door = door(self.worldManager, self.doorNP)
+        #self.world_objects['door'] = door
         
         self.map.flattenStrong()
         self.table.flattenStrong()
         self.steps.flattenStrong()
-        self.doorNP.flattenStrong()
+        #self.doorNP.flattenStrong()
 
         
     def setupCameras(self):
@@ -196,17 +203,17 @@ class IsisWorld(ShowBase):
         self.agentsNamesToIDs = {'Ralph':0, 'Lauren':1, 'David':2}
         self.agents.append(Ralph(self.worldManager, self, "Ralph"))
         self.agents[0].actor.setH(180)
-        self.agents[0].setGeomPos(Vec3(-1,0,0))
+        self.agents[0].actor.setPos(Vec3(-1,0,0))
         self.agents[0].control__say("Hi, I'm Ralph. Please build me.")
-        
         self.agents.append(Ralph(self.worldManager, self, "Lauren"))
+
         self.agents[1].actor.setH(0)
-        self.agents[1].setGeomPos(Vec3(-3,-3,0))
+        self.agents[1].actor.setPos(Vec3(-3,-3,0))
         self.agents[1].control__say("Hi, I'm Lauren. Please build me.")
 
         self.agents.append(Ralph(self.worldManager, self, "David"))
         self.agents[2].actor.setH(90)
-        self.agents[2].setGeomPos(Vec3(3,-3,0))
+        self.agents[2].actor.setPos(Vec3(3,-3,0))
         self.agents[2].control__say("Hi, I'm David. Please build me.")
 
         
@@ -433,7 +440,14 @@ class IsisWorld(ShowBase):
 
             
             
-   
+    def mainLoop(self,task):
+        self.worldManager.simulate()
+        return Task.cont
+        #dt = task.time - task.last
+        task.last = task.time
+        if dt>.2 or dt==.0:
+           return Task.cont
+        self.moveBowl(dt)
 
 
 

@@ -212,13 +212,13 @@ class SkyDome2(Att_base):
                 scale=(4000,4000,1000),
                 texturefile=None):
         Att_base.__init__(self,False, "Sky Dome 2")
-        self.skybox = loader.loadModel("models3/dome2")
+        self.skybox = loader.loadModel("./models3/dome2")
         self.skybox.reparentTo(scene)
         self.skybox.setScale(scale[0],scale[1],scale[2])
         self.skybox.setLightOff()
 
         if texturefile == None:
-            texturefile = "textures/clouds_bw.png"
+            texturefile = "./textures/clouds_bw.png"
         texture = loader.loadTexture(texturefile)
         self.textureStage0 = TextureStage("stage0")
         self.textureStage0.setMode(TextureStage.MReplace)

@@ -29,11 +29,11 @@ some kind of door.
 """
 class door():
     def __init__(self, worldManager, model):
+        self.name = "door"
         self.state = "close"
         self.speed = 0.5
 
         self.worldManager = worldManager
-
         self.doorNP = model
 
         """
@@ -41,18 +41,8 @@ class door():
         back to the original position.
         """
         self.hpr = self.doorNP.getHpr()
+        self.odeGeom = self.worldManager.addBox(self.doorNP, 1000,self, self.select,True)
 
-        self.doorGeomData = OdeTriMeshData(self.doorNP, True)
-        self.doorGeom = OdeTriMeshGeom(self.worldManager.space, self.doorGeomData)
-        self.doorGeom.setPosition(self.doorNP.getPos())
-        self.doorGeom.setQuaternion(self.doorNP.getQuat())
-
-        self.doorData = odeGeomData()
-        self.doorData.name = "door"
-        self.doorData.surfaceFriction = 15.0
-        self.doorData.selectionCallback = self.select
-
-        self.worldManager.setGeomData(self.doorGeom, self.doorData, self, True)
 
     def select(self, character, direction):
         if self.state == "close":
@@ -102,7 +92,13 @@ class door():
     def changeState(self, newState):
         self.state = newState
 
-    def update(self, timeStep):
+    def nodepath(self):
+        return self.doorNP
+
+    def getPosQuat(self):
+        return self.doorNP.getPosQuat(render)
+
+    def update(self, posQuat):#timeStep):
         """
         Here we update the position of the OdeGeom to follow the
         animated Panda Node. This method is what makes our object
@@ -111,5 +107,5 @@ class door():
         quat = self.doorNP.getQuat(render)
         pos = self.doorNP.getPos(render)
 
-        self.doorGeom.setPosition(pos)
-        self.doorGeom.setQuaternion(quat)
+        self.odeGeom.setPosition(pos)
+        self.odeGeom.setQuaternion(quat)

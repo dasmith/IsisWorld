@@ -27,24 +27,23 @@ from pandac.PandaModules import PandaNode,NodePath,Camera
 import math
 #import time
 
-class Ralph(odeKinematicCharacterController):
+class Ralph(PhysicsCharacterController):
     def __init__(self, worldManager, agentSimulator, myName):
 
         self.name = myName
-
         self.agent_simulator = agentSimulator
 	
         self.controlMap = {"turn_left":0, "turn_right":0, "move_forward":0, "move_backward":0, "move_right":0, "move_left":0,\
                            "look_up":0, "look_down":0, "look_left":0, "look_right":0}
         
         self.actor = Actor("models/ralph/ralph",{"walk":"models/ralph/ralph-walk", "run": "models/ralph/ralph-run"})
-        odeKinematicCharacterController.__init__(self, worldManager)
-        
         self.actor.reparentTo(render)
         self.actor.setScale(0.4)
 
 
-        # Expose agent's right hand joint to attach objects to 
+        PhysicsCharacterController.__init__(self,worldManager)
+
+        # Expose agent's right hand joint to attach objects to
         self.actor_right_hand = self.actor.exposeJoint(None, 'modelRoot', 'RightHand')
         self.actor_left_hand  = self.actor.exposeJoint(None, 'modelRoot', 'LeftHand')
         
@@ -73,7 +72,6 @@ class Ralph(odeKinematicCharacterController):
         #self.fov.node().showFrustum() # displays a box around his head
 
 
-
         self.actor_neck = self.actor.controlJoint(None, 'modelRoot', 'Neck')
 	
         # Define subpart of agent for when he's standing around
@@ -90,8 +88,8 @@ class Ralph(odeKinematicCharacterController):
         The ray sticking out of the camera and meant for clicking at
         objects in the world.
         """
-        self.aimRay = OdeRayGeom(self.worldManager.raySpace, 2.5)
-        self.aimed = None
+        #self.aimRay = OdeRayGeom(self.worldManager.raySpace, 2.5)
+        #self.aimed = None
 
         """
         I've added that mainly for sitting, but the later might be
@@ -99,7 +97,11 @@ class Ralph(odeKinematicCharacterController):
         """
         self.isSitting = False
         self.isDisabled = False
-        
+
+    def setPosQuat(self, render, pos, quat):
+        self.actor.setPos(render, pos)
+        self.actor.setQuat(render, quat)
+
     def setControl(self, control, value):
         """Set the state of one of the character's movement controls.
         """
@@ -496,6 +498,8 @@ class Ralph(odeKinematicCharacterController):
     def update(self, stepSize):
          # save the character's initial position so that we can restore it,
          # in case he falls off the map or runs into something.
+         
+        print "update-ralph"
         if self.isSitting:
             if inputState.isSet("forward"):
                 self.standUpFromChair()
@@ -537,7 +541,7 @@ class Ralph(odeKinematicCharacterController):
         # If the character is moving, loop the run animation.
         # If he is standing still, stop the animation.
 
-        odeKinematicCharacterController.update(self, stepSize )
+        PhysicsCharacterController.update(self, stepSize )
 
         if (self.controlMap["move_forward"]!=0) or (self.controlMap["move_backward"]!=0) or (self.controlMap["move_left"]!=0) or (self.controlMap["move_right"]!=0):
             if self.isMoving is False:

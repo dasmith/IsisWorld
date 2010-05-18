@@ -12,11 +12,7 @@ tar: *.py
 # /Developer/Panda3D/lib/direct/p3d/packp3d.py
 #panda3d makescripts/packp3d.p3d
 
-<<<<<<< HEAD
 package: simulator.py
-=======
-package:
->>>>>>> 0bcaaf52a5d46e96c3d237e9de1299f1811029c6
 	packp3d -o isis_world.p3d  -d . -D -r ode -r morepy -m simulator.py -e isis -e py -p xmlrpc -p shaders -p models -p models3 -p textures -p simulator -p som -c auto_start=1
 
 

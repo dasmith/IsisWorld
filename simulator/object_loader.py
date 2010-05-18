@@ -11,39 +11,18 @@ import sys, re, time
 
 class IsisObject(DirectObject):
     
-    def  __init__(self, worldManager, activeModel, models, states=[], density=2000):
+    def  __init__(self,  name, activeModel, models, states=[], density=2000):
         self.state = "close"
         self.speed = 15
 
         self.worldManager = worldManager
-        
         self.models = models
-        
+        self.name = name
         self.NP = activeModel
+        self.ode = None
         self.InitialHpr = self.NP.getHpr()
-        
-        # set up physical body
-        boundingBox, offset = getOBB(self.NP)
 
-        M = OdeMass()
-        M.setBox(density, *boundingBox) # density should be density
-        
-        self.body = OdeBody(worldManager.world)
-        self.body.setMass(M)
-        self.body.setPosition(self.NP.getPos())
-        self.body.setQuaternion(self.NP.getQuat())
-        # Create a BoxGeom
-        self.geom = OdeBoxGeom(self.worldManager.space,*boundingBox)
-        self.geom.setCollideBits(BitMask32(0x00000021))
-        self.geom.setCategoryBits(BitMask32(0x00000012))
-        self.geom.setBody(self.body)
-    
-        self.data = odeGeomData()
-        self.data.name = self.NP.getName()
-        self.data.surfaceFriction = 15.0
-        self.data.selectionCallback = self.select
-
-        self.worldManager.setGeomData(self.geom, self.data, self, True)
+        #self.worldManager.addBox(self.NP, density, self, self.select, is_kinematic=True)
         #if self.data.name == "knife": self.NP.place()
         
         
@@ -95,13 +74,19 @@ class IsisObject(DirectObject):
     def changeState(self, newState):
         self.state = newState
 
+    def nodepath(self):
+        return self.NP
+
+    def getPosQuat(self):
+        return self.NP.getPosQuat()
+
     def update(self, timeStep):
         """
         Here we update the position of the OdeGeom to follow the
         animated Panda Node. This method is what makes our object
         a kinematic one.
         """
-        self.NP.setPosQuat(render, self.body.getPosition(), Quat(self.body.getQuaternion()))
+        #self.NP.setPosQuat(render, self.body.getPosition(), Quat(self.body.getQuaternion()))
 
 
 
@@ -128,7 +113,7 @@ class IsisObjectGenerator():
         active_model.setPosHpr(renderParent,*self.posHpr)
         active_model.flattenStrong()
         
-        new_obj = IsisObject(worldManager, active_model, self.models, self.states, self.density)
+        new_obj = IsisObject(worldManager,self.name, active_model, self.models, self.states, self.density)
         return new_obj
 
     def __repr__(self):

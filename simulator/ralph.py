@@ -19,7 +19,9 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from odeWorldManager import *
+#from odeWorldManager import *
+from pandaWorldManager import *
+from direct.showbase import DirectObject
 from direct.interval.IntervalGlobal import *
 from direct.actor.Actor import Actor
 from direct.gui.DirectGui import DirectLabel
@@ -36,16 +38,15 @@ class Ralph(PhysicsCharacterController):
         self.controlMap = {"turn_left":0, "turn_right":0, "move_forward":0, "move_backward":0, "move_right":0, "move_left":0,\
                            "look_up":0, "look_down":0, "look_left":0, "look_right":0}
         
-        self.actor = Actor("models/ralph/ralph",{"walk":"models/ralph/ralph-walk", "run": "models/ralph/ralph-run"})
+        self.actor= Actor("models/ralph/ralph",{"walk":"models/ralph/ralph-walk", "run": "models/ralph/ralph-run"})
         self.actor.reparentTo(render)
         self.actor.setScale(0.4)
 
-
-        PhysicsCharacterController.__init__(self,worldManager)
+	#DirectObject.__init__(self)
 
         # Expose agent's right hand joint to attach objects to
-        self.actor_right_hand = self.actor.exposeJoint(None, 'modelRoot', 'RightHand')
-        self.actor_left_hand  = self.actor.exposeJoint(None, 'modelRoot', 'LeftHand')
+        self.player_right_hand = self.actor.exposeJoint(None, 'modelRoot', 'RightHand')
+        self.player_left_hand  = self.actor.exposeJoint(None, 'modelRoot', 'LeftHand')
         
         self.right_hand_holding_object = False
         self.left_hand_holding_object  = False
@@ -59,12 +60,14 @@ class Ralph(PhysicsCharacterController):
         self.speech_bubble.setBillboardAxis()
         
         # visual processing
-        self.actor_eye = self.actor.exposeJoint(None, 'modelRoot', 'LeftEyeLid')
+        self.player_eye = self.actor.exposeJoint(None, 'modelRoot', 'LeftEyeLid')
         # put a camera on ralph
         self.fov = NodePath(Camera('RaphViz'))
-        self.fov.reparentTo(self.actor_eye)
+        self.fov.reparentTo(self.player_eye)
         self.fov.setHpr(180,0,0)
 
+	self.speed = Vec3(0,0,0)
+        PhysicsCharacterController.__init__(self,worldManager)
 
         lens = self.fov.node().getLens()
         lens.setFov(60) #  degree field of view (expanded from 40)
@@ -72,7 +75,7 @@ class Ralph(PhysicsCharacterController):
         #self.fov.node().showFrustum() # displays a box around his head
 
 
-        self.actor_neck = self.actor.controlJoint(None, 'modelRoot', 'Neck')
+        self.player_neck = self.actor.controlJoint(None, 'modelRoot', 'Neck')
 	
         # Define subpart of agent for when he's standing around
         self.actor.makeSubpart("arms", ["LeftShoulder", "RightShoulder"])
@@ -98,9 +101,15 @@ class Ralph(PhysicsCharacterController):
         self.isSitting = False
         self.isDisabled = False
 
+    def setH(self,h):
+	self.player.setH(h)
+    
+    def setPos(self,h):
+	self.player.setPos(h)
+	
     def setPosQuat(self, render, pos, quat):
-        self.actor.setPos(render, pos)
-        self.actor.setQuat(render, quat)
+        self.player.setPos(render, pos)
+        self.player.setQuat(render, quat)
 
     def setControl(self, control, value):
         """Set the state of one of the character's movement controls.
@@ -173,7 +182,7 @@ class Ralph(PhysicsCharacterController):
                     print o.getName(), object_dict
                     print o.getAncestor(1).getName()
                     print o.getAncestor(1).listTags()
-                    print self.actor_neck.getH()
+                    print self.player_neck.getH()
 ##                    if (o.getAncestor(1).getName() == "Ralph"):
 ##                       for agent in self.agent_simulator.agents:
 ##                           if agent.
@@ -282,7 +291,7 @@ class Ralph(PhysicsCharacterController):
             world_object = self.agent_simulator.world_objects[pick_up_object]
             object_parent = world_object.getParent()
             if (object_parent == self.agent_simulator.env):
-                world_object.wrtReparentTo(self.actor_right_hand)
+                world_object.wrtReparentTo(self.player_right_hand)
                 world_object.setPos(0, 0, 0)
                 world_object.setHpr(0, 0, 0)
                 self.right_hand_holding_object = world_object
@@ -296,7 +305,7 @@ class Ralph(PhysicsCharacterController):
         if (self.left_hand_holding_object is not False):
             return False
         world_object = self.agent_simulator.world_objects[object_name]
-        world_object.wrtReparentTo(self.actor_left_hand)
+        world_object.wrtReparentTo(self.player_left_hand)
         world_object.setPos(0, 0, 0)
         world_object.setHpr(0, 0, 0)
         self.left_hand_holding_object = world_object
@@ -347,9 +356,9 @@ class Ralph(PhysicsCharacterController):
 
     def empty_hand(self):
         if (self.left_hand_holding_object is False):
-            return self.actor_left_hand
+            return self.player_left_hand
         elif (self.right_hand_holding_object is False):
-            return self.actor_right_hand
+            return self.player_right_hand
         return False
 
     def has_empty_hand(self):
@@ -362,9 +371,9 @@ class Ralph(PhysicsCharacterController):
                     if self.has_empty_hand():
                         empty_hand      = self.empty_hand()
                         new_object_name = self.agent_simulator.create_object__slice_of_bread([float(x) for x in empty_hand.getPos()])
-                    if (empty_hand == self.actor_left_hand):
+                    if (empty_hand == self.player_left_hand):
                         self.put_object_in_empty_left_hand(new_object_name)
-                    elif (empty_hand == self.actor_right_hand):
+                    elif (empty_hand == self.player_right_hand):
                         self.put_object_in_empty_right_hand(new_object_name)
                     else:
                         return "simulator error: empty hand is not left or right.  (are there others?)"
@@ -499,7 +508,6 @@ class Ralph(PhysicsCharacterController):
          # save the character's initial position so that we can restore it,
          # in case he falls off the map or runs into something.
          
-        print "update-ralph"
         if self.isSitting:
             if inputState.isSet("forward"):
                 self.standUpFromChair()
@@ -508,28 +516,28 @@ class Ralph(PhysicsCharacterController):
             return
 
         moveAtSpeed = 4.0
-        self.speed = [0.0, 0.0]
+        self.speed = Vec3(0.0, 0.0, 0.0)
 
 
-        self.startpos = self.actor.getPos()
+        self.startpos = self.player.getPos()
         # enforces bounds on a numeric value
         def bound(i, mn = -1, mx = 1): return min(max(i, mn), mx)
         # move the character if any of the move controls are activated.
 
-        if (self.controlMap["turn_left"]!=0):        self.setH(self.getH() + stepSize*80)
-        if (self.controlMap["turn_right"]!=0):       self.setH(self.getH() - stepSize*80)
+        if (self.controlMap["turn_left"]!=0):        self.setH(self.player.getH() + stepSize*80)
+        if (self.controlMap["turn_right"]!=0):       self.setH(self.player.getH() - stepSize*80)
         if (self.controlMap["move_forward"]!=0):     self.speed[1] = -moveAtSpeed
         if (self.controlMap["move_backward"]!=0):    self.speed[1] = moveAtSpeed
         if (self.controlMap["move_left"]!=0):        self.speed[0] = -moveAtSpeed
         if (self.controlMap["move_right"]!=0):       self.speed[0] = moveAtSpeed
         if (self.controlMap["look_left"]!=0):      
-            self.actor_neck.setP(bound(self.actor_neck.getP(),-60,60)+1*(stepSize*50))
+            self.player_neck.setP(bound(self.player_neck.getP(),-60,60)+1*(stepSize*50))
         if (self.controlMap["look_right"]!=0):
-            self.actor_neck.setP(bound(self.actor_neck.getP(),-60,60)-1*(stepSize*50))
+            self.player_neck.setP(bound(self.player_neck.getP(),-60,60)-1*(stepSize*50))
         if (self.controlMap["look_up"]!=0):
-            self.actor_neck.setH(bound(self.actor_neck.getH(),-60,80)+1*(stepSize*50))
+            self.player_neck.setH(bound(self.player_neck.getH(),-60,80)+1*(stepSize*50))
         if (self.controlMap["look_down"]!=0):
-            self.actor_neck.setH(bound(self.actor_neck.getH(),-60,80)-1*(stepSize*50))
+            self.player_neck.setH(bound(self.player_neck.getH(),-60,80)-1*(stepSize*50))
 
         # allow dialogue window to gradually decay (changing transparancy) and then disappear
         self.last_spoke += stepSize
@@ -541,7 +549,8 @@ class Ralph(PhysicsCharacterController):
         # If the character is moving, loop the run animation.
         # If he is standing still, stop the animation.
 
-        PhysicsCharacterController.update(self, stepSize )
+        self.player.setFluidPos(self.player, self.speed) 
+        #PhysicsCharacterController.update(self, stepSize )
 
         if (self.controlMap["move_forward"]!=0) or (self.controlMap["move_backward"]!=0) or (self.controlMap["move_left"]!=0) or (self.controlMap["move_right"]!=0):
             if self.isMoving is False:

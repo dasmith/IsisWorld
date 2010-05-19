@@ -3,10 +3,10 @@
 from pandac.PandaModules import loadPrcFileData
 loadPrcFileData("", "sync-video 0")
 loadPrcFileData("", "win-size 800 600")
-loadPrcFileData("", "textures-power-2 none") 
+#loadPrcFileData("", "textures-power-2 none") 
 #loadPrcFileData("", "basic-shaders-only f")
 
-from direct.showbase.ShowBase import ShowBase
+#from direct.showbase.ShowBase import ShowBase
 from random import randint, random
 import sys
 from direct.gui.OnscreenText import OnscreenText
@@ -17,20 +17,25 @@ from simulator.floating_camera import FloatingCamera
 from direct.gui.DirectGui import DirectEntry
 
 import simulator.skydome2 as skydome2
-from simulator.odeWorldManager import *
-from simulator.door import *
+#jfrom simulator.odeWorldManager import *
+from simulator.pandaWorldManager import *
+#from simulator.door import *
 from simulator.ralph import *
 from simulator.object_loader import *
 from xmlrpc.xmlrpc_server import HomeSim_XMLRPC_Server
 from xmlrpc.command_handler import Command_Handler
 import threading
+from direct.showbase.DirectObject import DirectObject
 
 ISIS_VERSION = 0.4
 
         
-class IsisWorld(ShowBase):
+class IsisWorld(DirectObject):
     def __init__(self):
-        ShowBase.__init__(self)
+        #ShowBase.__init__(self)
+        """Setup the collision pushers and traverser""" 
+        #Generic traverser 
+	
         base.setFrameRateMeter(True)
         base.setBackgroundColor(.2, .2, .2)
         render.setShaderAuto()
@@ -38,23 +43,38 @@ class IsisWorld(ShowBase):
         base.camLens.setNear(0.2) 
         base.disableMouse()
         self.world_objects = {}
-        # initialize ODE world
-        self.worldManager = PhysicsWorldManager()
+        # initialize ODE worlu
+        self.worldManager = None # PhysicsWorldManager()
         # setup components
         self.agentNum = 0
         self.setupMap()
         self.setupLights()
-        self.setupAgent()
-        self.setupCameras()
-        self.setupControls()
         taskMgr.add(self.timeUpdated, "timeUpdated")
        
         self.paused = True
+    
+        base.cTrav = CollisionTraverser('Collision Traverser') 
+        base.cTrav.setRespectPrevTransform(True) 
 
+        #Pusher Handler for walls 
+        base.cPush = PhysicsCollisionHandler() 
+
+        base.enableParticles() 
+       
+        # init gravity
+        self.gravityFN = ForceNode('gravity-force')
+        self.gravityFNP = render.attachNewNode(self.gravityFN)
+        self.gravityForce = LinearVectorForce(0,0,-9.81)
+        self.gravityFN.addForce(self.gravityForce)
+        
+        base.physicsMgr.addLinearForce(self.gravityForce)
+        self.setupAgent()
+        self.setupCameras()
+        self.setupControls()
         # load objects
         #self.world_objects.update(load_objects_in_world(self.worldManager,render, self.world_objects))
         # start simulation
-        self.worldManager.startPhysics()
+        #self.worldManager.startPhysics()
         # start server
         # xmlrpc server command handler
         #xmlrpc_command_handler = Command_Handler(self)
@@ -84,16 +104,18 @@ class IsisWorld(ShowBase):
         groundNP.lookAt(0, 0, -1)
         #groundNP.setAlphaScale(0.5)
         groundNP.setTransparency(TransparencyAttrib.MAlpha)
-
-
-#        groundGeom = OdePlaneGeom(self.worldManager.space, Vec4(0, 0, 1, 0))
-#        groundGeom.setCollideBits(self.worldManager.ENV_BITMASK)#BitMask32(0x00000021))
-#        groundGeom.setCategoryBits(self.worldManager.ENV_BITMASK)
-#        #groundData = odeGeomData()
-#        groundData.name = "ground"
-#        groundData.surfaceFriction = 2.0
-#        self.worldManager.setGeomData(groundGeom, groundData, None)
-
+	
+	# Ground collision
+	groundNP.setCollideMask(BitMask32.allOff())
+	groundNP.node().setIntoCollideMask(FLOORMASK)
+        #groundGeom = OdePlaneGeom(self.worldManager.space, Vec4(0, 0, 1, 0))
+        #groundGeom.setCollideBits(BitMask32(0x00000021))
+        #groundGeom.setCategoryBits(BitMask32(0x00000012))
+        #groundData = OdeObject()
+        #groundData.name = "ground"
+        #groundData.surfaceFriction = 2.0
+        #self.worldManager.setGeomData(groundGeom, groundData, None)
+        #self.worldManager.world.setContactSurfaceLayer(.0001)
         self.skydomeNP = skydome2.SkyDome2(render)
         self.skydomeNP.setStandardControl()
         self.skydomeNP.att_skycolor.setColor(Vec4(0.3,0.3,0.3,1))
@@ -108,15 +130,9 @@ class IsisWorld(ShowBase):
         self.map.reparentTo(render)
         self.mapNode = self.map.find("-PandaNode")
         self.room = self.mapNode.find("Wall")
-        #roomGeomData = OdeTriMeshData(self.room, True)
-        #roomGeom = OdeTriMeshGeom(self.worldManager.space, roomGeomData)
-#        roomGeom.setPosition(self.room.getPos(render))
-#        roomGeom.setQuaternion(self.room.getQuat(render))
-#        self.worldManager.setGeomData(roomGeom, groundData, False)
+        #self.worldManager.addItem(PhysicsTrimesh(name="Wall",world=self.worldManager.world, space=self.worldManager.space,pythonObject=self.room,density=800,surfaceFriction=10),False)
+	self.map.node().setIntoCollideMask(WALLMASK)
 
-        x = PhysicsTrimesh(world=self.worldManager.world, space=self.worldManager.space,pythonObject=self.room,density=800,surfaceFriction=10)
-        x.name = "ground"
-        self.worldManager.addItem(x,False)
         """
         Add a table to the room """
 
@@ -124,16 +140,10 @@ class IsisWorld(ShowBase):
         self.table.reparentTo(self.map)
         self.table.setPosHpr(0,2.8,0,0,0,0)
         self.table.setScale(0.007)
-        #self.worldManager.addBox(self.table,density=3000,is_kinematic=True,)
-        
+
         self.world_objects['table'] = self.table
 
-        self.worldManager.addItem(PhysicsBox(world=self.worldManager.world, space=self.worldManager.space,pythonObject=self.table,density=800,surfaceFriction=10),False)
-        #tableGeom = OdeBoxGeom(self.worldManager.space,*boundingBox)
-        #tableGeom.setPosition(self.table.getPos())
-        #tableGeom.setQuaternion(self.table.getQuat())
-        #self.worldManager.setGeomData(tableGeom, groundData, False)
-
+        #self.worldManager.addItem(PhysicsBox(world=self.worldManager.world, space=self.worldManager.space,pythonObject=self.table,density=800,surfaceFriction=10),False)
 
 
         """
@@ -147,7 +157,7 @@ class IsisWorld(ShowBase):
 #        stepsGeom.setQuaternion(self.steps.getQuat(render))
 #        self.worldManager.setGeomData(stepsGeom, groundData, None)
 
-        self.worldManager.addItem(PhysicsTrimesh(world=self.worldManager.world, space=self.worldManager.space,pythonObject=self.steps,density=800,surfaceFriction=10),False)
+        #self.worldManager.addItem(PhysicsTrimesh(world=self.worldManager.world, space=self.worldManager.space,pythonObject=self.steps,density=800,surfaceFriction=10),False)
         """
         Door functionality is also provided here.
         More on door in the appropriate file.
@@ -201,19 +211,19 @@ class IsisWorld(ShowBase):
 
         self.agents = []
         self.agentsNamesToIDs = {'Ralph':0, 'Lauren':1, 'David':2}
-        self.agents.append(Ralph(self.worldManager, self, "Ralph"))
-        self.agents[0].actor.setH(180)
-        self.agents[0].actor.setPos(Vec3(-1,0,0))
+        self.agents.append(Ralph(base, self, "Ralph"))
+        self.agents[0].setH(180)
+        self.agents[0].setPos(Vec3(-1,0,1))
         self.agents[0].control__say("Hi, I'm Ralph. Please build me.")
-        self.agents.append(Ralph(self.worldManager, self, "Lauren"))
 
+	self.agents.append(Ralph(base, self, "Lauren"))
         self.agents[1].actor.setH(0)
-        self.agents[1].actor.setPos(Vec3(-3,-3,0))
+        self.agents[1].actor.setPos(Vec3(-3,-3,1))
         self.agents[1].control__say("Hi, I'm Lauren. Please build me.")
 
-        self.agents.append(Ralph(self.worldManager, self, "David"))
+        self.agents.append(Ralph(base, self, "David"))
         self.agents[2].actor.setH(90)
-        self.agents[2].actor.setPos(Vec3(3,-3,0))
+        self.agents[2].actor.setPos(Vec3(3,-3,1))
         self.agents[2].control__say("Hi, I'm David. Please build me.")
 
         
@@ -333,12 +343,12 @@ class IsisWorld(ShowBase):
         base.accept("l",              relayAgentControl, ["look_right__start"])
         base.accept("l-up",           relayAgentControl, ["look_right__stop"])
         # atomic actions
-        base.accept("space",          relayAgentControl, ["jump"])
+        base.accept("i",              relayAgentControl, ["jump"])
         base.accept("u",              relayAgentControl, ["use_aimed"])
 
          
 
-        base.accept("i", hideText)
+        base.accept("o", hideText)
 
         # key input
         self.accept("space",           self.step_simulation, [.1]) # argument is amount of second to advance
@@ -366,8 +376,9 @@ class IsisWorld(ShowBase):
         self.command_box = DirectEntry(pos=(-1.2,-0.95,-0.95), text_fg=(0.282, 0.725, 0.850,1), frameColor=(0.631, 0.219, 0.247,0.25), suppressKeys=1, initialText="enter text and hit return", enableEdit=0,scale=0.07, focus=0, focusInCommand=disable_keys, focusOutCommand=enable_keys, focusInExtraArgs=[self], focusOutExtraArgs=[self], command=accept_message, extraArgs=[self],  width=15, numLines=1)
         base.win.setClearColor(Vec4(0,0,0,1))
 
-    def step_simulation(self,time=5):
-        pass
+    def step_simulation(self,time=1):
+	for agent in self.agents: agent.update(time)
+
 
 
     def get_camera_position(self):
@@ -458,4 +469,4 @@ def detonate():
 
 #base.accept("b", detonate)
 
-w.run()
+run()

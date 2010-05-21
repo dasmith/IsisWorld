@@ -15,6 +15,7 @@ from pandac.PandaModules import *
 from direct.filter.CommonFilters import CommonFilters 
 from simulator.floating_camera import FloatingCamera
 from direct.gui.DirectGui import DirectEntry
+from direct.showbase.DirectObject import DirectObject
 
 import simulator.skydome2 as skydome2
 #jfrom simulator.odeWorldManager import *
@@ -25,7 +26,6 @@ from simulator.object_loader import *
 from xmlrpc.xmlrpc_server import HomeSim_XMLRPC_Server
 from xmlrpc.command_handler import Command_Handler
 import threading
-from direct.showbase.DirectObject import DirectObject
 
 ISIS_VERSION = 0.4
 
@@ -33,7 +33,7 @@ ISIS_VERSION = 0.4
 class IsisWorld(DirectObject):
     def __init__(self):
         #ShowBase.__init__(self)
-        """Setup the collision pushers and traverser""" 
+	"""Setup the collision pushers and traverser""" 
         #Generic traverser 
 	
         base.setFrameRateMeter(True)
@@ -463,10 +463,5 @@ class IsisWorld(DirectObject):
 
 
 w = IsisWorld()
-
-def detonate():
-    explosion(w.worldManager, Vec3(0, 0, 0))
-
-#base.accept("b", detonate)
 
 run()

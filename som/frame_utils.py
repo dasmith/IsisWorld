@@ -5,7 +5,7 @@
 NULL_TRANSFRAME = {'added': {}, 'changed': {}, 'removed': {}}
 
 def create_transframe(frame_a,frame_b):
-    """ Takes two frames (aka: dictionaries, hash functions, trees) and computes their differences, an asymmetric operation, showing what needs to be done to convert A to B, in terms of additions, removals and changes.
+    """ Takes two frames (aka: dictionaries, hash maps, trees) and computes their differences, an asymmetric operation, showing what needs to be done to convert A to B, in terms of additions, removals and changes.
       Returns array of difference tuples, of types:
           added keys - present in B that are not present in A
           removed keys - present in A that are not present in B

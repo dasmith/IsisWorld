@@ -106,6 +106,11 @@ class PhysicsWorldManager():
         self.gravityFN.addForce(self.gravityForce)
         
         base.physicsMgr.addLinearForce(self.gravityForce)
+        
+    def addObjectInWord(nodePath):
+        collider = nodePath.attachNewNode(CollisionNode(nodePath.name+"-collider"))
+        
+        
 
     def startPhysics(self):
         return True

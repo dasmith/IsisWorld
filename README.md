@@ -10,21 +10,19 @@ Over the summer of 2010, we plan to make many significant improvements to IsisWo
 
 ## Implementation of Physics
 
-Angular and linear forces will be applied, and densities of objects will be represented by a Physical simulator.
-[ODE integration](http://www.panda3d.org/wiki/index.php/Using_ODE_with_Panda3D) in Panda3D is still preliminary [#1](http://www.panda3d.org/phpbb2/viewtopic.php?t=8207),
-[#2](http://www.panda3d.org/phpbb2/viewtopic.php?t=9200&sid=cd4e0c8166aadd14238c2e88f1a55282), and commitment to open source principles has eliminated NVidia's mature PhysX platform as a viable option.
-The result is Panda3D's built-in [physics support](http://www.panda3d.org/wiki/index.php/Panda3D_Physics_Engine) and [collision detection](http://www.panda3d.org/wiki/index.php/Collision_Detection).
+Angular and linear forces will be applied, and densities of objects will be represented by a Physical simulator. Because [ODE integration](http://www.panda3d.org/wiki/index.php/Using_ODE_with_Panda3D) in Panda3D is still preliminary [#1](http://www.panda3d.org/phpbb2/viewtopic.php?t=8207),
+[#2](http://www.panda3d.org/phpbb2/viewtopic.php?t=9200&sid=cd4e0c8166aadd14238c2e88f1a55282), and commitment to open source principles has eliminated NVidia's mature PhysX platform as a viable option, our
+only option is to use Panda3D's built-in [physics support](http://www.panda3d.org/wiki/index.php/Panda3D_Physics_Engine) and [collision detection](http://www.panda3d.org/wiki/index.php/Collision_Detection).
 Some decent tutorials exist [#1](http://www.panda3d.org/phpbb2/viewtopic.php?t=4806) [#2](http://www.panda3d.org/phpbb2/viewtopic.php?t=7918),  and also some for ODE, when Panda3D's support becomes more robust [#1](http://www.panda3d.org/phpbb2/viewtopic.php?t=7913).
 
 ### Design ideas
 
  - Make the physics handling modular, accessible through the `IsisWorld.worldManager` variable
  - Agents, Objects, and Environment items are initialized separately:
-    - Agents: Are sub-classed instances, defined in `simulator/ralph.py` of `PhysicsCharacterController` class, which has an `updatePhysics` method.  Geometrically, these are represented as capped cylinders, as TriMeshes are too computationally expensive.
-    - Objects: In ODE, there are two types of objects: kinematic (non-self propelled) and dynamic (capable of self-motion).  Most objects can be represented as a boundedBox, although some are best represented as cylinder or sphere.
+    - **Agents**: Are sub-classed instances, defined in `simulator/ralph.py` of `PhysicsCharacterController` class, which has an `updatePhysics` method.  Geometrically, these are represented as capped cylinders, as TriMeshes are too computationally expensive.
+    - **Objects**: In ODE, there are two types of objects: kinematic (non-self propelled) and dynamic (capable of self-motion).  Most objects can be represented as a boundedBox, although some are best represented as cylinder or sphere.
         - Objects can be added through `worldManager.addObjectToPhysics`
-    - Environment:  The ground is represented as an infinite plane.  Should represent walls of house as blocks, not TriMesh.
-
+    - **Environment**:  The ground is represented as an infinite plane.  Should represent walls of house as blocks, not TriMesh.
  - Gravity is represented as a linear force downward
 
 ## Initialization scripts for designing and loading environments

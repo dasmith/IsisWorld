@@ -6,16 +6,17 @@ The IsisWorld simulator is available to researchers for building and evaluating 
 
 # Improvements to the Simulator
 
-Over the summer of 2010, we plan to make many significant improvements to IsisWorld.  These will manifest as completion of several projects:
+Over the summer of 2010, we plan to make many significant improvements to IsisWorld.  These projects are:
 
 ## Implementation of Physics
 
-Angular and linear forces will be applied, and densities of objects will be represented by a Physical simulator. Because [ODE integration](http://www.panda3d.org/wiki/index.php/Using_ODE_with_Panda3D) in Panda3D is still preliminary [#1](http://www.panda3d.org/phpbb2/viewtopic.php?t=8207),
-[#2](http://www.panda3d.org/phpbb2/viewtopic.php?t=9200&sid=cd4e0c8166aadd14238c2e88f1a55282), and commitment to open source principles has eliminated NVidia's mature PhysX platform as a viable option, our
+Angular and linear forces will be applied, and densities of objects will be represented by a Physical simulator. Because [ODE integration](http://www.panda3d.org/wiki/index.php/Using_ODE_with_Panda3D) in Panda3D is still preliminary [#1(http://www.panda3d.org/phpbb2/viewtopic.php?t=8207), #2](http://www.panda3d.org/phpbb2/viewtopic.php?t=9200&sid=cd4e0c8166aadd14238c2e88f1a55282), and commitment to open source principles has eliminated NVidia's mature PhysX platform as a viable option, our
 only option is to use Panda3D's built-in [physics support](http://www.panda3d.org/wiki/index.php/Panda3D_Physics_Engine) and [collision detection](http://www.panda3d.org/wiki/index.php/Collision_Detection).
-Some decent tutorials exist [#1](http://www.panda3d.org/phpbb2/viewtopic.php?t=4806) [#2](http://www.panda3d.org/phpbb2/viewtopic.php?t=7918),  and also some for ODE, when Panda3D's support becomes more robust [#1](http://www.panda3d.org/phpbb2/viewtopic.php?t=7913).
+Some decent tutorials exist [#1(http://www.panda3d.org/phpbb2/viewtopic.php?t=4806), #2](http://www.panda3d.org/phpbb2/viewtopic.php?t=7918),  and for ODE, when Panda3D's support becomes more robust [#1](http://www.panda3d.org/phpbb2/viewtopic.php?t=7913).
 
 ### Design ideas
+
+Changing physics engines should be as easy as switching the import statement in `simulator/physics.py`.
 
  - Make the physics handling modular, accessible through the `IsisWorld.worldManager` variable
  - Agents, Objects, and Environment items are initialized separately:
@@ -28,22 +29,22 @@ Some decent tutorials exist [#1](http://www.panda3d.org/phpbb2/viewtopic.php?t=4
 ## Initialization scripts for designing and loading environments
 
 As mentioned in the [position paper](http://web.media.mit.edu/~dustin/simulator_metacog_aaai_2010.pdf), we want environments to be *generated* from a space of possible dimensions.  Most of the variable properties of the items (size, location, plurality, color, state) could be left to future work.  Default locations can be specified in a configuration file corresponding to prepositions:
-   - X on|in Y:  "on" and "in" are less descriptive than 3D (relative) coordinates
+   - X on Y in Z:  "on" and "in" are less descriptive than 3D (relative) coordinates
 
 This will require a general module for describing and loading components, a large range of visual, physical, linguistic, spatial (default locations), and functions (properties, methods to modify properties) for each object.
 
   * **Physical**: shape (for Physical collision mask), dynamic or kinesthetic
   * **Visual**: visibility, color mask, transparency level, scale size (of model)
   * **Spatial**: default orientation of model, default locations (as represented in abstract descriptions: "in kitchen on table")
-  * **Functional**: use a commonsense **type system** and inheritance structure for **attributes** and **values**  and their defaults (e.g., `{'is_on': {'domain': [True,False], 'default': False}}`) and **event listeners** to change the properties of these actions, some of which can affect the other kinds of item properties (physical), etc.
+  * **Functional**: use a commonsense **type system** and inheritance structure for **attributes** and **values**  and their **default value** (e.g., `{'is_on': {'domain': [True,False], 'default': False}}`) and **event listeners** to change the properties of these actions, some of which can affect the other kinds of item properties (physical), etc.
 
 ### Design ideas
 
   - Read `kitchen.isis` world in, creating a labeled graph structure: "X on Y" becomes: *graph.addEdge(x,y,label='on')*
-  - With root node "kitchen", [Topological sort](http://en.wikipedia.org/wiki/Topological_sorting) all nodes, and being rendering nodes in sorted order
-  - Visually, add models to their parent renderer `attachNodeWrtParent()`
-  - Set default properties of the item
-  - Physically, register item within physics handler
+  - With root node "kitchen", [topologically sort](http://en.wikipedia.org/wiki/Topological_sorting) all items.  For each item:
+      - Visually, add models to their parent renderer `attachNodeWrtParent()`
+      - Set default properties of the item
+      - Physically, register item within physics handler
 
 ## Extending corpus of models
 
@@ -63,14 +64,24 @@ In addition to items being able to re-act to actions of the character, events ca
 
 Use the [FSM](http://www.panda3d.org/wiki/index.php/Finite_State_Machines) of Panda3D to do this.  Possible approach: using Honda's OMICS corpus
 
-## Low Priority Improvements
+# Kitchen use-cases
 
+Several tasks for evaluating intelligent agents in IsisWorld.
+
+## Creating Toast in the Kitchen
+
+
+# Other Lower Priority Improvements
+
+  - Configuration parameters to disable non-essential, CPU intensive visual effects, like the clouds in the sky.
   - Replace Ralph with nicer model(s)
   - Obtain copyright information for all models
   - Multi-client implementation
   - Improving granularity of actions:  kinesthetic grasp, move items between arms, damage to body depending on forces
-  - Adding animation methods to graphics
-  - Configuration parameters to disable non-essential, CPU intensive visual effects, like the clouds in the sky.
+  - Adding "scale" parameter to existing perceptual controls
+  - Finer resolution perceptual/motor controls.
+  - Adding rotation-based animation methods to graphics
+
 
 ## Resources for Developers
 
@@ -78,4 +89,4 @@ Here is a list of resources for developers that are getting started working with
 
   [Panda3d.org](http://panda3d.org) has a really good manual, though it doesn't have 100% coverage of all the features in the API.  Also [the Panda3D forum](http://Panda3d.org/phpbb2/) is very valuable resource.
 
-To learn about Git, I recommend [GitHub's videos](http://learn.github.com).
+To learn about Git, Dustin recommends [GitHub's videos](http://learn.github.com).

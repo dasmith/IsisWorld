@@ -92,7 +92,6 @@ class IsisWorld(ShowBase):
 	so that the characters and objects do not fall through it.
 
 	This is done by calling the physics module:  "physicsModule.setupGround()"""
-	# GROUND
         cm = CardMaker("ground")
         groundTexture = loader.loadTexture("./textures/env_ground.jpg")
         cm.setFrame(-100, 100, -100, 100)
@@ -100,15 +99,14 @@ class IsisWorld(ShowBase):
         groundNP.setTexture(groundTexture)
         groundNP.setPos(0, 0, 0)
         groundNP.lookAt(0, 0, -1)
-        #groundNP.setAlphaScale(0.5)
         groundNP.setTransparency(TransparencyAttrib.MAlpha)
 
+	# TODO: make sky inverted cylinder?
 	self.worldManager.setupGround(groundNP)
         self.skydomeNP = skydome2.SkyDome2(render)
         self.skydomeNP.setStandardControl()
         self.skydomeNP.att_skycolor.setColor(Vec4(0.3,0.3,0.3,1))
         self.skydomeNP.setPos(Vec3(0,0,-500))
-
 
         """
         Get the map's panda node. This will allow us to find the objects
@@ -199,17 +197,17 @@ class IsisWorld(ShowBase):
 
         self.agents = []
         self.agentsNamesToIDs = {'Ralph':0, 'Lauren':1, 'David':2}
-        self.agents.append(Ralph(base, self, "Ralph"))
+        self.agents.append(Ralph(base.worldManager, self, "Ralph"))
         self.agents[0].setH(180)
         self.agents[0].setPos(Vec3(-1,0,1))
         self.agents[0].control__say("Hi, I'm Ralph. Please build me.")
 
-	self.agents.append(Ralph(base, self, "Lauren"))
+	self.agents.append(Ralph(base.worldManager, self, "Lauren"))
         self.agents[1].actor.setH(0)
         self.agents[1].actor.setPos(Vec3(-3,-3,1))
         self.agents[1].control__say("Hi, I'm Lauren. Please build me.")
 
-        self.agents.append(Ralph(base, self, "David"))
+        self.agents.append(Ralph(base.worldManager, self, "David"))
         self.agents[2].actor.setH(90)
         self.agents[2].actor.setPos(Vec3(3,-3,1))
         self.agents[2].control__say("Hi, I'm David. Please build me.")
@@ -225,8 +223,11 @@ class IsisWorld(ShowBase):
         text = "\n"
         text += "IsisWorld v%s\n" % (ISIS_VERSION)
         text += "\n\n"
+        text += "\nPress [1] to toggle wire frame\n"
+        text += "\nPress [2] to toggle texture\n"
+        text += "\nPress [3] to switch agent\n"
         text += "\nPress [i] to hide/show this text\n"
-        text += "\n[o] lists objects in Ralph's f.o.v.\n"
+        text += "\n[o] lists objects in agent's f.o.v.\n"
         text += "\n[a,s,d,f] to move or zoom camera\n"
         text += "\n[Esc] to quit\n\n\n"
 
@@ -260,7 +261,6 @@ class IsisWorld(ShowBase):
 
             self.setupCameras()
 
-        base.accept("9", changeAgent, [])
 
         def relayAgentControl(controlText):
 
@@ -334,11 +334,15 @@ class IsisWorld(ShowBase):
         base.accept("i",              relayAgentControl, ["jump"])
         base.accept("u",              relayAgentControl, ["use_aimed"])
 
+
          
 
         base.accept("o", hideText)
 
         # key input
+        base.accept("1",              base.toggleWireframe, [])
+        base.accept("2",              base.toggleTexture, [])
+        base.accept("3",              changeAgent, [])
         self.accept("space",           self.step_simulation, [.1]) # argument is amount of second to advance
         self.accept("o",               self.printObjects, []) # displays objects in field of view
         self.accept("p",               togglePaused)

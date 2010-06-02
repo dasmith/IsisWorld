@@ -5,7 +5,6 @@ from direct.actor.Actor import Actor
 from direct.gui.DirectGui import DirectLabel
 from pandac.PandaModules import PandaNode,NodePath,Camera
 import math
-#import time
 
 class Ralph(PhysicsCharacterController):
     def __init__(self, worldManager, agentSimulator, myName):
@@ -82,14 +81,14 @@ class Ralph(PhysicsCharacterController):
         self.isDisabled = False
 
     def setH(self,h):
-	self.player.setH(h)
+	self.geom.setH(h)
     
     def setPos(self,h):
-	self.player.setPos(h)
+	self.geom.setPos(h)
 	
     def setPosQuat(self, render, pos, quat):
-        self.player.setPos(render, pos)
-        self.player.setQuat(render, quat)
+        self.geom.setPos(render, pos)
+        self.geom.setQuat(render, quat)
 
     def setControl(self, control, value):
         """Set the state of one of the character's movement controls.
@@ -482,13 +481,13 @@ class Ralph(PhysicsCharacterController):
         self.speed = Vec3(0.0, 0.0, 0.0)
 
 
-        self.startpos = self.player.getPos()
+        self.startpos = self.geom.getPos()
         # enforces bounds on a numeric value
         def bound(i, mn = -1, mx = 1): return min(max(i, mn), mx)
         # move the character if any of the move controls are activated.
 
-        if (self.controlMap["turn_left"]!=0):        self.setH(self.player.getH() + stepSize*80)
-        if (self.controlMap["turn_right"]!=0):       self.setH(self.player.getH() - stepSize*80)
+        if (self.controlMap["turn_left"]!=0):        self.setH(self.geom.getH() + stepSize*80)
+        if (self.controlMap["turn_right"]!=0):       self.setH(self.geom.getH() - stepSize*80)
         if (self.controlMap["move_forward"]!=0):     self.speed[1] = -moveAtSpeed
         if (self.controlMap["move_backward"]!=0):    self.speed[1] = moveAtSpeed
         if (self.controlMap["move_left"]!=0):        self.speed[0] = -moveAtSpeed

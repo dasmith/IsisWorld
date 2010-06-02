@@ -9,54 +9,57 @@ WALLMASK = BitMask32.bit(1)
 class PhysicsCharacterController(object):
     
     
-    def __init__(self, base ):
-  
-        #Collision handler for adding objects and the like 
-        self.pTrav = CollisionTraverser("Picker Traverser") 
-        self.pQueue = CollisionHandlerQueue() 
-        base.cPush.addInPattern('%fn')
-        self.player = NodePath(ActorNode("player"))
-        self.player.reparentTo(render)
-        
-        #Picker collision 
-        pickerNode = CollisionNode('mouseRay') 
-        pickerNP = self.fov.attachNewNode(pickerNode) 
-        pickerNode.setFromCollideMask(GeomNode.getDefaultCollideMask()) 
-        pickerNode.setIntoCollideMask(BitMask32().allOff()) 
-        self.pickerRay = CollisionRay() 
-        pickerNode.addSolid(self.pickerRay) 
-        self.pTrav.addCollider(pickerNP, self.pQueue) 
+    def __init__(self, worldManager):
 
-        # Floor collision
-        self.playerGroundRay = CollisionRay()     # Create the ray 
-        self.playerGroundRay.setOrigin(0,0,10)    # Set its origin 
-        self.playerGroundRay.setDirection(0,0,-1) # And its direction 
-        #self.ballGroundCol = CollisionNode('floorRay') # Create and name the node 
-        #self.ballGroundCol.addSolid(self.playerGroundRay) # Add the ray 
-        #self.ballGroundCol.setFromCollideMask(BitMask32.bit(1)) # Set its bitmasks 
-        #self.ballGroundCol.setIntoCollideMask(BitMask32.allOff()) 
-        #self.ballGroundColNp = self.ralphFoot.attachNewNode(self.ballGroundCol)
-        
-        #Player Collision Sphere 
-        self.cNode = CollisionNode("PlayerCollision") 
+	# attach collision node
+	self.geom = worldManager.addActorPhysics(self)
+        if False:
+	    #Collision handler for adding objects and the like
+	    self.pTrav = CollisionTraverser("Picker Traverser")
+	    self.pQueue = CollisionHandlerQueue()
+	    base.cPush.addInPattern('%fn')
+	    self.player = NodePath(ActorNode("player"))
+	    self.player.reparentTo(render)
 
-        #To make the person tall, but not wide we use three collisionspheres 
-        self.cNode.addSolid(CollisionSphere(0,0,-1,1)) 
-        self.cNode.addSolid(CollisionSphere(0,0,-3,1)) 
-        self.cNode.addSolid(CollisionSphere(0,0,-5,1))
+	    #Picker collision
+	    pickerNode = CollisionNode('mouseRay')
+	    pickerNP = self.fov.attachNewNode(pickerNode)
+	    pickerNode.setFromCollideMask(GeomNode.getDefaultCollideMask())
+	    pickerNode.setIntoCollideMask(BitMask32().allOff())
+	    self.pickerRay = CollisionRay()
+	    pickerNode.addSolid(self.pickerRay)
+	    self.pTrav.addCollider(pickerNP, self.pQueue)
 
-        self.cNodePath = self.player.attachNewNode(self.cNode) 
-        self.cNodePath.node().setFromCollideMask(FLOORMASK|WALLMASK) 
-        self.cNodePath.node().setIntoCollideMask(BitMask32.allOff()) 
+	    # Floor collision
+	    self.playerGroundRay = CollisionRay()     # Create the ray
+	    self.playerGroundRay.setOrigin(0,0,10)    # Set its origin
+	    self.playerGroundRay.setDirection(0,0,-1) # And its direction
+	    #self.ballGroundCol = CollisionNode('floorRay') # Create and name the node
+	    #self.ballGroundCol.addSolid(self.playerGroundRay) # Add the ray
+	    #self.ballGroundCol.setFromCollideMask(BitMask32.bit(1)) # Set its bitmasks
+	    #self.ballGroundCol.setIntoCollideMask(BitMask32.allOff())
+	    #self.ballGroundColNp = self.ralphFoot.attachNewNode(self.ballGroundCol)
 
-        base.cPush.addCollider(self.cNodePath, self.player) 
-        base.cTrav.addCollider(self.cNodePath, base.cPush) 
+	    #Player Collision Sphere
+	    self.cNode = CollisionNode("PlayerCollision")
 
-        #Attach it to the global physics manager. 
-        base.physicsMgr.attachPhysicalNode(self.player.node())
-        
-        self.actor.reparentTo(self.player)
-        taskMgr.add(self.updateCharacter, "updateCharacter")
+	    #To make the person tall, but not wide we use three collisionspheres
+	    self.cNode.addSolid(CollisionSphere(0,0,-1,1))
+	    self.cNode.addSolid(CollisionSphere(0,0,-3,1))
+	    self.cNode.addSolid(CollisionSphere(0,0,-5,1))
+
+	    self.cNodePath = self.player.attachNewNode(self.cNode)
+	    self.cNodePath.node().setFromCollideMask(FLOORMASK|WALLMASK)
+	    self.cNodePath.node().setIntoCollideMask(BitMask32.allOff())
+
+	    base.cPush.addCollider(self.cNodePath, self.player)
+	    base.cTrav.addCollider(self.cNodePath, base.cPush)
+
+	    #Attach it to the global physics manager.
+	    base.physicsMgr.attachPhysicalNode(self.player.node())
+
+	    self.actor.reparentTo(self.player)
+	    taskMgr.add(self.updateCharacter, "updateCharacter")
 
     def updateCharacter(self, task):
         """Big task that updates the character's visual and physical position every tick"""
@@ -104,11 +107,8 @@ def getOrientedBoundingBox(collObj):
 
 class PhysicsWorldManager():
     
-    def __init__(self,disable=False):
-        """Setup the collision pushers and traverser""" 
-        
-        self.disable = disable
-        if self.disable: return
+    def __init__(self):
+        """Setup the collision pushers, handler, and traverser"""
         #Generic traverser 
         base.cTrav = CollisionTraverser('Collision Traverser') 
         base.cTrav.setRespectPrevTransform(True) 
@@ -125,28 +125,34 @@ class PhysicsWorldManager():
         self.gravityFN.addForce(self.gravityForce)
         
         base.physicsMgr.addLinearForce(self.gravityForce)
-        
+
+    def addActorPhysics(self,actor):
+	geom = actor.actor.attachNewNode(CollisionNode('%s-collider'%actor.name))
+	# set up geometry for collision node
+	geom.node().addSolid(CollisionSphere(0,0,0,1))
+	base.cTrav.addCollider(geom, base.cPush)
+	return geom
 
     def addObjectInWord(nodePath,shape):
         if self.disable: return
         collider = nodePath.attachNewNode(CollisionNode(nodePath.name+"-collider"))
         boundingBox=getOrientedBoundingBox(collObj)
-        if shape=='sphere':
-          radius=.5*max(*boundingBox)
-        
-        self.geom = OdeSphereGeom(space, radius)
-        if False:#density:  # create body if the object is dynamic, otherwise don't
-           self.body = OdeBody(world)
-           M = OdeMass()
-           M.setSphere(density, radius)
-           self.body.setMass(M)
-           self.geom.setBody(self.body)
+	if shape=='sphere':
+	    radius=.5*max(*boundingBox)
+        geom = OdeSphereGeom(space, radius)
         #self.geom.setPosition(obj.getPos(render))
         #self.geom.setQuaternion(obj.getQuat(render))
-        
+       	return geom
 
     def setupGround(self,groundNP):
-	# Ground collision
+	# Ground collision: represented as an infinite plane
+	# any object below the plane, no matter how far, is 
+	# considered to be intersecting the plane.
+	#
+	# Constructed with Panda3D plane object, one way to 
+	# do this is with a point and a normal
+	self.groundGeom = CollisionPlane(Plane(Vec3(0,0,1), Point3(0,0,0)))
+
 	groundNP.setCollideMask(BitMask32.allOff())
 	groundNP.node().setIntoCollideMask(FLOORMASK)
         #groundGeom = OdePlaneGeom(self.worldManager.space, Vec4(0, 0, 1, 0))

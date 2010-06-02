@@ -70,9 +70,12 @@ Use the [FSM](http://www.panda3d.org/wiki/index.php/Finite_State_Machines) of Pa
   - Multi-client implementation
   - Improving granularity of actions:  kinesthetic grasp, move items between arms, damage to body depending on forces
   - Adding animation methods to graphics
-
+  - Configuration parameters to disable non-essential, CPU intensive visual effects, like the clouds in the sky.
 
 ## Resources for Developers
 
+Here is a list of resources for developers that are getting started working with IsisWorld.
+
   [Panda3d.org](http://panda3d.org) has a really good manual, though it doesn't have 100% coverage of all the features in the API.  Also [the Panda3D forum](http://Panda3d.org/phpbb2/) is very valuable resource.
 
+To learn about Git, I recommend [GitHub's videos](http://learn.github.com).

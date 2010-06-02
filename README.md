@@ -1,6 +1,6 @@
 # Isis World Simulator
 
-The IsisWorld simulator is available to researchers for building and evaluating problem solving and language learning systems with everyday problems that take place in a kitchen (on a campground?  house coming soon!).  Some documentation and arguments about theoretical underpinnings aimed toward the metareasoning community are available in this paper: 
+The IsisWorld simulator is available to researchers for building and evaluating problem solving and language learning systems with everyday problems that take place in a kitchen.  Some documentation and arguments about theoretical underpinnings aimed toward the metareasoning community are available in this paper: 
  
   * [An open source commonsense simulator for AI researchers](http://web.media.mit.edu/~dustin/simulator_metacog_aaai_2010.pdf).  Dustin Smith and Bo Morgan.  *Submitted to AAAI-10 Workshop on Metacognition*.
 
@@ -10,9 +10,9 @@ Over the summer of 2010, we plan to make many significant improvements to IsisWo
 
 ## Implementation of Physics
 
-Angular and linear forces will be applied, and densities of objects will be represented by a Physical simulator. Because [ODE integration](http://www.panda3d.org/wiki/index.php/Using_ODE_with_Panda3D) in Panda3D is still preliminary [#1(http://www.panda3d.org/phpbb2/viewtopic.php?t=8207), #2](http://www.panda3d.org/phpbb2/viewtopic.php?t=9200&sid=cd4e0c8166aadd14238c2e88f1a55282), and commitment to open source principles has eliminated NVidia's mature PhysX platform as a viable option, our
+Angular and linear forces will be applied, and densities of objects will be represented by a Physical simulator. Because [ODE integration](http://www.panda3d.org/wiki/index.php/Using_ODE_with_Panda3D) in Panda3D is still preliminary [[#1](http://www.panda3d.org/phpbb2/viewtopic.php?t=8207), [#2](http://www.panda3d.org/phpbb2/viewtopic.php?t=9200&sid=cd4e0c8166aadd14238c2e88f1a55282), and commitment to open source principles has eliminated NVidia's mature PhysX platform as a viable option, our
 only option is to use Panda3D's built-in [physics support](http://www.panda3d.org/wiki/index.php/Panda3D_Physics_Engine) and [collision detection](http://www.panda3d.org/wiki/index.php/Collision_Detection).
-Some decent tutorials exist [#1(http://www.panda3d.org/phpbb2/viewtopic.php?t=4806), #2](http://www.panda3d.org/phpbb2/viewtopic.php?t=7918),  and for ODE, when Panda3D's support becomes more robust [#1](http://www.panda3d.org/phpbb2/viewtopic.php?t=7913).
+Some decent tutorials exist [[#1](http://www.panda3d.org/phpbb2/viewtopic.php?t=4806) [#2](http://www.panda3d.org/phpbb2/viewtopic.php?t=7918)],  and for ODE, when Panda3D's support becomes more robust [#1](http://www.panda3d.org/phpbb2/viewtopic.php?t=7913).
 
 ### Design ideas
 
@@ -54,7 +54,7 @@ Lots that can possibly be added.  Stay focused on the kitchen and the use cases 
  - Blender models can be exported using Chicken.
  - [Alice](http://www.alice.org/index.php?page=gallery/index) I saw a list of these somewhere that were already in the egg file format. Some of these already have animation methods!
  - List of [game models](http://www.panda3d.org/phpbb2/viewtopic.php?t=6880)
- - [not-immediately useful list of resources](http://code.google.com/p/panda3d-models/wiki/Resources)
+ - [(not? immediately useful?) list of resources](http://code.google.com/p/panda3d-models/wiki/Resources)
 
 ## Event Handling in simulated world
 

@@ -1,26 +1,4 @@
-# -*- coding: UTF-8 -*-
-
-# Copyright (c) 2009, Piotr Podgórski
-# All rights reserved.
-#
-# Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
-#
-#    1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-#    2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer
-#       in the documentation and/or other materials provided with the distribution.
-#    3. Neither the name of the Author nor the names of other contributors may be used to endorse or promote products derived from this software
-#       without specific prior written permission.
-#
-# THIS SOFTWARE IS PROVIDED BY THE AUTHORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING,
-# BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-# ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-# SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
-# GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-# THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-#from odeWorldManager import *
-from pandaWorldManager import *
+from physics import *
 from direct.showbase import DirectObject
 from direct.interval.IntervalGlobal import *
 from direct.actor.Actor import Actor
@@ -68,6 +46,8 @@ class Ralph(PhysicsCharacterController):
 
 	self.speed = Vec3(0,0,0)
         PhysicsCharacterController.__init__(self,worldManager)
+	if not hasattr(self,'updateCharacter'):
+	    raise "Error: PhysicsCharacterController does not have required 'updateCharacter' method defined'"
 
         lens = self.fov.node().getLens()
         lens.setFov(60) #  degree field of view (expanded from 40)
@@ -278,7 +258,6 @@ class Ralph(PhysicsCharacterController):
 
     #here one can tell the agent what to do when someone talks with him.
     def hear(self, speaker, text):
-        #self.control__jump()
         self.control__say(("I hear ya, " + speaker))
 
         
@@ -445,29 +424,13 @@ class Ralph(PhysicsCharacterController):
         self.capsuleGeom.disable()
         self.footRay.disable()
 
-    def enable(self):
+    def obsolete__enable(self):
         """
         Enable collisions for this character
         """
         self.footRay.enable()
         self.capsuleGeom.enable()
         self.isDisabled = False
-
-    def setFly(self, fly):
-        """
-        Fly mode. In this mode the character is not kept on the ground.
-        Instead it can fly around the map.
-
-        I've made this for ladders, but it can easily be used for swimming
-        or for implementing a noclip cheat.
-        """
-        if fly:
-            self.state = "fly"
-            self.movementParent = base.cam
-        else:
-            self.state = "ground"
-            self.movementParent = self.capsuleGeom
-
 
     def control__use_aimed(self):
         """
@@ -549,7 +512,8 @@ class Ralph(PhysicsCharacterController):
         # If the character is moving, loop the run animation.
         # If he is standing still, stop the animation.
 
-        self.player.setFluidPos(self.player, self.speed) 
+	# TODO: adjust location of physics capsule here
+        #self.player.setFluidPos(self.player, self.speed)
         #PhysicsCharacterController.update(self, stepSize )
 
         if (self.controlMap["move_forward"]!=0) or (self.controlMap["move_backward"]!=0) or (self.controlMap["move_left"]!=0) or (self.controlMap["move_right"]!=0):

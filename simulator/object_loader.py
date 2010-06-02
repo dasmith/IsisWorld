@@ -1,11 +1,10 @@
 """  Object Loader for IsisWorld Simulator """
-#from odeWorldManager import *
 from direct.interval.IntervalGlobal import *
 from direct.showbase.DirectObject import DirectObject
 from pandac.PandaModules import BitMask32, CardMaker, Vec4, Quat
 from random import randint, random
 import sys, re, time
-
+from physics import *
 
 class IsisObject(DirectObject):
     

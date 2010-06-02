@@ -1,12 +1,15 @@
 #!/usr/bin/env python
 
-from pandac.PandaModules import loadPrcFileData
-loadPrcFileData("", "sync-video 0")
-loadPrcFileData("", "win-size 800 600")
-#loadPrcFileData("", "textures-power-2 none") 
-#loadPrcFileData("", "basic-shaders-only f")
+ISIS_VERSION = 0.4
 
-#from direct.showbase.ShowBase import ShowBase
+from pandac.PandaModules import loadPrcFileData
+loadPrcFileData("", 
+"""sync-video 0
+win-size 800 600
+textures-power-2 none 
+basic-shaders-only f""")
+
+from direct.showbase.ShowBase import ShowBase
 from random import randint, random
 import sys
 from direct.gui.OnscreenText import OnscreenText
@@ -18,8 +21,6 @@ from direct.gui.DirectGui import DirectEntry
 from direct.showbase.DirectObject import DirectObject
 
 import simulator.skydome2 as skydome2
-#jfrom simulator.odeWorldManager import *
-from simulator.pandaWorldManager import *
 #from simulator.door import *
 from simulator.ralph import *
 from simulator.object_loader import *
@@ -27,24 +28,21 @@ from xmlrpc.xmlrpc_server import HomeSim_XMLRPC_Server
 from xmlrpc.command_handler import Command_Handler
 import threading
 
-ISIS_VERSION = 0.4
-
+from simulator.physics import *
         
-class IsisWorld(DirectObject):
+class IsisWorld(ShowBase):
     def __init__(self):
-        #ShowBase.__init__(self)
-	"""Setup the collision pushers and traverser""" 
-        #Generic traverser 
-	
+        ShowBase.__init__(self)
+        
+        render.setShaderAuto()
         base.setFrameRateMeter(True)
         base.setBackgroundColor(.2, .2, .2)
-        render.setShaderAuto()
         base.camLens.setFov(75)
         base.camLens.setNear(0.2) 
         base.disableMouse()
-        self.world_objects = {}
-        # initialize ODE worlu
-        self.worldManager = None # PhysicsWorldManager()
+        
+        self.worldObjects = {}
+	self.worldManager = PhysicsWorldManager() # defined in simulator/physics.py
         # setup components
         self.agentNum = 0
         self.setupMap()
@@ -53,13 +51,6 @@ class IsisWorld(DirectObject):
        
         self.paused = True
     
-        base.cTrav = CollisionTraverser('Collision Traverser') 
-        base.cTrav.setRespectPrevTransform(True) 
-
-        #Pusher Handler for walls 
-        base.cPush = PhysicsCollisionHandler() 
-
-        base.enableParticles() 
        
         # init gravity
         self.gravityFN = ForceNode('gravity-force')
@@ -72,19 +63,19 @@ class IsisWorld(DirectObject):
         self.setupCameras()
         self.setupControls()
         # load objects
-        #self.world_objects.update(load_objects_in_world(self.worldManager,render, self.world_objects))
+        #self.worldObjects.update(load_objects_in_world(self.worldManager,render, self.worldObjects))
         # start simulation
-        #self.worldManager.startPhysics()
+        self.worldManager.startPhysics()
         # start server
         # xmlrpc server command handler
-        #xmlrpc_command_handler = Command_Handler(self)
+        xmlrpc_command_handler = Command_Handler(self)
 	
         # xmlrpc server
-        #self.server_object = HomeSim_XMLRPC_Server()
-        #self.server = self.server_object.server
-        #self.server.register_function(xmlrpc_command_handler.command_handler,'do')
-        #self.server_thread = threading.Thread(group=None, target=self.server.serve_forever, name='xmlrpc')
-        #self.server_thread.start()
+        self.server_object = HomeSim_XMLRPC_Server()
+        self.server = self.server_object.server
+        self.server.register_function(xmlrpc_command_handler.command_handler,'do')
+        self.server_thread = threading.Thread(group=None, target=self.server.serve_forever, name='xmlrpc')
+        self.server_thread.start()
 
 
               
@@ -94,7 +85,14 @@ class IsisWorld(DirectObject):
  
  
     def setupMap(self):
-        # GROUND
+	""" The map consists of a plane, the "ground" that stretches to infinity
+	and a dome, the "sky" that sits concavely on the ground.
+
+	For the ground component, a separate physics module must be created 
+	so that the characters and objects do not fall through it.
+
+	This is done by calling the physics module:  "physicsModule.setupGround()"""
+	# GROUND
         cm = CardMaker("ground")
         groundTexture = loader.loadTexture("./textures/env_ground.jpg")
         cm.setFrame(-100, 100, -100, 100)
@@ -104,18 +102,8 @@ class IsisWorld(DirectObject):
         groundNP.lookAt(0, 0, -1)
         #groundNP.setAlphaScale(0.5)
         groundNP.setTransparency(TransparencyAttrib.MAlpha)
-	
-	# Ground collision
-	groundNP.setCollideMask(BitMask32.allOff())
-	groundNP.node().setIntoCollideMask(FLOORMASK)
-        #groundGeom = OdePlaneGeom(self.worldManager.space, Vec4(0, 0, 1, 0))
-        #groundGeom.setCollideBits(BitMask32(0x00000021))
-        #groundGeom.setCategoryBits(BitMask32(0x00000012))
-        #groundData = OdeObject()
-        #groundData.name = "ground"
-        #groundData.surfaceFriction = 2.0
-        #self.worldManager.setGeomData(groundGeom, groundData, None)
-        #self.worldManager.world.setContactSurfaceLayer(.0001)
+
+	self.worldManager.setupGround(groundNP)
         self.skydomeNP = skydome2.SkyDome2(render)
         self.skydomeNP.setStandardControl()
         self.skydomeNP.att_skycolor.setColor(Vec4(0.3,0.3,0.3,1))
@@ -141,7 +129,7 @@ class IsisWorld(DirectObject):
         self.table.setPosHpr(0,2.8,0,0,0,0)
         self.table.setScale(0.007)
 
-        self.world_objects['table'] = self.table
+        self.worldObjects['table'] = self.table
 
         #self.worldManager.addItem(PhysicsBox(world=self.worldManager.world, space=self.worldManager.space,pythonObject=self.table,density=800,surfaceFriction=10),False)
 
@@ -164,7 +152,7 @@ class IsisWorld(DirectObject):
         """
         self.doorNP = self.mapNode.find("Door")
         #self.door = door(self.worldManager, self.doorNP)
-        #self.world_objects['door'] = door
+        #self.worldObjects['door'] = door
         
         self.map.flattenStrong()
         self.table.flattenStrong()
@@ -464,4 +452,4 @@ class IsisWorld(DirectObject):
 
 w = IsisWorld()
 
-run()
+w.run()

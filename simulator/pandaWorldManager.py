@@ -56,10 +56,10 @@ class PhysicsCharacterController(object):
         base.physicsMgr.attachPhysicalNode(self.player.node())
         
         self.actor.reparentTo(self.player)
-        taskMgr.add(self.updatePlayer, "updatePlayer")
+        taskMgr.add(self.updateCharacter, "updateCharacter")
 
-    def updatePlayer(self, task): 
-        """Big task that updates the players position every tick""" 
+    def updateCharacter(self, task):
+        """Big task that updates the character's visual and physical position every tick"""
         elapsed = globalClock.getDt() 
 
         if False:
@@ -83,13 +83,32 @@ class PhysicsCharacterController(object):
         self.player.setFluidPos(self.player, self.speed) 
         return task.cont 
 
+def getOrientedBoundingBox(collObj):
+    ''' get the Oriented Bounding Box '''
+    # save object's parent and transformation
+    parent=collObj.getParent()
+    trans=collObj.getTransform()
+    # ODE need everything in world's coordinate space,
+    # so bring the object directly under render, but keep the transformation
+    collObj.wrtReparentTo(render)
+    # get the tight bounds before any rotation
+    collObj.setHpr(0,0,0)
+    bounds=collObj.getTightBounds()
+    # bring object to it's parent and restore it's transformation
+    collObj.reparentTo(parent)
+    collObj.setTransform(trans)
+    # (max - min) bounds
+    box=bounds[1]-bounds[0]
+    return [box[0],box[1],box[2]]
+
 
 class PhysicsWorldManager():
     
-    
-    
-    def __init__(self):
+    def __init__(self,disable=False):
         """Setup the collision pushers and traverser""" 
+        
+        self.disable = disable
+        if self.disable: return
         #Generic traverser 
         base.cTrav = CollisionTraverser('Collision Traverser') 
         base.cTrav.setRespectPrevTransform(True) 
@@ -107,10 +126,37 @@ class PhysicsWorldManager():
         
         base.physicsMgr.addLinearForce(self.gravityForce)
         
-    def addObjectInWord(nodePath):
+
+    def addObjectInWord(nodePath,shape):
+        if self.disable: return
         collider = nodePath.attachNewNode(CollisionNode(nodePath.name+"-collider"))
+        boundingBox=getOrientedBoundingBox(collObj)
+        if shape=='sphere':
+          radius=.5*max(*boundingBox)
         
+        self.geom = OdeSphereGeom(space, radius)
+        if False:#density:  # create body if the object is dynamic, otherwise don't
+           self.body = OdeBody(world)
+           M = OdeMass()
+           M.setSphere(density, radius)
+           self.body.setMass(M)
+           self.geom.setBody(self.body)
+        #self.geom.setPosition(obj.getPos(render))
+        #self.geom.setQuaternion(obj.getQuat(render))
         
+
+    def setupGround(self,groundNP):
+	# Ground collision
+	groundNP.setCollideMask(BitMask32.allOff())
+	groundNP.node().setIntoCollideMask(FLOORMASK)
+        #groundGeom = OdePlaneGeom(self.worldManager.space, Vec4(0, 0, 1, 0))
+        #groundGeom.setCollideBits(BitMask32(0x00000021))
+        #groundGeom.setCategoryBits(BitMask32(0x00000012))
+        #groundData = OdeObject()
+        #groundData.name = "ground"
+        #groundData.surfaceFriction = 2.0
+        #self.worldManager.setGeomData(groundGeom, groundData, None)
+        #self.worldManager.world.setContactSurfaceLayer(.0001)
 
     def startPhysics(self):
         return True

@@ -109,13 +109,12 @@ class PhysicsWorldManager():
     
     def __init__(self):
         """Setup the collision pushers, handler, and traverser"""
-        #Generic traverser 
         base.cTrav = CollisionTraverser('Collision Traverser') 
         base.cTrav.setRespectPrevTransform(True) 
 
         #Pusher Handler for walls 
-        base.cPush = PhysicsCollisionHandler() 
-
+        base.cPush = PhysicsCollisionHandler()
+        # panda's physics system is attached to particle system
         base.enableParticles() 
        
         # init gravity
@@ -127,11 +126,11 @@ class PhysicsWorldManager():
         base.physicsMgr.addLinearForce(self.gravityForce)
 
     def addActorPhysics(self,actor):
-	geom = actor.actor.attachNewNode(CollisionNode('%s-collider'%actor.name))
-	# set up geometry for collision node
-	geom.node().addSolid(CollisionSphere(0,0,0,1))
-	base.cTrav.addCollider(geom, base.cPush)
-	return geom
+        geom = actor.actor.attachNewNode(CollisionNode('%s-collider'%actor.name))
+        # set up geometry for collision node
+        geom.node().addSolid(CollisionSphere(0,0,0,1))
+        base.cTrav.addCollider(geom, base.cPush)
+        return geom
 
     def addObjectInWord(nodePath,shape):
         if self.disable: return
@@ -145,17 +144,20 @@ class PhysicsWorldManager():
        	return geom
 
     def setupGround(self,groundNP):
-	# Ground collision: represented as an infinite plane
-	# any object below the plane, no matter how far, is 
-	# considered to be intersecting the plane.
-	#
-	# Constructed with Panda3D plane object, one way to 
-	# do this is with a point and a normal
-	self.groundGeom = CollisionPlane(Plane(Vec3(0,0,1), Point3(0,0,0)))
+        # Ground collision: represented as an infinite plane
+        # any object below the plane, no matter how far, is
+        # considered to be intersecting the plane.
+        #
+        # Constructed with Panda3D plane object, one way to
+        # do this is with a point and a normal
+        self.groundGeom = CollisionPlane(Plane(Vec3(0,0,1), Point3(0,0,0)))
+        self.groundCN = render.attachNewNode(CollisionNode('ground-collisionnode'))
+        # TODO: attach new node as a sub-node of the ground image
+        self.groundCN.node().addSolid(self.groundGeom)
+        self.groundCN.show()
 
-	groundNP.setCollideMask(BitMask32.allOff())
-	groundNP.node().setIntoCollideMask(FLOORMASK)
-        #groundGeom = OdePlaneGeom(self.worldManager.space, Vec4(0, 0, 1, 0))
+
+            #groundGeom = OdePlaneGeom(self.worldManager.space, Vec4(0, 0, 1, 0))
         #groundGeom.setCollideBits(BitMask32(0x00000021))
         #groundGeom.setCategoryBits(BitMask32(0x00000012))
         #groundData = OdeObject()

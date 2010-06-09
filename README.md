@@ -20,7 +20,7 @@ Further, we are looking for test-bed to study the problems of meta-reasoning: wh
 
 The development of the simulator is focused on the following use cases.
 
-### 1. Toast Making
+### 1. Toast Making: studying first-level planning
 
 Ralph is in the kitchen.  Ralph has to "use" the knife to cut the bread, and then put the bread in the toaster, to make toast. Problems addressed [[#1](http://web.media.mit.edu/~push/Push.Phd.Proposal.pdf)]:
   
@@ -31,12 +31,17 @@ Ralph is in the kitchen.  Ralph has to "use" the knife to cut the bread, and the
   * Self models: how does the situation of Ralph's model (e.g., location of limbs in space, objects in hand, eyes opened or closed) influence the functions of actions he can perform.
   * Visual:  what objects are in the environment, how far are they, what shape and texture do they have?
 
-### 2. Knife sharing
+### 2. Knife sharing: studying social interactions
 
 Ralph and his mother Sue are in the kitchen.  Sue is currently using the only knife.  Ralph has to ask Sue to use the knife.  If he grabs the knife from her hand, he will be cut.
 
   * Mental: what is Sue's goal, does she have the same goal, how will she react to various actions?
-  * Social: how to communicate the desired intention?
+  * Social representations, from [[#1](http://web.media.mit.edu/~push/Push.Phd.Proposal.pdf)]
+     - Social networks: who knows who?  who has interacted with whom?
+     - Dominance: who sets the goals of this group?  who to listen to?
+     - Goal interactions: do my actions help or hinder others?  Who might interfere with my goals?
+     - Impriming: can they do something I can't?  what can I learn from them?
+     - Groups: what are the roles in this group?  What are the functions of these roles?
 
 
 ### 3. Learning by observation

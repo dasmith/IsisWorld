@@ -22,29 +22,58 @@ The development of the simulator is focused on the following use cases.
 
 ### 1. Toast Making
 
-Ralph is in the kitchen.  Ralph has to "use" the knife to cut the bread, and then put the bread in the toaster, to make toast.
+Ralph is in the kitchen.  Ralph has to "use" the knife to cut the bread, and then put the bread in the toaster, to make toast. Problems addressed [[#1](http://web.media.mit.edu/~push/Push.Phd.Proposal.pdf)]:
+  
+  * Bodily, what actions does Ralph have available?
+  * Functional, how objects behave and the effects of actions upon them
+  * Spatially, navigating through space without bumping into objects
+  * Motor routines:  what macro actions can be represented to coordinate common sequences of primitive actions?
+  * Self models: how does the situation of Ralph's model (e.g., location of limbs in space, objects in hand, eyes opened or closed) influence the functions of actions he can perform.
+  * Visual:  what objects are in the environment, how far are they, what shape and texture do they have?
 
 ### 2. Knife sharing
 
 Ralph and his mother Sue are in the kitchen.  Sue is currently using the only knife.  Ralph has to ask Sue to use the knife.  If he grabs the knife from her hand, he will be cut.
 
+  * Mental: what is Sue's goal, does she have the same goal, how will she react to various actions?
+  * Social: how to communicate the desired intention?
+
+
 ### 3. Learning by observation
 
 Sue is communicating a new sequence of actions.  Ralph must identify Sue's plan and then recognize her goal as different, and then learn the new plan as some deviation of the existing plan (e.g., making toast with jelly)
+  
+  * Plan and goal recognition
+  * Simulated planning
 
 ### 4. Imprimer learning
 
 Sue is teaching Ralph how *not* to use a kitchen.  He must learn that the faucet must be turned off after being used, doors closed after they are opened, not to leave the refrigerator open for more time than necessary, etc.  He must learn these how to represent and pursue these imagined goals and antigoals of his imprimer.   This must cover the problem of **shared attention**, where the teacher deliberatly acts a certain way to encourage the learner to focus on a relevant aspect of the shared situation.
 
-### 5. Language learning
+  * Shared attention
+  * Mental models of the environment
 
-Learning the labels of objects from example. Learning how to lable actions from descriptions at different temporal resolutions.  Learning how to learn pronouns, the linguistic equivalent of pointing.
+### 5. Language learning and instruction execution
 
-### 6.  Carrying out instructions
+Learning the labels of objects from example. Learning how to lable actions from descriptions at different temporal resolutions.  Learning how to learn pronouns, the linguistic equivalent of pointing.   Learning the proper sequence to carry out a sequence of actions from a linguistic description
 
-Learning the proper sequence to carry out a sequence of actions from a linguistic description
+  - Nouns for objects in the environment
+  - Properties of objects and conceptual domains for representing their attributes
+  - Verbs as action and possibily object pairs in the environment
+  - learning and representing labels for things (nouns) in the world ("blocks")
+  - learning and representing adjectives ("red") -- re-representing items in a perceptual measure space and using adjectives evoke discriminative boundaries.
+  - learning and representing composition of linguistic concepts (e.g., "red" in "red wine" is different than "red hair") or the linking constraints between verbs and nouns ("run" + "dishwasher" versus "run" + "marathon")
+  - semantic parsing of a sentence into possible "interpretations"
+  - interpreting verbs as states or actions (e.g., modeling the taxonomic organization of verbs and how they map to between sets of events, related by generality relationships)
+  - interpreting nouns as constituents of states or actions (e.g., modeling the taxonomic organization of nouns and how they map to generality relationships between sets of items)
+  - interpreting prepositions by representing items in a visual geometry / using spatial relationships
+  - metaphoric mappings between concepts and spatial relationships w.r.t. some decision making process.
+  - articulating an event that Ralph has completed with respect to a set of planning decisions, modulated by Ralph's model of the listener's knowledge
+  - using hierarchical structure of linguistic phrases and aspectual connectives to model relationships between events and control structure of planning (do X "during", "after", "while" doing Y)
+  - language parsing using a cognitively plausible model (e.g., Shift-Reduce parsing) 
 
-### 7.  Communicating instructions
+
+### 6.  Communicating instructions
 
 Ralph describes his actions or Sue's actions as an English verb phrase.
 

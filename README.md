@@ -4,9 +4,9 @@ The IsisWorld simulator is available to researchers for building and evaluating 
 
 What is a problem "realm"?  Consider the problem of *hailing a taxi*.  You could represent and reason about this problem in several different ways.
 
- 1. **Temporally**: Wait for a cab. Maybe if you stay put, a taxi will drive by
- 2. **Spatially**:  Find a cab. You must eliminate the distance between yourself and a taxi.
- 2. **Socially**: Call a cab.  Communicate your position to a distpatching agent and an available taxi will come to you. 
+ 1. **Temporally**: Wait for a taxi. Maybe if you stay put, a taxi will drive by
+ 2. **Spatially**:  Find a taxi. You must eliminate the distance between yourself and a taxi.
+ 2. **Socially**: Call a taxi.  Communicate your position to a distpatching agent and an available taxi will come to you. 
 
 It is this resourcefulness---having many ways to solve a problem---that allows human problem solvers to flexibily adapt to many problem solving situations.  A system that lacks these abilities is *brittle*.
 
@@ -60,7 +60,7 @@ Sue is teaching Ralph how *not* to use a kitchen.  He must learn that the faucet
 
 ### 5. Language learning and instruction execution
 
-Learning the labels of objects from example. Learning how to lable actions from descriptions at different temporal resolutions.  Learning how to learn pronouns, the linguistic equivalent of pointing.   Learning the proper sequence to carry out a sequence of actions from a linguistic description
+Learning the labels of objects from examples. Learning to label events/actions with verb phrases at different temporal resolutions.  Learning how to use and resolve pronouns, the linguistic equivalent of pointing.   Learning the proper sequence to carry out a sequence of actions from a linguistic description
 
   - Nouns for objects in the environment
   - Properties of objects and conceptual domains for representing their attributes

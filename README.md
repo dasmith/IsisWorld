@@ -35,7 +35,7 @@ Ralph is in the kitchen.  Ralph has to "use" the knife to cut the bread, and the
 
 Ralph and his mother Sue are in the kitchen.  Sue is currently using the only knife.  Ralph has to ask Sue to use the knife.  If he grabs the knife from her hand, he will be cut.
 
-  * Mental: what is Sue's goal, does she have the same goal, how will she react to various actions?
+  * Mental: what is Sue's active goal ("intention"), does she have the same intention? how will she react to my actions? 
   * Social representations, from [[#1](http://web.media.mit.edu/~push/Push.Phd.Proposal.pdf)]
      - Social networks: who knows who?  who has interacted with whom?
      - Dominance: who sets the goals of this group?  who to listen to?

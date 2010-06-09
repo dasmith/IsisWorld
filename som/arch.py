@@ -1,32 +1,84 @@
 import xmlrpclib, sys, time
 import random
-import concept_learning
 from collections import defaultdict
 from utils import dprint
 
-class MentalResource(object):
-    def __init__(self,mind):
-        self.mind = mind # pointer back toinstance of cognitive architecture
-        self.is_on = False # whether resource is on
-        self.mind.all_resources.append(self)
+##### "CONNECT" FUNCTION #####
 
+# In this implementation, most individual resources and functions only know about others
+# if they're passed a reference to them in a "connections" dictionary. There is no need
+# to define resources/functions internally to the agent so that they can have a "self"
+# handle, neither does every function need to access all of "resource.mind" anymore.
+
+# However, it would be silly to pass connection items around all the time. Most of the
+# time these connections don't need to be refreshed manually, because both Resources
+# and perception dictionaries are mutable, so simply holding onto a reference is sufficient
+# to get all necessary updates.
+
+# Therefore, the "connect" function should usually be used to hardwire connections in place.
+
+# When "connect" is used to link a condition function with a source of perceptions, you get
+# a zero-argument goal_test_function suitable for use in a DifferenceEngine.
+# Likewise, when "connect" is used to link an action function with an environment, you get
+# a reduce_difference_function of two arguments, resource and diff.
+
+def connect(function_with_connections_kwarg, connections): # TODO: name connected functions more usefully
+    def connected_function(*args):
+        return function_with_connections_kwarg(*args, connections=connections)
+    return connected_function
+
+##### ABSTRACT MENTAL RESOURCES #####
+
+class AbstractDifferenceEngine(object):
+    def __init__(self, goal_test_function_unconnected, reduce_difference_function_unconnected, backchains_unconnected):
+        self.gtf_unc = goal_test_function_unconnected
+        self.rdf_unc = reduce_difference_function_unconnected
+        self.bc_unc = backchains_unconnected
+
+    def instantiate(self, mind, connections=[]): 
+        try:
+            goal_test_function = connect(self.gtf_unc, connections=connections)
+            reduce_difference_function = connect(self.rdf_unc, connections=connections)
+            backchains = [connect(bc, connections=connections) for bc in self.bc_unc]
+        except(KeyError):
+            print "DifferenceEngine did not receive necessary connection for instantiation."
+            raise
+        
+        return DifferenceEngine(mind, goal_test_function, reduce_difference_function, backchains, connections=connections)
+
+
+##### MENTAL RESOURCES #####
+
+class MentalResource(object):
+    def __init__(self,mind,connections=[]):
+
+        self.is_on = False # whether resource is on
+        self.connections = connections
+
+        mind.all_resources.append(self)
+        # No self.mind pointer is kept around anymore - only connections,
+        # which COULD contain a "mind" connection if that's really what
+        # was intended.
 
 class Critic(MentalResource):
 
-    def __init__(self, mind, condition_function, resources_to_turn_on=[]):
-        MentalResource.__init__(self,mind)
+    def __init__(self, mind, condition_function, resources_to_turn_on=[], connections=[]):
+        MentalResource.__init__(self,mind,connections=[])
         # sub-class of MentalResource, inherits:
         #  - self.is_on means this reource is engaged during the cycle
         #  - self.mind points to the instance of the cognitive architecture
+
         self.is_active = False # is_active means the preconditions are met
         self.name = condition_function.__name__
+
         # rule to determine whether or not the conditions are met 
         self.condition_function = condition_function
+
         self.resources_to_turn_on = resources_to_turn_on
 
     def execute(self):
         """ returns true if all preconditions are met""" 
-        if self.condition_function(self):
+        if self.condition_function(): # (doesn't need to be called with "self" anymore)
             # if condition is met, turn on certain selectors
             if not self.is_active:
                 for res in self.resources_to_turn_on: 
@@ -36,18 +88,17 @@ class Critic(MentalResource):
             self.is_active = self.is_on # short circuit is_active
         else:
             self.is_active = False 
-        return self.is_active
-
+        return self.is_active  
 
 class Selector(MentalResource):
     """ """
 
-    def __init__(self, mind, active_function, backchains=[]):
+    def __init__(self, mind, active_function, backchains=[], connections = []):
         # sub-class of MentalResource, inherits:
         #  - self.is_on means this reource is engaged during the cycle
         #  - self.mind points to the instance of the cognitive architecture
         # active_function takes actions
-        MentalResource.__init__(self,mind)
+        MentalResource.__init__(self,mind,connections=[])
         # function to execute whenever is_on==True 
         self.active_function = active_function
         # is_active stores response of active_function (for meta-reasoning)
@@ -59,7 +110,7 @@ class Selector(MentalResource):
         self.backchains = backchains
 
     def execute(self):
-        """ execute() is called at each cog cylce if self.is_on == True
+        """ execute() is called at each cog cycle if self.is_on == True
         always calls active_function, which has the responsibility of turning itself off """ 
         self.is_active = self.active_function(self)
         if self.is_on and not self.is_active:
@@ -82,12 +133,12 @@ class DifferenceEngine(Selector):
         backchains - a list of resources to turn_on iff is_on==True and is_active==False
      """
 
-    def __init__(self, mind, goal_test_function, reduce_difference_function, backchains=[]):
+    def __init__(self, mind, goal_test_function, reduce_difference_function, backchains=[], connections=[]):
         self.is_active = False
 
         def take_action_to_reduce_difference(myself):
             # see if any difference exists
-            diff = goal_test_function(myself)
+            diff = goal_test_function()
             if diff == True:
                 if mind.debug: print "-- %s, turning off %s " % (diff, myself.name)
                 # run difference function once more to shut it's subgoals off if it wants.
@@ -96,12 +147,12 @@ class DifferenceEngine(Selector):
                 myself.is_on = False
                 if not self.is_active:
                     return False # don't run action unless it's already on
-            return reduce_difference_function(myself,diff)
+            return reduce_difference_function(diff)
 
-        Selector.__init__(self,mind,take_action_to_reduce_difference,backchains)
-        #level = goal_test_function.__name__.split("__")[1]
-        #fnames = "%s_%s" % (goal_test_function.__name__, reduce_difference_function.__name__)
-        #self.name = "diffeng__%s__%s" % (level,fnames.replace("__","_"))
+        Selector.__init__(self,mind,take_action_to_reduce_difference,backchains,connections=connections)
+        fnames = "%s_%s" % (goal_test_function.__name__, reduce_difference_function.__name__)
+        self.name = "diffeng__%s" % fnames.replace("__","_")
+
 
 class LearningDifferenceEngine(DifferenceEngine):
     def __init__(self, mind, goal_test_function, action_function, backchains=[]):
@@ -128,25 +179,27 @@ class LearningDifferenceEngine(DifferenceEngine):
                 return False
         DifferenceEngine.__init__(self,mind,goal_test_function,learned_reduce_difference_function,backchains)
 
+class SensorySystem(): # currently a very thin object. enables connections just to this subsystem
+    def __init__(self):
+        perceptions = {}
+
 class CriticSelectorArchitecture():
 
-    def __init__(self,name="Ralph",debug=True,*args,**kwargs):
+    def __init__(self,debug=True,name="Ralph",*args,**kwargs):
         # simulator overhead, connect agent to world
-        #try:
-        self.name =name
-        if True:
+        try:
             # connect to environment via XML-RPC
             self.env = xmlrpclib.ServerProxy('http://localhost:8001')
             start = time.clock()
-            self.env.do('step_simulation',{'seconds':0.02, 'agent':self.name})
+            self.env.do('step_simulation',{'seconds':0.02})
             self.delay = time.clock()-start
             print "Delay: ", self.delay
-        #except:
-        #    print "Error: Cannot connect to the simulator." 
-        #    sys.exit()
+        except:
+            print "Error: Cannot connect to the simulator." 
+            sys.exit()
         self.debug = debug  # outputs error messages
         # sensory representation of the immediate world state (updated each step())
-        self.perceptions = {}
+        self.sensorysystem = SensorySystem()
         self.all_resources = []
         self.reactive_resources = []
         self.deliberative_resources = []
@@ -180,6 +233,8 @@ class CriticSelectorArchitecture():
                         'drop_from_left_hand':[]}
         # how many cycles has the agent run? 
         self.age = 0
+        # store the name of the agent to control
+        self.name = name
 
 
     def add_reactive_resource(self, resource):
@@ -217,10 +272,10 @@ class CriticSelectorArchitecture():
     def sense(self):
         """ This method asks the environment to return a frame-structure of perceptual
         data, and is called each step.  It prints the sensory frame to the terminal. """
-        self.perceptions = self.env.do('sense',{'agent':self.name})
+        self.sensorysystem.perceptions = self.env.do('sense')
         if self.debug:
             print "Perceiving: "
-            for modality, data in self.perceptions.items():
+            for modality, data in self.sensorysystem.perceptions.items():
                 print "\t%s : %s" % (modality, data)
 
     def step(self,seconds=0.1):
@@ -249,7 +304,7 @@ class CriticSelectorArchitecture():
             dprint(x.name,"ON: ")
         for resource in self.turned_off:
             dprint(x.name,"OFF: ")
-        
+            
         self.env.do('step_simulation',{'seconds':seconds, 'agent':self.name}) # simulator is paused by default, run for X seconds
         time.sleep(seconds+(self.delay*2)) # make sure agent waits as long as simulator
         return True

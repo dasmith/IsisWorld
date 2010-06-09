@@ -1,12 +1,59 @@
 # Isis World Simulator
 
-The IsisWorld simulator is available to researchers for building and evaluating problem solving and language learning systems with everyday problems that take place in a kitchen.  Some documentation and arguments about theoretical underpinnings aimed toward the metareasoning community are available in this paper: 
- 
+The IsisWorld simulator is available to researchers for building and evaluating problem solving and language learning systems with everyday problems that take place in a kitchen.  We aim to use IsisWorld to simulate everyday commonsense reasoning problems that span many realms, such as the social, visiual, kinesthetic, physical, spatial and mental. 
+
+What is a problem "realm"?  Consider the problem of *hailing a taxi*.  You could represent and reason about this problem in several different ways.
+
+ 1. **Temporally**: Wait for a cab. Maybe if you stay put, a taxi will drive by
+ 2. **Spatially**:  Find a cab. You must eliminate the distance between yourself and a taxi.
+ 2. **Socially**: Call a cab.  Communicate your position to a distpatching agent and an available taxi will come to you. 
+
+It is this resourcefulness---having many ways to solve a problem---that allows human problem solvers to flexibily adapt to many problem solving situations.  A system that lacks these abilities is *brittle*.
+
+Further, we are looking for test-bed to study the problems of meta-reasoning: where a super-level planning system reasons about the world of a sub-planning system.  Returning to a taxi example, we could consider the failure mode which causes a meta-level reasoner to step in and change the state of the planner.  For example, it could ask the system to *elevate* the problem description to pursue the parent goal:  *instead of "searching for a taxi" reconsider the problem as "traveling to your destination" and pursue other options: e.g., walking, train, asking a friend etc*.
+
+ More detailed arguments about using a simulator for studying AI and the choice to use kitchen problem domain is explain in this paper:
+
   * [An open source commonsense simulator for AI researchers](http://web.media.mit.edu/~dustin/simulator_metacog_aaai_2010.pdf).  Dustin Smith and Bo Morgan.  *Submitted to AAAI-10 Workshop on Metacognition*.
+
+## Use cases
+
+The development of the simulator is focused on the following use cases.
+
+### 1. Toast Making
+
+Ralph is in the kitchen.  Ralph has to "use" the knife to cut the bread, and then put the bread in the toaster, to make toast.
+
+### 2. Knife sharing
+
+Ralph and his mother Sue are in the kitchen.  Sue is currently using the only knife.  Ralph has to ask Sue to use the knife.  If he grabs the knife from her hand, he will be cut.
+
+### 3. Learning by observation
+
+Sue is communicating a new sequence of actions.  Ralph must identify Sue's plan and then recognize her goal as different, and then learn the new plan as some deviation of the existing plan (e.g., making toast with jelly)
+
+### 4. Imprimer learning
+
+Sue is teaching Ralph how *not* to use a kitchen.  He must learn that the faucet must be turned off after being used, doors closed after they are opened, not to leave the refrigerator open for more time than necessary, etc.  He must learn these how to represent and pursue these imagined goals and antigoals of his imprimer.   This must cover the problem of **shared attention**, where the teacher deliberatly acts a certain way to encourage the learner to focus on a relevant aspect of the shared situation.
+
+### 5. Language learning
+
+Learning the labels of objects from example. Learning how to lable actions from descriptions at different temporal resolutions.  Learning how to learn pronouns, the linguistic equivalent of pointing.
+
+### 6.  Carrying out instructions
+
+Learning the proper sequence to carry out a sequence of actions from a linguistic description
+
+### 7.  Communicating instructions
+
+Ralph describes his actions or Sue's actions as an English verb phrase.
+
 
 # Improvements to the Simulator
 
 Over the summer of 2010, we plan to make many significant improvements to IsisWorld.  These projects are:
+
+
 
 ## Implementation of Physics
 

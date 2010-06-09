@@ -65,8 +65,8 @@ Learning the labels of objects from example. Learning how to lable actions from 
   - Nouns for objects in the environment
   - Properties of objects and conceptual domains for representing their attributes
   - Verbs as action and possibily object pairs in the environment
-  - learning and representing labels for things (nouns) in the world ("blocks")
-  - learning and representing adjectives ("red") -- re-representing items in a perceptual measure space and using adjectives evoke discriminative boundaries.
+  - learning and representing labels for things (nouns) in the world ("toast")
+  - learning and representing adjectives ("black", "hot", "large") -- re-representing items in a perceptual measure space and using adjectives evoke discriminative boundaries.
   - learning and representing composition of linguistic concepts (e.g., "red" in "red wine" is different than "red hair") or the linking constraints between verbs and nouns ("run" + "dishwasher" versus "run" + "marathon")
   - semantic parsing of a sentence into possible "interpretations"
   - interpreting verbs as states or actions (e.g., modeling the taxonomic organization of verbs and how they map to between sets of events, related by generality relationships)
@@ -83,13 +83,15 @@ Learning the labels of objects from example. Learning how to lable actions from 
 Ralph describes his actions or Sue's actions as an English verb phrase.
 
 
-# Improvements to the Simulator
+# IsisWorld Sub-Projects
 
 Over the summer of 2010, we plan to make many significant improvements to IsisWorld.  These projects are:
 
 
 
 ## Implementation of Physics
+
+**Target Scope**: one week
 
 Angular and linear forces will be applied, and densities of objects will be represented by a Physical simulator. Because [ODE integration](http://www.panda3d.org/wiki/index.php/Using_ODE_with_Panda3D) in Panda3D is still preliminary [[#1](http://www.panda3d.org/phpbb2/viewtopic.php?t=8207), [#2](http://www.panda3d.org/phpbb2/viewtopic.php?t=9200&sid=cd4e0c8166aadd14238c2e88f1a55282)], and commitment to open source principles has eliminated NVidia's PhysX platform as a viable option, our
 only current option is to use Panda3D's built-in [physics support](http://www.panda3d.org/wiki/index.php/Panda3D_Physics_Engine) and [collision detection](http://www.panda3d.org/wiki/index.php/Collision_Detection).
@@ -108,6 +110,8 @@ Changing physics engines should be as easy as switching the import statement in 
  - Gravity is represented as a linear force downward
 
 ## Initialization scripts for designing and loading environments
+
+**Target Scope**: two weeks
 
 As mentioned in the [position paper](http://web.media.mit.edu/~dustin/simulator_metacog_aaai_2010.pdf), we want environments to be *generated* from a space of possible dimensions.  Most of the variable properties of the items (size, location, plurality, color, state) could be left to future work.  Default locations can be specified in a configuration file corresponding to prepositions:
    - X on Y in Z:  "on" and "in" are less descriptive than 3D (relative) coordinates

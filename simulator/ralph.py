@@ -43,7 +43,6 @@ class Ralph(PhysicsCharacterController):
         self.fov.reparentTo(self.player_eye)
         self.fov.setHpr(180,0,0)
 
-	self.speed = Vec3(0,0,0)
         PhysicsCharacterController.__init__(self,worldManager)
 	if not hasattr(self,'updateCharacter'):
 	    raise "Error: PhysicsCharacterController does not have required 'updateCharacter' method defined'"
@@ -80,15 +79,9 @@ class Ralph(PhysicsCharacterController):
         self.isSitting = False
         self.isDisabled = False
 
-    def setH(self,h):
-	self.geom.setH(h)
-    
-    def setPos(self,h):
-	self.geom.setPos(h)
-	
     def setPosQuat(self, render, pos, quat):
-        self.geom.setPos(render, pos)
-        self.geom.setQuat(render, quat)
+        self.actor.setPos(render, pos)
+        self.actor.setQuat(render, quat)
 
     def setControl(self, control, value):
         """Set the state of one of the character's movement controls.
@@ -453,17 +446,17 @@ class Ralph(PhysicsCharacterController):
         if data.selectionCallback:
             data.selectionCallback(self, dir)
 
+    def getH(self):
+        return self.geom.getChild(0).getChild(0).getH()
 
+    def setH(self,h):
+        avatar = self.geom.getChild(0).getChild(0)
+        avatar.setH(h)
 
     def control__jump(self):
-        """
-        Crouching and jumping don't seem to like each other, so I decided
-        to make it impossible to jump while crouching.
-        """
-        if inputState.isSet("crouch") or self.crouchLock:
-            return
-        odeKinematicCharacterController.jump(self)
-
+        actorNode = self.geom.getChild(0).node()
+        if abs(actorNode.getPhysicsObject().getVelocity()[2]) < .01:
+            actorNode.getPhysicsObject().addImpulse(Vec3(0,0,10))
 
 
     def update(self, stepSize):
@@ -478,20 +471,19 @@ class Ralph(PhysicsCharacterController):
             return
 
         moveAtSpeed = 4.0
-        self.speed = Vec3(0.0, 0.0, 0.0)
+        self.velocity = Vec3(0.0, 0.0, 0.0)
 
 
-        self.startpos = self.geom.getPos()
         # enforces bounds on a numeric value
         def bound(i, mn = -1, mx = 1): return min(max(i, mn), mx)
         # move the character if any of the move controls are activated.
 
-        if (self.controlMap["turn_left"]!=0):        self.setH(self.geom.getH() + stepSize*80)
-        if (self.controlMap["turn_right"]!=0):       self.setH(self.geom.getH() - stepSize*80)
-        if (self.controlMap["move_forward"]!=0):     self.speed[1] = -moveAtSpeed
-        if (self.controlMap["move_backward"]!=0):    self.speed[1] = moveAtSpeed
-        if (self.controlMap["move_left"]!=0):        self.speed[0] = -moveAtSpeed
-        if (self.controlMap["move_right"]!=0):       self.speed[0] = moveAtSpeed
+        if (self.controlMap["turn_left"]!=0):        self.setH(self.getH() + stepSize*80)
+        if (self.controlMap["turn_right"]!=0):       self.setH(self.getH() - stepSize*80)
+        if (self.controlMap["move_forward"]!=0):     self.velocity[1] = -moveAtSpeed
+        if (self.controlMap["move_backward"]!=0):    self.velocity[1] = moveAtSpeed
+        if (self.controlMap["move_left"]!=0):        self.velocity[0] = -moveAtSpeed
+        if (self.controlMap["move_right"]!=0):       self.velocity[0] = moveAtSpeed
         if (self.controlMap["look_left"]!=0):      
             self.player_neck.setP(bound(self.player_neck.getP(),-60,60)+1*(stepSize*50))
         if (self.controlMap["look_right"]!=0):
@@ -512,7 +504,7 @@ class Ralph(PhysicsCharacterController):
         # If he is standing still, stop the animation.
 
 	# TODO: adjust location of physics capsule here
-        #self.player.setFluidPos(self.player, self.speed)
+        #self.player.setFluidPos(self.player, self.velocity)
         #PhysicsCharacterController.update(self, stepSize )
 
         if (self.controlMap["move_forward"]!=0) or (self.controlMap["move_backward"]!=0) or (self.controlMap["move_left"]!=0) or (self.controlMap["move_right"]!=0):

@@ -42,7 +42,7 @@ class IsisWorld(ShowBase):
         base.disableMouse()
         
         self.worldObjects = {}
-	self.worldManager = PhysicsWorldManager() # defined in simulator/physics.py
+        self.worldManager = PhysicsWorldManager() # defined in simulator/physics.py
         # setup components
         self.agentNum = 0
         self.setupMap()
@@ -53,19 +53,14 @@ class IsisWorld(ShowBase):
     
        
         # init gravity
-        self.gravityFN = ForceNode('gravity-force')
-        self.gravityFNP = render.attachNewNode(self.gravityFN)
-        self.gravityForce = LinearVectorForce(0,0,-9.81)
-        self.gravityFN.addForce(self.gravityForce)
         
-        base.physicsMgr.addLinearForce(self.gravityForce)
+        self.worldManager.startPhysics()
         self.setupAgent()
         self.setupCameras()
         self.setupControls()
         # load objects
         #self.worldObjects.update(load_objects_in_world(self.worldManager,render, self.worldObjects))
         # start simulation
-        self.worldManager.startPhysics()
         # start server
         # xmlrpc server command handler
         xmlrpc_command_handler = Command_Handler(self)
@@ -198,8 +193,8 @@ class IsisWorld(ShowBase):
         self.agents = []
         self.agentsNamesToIDs = {'Ralph':0, 'Lauren':1, 'David':2}
         self.agents.append(Ralph(base.worldManager, self, "Ralph"))
-        self.agents[0].setH(180)
-        self.agents[0].setPos(Vec3(-1,0,1))
+        self.agents[0].actor.setH(180)
+        self.agents[0].actor.setPos(Vec3(-1,0,3))
         self.agents[0].control__say("Hi, I'm Ralph. Please build me.")
 
 	self.agents.append(Ralph(base.worldManager, self, "Lauren"))
@@ -371,7 +366,21 @@ class IsisWorld(ShowBase):
     def step_simulation(self,time=1):
 	for agent in self.agents: agent.update(time)
 
-
+    _GCLK=None
+    _FT=None
+    def togglepause(self):
+        if (self._GCLK == None):
+          print "[pong] pausing..."
+          self.parent.disableParticles()
+          self._GCLK=ClockObject.getGlobalClock()
+          self._FT=self._GCLK.getFrameTime()
+          self._GCLK.setMode(ClockObject.MSlave)
+        else:
+          self._GCLK.setRealTime(self._FT)
+          self._GCLK.setMode(ClockObject.MNormal)
+          self.parent.enableParticles()
+          self._GCLK=None
+          print "[pong] restarting..."
 
     def get_camera_position(self):
         print base.camera.getPos()
@@ -395,6 +404,7 @@ class IsisWorld(ShowBase):
             agent_id = self.agentNum
         return []
         # FIXME: this screenshot function causes a crash
+        base.win.saveScreenshot( Filename( 'driving scene 2.png' ) )
         def make_screenshot(widthPixels=100,heightPixels=100): 
             tex=Texture() 
             width=widthPixels*4 
@@ -443,15 +453,6 @@ class IsisWorld(ShowBase):
 
             
             
-    def mainLoop(self,task):
-        self.worldManager.simulate()
-        return Task.cont
-        #dt = task.time - task.last
-        task.last = task.time
-        if dt>.2 or dt==.0:
-           return Task.cont
-        self.moveBowl(dt)
-
 
 
 w = IsisWorld()

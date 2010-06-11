@@ -47,7 +47,6 @@ class IsisWorld(ShowBase):
         self.agentNum = 0
         self.setupMap()
         self.setupLights()
-        taskMgr.add(self.timeUpdated, "timeUpdated")
        
         self.paused = True
     
@@ -96,12 +95,15 @@ class IsisWorld(ShowBase):
         groundNP.lookAt(0, 0, -1)
         groundNP.setTransparency(TransparencyAttrib.MAlpha)
 
-	# TODO: make sky inverted cylinder?
-	self.worldManager.setupGround(groundNP)
+        # TODO: make sky inverted cylinder?
+        self.worldManager.setupGround(groundNP)
+        
+        return
         self.skydomeNP = skydome2.SkyDome2(render)
         self.skydomeNP.setStandardControl()
         self.skydomeNP.att_skycolor.setColor(Vec4(0.3,0.3,0.3,1))
         self.skydomeNP.setPos(Vec3(0,0,-500))
+        taskMgr.add(self.timeUpdated, "timeUpdated")
 
         """
         Get the map's panda node. This will allow us to find the objects
@@ -193,18 +195,15 @@ class IsisWorld(ShowBase):
         self.agents = []
         self.agentsNamesToIDs = {'Ralph':0, 'Lauren':1, 'David':2}
         self.agents.append(Ralph(base.worldManager, self, "Ralph"))
-        self.agents[0].actor.setH(180)
-        self.agents[0].actor.setPos(Vec3(-1,0,3))
+        #self.agents[0].actor.setPos(Vec3(-1,0,0))
         self.agents[0].control__say("Hi, I'm Ralph. Please build me.")
 
 	self.agents.append(Ralph(base.worldManager, self, "Lauren"))
-        self.agents[1].actor.setH(0)
-        self.agents[1].actor.setPos(Vec3(-3,-3,1))
+        #self.agents[1].actor.setPos(Vec3(-3,-3,0))
         self.agents[1].control__say("Hi, I'm Lauren. Please build me.")
 
         self.agents.append(Ralph(base.worldManager, self, "David"))
-        self.agents[2].actor.setH(90)
-        self.agents[2].actor.setPos(Vec3(3,-3,1))
+        #self.agents[2].actor.setPos(Vec3(3,-3,0))
         self.agents[2].control__say("Hi, I'm David. Please build me.")
 
         

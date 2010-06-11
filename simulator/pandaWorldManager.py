@@ -3,7 +3,8 @@ from pandac.PandaModules import *
 # initialize collision mask constants
 FLOORMASK = BitMask32.bit(0)        
 WALLMASK = BitMask32.bit(1)
-PICKMASK = BitMask32.bit(1)
+PICKMASK = BitMask32.bit(2)
+AGENTMASK = BitMask32.bit(3)
 
 
 class PhysicsCharacterController(object):
@@ -11,61 +12,61 @@ class PhysicsCharacterController(object):
     def __init__(self, worldManager):
         # add velocity
         self.velocity = Vec3(0.0,0.0,0.0)
+        self.actor.setCollideMask(BitMask32.allOff())
         self.geom = worldManager.addActorPhysics(self)
         taskMgr.add(self.updateCharacter, "updateCharacter-%s" % self.name)
         #self.geom = worldManager.addActorPhysics(self)
         # turn off mask on model
-        self.actor.setCollideMask(BitMask32.allOff())
         # setup ground ray
-        self.physicsGroundRay = CollisionRay()
-        self.physicsGroundRay.setOrigin(0,0,10)
-        self.physicsGroundRay.setDirection(0,0,-1)
-        self.physicsGroundCol = CollisionNode('%s-collision-ground' % self.name)
-        self.physicsGroundCol.addSolid(self.physicsGroundRay)
-        self.physicsGroundCol.setFromCollideMask(FLOORMASK)
-        self.physicsGroundCol.setIntoCollideMask(BitMask32.allOff())
-        self.physicsGroundHandler = CollisionHandlerQueue()
-        self.physicsGroundColNP =  self.actor.attachNewNode(self.physicsGroundCol)
-        base.cTrav.addCollider(self.physicsGroundColNP,self.physicsGroundHandler)
+        self.pickerRay = CollisionRay()
+        #self.pickerRay.setDirection(1,0,0)
+        self.pickerCol = CollisionNode('%s-collision-ground' % self.name)
+        self.pickerColNP =  self.player_eye.attachNewNode(self.pickerCol)
+        self.pickerCol.addSolid(self.pickerRay)
+        self.pickerCol.setFromCollideMask(GeomNode.getDefaultCollideMask())
+        self.pickerHandler = CollisionHandlerQueue()
+        base.cTrav.addCollider(self.pickerColNP,self.pickerHandler)
 
     def updateCharacter(self, task):
         """Big task that updates the character's visual and physical position every tick"""
         elapsed = globalClock.getDt() 
-        avatar = self.geom.getChild(0).getChild(0)
+        avatar = self.geom#.getChild(0)#.getChild(0)
         # check to see if he's falling
-        if False: #self.physicsGroundHandler.getNumEntries() > 0:
-            self.physicsGroundHandler.sortEntries()
-            entry = self.physicsGroundHandler.getEntry(0)
+        if self.pickerHandler.getNumEntries() > 0:
+            self.pickerHandler.sortEntries()
+            entry = self.pickerHandler.getEntry(0)
             eName = entry.getIntoNodePath().getName()
             ePos = entry.getSurfacePoint(render)
             print "Colliding with ", eName
             #avatar.setPos(ePos)
-        else:
-            # he's falling!
-            1 + 1
-            #avatar.setZ(self.actor.getZ()-0.98)
         self.velocity *= elapsed
-        self.actor.setFluidPos(avatar, self.velocity)
+        print self.velocity
+        avatar.setFluidPos(avatar, self.velocity)
         return task.cont 
 
-def getOrientedBoundingBox(collObj):
-    ''' get the Oriented Bounding Box '''
+def getorientedboundingbox(collobj):
+    ''' get the oriented bounding box '''
     # save object's parent and transformation
-    parent=collObj.getParent()
-    trans=collObj.getTransform()
-    # ODE need everything in world's coordinate space,
+    parent=collobj.getparent()
+    trans=collobj.gettransform()
+    # ode need everything in world's coordinate space,
     # so bring the object directly under render, but keep the transformation
-    collObj.wrtReparentTo(render)
+    collobj.wrtreparentto(render)
     # get the tight bounds before any rotation
-    collObj.setHpr(0,0,0)
-    bounds=collObj.getTightBounds()
+    collobj.sethpr(0,0,0)
+    bounds=collobj.gettightbounds()
     # bring object to it's parent and restore it's transformation
-    collObj.reparentTo(parent)
-    collObj.setTransform(trans)
+    collobj.reparentto(parent)
+    collobj.settransform(trans)
     # (max - min) bounds
     box=bounds[1]-bounds[0]
     return [box[0],box[1],box[2]]
 
+
+def getCapsuleSize(collobj,radius=1):
+    bounds=collobj.getTightBounds()
+    # (max - min) bounds
+    return [bounds[0][0],bounds[0][1],bounds[0][2],bounds[1][0],bounds[1][1],bounds[1][2],radius]
 
 class PhysicsWorldManager():
     
@@ -85,7 +86,7 @@ class PhysicsWorldManager():
         self.gravityFNP = base.render.attachNewNode(self.gravityFN)
         # drag down in Z axis -9.81 units/second
         self.gravityForce = LinearVectorForce(0,0,-9.81)
-
+        self.gravityFN.addForce(self.gravityForce)
         # attach gravity to global physics manager, which
         # is defined automatically by base.enableParticles()
         base.physicsMgr.addLinearForce(self.gravityForce)
@@ -94,38 +95,38 @@ class PhysicsWorldManager():
         #base.cEvent.addAgainPattern("%fn-again-%in")
 
     def addActorPhysics(self,actor):
-        # Whenever we want to inter-act with anything to do with collisions/physics,
-        # we want to use the actor node path
-        charAN = ActorNode("%s-actorNode" % actor.name)
-        charNP = NodePath(actor.actor)#NodePath(PandaNode("%s-pandaNode" % actor.name))
+        # ActorNode tracks physical interactions and applies
+        # them to a model.  It keeps track of the elapsed times
+        # in framerates
+        import random
+        x= random.randint(0,10)
+        y= random.randint(0,10)
+        z= random.randint(0,10)
+        #actor.actor.getPos()
+        actor.actor.setPos(x,y,z)
+        offsetNodeOne = [x,0+y,0.5+z,0.5]
+        offsetNodeTwo = [x,0+y,1.6+z,0.5]
+        charAN = ActorNode("%s-physicsActorNode" % actor.name)
+        charAN.getPhysicsObject().setMass(100)
+        charNP = NodePath(PandaNode("%s-physicsNode" % actor.name))
         charANP = charNP.attachNewNode(charAN)
-
-
-        #actor.actor.reparentTo(charANP)
-
+        actor.actor.reparentTo(charANP)
         cNode = charANP.attachNewNode(CollisionNode('%s-collider'%actor.name))
+        # collision tubes have not been written as good FROM collidemasks
+        #cNode.node().addSolid(CollisionTube(*getCapsuleSize(actor.actor,2)))
         #To make the person tall, but not wide we use three collisionspheres
-        cNode.node().addSolid(CollisionSphere(0,0,1,1))
-        # THIS KILLS IT base.physicsMgr.attachPhysicalNode(charAN)
-        #cNode.node().addSolid(CollisionSphere(0,0,-3,1))
-        #cNode.node().addSolid(CollisionSphere(0,0,-5,1))
+        cNode.node().addSolid(CollisionSphere(*offsetNodeOne))
+        cNode.node().addSolid(CollisionSphere(*offsetNodeTwo))
+        cNode.node().setIntoCollideMask(BitMask32.allOff())
         #cNode.node().setFromCollideMask(FLOORMASK|WALLMASK)
         cNode.node().setFromCollideMask(BitMask32.allOn())
-        cNode.node().setIntoCollideMask(BitMask32.allOff())
         cNode.show()
+        base.physicsMgr.attachPhysicalNode(charAN)
         # attach collision node with actor node to it
         base.cPush.addCollider(cNode, charANP)
         # add collider to global traverser
         base.cTrav.addCollider(cNode, base.cPush)
-
         charNP.reparentTo(base.render)
-        #actor.actor.reparentTo(player)
-        #Attach it to the global physics manager.
-        #actor.actor.reparentTo(player)
-        #jtaskMgr.add(self.updateCharacter, "updateCharacter")
-        # set up geometry for collision node
-        #geom.node().addSolid(CollisionSphere(0,0,0,1))
-        #base.cTrav.addCollider(geom, base.cPush)
         return charNP
 
     def addObjectInWorld(nodePath,shape):
@@ -152,7 +153,7 @@ class PhysicsWorldManager():
         planeNP.node().addSolid(cp)
         planeNP.show()
 
-        #groundNP.node().setIntoCollideMask(FLOORMASK)
+        groundNP.node().setIntoCollideMask(FLOORMASK)
 
     def startPhysics(self):
         return True

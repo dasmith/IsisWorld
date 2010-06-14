@@ -19,8 +19,7 @@ class Ralph(PhysicsCharacterController):
         self.actor= Actor("models/ralph/ralph",{"walk":"models/ralph/ralph-walk", "run": "models/ralph/ralph-run"})
         self.actor.reparentTo(render)
         self.actor.setScale(0.4)
-
-	#DirectObject.__init__(self)
+        #DirectObject.__init__(self)
 
         # Expose agent's right hand joint to attach objects to
         self.player_right_hand = self.actor.exposeJoint(None, 'modelRoot', 'RightHand')
@@ -46,14 +45,11 @@ class Ralph(PhysicsCharacterController):
 
         # initialize physics handler
         PhysicsCharacterController.__init__(self,worldManager)
-        if not hasattr(self,'updateCharacter'):
-            raise "Error: PhysicsCharacterController does not have required 'updateCharacter' method defined'"
 
         lens = self.fov.node().getLens()
         lens.setFov(60) #  degree field of view (expanded from 40)
         lens.setNear(0.2)
         #self.fov.node().showFrustum() # displays a box around his head
-
 
         self.player_neck = self.actor.controlJoint(None, 'modelRoot', 'Neck')
 	
@@ -62,34 +58,17 @@ class Ralph(PhysicsCharacterController):
 
         self.prevtime = 0
         self.isMoving = False
-	
-        self.current_frame_count = 0.
+
+        self.current_frame_count = 0
 
         #self.name = "Ralph"
-
-        """
-        The ray sticking out of the camera and meant for clicking at
-        objects in the world.
-        """
-        #self.aimRay = OdeRayGeom(self.worldManager.raySpace, 2.5)
-        #self.aimed = None
-
-        """
-        I've added that mainly for sitting, but the later might be
-        usefull for other things too.
-        """
         self.isSitting = False
         self.isDisabled = False
 
-    def setPosQuat(self, render, pos, quat):
-        self.actor.setPos(render, pos)
-        self.actor.setQuat(render, quat)
 
     def setControl(self, control, value):
-        """Set the state of one of the character's movement controls.
-        """
+        """Set the state of one of the character's movement controls.  """
         self.controlMap[control] = value
-
 
     def get_objects(self):
         """ Looks up all of the model nodes that are 'isInView' of the camera"""
@@ -454,10 +433,12 @@ class Ralph(PhysicsCharacterController):
             data.selectionCallback(self, dir)
 
     def getH(self):
-        return self.geom.getH()#.getChild(0).getChild(0).getH()
+        return self.geom.getChild(0).getChild(0).getH()
+        #return self.geom.getH()
 
     def setH(self,h):
-        avatar = self.geom#getChild(0).getChild(0)
+        avatar = self.geom.getChild(0).getChild(0)
+        #avatar = self.geom
         avatar.setH(h)
 
     def control__jump(self):
@@ -465,45 +446,37 @@ class Ralph(PhysicsCharacterController):
         if abs(actorNode.getPhysicsObject().getVelocity()[2]) < .01:
             actorNode.getPhysicsObject().addImpulse(Vec3(0,0,6))
 
-
-    def update(self, stepSize):
+    def update(self, task):
          # save the character's initial position so that we can restore it,
          # in case he falls off the map or runs into something.
-         
-        if self.isSitting:
-            if inputState.isSet("forward"):
-                self.standUpFromChair()
-            return
-        elif self.isDisabled:
-            return
+        elapsed = globalClock.getDt()
+        avatar = self.geom#.getChild(0)#.getChild(0)
 
-        moveAtSpeed = 4.0
+        moveAtSpeed = 1.0
         self.velocity = Vec3(0.0, 0.0, 0.0)
-
 
         # enforces bounds on a numeric value
         def bound(i, mn = -1, mx = 1): return min(max(i, mn), mx)
         # move the character if any of the move controls are activated.
 
-        if (self.controlMap["turn_left"]!=0):        self.setH(self.getH() + stepSize*80)
-        if (self.controlMap["turn_right"]!=0):       self.setH(self.getH() - stepSize*80)
+        if (self.controlMap["turn_left"]!=0):        self.setH(self.getH() + elapsed*80)
+        if (self.controlMap["turn_right"]!=0):       self.setH(self.getH() - elapsed*80)
         if (self.controlMap["move_forward"]!=0):     self.velocity[1] = -moveAtSpeed
         if (self.controlMap["move_backward"]!=0):    self.velocity[1] = moveAtSpeed
         if (self.controlMap["move_left"]!=0):        self.velocity[0] = -moveAtSpeed
         if (self.controlMap["move_right"]!=0):       self.velocity[0] = moveAtSpeed
         if (self.controlMap["look_left"]!=0):      
-            self.player_neck.setP(bound(self.player_neck.getP(),-60,60)+1*(stepSize*50))
+            self.player_neck.setP(bound(self.player_neck.getP(),-60,60)+1*(elapsed*50))
         if (self.controlMap["look_right"]!=0):
-            self.player_neck.setP(bound(self.player_neck.getP(),-60,60)-1*(stepSize*50))
+            self.player_neck.setP(bound(self.player_neck.getP(),-60,60)-1*(elapsed*50))
         if (self.controlMap["look_up"]!=0):
-            self.player_neck.setH(bound(self.player_neck.getH(),-60,80)+1*(stepSize*50))
+            self.player_neck.setH(bound(self.player_neck.getH(),-60,80)+1*(elapsed*50))
         if (self.controlMap["look_down"]!=0):
-            self.player_neck.setH(bound(self.player_neck.getH(),-60,80)-1*(stepSize*50))
+            self.player_neck.setH(bound(self.player_neck.getH(),-60,80)-1*(elapsed*50))
 
 
-        print "Velocity", self.velocity
         # allow dialogue window to gradually decay (changing transparancy) and then disappear
-        self.last_spoke += stepSize
+        self.last_spoke += elapsed
         self.speech_bubble['text_bg']=(1,1,1,1/(2*self.last_spoke+0.01))
         self.speech_bubble['frameColor']=(.6,.2,.1,.5/(2*self.last_spoke+0.01))
         if self.last_spoke > 2:
@@ -521,8 +494,13 @@ class Ralph(PhysicsCharacterController):
 
         total_frame_num = self.actor.getNumFrames('walk')
         if self.isMoving:
-            self.current_frame_count = self.current_frame_count + (stepSize*1000.0)
+            self.current_frame_count = self.current_frame_count + (elapsed*10000.0)
             while (self.current_frame_count >= total_frame_num + 1):
                 self.current_frame_count -= total_frame_num
                 self.actor.pose('walk', self.current_frame_count)
 
+        self.velocity *= elapsed
+        #print "Velocity", self.velocity
+        avatar.setFluidPos(avatar, self.velocity)
+        # either return or terminate the task, depending on if its stepped or unpaused
+        return task.cont

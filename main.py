@@ -5,6 +5,7 @@ For more details, see: http://mmp.mit.edu/isisworld/
 """
 
 ISIS_VERSION = 0.4
+FRAME_RATE = 20
 
 from pandac.PandaModules import loadPrcFileData
 loadPrcFileData("", 
@@ -13,8 +14,10 @@ load-display pandagl
 aux-display tinydisplay
 winow-title "IsisWorld"
 win-size 800 600
+clock-mode limited
+clock-frame-rate %i
 textures-power-2 none 
-basic-shaders-only f""")
+basic-shaders-only f""" % FRAME_RATE )
 
 from direct.showbase.ShowBase import ShowBase
 from direct.gui.OnscreenText import OnscreenText
@@ -81,6 +84,11 @@ class IsisWorld(ShowBase):
         base.camLens.setFov(75)
         base.camLens.setNear(0.2)
         base.disableMouse()
+        self._globalClock = ClockObject.getGlobalClock()
+        self._globalClock.setMode(ClockObject.MLimited)
+        self._globalClock.setFrameRate(FRAME_RATE)
+        self._globalClock=None
+        self._frameTime = None
         # debugging stuff
         if debug:
             # display all events
@@ -92,7 +100,7 @@ class IsisWorld(ShowBase):
         self.server_object = HomeSim_XMLRPC_Server()
         self.server = self.server_object.server
         self.server.register_function(xmlrpc_command_handler.command_handler,'do')
-        self.server_thread = threading.Thread(group=None, target=self.server.serve_forever, name='xmlrpc')
+        self.server_thread = threading.Thread(group=None, target=self.server.serve_forever, name='isisworld-xmlrpc')
         self.server_thread.start()
 
               
@@ -209,17 +217,12 @@ class IsisWorld(ShowBase):
         self.agentNum = 0
         self.agents = []
         self.agentsNamesToIDs = {'Ralph':0, 'Lauren':1, 'David':2}
-        self.agents.append(Ralph(base.worldManager, self, "Ralph"))
-        #self.agents[0].actor.setPos(Vec3(-1,0,0))
-        self.agents[0].control__say("Hi, I'm Ralph. Please build me.")
-
-        self.agents.append(Ralph(base.worldManager, self, "Lauren"))
-        #self.agents[1].actor.setPos(Vec3(-3,-3,0))
-        self.agents[1].control__say("Hi, I'm Lauren. Please build me.")
-
-        self.agents.append(Ralph(base.worldManager, self, "David"))
-        #self.agents[2].actor.setPos(Vec3(3,-3,0))
-        self.agents[2].control__say("Hi, I'm David. Please build me.")
+        # add and initialize new agents
+        for name in self.agentsNamesToIDs.keys():
+            newAgent = Ralph(base.worldManager, self, name)
+            newAgent.control__say("Hi, I'm %s. Please build me." % name)
+            taskMgr.add(newAgent.update, "updateCharacter-%s" % name)
+            self.agents.append(newAgent)
 
         
     def setupControls(self):
@@ -245,8 +248,8 @@ class IsisWorld(ShowBase):
         text += "\n[Esc] to quit\n\n"
         # initialize actions
         self.actionController = ActionController("Version 1.0")
-        self.actionController.addAction(IsisAction(commandName="turn_left",intervalAction=True,keyboardBinding="arrow_left"))
-        self.actionController.addAction(IsisAction(commandName="turn_right",intervalAction=True,keyboardBinding="arrow_right"))
+        self.actionController.addAction(IsisAction(commandName="move_left",intervalAction=True,keyboardBinding="arrow_left"))
+        self.actionController.addAction(IsisAction(commandName="move_right",intervalAction=True,keyboardBinding="arrow_right"))
         self.actionController.addAction(IsisAction(commandName="move_forward",intervalAction=True,keyboardBinding="arrow_up"))
         self.actionController.addAction(IsisAction(commandName="move_backward",intervalAction=True,keyboardBinding="arrow_down"))
         self.actionController.addAction(IsisAction(commandName="look_right",intervalAction=True,keyboardBinding="l"))
@@ -310,9 +313,9 @@ class IsisWorld(ShowBase):
         base.accept("o", hideText)
 
         # key input
-        base.accept("1",              base.toggleWireframe, [])
-        base.accept("2",              base.toggleTexture, [])
-        base.accept("3",              changeAgent, [])
+        base.accept("1",               base.toggleWireframe, [])
+        base.accept("2",               base.toggleTexture, [])
+        base.accept("3",               changeAgent, [])
         self.accept("space",           self.step_simulation, [.1]) # argument is amount of second to advance
         self.accept("o",               self.printObjects, []) # displays objects in field of view
         self.accept("p",               self.togglePaused)
@@ -338,24 +341,43 @@ class IsisWorld(ShowBase):
         self.command_box = DirectEntry(pos=(-1.2,-0.95,-0.95), text_fg=(0.282, 0.725, 0.850,1), frameColor=(0.631, 0.219, 0.247,0.25), suppressKeys=1, initialText="enter text and hit return", enableEdit=0,scale=0.07, focus=0, focusInCommand=disable_keys, focusOutCommand=enable_keys, focusInExtraArgs=[self], focusOutExtraArgs=[self], command=accept_message, extraArgs=[self],  width=15, numLines=1)
         base.win.setClearColor(Vec4(0,0,0,1))
 
-    def step_simulation(self,time=1):
-	for agent in self.agents: agent.update(time)
+    def step_simulation(self,stepTime=2):
+        if self._globalClock != None:
+            self.togglePaused()
+            gc = ClockObject.getGlobalClock()
+            #time1 = gc.getFrameTime()
+            time.sleep(stepTime)
+            #print "Framerate", FRAME_RATE, time1
+            #while(True):
+            #    time2 = gc.getFrameTime()
+            #    if (time2-time1)/FRAME_RATE > stepTime:
+            #        break
+            #    else:
+            #        print (time2-time1), (time2-time1)/FRAME_RATE
+            self.togglePaused()
 
-    _GCLK=None
-    _FT=None
     def togglePaused(self):
-        if (self._GCLK == None):
-          print "[pong] pausing..."
+        """ by default, the simulator is unpaused/running.
+        toggling it will remove each ralph's update() function
+        from the task manager"""
+        if (self._globalClock == None):
+          print "[IsisWorld] Pausing Simulator"
+          for name in self.agentsNamesToIDs.keys():
+             taskMgr.remove("updateCharacter-%s" % name)
           base.disableParticles()
-          self._GCLK=ClockObject.getGlobalClock()
-          self._FT=self._GCLK.getFrameTime()
-          self._GCLK.setMode(ClockObject.MSlave)
+          self._globalClock=ClockObject.getGlobalClock()
+          self._globalClock.setMode(ClockObject.MSlave)
         else:
-          self._GCLK.setRealTime(self._FT)
-          self._GCLK.setMode(ClockObject.MNormal)
+          self._frameTime=self._globalClock.getFrameTime()
+          self._globalClock.setRealTime(self._frameTime)
+          self._globalClock.setMode(ClockObject.MNormal)
           base.enableParticles()
-          self._GCLK=None
-          print "[pong] restarting..."
+          for name,id in self.agentsNamesToIDs.items():
+             anAgent = self.agents[id]
+             # add task for one iteration
+             taskMgr.add(anAgent.update, "updateCharacter-step-%s" % name)
+          self._globalClock=None
+          print "[IsisWorld] Restarting Simulator"
 
 
     def get_agent_position(self, agent_id=None):

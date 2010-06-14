@@ -13,15 +13,6 @@ class PhysicsCharacterController(object):
         self.velocity = Vec3(0.0,0.0,0.0)
         self.actor.setCollideMask(BitMask32.allOff())
         self.geom = worldManager.addActorPhysics(self)
-        taskMgr.add(self.updateCharacter, "updateCharacter-%s" % self.name)
-
-    def updateCharacter(self, task):
-        """Big task that updates the character's visual and physical position every tick"""
-        elapsed = globalClock.getDt() 
-        avatar = self.geom#.getChild(0)#.getChild(0)
-        self.velocity *= elapsed
-        avatar.setFluidPos(avatar, self.velocity)
-        return task.cont 
 
 def getorientedboundingbox(collobj):
     ''' get the oriented bounding box '''
@@ -86,7 +77,7 @@ class PhysicsWorldManager():
         offsetNodeOne = [x,0+y,0.5+z,0.5]
         offsetNodeTwo = [x,0+y,1.6+z,0.5]
         charAN = ActorNode("%s-physicsActorNode" % actor.name)
-        charAN.getPhysicsObject().setMass(100)
+        charAN.getPhysicsObject().setMass(400)
         charNP = NodePath(PandaNode("%s-physicsNode" % actor.name))
         charANP = charNP.attachNewNode(charAN)
         actor.actor.reparentTo(charANP)
@@ -99,7 +90,7 @@ class PhysicsWorldManager():
         cNode.node().setIntoCollideMask(BitMask32.allOff())
         #cNode.node().setFromCollideMask(FLOORMASK|WALLMASK)
         cNode.node().setFromCollideMask(BitMask32.allOn())
-        cNode.show()
+        #cNode.show()
         # let ralph fall, so he doesn' 
         charNP.setZ(10)
         base.physicsMgr.attachPhysicalNode(charAN)
@@ -127,10 +118,10 @@ class PhysicsWorldManager():
         #
         # Constructed with Panda3D plane object, one way to
         # do this is with a point and a normal
-        cp = CollisionPlane(Plane(Vec3(0, 0, 1), Point3(0, 0, 0)))
-        planeNP = base.render.attachNewNode(CollisionNode('groundcnode'))
-        planeNP.node().addSolid(cp)
-        planeNP.show()
+        #cp = CollisionPlane(Plane(Vec3(0, 0, 1), Point3(0, 0, 0)))
+        #planeNP = base.render.attachNewNode(CollisionNode('groundcnode'))
+        #planeNP.node().addSolid(cp)
+        #planeNP.show()
         groundNP.node().setIntoCollideMask(FLOORMASK)
 
     def startPhysics(self):

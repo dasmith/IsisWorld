@@ -1,76 +1,94 @@
 #!/usr/bin/env python
+""" IsisWorld is a simulated world for testing commonsense reasoning systems
+
+For more details, see: http://mmp.mit.edu/isisworld/
+"""
 
 ISIS_VERSION = 0.4
 
 from pandac.PandaModules import loadPrcFileData
 loadPrcFileData("", 
 """sync-video 0
+load-display pandagl
+aux-display tinydisplay
+winow-title "IsisWorld"
 win-size 800 600
 textures-power-2 none 
 basic-shaders-only f""")
 
 from direct.showbase.ShowBase import ShowBase
-from random import randint, random
-import sys
 from direct.gui.OnscreenText import OnscreenText
 from direct.task import Task, TaskManagerGlobal
-from pandac.PandaModules import *
 from direct.filter.CommonFilters import CommonFilters 
-from simulator.floating_camera import FloatingCamera
 from direct.gui.DirectGui import DirectEntry
 from direct.showbase.DirectObject import DirectObject
+from pandac.PandaModules import *
 
-import simulator.skydome2 as skydome2
-#from simulator.door import *
+from simulator.floating_camera import FloatingCamera
+from simulator.skydome2 import *
+from simulator.physics import *
 from simulator.ralph import *
 from simulator.object_loader import *
+from simulator.actions import *
 from xmlrpc.xmlrpc_server import HomeSim_XMLRPC_Server
 from xmlrpc.command_handler import Command_Handler
-import threading
-
-from simulator.physics import *
+from random import randint, random
+import threading, sys
         
 class IsisWorld(ShowBase):
+    """ IsisWorld is the simulator class inheriting from Panda3D's ShowBase
+    class, which inherits from the DirectObject.
+
+    Among other things, this instantiates a taskMgr which can be launched
+    by a single call to `run()`.
+
+    Several variables are attributes of the ShowBase instance, including
+
+        - base
+        - render: the default 3D scene graph
+        - render2d: the default 2D scene graph, for GUI elements
+              - (-1,0,-1) is lower left-hand corner
+              - (1,0,1) is upper right hand corner
+        - camera
+        - messenger
+        - taskMgr
+
+    For a complete list, see: http://www.panda3d.org/wiki/index.php/ShowBase
+    """
     def __init__(self):
         ShowBase.__init__(self)
-        
         render.setShaderAuto()
         base.setFrameRateMeter(True)
         base.setBackgroundColor(.2, .2, .2)
         base.camLens.setFov(75)
         base.camLens.setNear(0.2) 
         base.disableMouse()
-        
+        # debugging stuff
+        #messenger.toggleVerbose()
+        # load the objects into the world
         self.worldObjects = {}
-        self.worldManager = PhysicsWorldManager() # defined in simulator/physics.py
+        #self.worldObjects.update(load_objects_in_world(self.worldManager,render, self.worldObjects))
+        # start physics manager
+        # this is defined in simulator/physics.py
+        self.worldManager = PhysicsWorldManager()
         # setup components
-        self.agentNum = 0
         self.setupMap()
         self.setupLights()
-       
         self.paused = True
-    
        
         # init gravity
-        
         self.worldManager.startPhysics()
         self.setupAgent()
         self.setupCameras()
         self.setupControls()
-        # load objects
-        #self.worldObjects.update(load_objects_in_world(self.worldManager,render, self.worldObjects))
-        # start simulation
-        # start server
         # xmlrpc server command handler
         xmlrpc_command_handler = Command_Handler(self)
-	
         # xmlrpc server
         self.server_object = HomeSim_XMLRPC_Server()
         self.server = self.server_object.server
         self.server.register_function(xmlrpc_command_handler.command_handler,'do')
         self.server_thread = threading.Thread(group=None, target=self.server.serve_forever, name='xmlrpc')
         self.server_thread.start()
-
 
               
     def timeUpdated(self, task):
@@ -85,7 +103,7 @@ class IsisWorld(ShowBase):
 	For the ground component, a separate physics module must be created 
 	so that the characters and objects do not fall through it.
 
-	This is done by calling the physics module:  "physicsModule.setupGround()"""
+	This is done by calling the physics module:  physicsModule.setupGround()"""
         cm = CardMaker("ground")
         groundTexture = loader.loadTexture("./textures/env_ground.jpg")
         cm.setFrame(-100, 100, -100, 100)
@@ -97,9 +115,7 @@ class IsisWorld(ShowBase):
 
         # TODO: make sky inverted cylinder?
         self.worldManager.setupGround(groundNP)
-        
-        return
-        self.skydomeNP = skydome2.SkyDome2(render)
+        self.skydomeNP = SkyDome2(render)
         self.skydomeNP.setStandardControl()
         self.skydomeNP.att_skycolor.setColor(Vec4(0.3,0.3,0.3,1))
         self.skydomeNP.setPos(Vec3(0,0,-500))
@@ -114,7 +130,7 @@ class IsisWorld(ShowBase):
         self.mapNode = self.map.find("-PandaNode")
         self.room = self.mapNode.find("Wall")
         #self.worldManager.addItem(PhysicsTrimesh(name="Wall",world=self.worldManager.world, space=self.worldManager.space,pythonObject=self.room,density=800,surfaceFriction=10),False)
-	self.map.node().setIntoCollideMask(WALLMASK)
+        self.map.node().setIntoCollideMask(WALLMASK)
 
         """
         Add a table to the room """
@@ -134,13 +150,6 @@ class IsisWorld(ShowBase):
         Meant, obviously, to demonstrate the ability to climb stairs.
         """
         self.steps = self.mapNode.find("Steps")
-#        stepsGeomData = OdeTriMeshData(self.steps, True)
-#        stepsGeom = OdeTriMeshGeom(self.worldManager.space, stepsGeomData)
-#        stepsGeom.setPosition(self.steps.getPos(render))
-#        stepsGeom.setQuaternion(self.steps.getQuat(render))
-#        self.worldManager.setGeomData(stepsGeom, groundData, None)
-
-        #self.worldManager.addItem(PhysicsTrimesh(world=self.worldManager.world, space=self.worldManager.space,pythonObject=self.steps,density=800,surfaceFriction=10),False)
         """
         Door functionality is also provided here.
         More on door in the appropriate file.
@@ -191,14 +200,16 @@ class IsisWorld(ShowBase):
         render.setLight(dlightNP)
 
     def setupAgent(self):
-
+        # agentNum keeps track of the currently active visible
+        # that the camera and fov follow
+        self.agentNum = 0
         self.agents = []
         self.agentsNamesToIDs = {'Ralph':0, 'Lauren':1, 'David':2}
         self.agents.append(Ralph(base.worldManager, self, "Ralph"))
         #self.agents[0].actor.setPos(Vec3(-1,0,0))
         self.agents[0].control__say("Hi, I'm Ralph. Please build me.")
 
-	self.agents.append(Ralph(base.worldManager, self, "Lauren"))
+        self.agents.append(Ralph(base.worldManager, self, "Lauren"))
         #self.agents[1].actor.setPos(Vec3(-3,-3,0))
         self.agents[1].control__say("Hi, I'm Lauren. Please build me.")
 
@@ -208,12 +219,7 @@ class IsisWorld(ShowBase):
 
         
     def setupControls(self):
-        
-        props = WindowProperties( )
-        props.setTitle( 'IsisWorld v%s' % ISIS_VERSION )
-        base.win.requestProperties( props )
-        
-        # TODO: re-write these instructions
+
         text = "\n"
         text += "IsisWorld v%s\n" % (ISIS_VERSION)
         text += "\n\n"
@@ -222,9 +228,30 @@ class IsisWorld(ShowBase):
         text += "\nPress [3] to switch agent\n"
         text += "\nPress [i] to hide/show this text\n"
         text += "\n[o] lists objects in agent's f.o.v.\n"
-        text += "\n[a,s,d,f] to move or zoom camera\n"
-        text += "\n[Esc] to quit\n\n\n"
+        text += "\n[Esc] to quit\n\n"
+        text += "\n -- Ralph Controller Commands -- \n"
+        # initialize actions
+        self.actionController = ActionController("Version 1.0")
+        self.actionController.addAction(IsisAction(commandName="turn_left",intervalAction=True,keyboardBinding="arrow_left"))
+        self.actionController.addAction(IsisAction(commandName="turn_right",intervalAction=True,keyboardBinding="arrow_right"))
+        self.actionController.addAction(IsisAction(commandName="move_forward",intervalAction=True,keyboardBinding="arrow_up"))
+        self.actionController.addAction(IsisAction(commandName="move_backward",intervalAction=True,keyboardBinding="arrow_down"))
+        self.actionController.addAction(IsisAction(commandName="look_right",intervalAction=True,keyboardBinding="l"))
+        self.actionController.addAction(IsisAction(commandName="look_left",intervalAction=True,keyboardBinding="h"))
+        self.actionController.addAction(IsisAction(commandName="look_up",intervalAction=True,keyboardBinding="k"))
+        self.actionController.addAction(IsisAction(commandName="look_down",intervalAction=True,keyboardBinding="j"))
+        self.actionController.addAction(IsisAction(commandName="jump",intervalAction=False,keyboardBinding="g"))
+        self.actionController.addAction(IsisAction(commandName="use_aimed",intervalAction=False,keyboardBinding="u"))
 
+        # initialze keybindings
+        for keybinding, command in self.actionController.keyboardMap.items():
+            print "adding command to ", keybinding, command
+            base.accept(keybinding, self.actionController.haveAgentDo, [command,self.agents[self.agentNum]])
+            text += "\nPress [%s] to %s\n" % (keybinding, command)
+        props = WindowProperties( )
+        props.setTitle( 'IsisWorld v%s' % ISIS_VERSION )
+        base.win.requestProperties( props )
+        
         self.textObjectVisisble = True
         self.textObject = OnscreenText(
                 text = text,
@@ -257,45 +284,9 @@ class IsisWorld(ShowBase):
 
 
         def relayAgentControl(controlText):
-
-            if controlText == "turn_left__start":
-                self.agents[self.agentNum].control__turn_left__start()
-            elif controlText == "turn_left__stop":
-                self.agents[self.agentNum].control__turn_left__stop()
-            elif controlText == "turn_right__start":
-                self.agents[self.agentNum].control__turn_right__start()
-            elif controlText == "turn_right__stop":
-                self.agents[self.agentNum].control__turn_right__stop()
-            elif controlText == "move_forward__start":
-                self.agents[self.agentNum].control__move_forward__start()
-            elif controlText == "move_forward__stop":
-                self.agents[self.agentNum].control__move_forward__stop()
-            elif controlText == "move_backward__start":
-                self.agents[self.agentNum].control__move_backward__start()
-            elif controlText == "move_backward__stop":
-                self.agents[self.agentNum].control__move_backward__stop()
-            elif controlText == "look_up__start":
-                self.agents[self.agentNum].control__look_up__start()
-            elif controlText == "look_up__stop":
-                self.agents[self.agentNum].control__look_up__stop()
-            elif controlText == "look_down__start":
-                self.agents[self.agentNum].control__look_down__start()
-            elif controlText == "look_down__stop":
-                self.agents[self.agentNum].control__look_down__stop()
-            elif controlText == "look_left__start":
-                self.agents[self.agentNum].control__look_left__start()
-            elif controlText == "look_left__stop":
-                self.agents[self.agentNum].control__look_left__stop()
-            elif controlText == "look_right__start":
-                self.agents[self.agentNum].control__look_right__start()
-            elif controlText == "look_right__stop":
-                self.agents[self.agentNum].control__look_right__stop()
-            elif controlText == "jump":
-                self.agents[self.agentNum].control__jump()
-            elif controlText == "use_aimed":
-                self.agents[self.agentNum].control__use_aimed()
-                    
-        
+            """ Accepts an instruction issued through ? """
+            if actionController.hasAction(controlText):
+                actionController.makeAgentDo(controlText, self.agents[self.agentNum])
         # Accept some keys to move the camera.
         self.accept("a-up", self.floating_camera.setControl, ["right", 0])
         self.accept("a",    self.floating_camera.setControl, ["right", 1])
@@ -307,28 +298,6 @@ class IsisWorld(ShowBase):
         self.accept("f-up", self.floating_camera.setControl, ["zoom-out",  0])
         #if self.is_ralph == True:
         # control keys to move the character
-        base.accept("arrow_left",     relayAgentControl, ["turn_left__start"])
-        base.accept("arrow_left-up",  relayAgentControl, ["turn_left__stop"])
-        base.accept("arrow_right",    relayAgentControl, ["turn_right__start"])
-        base.accept("arrow_right-up", relayAgentControl, ["turn_right__stop"])
-        base.accept("arrow_up",       relayAgentControl, ["move_forward__start"])
-        base.accept("arrow_up-up",    relayAgentControl, ["move_forward__stop"])
-        base.accept("arrow_down",     relayAgentControl, ["move_backward__start"])
-        base.accept("arrow_down-up",  relayAgentControl, ["move_backward__stop"])
-        # head movement controls (vi direction map)
-        base.accept("k",              relayAgentControl, ["look_up__start"])
-        base.accept("k-up",           relayAgentControl, ["look_up__stop"])
-        base.accept("j",              relayAgentControl, ["look_down__start"])
-        base.accept("j-up",           relayAgentControl, ["look_down__stop"])
-        base.accept("h",              relayAgentControl, ["look_left__start"])
-        base.accept("h-up",           relayAgentControl, ["look_left__stop"])
-        base.accept("l",              relayAgentControl, ["look_right__start"])
-        base.accept("l-up",           relayAgentControl, ["look_right__stop"])
-        # atomic actions
-        base.accept("i",              relayAgentControl, ["jump"])
-        base.accept("u",              relayAgentControl, ["use_aimed"])
-
-
          
 
         base.accept("o", hideText)

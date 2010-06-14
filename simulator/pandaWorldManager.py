@@ -40,7 +40,6 @@ class PhysicsCharacterController(object):
             print "Colliding with ", eName
             #avatar.setPos(ePos)
         self.velocity *= elapsed
-        print self.velocity
         avatar.setFluidPos(avatar, self.velocity)
         return task.cont 
 

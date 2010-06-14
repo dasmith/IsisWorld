@@ -1,4 +1,5 @@
 from physics import *
+from actions import *
 from direct.showbase import DirectObject
 from direct.interval.IntervalGlobal import *
 from direct.actor.Actor import Actor
@@ -43,9 +44,10 @@ class Ralph(PhysicsCharacterController):
         self.fov.reparentTo(self.player_eye)
         self.fov.setHpr(180,0,0)
 
+        # initialize physics handler
         PhysicsCharacterController.__init__(self,worldManager)
-	if not hasattr(self,'updateCharacter'):
-	    raise "Error: PhysicsCharacterController does not have required 'updateCharacter' method defined'"
+        if not hasattr(self,'updateCharacter'):
+            raise "Error: PhysicsCharacterController does not have required 'updateCharacter' method defined'"
 
         lens = self.fov.node().getLens()
         lens.setFov(60) #  degree field of view (expanded from 40)

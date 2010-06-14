@@ -55,10 +55,10 @@ class ActionController():
         if action.intervalAction:
             # define start and stop commands
             self.actionMap["%s-start" % action.commandName]="control__%s__start" % action.commandName
-            self.actionMap["%s-stop" % action.commandName]="control__%s__start" % action.commandName
+            self.actionMap["%s-stop" % action.commandName]="control__%s__stop" % action.commandName
             if action.keyboardBinding:
                 self.keyboardMap["%s" % action.keyboardBinding]="control__%s__start" % action.commandName
-                self.keyboardMap["%s_up" % action.keyboardBinding]="control__%s__stop" % action.commandName
+                self.keyboardMap["%s-up" % action.keyboardBinding]="control__%s__stop" % action.commandName
         else:
             self.actionMap["%s" % action.commandName]="control__%s" % action.commandName
             if action.keyboardBinding:

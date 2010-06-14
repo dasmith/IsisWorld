@@ -64,7 +64,7 @@ class IsisWorld(ShowBase):
         base.camLens.setNear(0.2) 
         base.disableMouse()
         # debugging stuff
-        #messenger.toggleVerbose()
+        # messenger.toggleVerbose()
         # load the objects into the world
         self.worldObjects = {}
         #self.worldObjects.update(load_objects_in_world(self.worldManager,render, self.worldObjects))
@@ -74,7 +74,6 @@ class IsisWorld(ShowBase):
         # setup components
         self.setupMap()
         self.setupLights()
-        self.paused = True
        
         # init gravity
         self.worldManager.startPhysics()
@@ -239,7 +238,6 @@ class IsisWorld(ShowBase):
         text += "\nPress [i] to hide/show this text\n"
         text += "\n[o] lists objects in agent's f.o.v.\n"
         text += "\n[Esc] to quit\n\n"
-        text += "\n -- Ralph Controller Commands -- \n"
         # initialize actions
         self.actionController = ActionController("Version 1.0")
         self.actionController.addAction(IsisAction(commandName="turn_left",intervalAction=True,keyboardBinding="arrow_left"))
@@ -284,9 +282,6 @@ class IsisWorld(ShowBase):
                 self.textObject.reparentTo(aspect2d)
                 self.textObjectVisisble = True
 
-        def togglePaused():
-            self.paused = not self.paused
-
         def changeAgent():
             if (self.agentNum == (len(self.agents)-1)):
                 self.agentNum = 0
@@ -318,7 +313,7 @@ class IsisWorld(ShowBase):
         base.accept("3",              changeAgent, [])
         self.accept("space",           self.step_simulation, [.1]) # argument is amount of second to advance
         self.accept("o",               self.printObjects, []) # displays objects in field of view
-        self.accept("p",               togglePaused)
+        self.accept("p",               self.togglePaused)
         #self.accept("r",              self.reset_simulation)
         base.accept("escape",         sys.exit)
     
@@ -346,17 +341,17 @@ class IsisWorld(ShowBase):
 
     _GCLK=None
     _FT=None
-    def togglepause(self):
+    def togglePaused(self):
         if (self._GCLK == None):
           print "[pong] pausing..."
-          self.parent.disableParticles()
+          base.disableParticles()
           self._GCLK=ClockObject.getGlobalClock()
           self._FT=self._GCLK.getFrameTime()
           self._GCLK.setMode(ClockObject.MSlave)
         else:
           self._GCLK.setRealTime(self._FT)
           self._GCLK.setMode(ClockObject.MNormal)
-          self.parent.enableParticles()
+          base.enableParticles()
           self._GCLK=None
           print "[pong] restarting..."
 

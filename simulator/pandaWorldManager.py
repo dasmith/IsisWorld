@@ -10,35 +10,15 @@ AGENTMASK = BitMask32.bit(3)
 class PhysicsCharacterController(object):
     
     def __init__(self, worldManager):
-        # add velocity
         self.velocity = Vec3(0.0,0.0,0.0)
         self.actor.setCollideMask(BitMask32.allOff())
         self.geom = worldManager.addActorPhysics(self)
         taskMgr.add(self.updateCharacter, "updateCharacter-%s" % self.name)
-        #self.geom = worldManager.addActorPhysics(self)
-        # turn off mask on model
-        # setup ground ray
-        self.pickerRay = CollisionRay()
-        #self.pickerRay.setDirection(1,0,0)
-        self.pickerCol = CollisionNode('%s-collision-ground' % self.name)
-        self.pickerColNP =  self.player_eye.attachNewNode(self.pickerCol)
-        self.pickerCol.addSolid(self.pickerRay)
-        self.pickerCol.setFromCollideMask(GeomNode.getDefaultCollideMask())
-        self.pickerHandler = CollisionHandlerQueue()
-        base.cTrav.addCollider(self.pickerColNP,self.pickerHandler)
 
     def updateCharacter(self, task):
         """Big task that updates the character's visual and physical position every tick"""
         elapsed = globalClock.getDt() 
         avatar = self.geom#.getChild(0)#.getChild(0)
-        # check to see if he's falling
-        if self.pickerHandler.getNumEntries() > 0:
-            self.pickerHandler.sortEntries()
-            entry = self.pickerHandler.getEntry(0)
-            eName = entry.getIntoNodePath().getName()
-            ePos = entry.getSurfacePoint(render)
-            print "Colliding with ", eName
-            #avatar.setPos(ePos)
         self.velocity *= elapsed
         avatar.setFluidPos(avatar, self.velocity)
         return task.cont 
@@ -136,9 +116,8 @@ class PhysicsWorldManager():
         boundingBox=getOrientedBoundingBox(collObj)
         if shape=='sphere':
             radius=.5*max(*boundingBox)
-            geom = OdeSphereGeom(space, radius)
-            #self.geom.setPosition(obj.getPos(render))
-            #self.geom.setQuaternion(obj.getQuat(render))
+            posVec = nodePath.getPos() + radus
+            geom = CollisionSphere(posVec)
             return geom
 
     def setupGround(self,groundNP):
@@ -153,9 +132,9 @@ class PhysicsWorldManager():
         planeNP = base.render.attachNewNode(CollisionNode('planecnode'))
         planeNP.node().addSolid(cp)
         planeNP.show()
-
         groundNP.node().setIntoCollideMask(FLOORMASK)
 
     def startPhysics(self):
-        return True
-        self.initCollision()
+        # everything is done in the __init__ method
+        # for Panda's physics
+        pass

@@ -163,6 +163,12 @@ class Ralph(PhysicsCharacterController):
         return in_view
 
 
+    def raytrace_getFirstObject(self):
+        pickerNode = CollisionNode('raytrace')
+        #pickerNP = self.player_eye.
+
+    def raytrace_getAllObjectsInView(self):
+        pass
             
     def control__turn_left__start(self):
         self.setControl("turn_left",  1)
@@ -253,7 +259,6 @@ class Ralph(PhysicsCharacterController):
     #here one can tell the agent what to do when someone talks with him.
     def hear(self, speaker, text):
         self.control__say(("I hear ya, " + speaker))
-
         
 
     def control__pick_up_with_right_hand(self, pick_up_object):
@@ -458,7 +463,7 @@ class Ralph(PhysicsCharacterController):
     def control__jump(self):
         actorNode = self.geom.getChild(0).node()
         if abs(actorNode.getPhysicsObject().getVelocity()[2]) < .01:
-            actorNode.getPhysicsObject().addImpulse(Vec3(0,0,10))
+            actorNode.getPhysicsObject().addImpulse(Vec3(0,0,6))
 
 
     def update(self, stepSize):
@@ -506,11 +511,6 @@ class Ralph(PhysicsCharacterController):
 
         # If the character is moving, loop the run animation.
         # If he is standing still, stop the animation.
-
-	# TODO: adjust location of physics capsule here
-        #self.player.setFluidPos(self.player, self.velocity)
-        #PhysicsCharacterController.update(self, stepSize )
-
         if (self.controlMap["move_forward"]!=0) or (self.controlMap["move_backward"]!=0) or (self.controlMap["move_left"]!=0) or (self.controlMap["move_right"]!=0):
             if self.isMoving is False:
                 self.isMoving = True

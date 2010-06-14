@@ -495,6 +495,8 @@ class Ralph(PhysicsCharacterController):
         if (self.controlMap["look_down"]!=0):
             self.player_neck.setH(bound(self.player_neck.getH(),-60,80)-1*(stepSize*50))
 
+
+        print "Velocity", self.velocity
         # allow dialogue window to gradually decay (changing transparancy) and then disappear
         self.last_spoke += stepSize
         self.speech_bubble['text_bg']=(1,1,1,1/(2*self.last_spoke+0.01))

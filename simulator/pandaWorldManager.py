@@ -76,7 +76,7 @@ class PhysicsWorldManager():
         # panda's physics system is attached to particle system
         base.enableParticles()
         # allows detection of fast moving objects
-        #base.cTrav.setRespectPrevTransform(True)
+        base.cTrav.setRespectPrevTransform(True)
         base.cPush = PhysicsCollisionHandler()
         #base.cEvent = CollisionHandlerEvent()
 
@@ -120,6 +120,8 @@ class PhysicsWorldManager():
         #cNode.node().setFromCollideMask(FLOORMASK|WALLMASK)
         cNode.node().setFromCollideMask(BitMask32.allOn())
         cNode.show()
+        # let ralph fall, so he doesn' 
+        charNP.setZ(10)
         base.physicsMgr.attachPhysicalNode(charAN)
         # attach collision node with actor node to it
         base.cPush.addCollider(cNode, charANP)

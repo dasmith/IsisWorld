@@ -21,7 +21,10 @@ class IsisAction():
             commandFunct = commandFunct
 
     def execute(self,agent):
-        eval(commandFunct)
+        """ This method isn't used right now.  All IsisActions look for the corresponding
+        Ralph.control__[command_name]() method and execute it."""
+        pass
+        #eval(commandFunct)
 
 
 class ActionController():
@@ -30,32 +33,33 @@ class ActionController():
 
     def __init__(self,versionNumber):
         self.actionMap = {} 
-        self.keyboardMap= {} 
+        self.keyboardMap= {}
+        self.helpStrings = []
         self.versionNumber = versionNumber
 
     def hasAction(self,action):
         """ Tells whether the ActionController has this action defined"""
-        return action in self.actionMap.keys()
+        return action in self.actionMap.values()
 
-    def hasKeyboard(self,action):
-        """ Tells whether the ActionController has this action defined"""
-        return action in self.keyboardMap.keys()
-
-    def haveAgentDo(self,command,agent):
+    def makeAgentDo(self,command,agent):
         print "trying to", command, "on", agent
         """ Given a command and an agent pointer, tell the agent
         to do that command"""
-        eval("agent.%s" % command)
+        eval("agent.%s()" % command)
 
     def addAction(self,action):
+        # add documentation
+        if action.keyboardBinding:
+            self.helpStrings.append("Press [%s] to %s" % (action.keyboardBinding, action.commandName.replace("_"," ")))
+        # initialize actions
         if action.intervalAction:
             # define start and stop commands
-            self.actionMap["%s-start" % action.commandName]="control__%s__start()" % action.commandName
-            self.actionMap["%s-stop" % action.commandName]="control__%s__start()" % action.commandName
+            self.actionMap["%s-start" % action.commandName]="control__%s__start" % action.commandName
+            self.actionMap["%s-stop" % action.commandName]="control__%s__start" % action.commandName
             if action.keyboardBinding:
-                self.keyboardMap["%s" % action.keyboardBinding]="control__%s__start()" % action.commandName
-                self.keyboardMap["%s_up" % action.keyboardBinding]="control__%s__stop()" % action.commandName
+                self.keyboardMap["%s" % action.keyboardBinding]="control__%s__start" % action.commandName
+                self.keyboardMap["%s_up" % action.keyboardBinding]="control__%s__stop" % action.commandName
         else:
-            self.actionMap["%s" % action.commandName]="control__%s()" % action.commandName
+            self.actionMap["%s" % action.commandName]="control__%s" % action.commandName
             if action.keyboardBinding:
-                self.keyboardMap["%s" % action.keyboardBinding]="control__%s()" % action.commandName
+                self.keyboardMap["%s" % action.keyboardBinding]="control__%s" % action.commandName

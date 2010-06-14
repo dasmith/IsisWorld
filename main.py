@@ -220,6 +220,16 @@ class IsisWorld(ShowBase):
         
     def setupControls(self):
 
+        def relayAgentControl(command):
+            """ Accepts an instruction issued through the bound keyboard commands
+            because "self.agentNum" need to be revaluated at the time the command
+            is issued, necessitating this helper function"""
+            if self.actionController.hasAction(command):
+                self.actionController.makeAgentDo(command, self.agents[self.agentNum])
+            else:
+                print "relayAgentControl: %s command not found in action controller" % (command)
+                raise self.actionController
+
         text = "\n"
         text += "IsisWorld v%s\n" % (ISIS_VERSION)
         text += "\n\n"
@@ -246,8 +256,12 @@ class IsisWorld(ShowBase):
         # initialze keybindings
         for keybinding, command in self.actionController.keyboardMap.items():
             print "adding command to ", keybinding, command
-            base.accept(keybinding, self.actionController.haveAgentDo, [command,self.agents[self.agentNum]])
-            text += "\nPress [%s] to %s\n" % (keybinding, command)
+            base.accept(keybinding, relayAgentControl, [command])
+
+        # add documentation
+        for helpString in self.actionController.helpStrings:
+            text += "\n%s\n" % (helpString)
+
         props = WindowProperties( )
         props.setTitle( 'IsisWorld v%s' % ISIS_VERSION )
         base.win.requestProperties( props )
@@ -283,10 +297,6 @@ class IsisWorld(ShowBase):
             self.setupCameras()
 
 
-        def relayAgentControl(controlText):
-            """ Accepts an instruction issued through ? """
-            if actionController.hasAction(controlText):
-                actionController.makeAgentDo(controlText, self.agents[self.agentNum])
         # Accept some keys to move the camera.
         self.accept("a-up", self.floating_camera.setControl, ["right", 0])
         self.accept("a",    self.floating_camera.setControl, ["right", 1])

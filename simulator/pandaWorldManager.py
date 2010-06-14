@@ -121,7 +121,6 @@ class PhysicsWorldManager():
             return geom
 
     def setupGround(self,groundNP):
-
         # Ground collision: represented as an infinite plane
         # any object below the plane, no matter how far, is
         # considered to be intersecting the plane.
@@ -129,7 +128,7 @@ class PhysicsWorldManager():
         # Constructed with Panda3D plane object, one way to
         # do this is with a point and a normal
         cp = CollisionPlane(Plane(Vec3(0, 0, 1), Point3(0, 0, 0)))
-        planeNP = base.render.attachNewNode(CollisionNode('planecnode'))
+        planeNP = base.render.attachNewNode(CollisionNode('groundcnode'))
         planeNP.node().addSolid(cp)
         planeNP.show()
         groundNP.node().setIntoCollideMask(FLOORMASK)

@@ -57,15 +57,8 @@ class IsisWorld(ShowBase):
     """
     def __init__(self):
         ShowBase.__init__(self)
-        render.setShaderAuto()
-        base.setFrameRateMeter(True)
-        base.setBackgroundColor(.2, .2, .2)
-        base.camLens.setFov(75)
-        base.camLens.setNear(0.2) 
-        base.disableMouse()
-        # debugging stuff
-        # messenger.toggleVerbose()
         # load the objects into the world
+        self.setupEnvironment(debug=False)
         self.worldObjects = {}
         #self.worldObjects.update(load_objects_in_world(self.worldManager,render, self.worldObjects))
         # start physics manager
@@ -74,12 +67,25 @@ class IsisWorld(ShowBase):
         # setup components
         self.setupMap()
         self.setupLights()
-       
-        # init gravity
         self.worldManager.startPhysics()
         self.setupAgent()
         self.setupCameras()
+        base.taskMgr.add(self.floating_camera.update_camera, 'update_camera')
         self.setupControls()
+
+    def setupEnvironment(self, debug=False):
+        """ Sets up the environment variables and starts the server """
+        render.setShaderAuto()
+        base.setFrameRateMeter(True)
+        base.setBackgroundColor(.2, .2, .2)
+        base.camLens.setFov(75)
+        base.camLens.setNear(0.2)
+        base.disableMouse()
+        # debugging stuff
+        if debug:
+            # display all events
+            messenger.toggleVerbose()
+        # setup the server
         # xmlrpc server command handler
         xmlrpc_command_handler = Command_Handler(self)
         # xmlrpc server
@@ -90,10 +96,6 @@ class IsisWorld(ShowBase):
         self.server_thread.start()
 
               
-    def timeUpdated(self, task):
-        self.skydomeNP.skybox.setShaderInput('time', task.time)
-        return task.cont
- 
  
     def setupMap(self):
 	""" The map consists of a plane, the "ground" that stretches to infinity
@@ -118,7 +120,10 @@ class IsisWorld(ShowBase):
         self.skydomeNP.setStandardControl()
         self.skydomeNP.att_skycolor.setColor(Vec4(0.3,0.3,0.3,1))
         self.skydomeNP.setPos(Vec3(0,0,-500))
-        taskMgr.add(self.timeUpdated, "timeUpdated")
+        def timeUpdated(task):
+            self.skydomeNP.skybox.setShaderInput('time', task.time)
+            return task.cont
+        taskMgr.add(timeUpdated, "timeUpdated")
 
         """
         Get the map's panda node. This will allow us to find the objects
@@ -167,7 +172,7 @@ class IsisWorld(ShowBase):
         # Set up the camera 
         ### Set up displays and cameras ###
         self.floating_camera = FloatingCamera(self.agents[self.agentNum].actor)
-
+        base.camera.reparentTo(self.agents[self.agentNum].actor)
         # set up picture in picture
         dr = base.camNode.getDisplayRegion(0)
         aspect_ratio = 16.0 / 9.0
@@ -288,10 +293,7 @@ class IsisWorld(ShowBase):
                 
             else:
                 self.agentNum += 1
-
             self.setupCameras()
-
-
         # Accept some keys to move the camera.
         self.accept("a-up", self.floating_camera.setControl, ["right", 0])
         self.accept("a",    self.floating_camera.setControl, ["right", 1])
@@ -355,9 +357,6 @@ class IsisWorld(ShowBase):
           self._GCLK=None
           print "[pong] restarting..."
 
-    def get_camera_position(self):
-        print base.camera.getPos()
-        print base.camera.getHpr()
 
     def get_agent_position(self, agent_id=None):
         if agent_id == None:

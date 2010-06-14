@@ -454,10 +454,10 @@ class Ralph(PhysicsCharacterController):
             data.selectionCallback(self, dir)
 
     def getH(self):
-        return self.geom.getChild(0).getChild(0).getH()
+        return self.geom.getH()#.getChild(0).getChild(0).getH()
 
     def setH(self,h):
-        avatar = self.geom.getChild(0).getChild(0)
+        avatar = self.geom#getChild(0).getChild(0)
         avatar.setH(h)
 
     def control__jump(self):

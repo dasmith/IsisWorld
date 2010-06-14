@@ -70,6 +70,7 @@ class IsisWorld(ShowBase):
         self.worldManager.startPhysics()
         self.setupAgent()
         self.setupCameras()
+        base.taskMgr.add(self.floating_camera.update_camera, 'update_camera')
         self.setupControls()
 
     def setupEnvironment(self, debug=False):
@@ -171,7 +172,7 @@ class IsisWorld(ShowBase):
         # Set up the camera 
         ### Set up displays and cameras ###
         self.floating_camera = FloatingCamera(self.agents[self.agentNum].actor)
-
+        base.camera.reparentTo(self.agents[self.agentNum].actor)
         # set up picture in picture
         dr = base.camNode.getDisplayRegion(0)
         aspect_ratio = 16.0 / 9.0
@@ -356,9 +357,6 @@ class IsisWorld(ShowBase):
           self._GCLK=None
           print "[pong] restarting..."
 
-    def get_camera_position(self):
-        print base.camera.getPos()
-        print base.camera.getHpr()
 
     def get_agent_position(self, agent_id=None):
         if agent_id == None:

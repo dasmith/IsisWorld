@@ -1,4 +1,5 @@
 
+
 class IsisAction():
     """ This class defines the actions that are available to the agent in IsisWorld """
     def __init__(self, commandName, commandFunct=None, intervalAction=False, keyboardBinding=None):
@@ -28,8 +29,11 @@ class IsisAction():
 
 
 class ActionController():
-    """ This initializes a set of IsisActions and is responsible for
-    dispatching these actions"""
+    """ This initializes a set of IsisActions and is responsible for dispatching these actions.
+
+    Actions are currently defined in the IsisWorld.setupControls() method.   Version numbers
+    are intended to help clients remember which set of actions they are interacting with.
+    """
 
     def __init__(self,versionNumber):
         self.actionMap = {} 
@@ -42,13 +46,11 @@ class ActionController():
         return action in self.actionMap.values()
 
     def makeAgentDo(self,command,agent):
-        print "trying to", command, "on", agent
-        """ Given a command and an agent pointer, tell the agent
-        to do that command"""
+        """ Given a command and an agent pointer, tell the agent to do that command"""
         eval("agent.%s()" % command)
 
     def addAction(self,action):
-        # add documentation
+        """ Adds an action to the actionMap, containing commands that can be controlled through XMLRPC"""
         if action.keyboardBinding:
             self.helpStrings.append("Press [%s] to %s" % (action.keyboardBinding, action.commandName.replace("_"," ")))
         # initialize actions

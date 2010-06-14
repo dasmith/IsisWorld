@@ -57,7 +57,7 @@ class FloatingCamera:
         
         """ 
         
-        self.actor = actor 
+        self.actor = actor
         self.prevtime = 0 
 
         # The camera's controls: 
@@ -124,7 +124,7 @@ class FloatingCamera:
 
         elapsed = task.time - self.prevtime 
 
-        base.camera.lookAt(self.actor) 
+        base.camera.lookAt(self.actor)
         camright = base.camera.getNetTransform().getMat().getRow3(0) 
         camright.normalize() 
         camvec = self.actor.getPos() - base.camera.getPos() 
@@ -169,8 +169,11 @@ class FloatingCamera:
             entries.append(entry) 
         entries.sort(lambda x,y: cmp(y.getSurfacePoint(render).getZ(), 
                                      x.getSurfacePoint(render).getZ())) 
-        if (len(entries)>0) and (entries[0].getIntoNode().getName() == "terrain"): 
-            base.camera.setZ(entries[0].getSurfacePoint(render).getZ()+1.0) 
+        if len(entries)>0:
+            print entries[0].getIntoNode().getName()
+        if (len(entries)>0) and (entries[0].getIntoNode().getName() == "groundcnode"):
+            base.camera.setZ(entries[0].getSurfacePoint(render).getZ()+1.0)
+
         if (base.camera.getZ() < self.actor.getZ() + 2.0): 
             base.camera.setZ(self.actor.getZ() + 2.0) 
             

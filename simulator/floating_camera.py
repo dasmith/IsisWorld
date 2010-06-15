@@ -1,26 +1,3 @@
-"""
-floating_camera.py -- A camera for Panda3D that can be rotated or moved around by
-setting values in a control map.
-
-Copyright (c) 2007 Sean Hammond seanh@sdf.lonestar.org
-
-    This file is part of PandaSteer.
-
-    PandaSteer is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    PandaSteer is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with PandaSteer; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-"""
-
 import direct.directbase.DirectStart 
 from pandac.PandaModules import CollisionTraverser,CollisionNode 
 from pandac.PandaModules import CollisionHandlerQueue,CollisionRay 
@@ -32,173 +9,164 @@ from direct.actor.Actor import Actor
 from direct.task.Task import Task 
 import random, sys, os, math
 
-class FloatingCamera: 
-    
-    """A floating 3rd person camera that follows an actor around, and can be 
-    turned left or right around the actor. 
+class FloatingCamera:
+    """ Based on Erik Hazzard's EOA camera
 
-    Public fields: 
-    self.controlMap -- The camera's movement controls. 
-    actor -- The Actor object that the camera will follow. 
-    
-    Public functions: 
-    init(actor) -- Initialise the camera. 
-    move(task) -- Move the camera each frame, following the assigned actor. 
-                  This task is called every frame to update the camera. 
-    setControl -- Set the camera's turn left or turn right control on or off. 
-    
-    """ 
+    http://github.com/enoex/eoa
+    http://vasir.net
+"""
+    def __init__(self,actor):
+        """init_camera Set up the camera.  Allow for camera autofollow, freemove, etc"""
+        base.disableMouse()
+        base.camera.reparentTo(render)
+        base.camera.setPos(0, -15, 25)
+        self.actor = actor
+        base.camera.lookAt(self.actor.getX(),self.actor.getY()+2)
+        angledegrees = 2
+        angleradians = angledegrees * (math.pi / 180.0)
+        base.camera.setPos(20*math.sin(angleradians),-20.0*\
+                    math.cos(angleradians),3)
+        base.camera.setHpr(angledegrees, 0, 0)
 
-    def __init__(self,actor): 
-        """Initialise the camera, setting it to follow 'actor'. 
-        
-        Arguments: 
-        actor -- The Actor that the camera will initially follow. 
-        
-        """ 
-        
-        self.actor = actor 
-        self.prevtime = 0 
+        self.controlMap = {"left":0, "right":0, "zoom-in":0, "zoom-out":0}
+        """Set up some camera controls"""
+        #Camera timer is used to control how long a button is being held
+        #to control the camera
+        self.timer = 0
+        self.zoom = 20
 
-        # The camera's controls: 
-        # "left" = move the camera left, 0 = off, 1 = on 
-        # "right" = move the camera right, 0 = off, 1 = on 
-        self.controlMap = {"left":0, "right":0, "zoom-in":0, "zoom-out":0} 
 
-        taskMgr.add(self.move,"cameraMoveTask") 
-
-        # Create a "floater" object. It is used to orient the camera above the 
-        # target actor's head. 
-        
-        self.floater = NodePath(PandaNode("floater")) 
-        self.floater.reparentTo(render)        
-
-        # Set up the camera. 
-
-        base.disableMouse() 
-        base.camera.setPos(self.actor.getX(),self.actor.getY()+3,2) 
-
-        # A CollisionRay beginning above the camera and going down toward the 
-        # ground is used to detect camera collisions and the height of the 
-        # camera above the ground. A ray may hit the terrain, or it may hit a 
-        # rock or a tree.  If it hits the terrain, we detect the camera's 
-        # height.  If it hits anything else, the camera is in an illegal 
-        # position. 
-
-        self.cTrav = CollisionTraverser() 
-        self.groundRay = CollisionRay() 
-        self.groundRay.setOrigin(0,0,1000) 
-        self.groundRay.setDirection(0,0,-1) 
-        self.groundCol = CollisionNode('camRay') 
-        self.groundCol.addSolid(self.groundRay) 
-        self.groundCol.setFromCollideMask(BitMask32.bit(1)) 
-        self.groundCol.setIntoCollideMask(BitMask32.allOff()) 
-        self.groundColNp = base.camera.attachNewNode(self.groundCol) 
-        self.groundHandler = CollisionHandlerQueue() 
-        self.cTrav.addCollider(self.groundColNp, self.groundHandler) 
-
-        # Uncomment this line to see the collision rays 
-        #self.groundColNp.show() 
-      
-    def move(self,task): 
-        """Update the camera's position before rendering the next frame. 
-        
-        This is a task function and is called each frame by Panda3D. The 
-        camera follows self.actor, and tries to remain above the actor and 
-        above the ground (whichever is highest) while looking at a point 
-        slightly above the actor's head. 
-        
-        Arguments: 
-        task -- A direct.task.Task object passed to this function by Panda3D. 
-        
-        Return: 
-        Task.cont -- To tell Panda3D to call this task function again next 
-                     frame. 
-        
-        """ 
-
-        # FIXME: There is a bug with the camera -- if the actor runs up a 
-        # hill and then down again, the camera's Z position follows the actor 
-        # up the hill but does not come down again when the actor goes down 
-        # the hill. 
-
-        elapsed = task.time - self.prevtime 
-
-        base.camera.lookAt(self.actor) 
-        camright = base.camera.getNetTransform().getMat().getRow3(0) 
-        camright.normalize() 
-        camvec = self.actor.getPos() - base.camera.getPos() 
-        camvec.setZ(0) 
-        camdist = camvec.length() 
-        camvec.normalize()
-        
-        def in_bounds(i, mn = -1, mx = 1): return i >= mn and i<= mx
-        
-        max_dist = 100
-        min_dist = 2
-        if (self.controlMap["left"]!=0): 
-            base.camera.setPos(base.camera.getPos() - camright*(elapsed*20)) 
-        if (self.controlMap["right"]!=0): 
-            base.camera.setPos(base.camera.getPos() + camright*(elapsed*20)) 
-        if (self.controlMap["zoom-in"]!=0) and in_bounds(camdist,min_dist,max_dist): 
-            base.camera.setPos(base.camera.getPos() + camvec*(0.1))
-        if (self.controlMap["zoom-out"]!=0) and in_bounds(camdist,min_dist,max_dist): 
-            base.camera.setPos(base.camera.getPos() - camvec*(0.1))
-    
-        # If the camera is too far from the actor, move it closer. 
-        # If the camera is too close to the actor, move it farther. 
-
-        if (camdist > max_dist): 
-            base.camera.setPos(base.camera.getPos() + camvec*(camdist-max_dist)) 
-            camdist = max_dist
-        if (camdist < min_dist): 
-            base.camera.setPos(base.camera.getPos() - camvec*(min_dist-camdist)) 
-            camdist = min_dist
-
-        # Now check for collisions. 
-        # FIXME: this doesn't appear to work
-        self.cTrav.traverse(render) 
-
-        # Keep the camera at one foot above the terrain, 
-        # or two feet above the actor, whichever is greater. 
-        
-        
-        entries = [] 
-        for i in range(self.groundHandler.getNumEntries()): 
-            entry = self.groundHandler.getEntry(i) 
-            entries.append(entry) 
-        entries.sort(lambda x,y: cmp(y.getSurfacePoint(render).getZ(), 
-                                     x.getSurfacePoint(render).getZ())) 
-        if (len(entries)>0) and (entries[0].getIntoNode().getName() == "terrain"): 
-            base.camera.setZ(entries[0].getSurfacePoint(render).getZ()+1.0) 
-        if (base.camera.getZ() < self.actor.getZ() + 2.0): 
-            base.camera.setZ(self.actor.getZ() + 2.0) 
-            
-        # The camera should look in the player's direction, 
-        # but it should also try to stay horizontal, so look at 
-        # a floater which hovers above the player's head. 
-        
-        self.floater.setPos(self.actor.getPos()) 
-        self.floater.setZ(self.actor.getZ() + 2.0) 
-        base.camera.lookAt(self.floater) 
-
-        # Store the task time and continue. 
-        self.prevtime = task.time 
-        return Task.cont 
-
-    def setControl(self, control, value): 
-        """Set the state of one of the camera's movement controls. 
-        
-        Arguments: 
-        See self.controlMap in __init__. 
-        control -- The control to be set, must be a string matching one of 
-                   the strings in self.controlMap. 
-        value -- The value to set the control to. 
-        
-        """ 
-
-        # FIXME: this function is duplicated in Camera and Character, and 
-        # keyboard control settings are spread throughout the code. Maybe 
-        # add a Controllable class? 
-        
+    def setControl(self, control, value):
         self.controlMap[control] = value
+
+    def update_camera(self,task):
+        """Check for camera control input and update accordingly"""
+        # Get the time self.elapsed since last frame. We need this
+        # for framerate-independent movement.
+        self.elapsed = globalClock.getDt()
+
+        """---------Keyboard movement-------------------"""
+        """Rotate Camera left / right"""
+        if self.controlMap['left'] != 0:
+            """Rotate the camera to the left"""
+            #increment the camera timer, determines speed of camera rotation
+            self.timer += .1
+            angledegrees = self.timer * 50
+            angleradians = angledegrees * (math.pi / 180.0)
+
+            #Set the X, Y as the zoom value * sine or cosine (respectively) of
+            #   angle radians, which is determined by rotating the camera left
+            #   or right around the character.  The zoom variable determines
+            #   in essence, the zoom level which is calcuated simply as
+            #   self.elapsed * 20.  Notice this is also the value we use to
+            #   setY when we zoom in or out - no coincidence, these numbers
+            #   are the same because we want to know the location of the
+            #   camera when we pan around the character (this location is
+            #   multiplied by sin or cos of angleradians
+            base.camera.setPos(self.zoom * math.sin(angleradians), -self.zoom* math.cos(angleradians), base.camera.getZ())
+
+            #Set the heading / yaw (h) of the camera to point at the character
+            base.camera.setHpr(angledegrees, 0, 0)
+
+        if self.controlMap['right'] !=0:
+            """Rotate the camera to the right"""
+            #increment the camera timer
+            self.timer -= .1
+            angledegrees = self.timer * 50
+            angleradians = angledegrees * (math.pi / 180.0)
+            base.camera.setPos(self.zoom* math.sin(angleradians), -self.zoom * math.cos(angleradians), base.camera.getZ())
+            base.camera.setHpr(angledegrees, 0, 0)
+
+        """Zoom camera in / out"""
+        #ZOOM IN
+        if self.controlMap['zoom-in'] !=0:
+            #Zoom in
+            base.camera.setY(base.camera, +(self.elapsed*20))
+            #Store the camera position
+            self.zoom -= self.elapsed*20
+
+        #ZOOM OUT
+        if self.controlMap['zoom-out'] !=0:
+            #Zoom out
+            base.camera.setY(base.camera, -(self.elapsed*20))
+            #Store the camera position
+            self.zoom += self.elapsed*20
+
+        return Task.cont
+        """---------Mouse movement-------------------"""
+        #Zoom in on mouse scroll forward
+        if self.controls['key_map']['scroll_up'] !=0:
+            #Zoom in
+            base.camera.setY(base.camera, +(self.elapsed*20))
+            #Store the camera position
+            self.controls['camera_settings']['zoom'] -= .1
+            #Reset the scroll state to off
+            self.controls['key_map']['scroll_up'] = 0
+
+        #Zoom in on mouse scroll forward
+        if self.controls['key_map']['scroll_down'] !=0:
+            #Zoom in
+            base.camera.setY(base.camera, -(self.elapsed*20))
+            #Store the camera position
+            self.controls['camera_settings']['zoom'] -= .1
+            #Reset the scroll state to off
+            self.controls['key_map']['scroll_down'] = 0
+
+        #Move camera left / right by mouseclick
+        #mous3 is right click button
+        if self.controls['key_map']['mouse3'] != 0:
+            """Rotate the camera to the left or right"""
+
+            #We know right click is being held, checked to see if it's moving
+            #   left or right
+            if base.mouseWatcherNode.hasMouse():
+                cur_mouse_x=base.mouseWatcherNode.getMouseX()
+                cur_mouse_y=base.mouseWatcherNode.getMouseY()
+            else:
+                #The base does not have the mouse watcher node, meaning the
+                #   mouse is probably outside the game window.  If this is
+                #   the case, set the cur mouse x and y to the prev coords
+                cur_mouse_x = self.controls['mouse_prev_x']
+                cur_mouse_y = self.controls['mouse_prev_y']
+
+            #Check to see if the camera is being dragged.  This ensures that
+            #   the camera won't move when the mouse is first clicked
+            if self.controls['mouse_camera_dragging'] is True:
+                #compare the previous mouse x position (if it exists).  If the
+                #   cur position is greater, it means the mouse has moved to the
+                #   left side of the screen, so update the camera position
+                if cur_mouse_x > self.controls['mouse_prev_x']:
+                    #Camera will be moving to the right
+                    self.controls['camera_settings']['timer'] -= .1
+
+                elif cur_mouse_x < self.controls['mouse_prev_x']:
+                    #Camera will be moving to the left
+                    self.controls['camera_settings']['timer'] += .1
+
+                #Move the camera
+                angledegrees = self.controls['camera_settings']['timer'] * 50
+                angleradians = angledegrees * (math.pi / 180.0)
+
+                #Set the X, Y as the zoom value ... see camera rotation code
+                #   above for more details
+                base.camera.setPos(self.controls['camera_settings']['zoom']*\
+                                    math.sin(angleradians),
+                                    -self.controls['camera_settings']['zoom']*\
+                                    math.cos(angleradians),
+                                    base.camera.getZ())
+
+                #Set the yaw of the camera to point at the character
+                base.camera.setHpr(angledegrees, 0, 0)
+
+            #Set current x,y mouse coordinates as previous coordinates so we
+            #   can do comparisons the next time the function is called
+            self.controls['mouse_prev_x'] = cur_mouse_x
+            self.controls['mouse_prev_y'] = cur_mouse_y
+            self.controls['mouse_camera_dragging'] = True
+        elif self.controls['key_map']['mouse3'] == 0:
+            #The right click button has been depressed, so the camera is
+            #   no longer being dragged
+            self.controls['mouse_camera_dragging'] = False
+
+        #self.entities['PC'].physics['playerWalker'].getCollisionsActive()
+

@@ -7,8 +7,6 @@ Each *WorldManager must have the following methods defined:
 
  - PhysicsCharacterController:  this is a class sub-classed by the ralph
  actor,
-   * updateCharacter() which controls the position of the character
-     (both geometry and the Actor avatar)
 
  - PhysicsWorldManager:
    * __init__()

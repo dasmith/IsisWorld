@@ -14,11 +14,6 @@ import sys
 from SimpleXMLRPCServer import SimpleXMLRPCServer
 from SimpleXMLRPCServer import SimpleXMLRPCRequestHandler
 
-### Panda3d Import ###
-
-
-### Agent Simulator imports ###
-#from agent_simulator import Agent_Simulator 
 
 # Restrict to a particular path.
 class RequestHandler(SimpleXMLRPCRequestHandler):
@@ -40,12 +35,3 @@ class HomeSim_XMLRPC_Server(object):
         self.server = SimpleXMLRPCServer(("", 8001), requestHandler=RequestHandler)
         self.server.register_introspection_functions()
         self.server.register_function(self.print_command)
-
-    
-    
-       
-
-    
-    
-
-

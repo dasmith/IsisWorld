@@ -2,7 +2,7 @@ import xmlrpclib, sys, time
 import random
 from collections import defaultdict
 from utils import dprint
-
+import concept_learning
 ##### "CONNECT" FUNCTION #####
 
 # In this implementation, most individual resources and functions only know about others
@@ -186,12 +186,13 @@ class SensorySystem(): # currently a very thin object. enables connections just 
 class CriticSelectorArchitecture():
 
     def __init__(self,debug=True,name="Ralph",*args,**kwargs):
-        # simulator overhead, connect agent to world
+        # store the name of the agent to control
+        self.name = name
         try:
             # connect to environment via XML-RPC
             self.env = xmlrpclib.ServerProxy('http://localhost:8001')
             start = time.clock()
-            self.env.do('step_simulation',{'seconds':0.02})
+            self.env.do('step_simulation',{'seconds':0.02,'agent':self.name})
             self.delay = time.clock()-start
             print "Delay: ", self.delay
         except:
@@ -233,8 +234,6 @@ class CriticSelectorArchitecture():
                         'drop_from_left_hand':[]}
         # how many cycles has the agent run? 
         self.age = 0
-        # store the name of the agent to control
-        self.name = name
 
 
     def add_reactive_resource(self, resource):
@@ -272,7 +271,8 @@ class CriticSelectorArchitecture():
     def sense(self):
         """ This method asks the environment to return a frame-structure of perceptual
         data, and is called each step.  It prints the sensory frame to the terminal. """
-        self.sensorysystem.perceptions = self.env.do('sense')
+        self.sensorysystem.perceptions = self.env.do('sense', {'agent':self.name})
+        print "result of sense", self.env.do('sense', {'agent':self.name})
         if self.debug:
             print "Perceiving: "
             for modality, data in self.sensorysystem.perceptions.items():

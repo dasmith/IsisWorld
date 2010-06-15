@@ -4,8 +4,9 @@ from direct.showbase import DirectObject
 from direct.interval.IntervalGlobal import *
 from direct.actor.Actor import Actor
 from direct.gui.DirectGui import DirectLabel
+from direct.controls.GravityWalker import GravityWalker
 from pandac.PandaModules import PandaNode,NodePath,Camera
-import math
+import math, random
 
 class Ralph(PhysicsCharacterController):
     def __init__(self, worldManager, agentSimulator, myName):
@@ -14,14 +15,16 @@ class Ralph(PhysicsCharacterController):
         self.agent_simulator = agentSimulator
 	
         self.controlMap = {"turn_left":0, "turn_right":0, "move_forward":0, "move_backward":0, "move_right":0, "move_left":0,\
-                           "look_up":0, "look_down":0, "look_left":0, "look_right":0}
+                           "look_up":0, "look_down":0, "look_left":0, "look_right":0, "jump":0}
         
-        self.actor= Actor("models/ralph/ralph",{"walk":"models/ralph/ralph-walk", "run": "models/ralph/ralph-run"})
+        self.actor= Actor("models/boxman",{"walk":"models/boxman-walk", "idle": "models/boxman-idle"})
+        #self.actor= Actor("models/ralph/ralph",{"walk":"models/ralph/ralph-walk", "run": "models/ralph/ralph-run"})
         self.actor.reparentTo(render)
-        self.actor.setScale(0.4)
+        self.actor.setScale(1.2)
+        self.actor.setH(180)
+        #DirectObject.__init__(self)
 
-	#DirectObject.__init__(self)
-
+        self.actor.setColorScale(random.random(), random.random(), random.random(), 1.0)
         # Expose agent's right hand joint to attach objects to
         self.player_right_hand = self.actor.exposeJoint(None, 'modelRoot', 'RightHand')
         self.player_left_hand  = self.actor.exposeJoint(None, 'modelRoot', 'LeftHand')
@@ -38,58 +41,40 @@ class Ralph(PhysicsCharacterController):
         self.speech_bubble.setBillboardAxis()
         
         # visual processing
-        self.player_eye = self.actor.exposeJoint(None, 'modelRoot', 'LeftEyeLid')
+        #self.player_eye = self.actor.exposeJoint(None, 'modelRoot', 'LeftEyeLid')
+        self.player_eye = self.actor.exposeJoint(None, 'modelRoot', 'Head')
         # put a camera on ralph
         self.fov = NodePath(Camera('RaphViz'))
         self.fov.reparentTo(self.player_eye)
-        self.fov.setHpr(180,0,0)
+        self.fov.setHpr(0,-90,0)
+        #self.fov.lookAt(self.actor.getPos()+Vec3(0,0,0))
 
         # initialize physics handler
         PhysicsCharacterController.__init__(self,worldManager)
-        if not hasattr(self,'updateCharacter'):
-            raise "Error: PhysicsCharacterController does not have required 'updateCharacter' method defined'"
 
         lens = self.fov.node().getLens()
         lens.setFov(60) #  degree field of view (expanded from 40)
         lens.setNear(0.2)
         #self.fov.node().showFrustum() # displays a box around his head
 
-
-        self.player_neck = self.actor.controlJoint(None, 'modelRoot', 'Neck')
+        self.player_neck = self.actor.controlJoint(None, 'modelRoot', 'UpperColMesh')
 	
         # Define subpart of agent for when he's standing around
         self.actor.makeSubpart("arms", ["LeftShoulder", "RightShoulder"])
 
         self.prevtime = 0
         self.isMoving = False
-	
-        self.current_frame_count = 0.
+
+        self.current_frame_count = 0
 
         #self.name = "Ralph"
-
-        """
-        The ray sticking out of the camera and meant for clicking at
-        objects in the world.
-        """
-        #self.aimRay = OdeRayGeom(self.worldManager.raySpace, 2.5)
-        #self.aimed = None
-
-        """
-        I've added that mainly for sitting, but the later might be
-        usefull for other things too.
-        """
         self.isSitting = False
         self.isDisabled = False
 
-    def setPosQuat(self, render, pos, quat):
-        self.actor.setPos(render, pos)
-        self.actor.setQuat(render, quat)
 
     def setControl(self, control, value):
-        """Set the state of one of the character's movement controls.
-        """
+        """Set the state of one of the character's movement controls.  """
         self.controlMap[control] = value
-
 
     def get_objects(self):
         """ Looks up all of the model nodes that are 'isInView' of the camera"""
@@ -135,7 +120,7 @@ class Ralph(PhysicsCharacterController):
         objs = render.findAllMatches("**/+ModelNode")
         in_view = {}
         for o in objs:
-            o.hideBounds() # in case previously turned on
+            #o.hideBounds() # in case previously turned on
             o_pos = o.getPos(self.fov)
             if self.fov.node().isInView(o_pos):
                 if True:#self.agent_simulator.world_objects.has_key(o.getName()):
@@ -144,6 +129,7 @@ class Ralph(PhysicsCharacterController):
                     a_max = map3dToAspect2d(render, b_max)
                     if a_min == None or a_max == None:
                         continue
+                    o.showBounds()
                     x_diff = math.fabs(a_max[0]-a_min[0])
                     y_diff = math.fabs(a_max[2]-a_min[2])
                     area = 100*x_diff*y_diff  # percentage of screen
@@ -163,6 +149,12 @@ class Ralph(PhysicsCharacterController):
         return in_view
 
 
+    def raytrace_getFirstObject(self):
+        pickerNode = CollisionNode('raytrace')
+        #pickerNP = self.player_eye.
+
+    def raytrace_getAllObjectsInView(self):
+        pass
             
     def control__turn_left__start(self):
         self.setControl("turn_left",  1)
@@ -234,6 +226,9 @@ class Ralph(PhysicsCharacterController):
     def control__look_down__stop(self):
         self.setControl("look_down",  0)
 
+    def control__jump(self):
+        self.setControl("jump",  1)
+
     def can_grasp(self, object_name):
         objects = self.get_objects()
         if objects.has_key(object_name):
@@ -253,7 +248,6 @@ class Ralph(PhysicsCharacterController):
     #here one can tell the agent what to do when someone talks with him.
     def hear(self, speaker, text):
         self.control__say(("I hear ya, " + speaker))
-
         
 
     def control__pick_up_with_right_hand(self, pick_up_object):
@@ -450,67 +444,72 @@ class Ralph(PhysicsCharacterController):
 
     def getH(self):
         return self.geom.getChild(0).getChild(0).getH()
+        #return self.geom.getH()
 
     def setH(self,h):
         avatar = self.geom.getChild(0).getChild(0)
+        #avatar = self.geom
         avatar.setH(h)
 
-    def control__jump(self):
-        actorNode = self.geom.getChild(0).node()
-        if abs(actorNode.getPhysicsObject().getVelocity()[2]) < .01:
-            actorNode.getPhysicsObject().addImpulse(Vec3(0,0,10))
 
-
-    def update(self, stepSize):
+    def update(self, task):
          # save the character's initial position so that we can restore it,
          # in case he falls off the map or runs into something.
-         
-        if self.isSitting:
-            if inputState.isSet("forward"):
-                self.standUpFromChair()
-            return
-        elif self.isDisabled:
-            return
+        elapsed = globalClock.getDt()
+        avatar = self.geom#.getChild(0)#.getChild(0)
 
-        moveAtSpeed = 4.0
+        moveAtSpeed = 2.0
         self.velocity = Vec3(0.0, 0.0, 0.0)
 
-
+        useAngularForces = False
+        actorNode = self.geom.getChild(0).node()
         # enforces bounds on a numeric value
         def bound(i, mn = -1, mx = 1): return min(max(i, mn), mx)
         # move the character if any of the move controls are activated.
-
-        if (self.controlMap["turn_left"]!=0):        self.setH(self.getH() + stepSize*80)
-        if (self.controlMap["turn_right"]!=0):       self.setH(self.getH() - stepSize*80)
+        if (self.controlMap["turn_left"]!=0):
+            if useAngularForces:
+                avf = AngularVectorForce(0.1,0,0)
+                avfn = ForceNode('avf')
+                avfn.addForce(avf)
+                actorNode.getPhysical(0).addAngularForce(avf)
+            else:
+                self.setH(self.getH() + elapsed*80)
+        if (self.controlMap["turn_right"]!=0):
+            if useAngularForces:
+                avf = AngularVectorForce(-0.1,0,0)
+                avfn = ForceNode('avf')
+                avfn.addForce(avf)
+                actorNode.getPhysical(0).addAngularForce(avf)
+            else:
+                self.setH(self.getH() - elapsed*80)
         if (self.controlMap["move_forward"]!=0):     self.velocity[1] = -moveAtSpeed
         if (self.controlMap["move_backward"]!=0):    self.velocity[1] = moveAtSpeed
         if (self.controlMap["move_left"]!=0):        self.velocity[0] = -moveAtSpeed
         if (self.controlMap["move_right"]!=0):       self.velocity[0] = moveAtSpeed
         if (self.controlMap["look_left"]!=0):      
-            self.player_neck.setP(bound(self.player_neck.getP(),-60,60)+1*(stepSize*50))
+            self.player_neck.setP(bound(self.player_neck.getP(),-60,60)+1*(elapsed*50))
         if (self.controlMap["look_right"]!=0):
-            self.player_neck.setP(bound(self.player_neck.getP(),-60,60)-1*(stepSize*50))
+            self.player_neck.setP(bound(self.player_neck.getP(),-60,60)-1*(elapsed*50))
         if (self.controlMap["look_up"]!=0):
-            self.player_neck.setH(bound(self.player_neck.getH(),-60,80)+1*(stepSize*50))
+            self.player_neck.setH(bound(self.player_neck.getH(),-60,80)+1*(elapsed*50))
         if (self.controlMap["look_down"]!=0):
-            self.player_neck.setH(bound(self.player_neck.getH(),-60,80)-1*(stepSize*50))
+            self.player_neck.setH(bound(self.player_neck.getH(),-60,80)-1*(elapsed*50))
+        if (self.controlMap["jump"]!=0):
+            if abs(actorNode.getPhysicsObject().getVelocity()[2]) < .01:
+                actorNode.getPhysicsObject().addImpulse(Vec3(0,0,6))
+            # turn-off non-interval actions after use
+            self.controlMap["jump"]=0
 
-
-        print "Velocity", self.velocity
         # allow dialogue window to gradually decay (changing transparancy) and then disappear
-        self.last_spoke += stepSize
+        self.last_spoke += elapsed
         self.speech_bubble['text_bg']=(1,1,1,1/(2*self.last_spoke+0.01))
         self.speech_bubble['frameColor']=(.6,.2,.1,.5/(2*self.last_spoke+0.01))
         if self.last_spoke > 2:
             self.speech_bubble['text'] = ""
 
+        # update animation
         # If the character is moving, loop the run animation.
         # If he is standing still, stop the animation.
-
-	# TODO: adjust location of physics capsule here
-        #self.player.setFluidPos(self.player, self.velocity)
-        #PhysicsCharacterController.update(self, stepSize )
-
         if (self.controlMap["move_forward"]!=0) or (self.controlMap["move_backward"]!=0) or (self.controlMap["move_left"]!=0) or (self.controlMap["move_right"]!=0):
             if self.isMoving is False:
                 self.isMoving = True
@@ -521,8 +520,13 @@ class Ralph(PhysicsCharacterController):
 
         total_frame_num = self.actor.getNumFrames('walk')
         if self.isMoving:
-            self.current_frame_count = self.current_frame_count + (stepSize*1000.0)
+            self.current_frame_count = self.current_frame_count + (elapsed*10000.0)
             while (self.current_frame_count >= total_frame_num + 1):
                 self.current_frame_count -= total_frame_num
                 self.actor.pose('walk', self.current_frame_count)
 
+        self.velocity *= elapsed
+        #print "Velocity", self.velocity
+        avatar.setFluidPos(avatar, self.velocity)
+        # either return or terminate the task, depending on if its stepped or unpaused
+        return task.cont

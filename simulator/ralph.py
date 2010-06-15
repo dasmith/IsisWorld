@@ -15,7 +15,7 @@ class Ralph(PhysicsCharacterController):
         self.agent_simulator = agentSimulator
 	
         self.controlMap = {"turn_left":0, "turn_right":0, "move_forward":0, "move_backward":0, "move_right":0, "move_left":0,\
-                           "look_up":0, "look_down":0, "look_left":0, "look_right":0}
+                           "look_up":0, "look_down":0, "look_left":0, "look_right":0, "jump":0}
         
         self.actor= Actor("models/boxman",{"walk":"models/boxman-walk", "idle": "models/boxman-idle"})
         #self.actor= Actor("models/ralph/ralph",{"walk":"models/ralph/ralph-walk", "run": "models/ralph/ralph-run"})
@@ -225,6 +225,9 @@ class Ralph(PhysicsCharacterController):
 
     def control__look_down__stop(self):
         self.setControl("look_down",  0)
+
+    def control__jump(self):
+        self.setControl("jump",  1)
 
     def can_grasp(self, object_name):
         objects = self.get_objects()
@@ -448,26 +451,37 @@ class Ralph(PhysicsCharacterController):
         #avatar = self.geom
         avatar.setH(h)
 
-    def control__jump(self):
-        actorNode = self.geom.getChild(0).node()
-        if abs(actorNode.getPhysicsObject().getVelocity()[2]) < .01:
-            actorNode.getPhysicsObject().addImpulse(Vec3(0,0,6))
 
     def update(self, task):
          # save the character's initial position so that we can restore it,
          # in case he falls off the map or runs into something.
         elapsed = globalClock.getDt()
         avatar = self.geom#.getChild(0)#.getChild(0)
-        x = GravityWalker()
         moveAtSpeed = 2.0
         self.velocity = Vec3(0.0, 0.0, 0.0)
 
+        useAngularForces = False
+        actorNode = self.geom.getChild(0).node()
+        actorNode = self.geom.node()
         # enforces bounds on a numeric value
         def bound(i, mn = -1, mx = 1): return min(max(i, mn), mx)
         # move the character if any of the move controls are activated.
-
-        if (self.controlMap["turn_left"]!=0):        self.setH(self.getH() + elapsed*80)
-        if (self.controlMap["turn_right"]!=0):       self.setH(self.getH() - elapsed*80)
+        if (self.controlMap["turn_left"]!=0):
+            if useAngularForces:
+                avf = AngularVectorForce(0.1,0,0)
+                avfn = ForceNode('avf')
+                avfn.addForce(avf)
+                actorNode.getPhysical(0).addAngularForce(avf)
+            else:
+                self.setH(self.getH() + elapsed*80)
+        if (self.controlMap["turn_right"]!=0):
+            if useAngularForces:
+                avf = AngularVectorForce(-0.1,0,0)
+                avfn = ForceNode('avf')
+                avfn.addForce(avf)
+                actorNode.getPhysical(0).addAngularForce(avf)
+            else:
+                self.setH(self.getH() - elapsed*80)
         if (self.controlMap["move_forward"]!=0):     self.velocity[1] = -moveAtSpeed
         if (self.controlMap["move_backward"]!=0):    self.velocity[1] = moveAtSpeed
         if (self.controlMap["move_left"]!=0):        self.velocity[0] = -moveAtSpeed
@@ -480,7 +494,11 @@ class Ralph(PhysicsCharacterController):
             self.player_neck.setH(bound(self.player_neck.getH(),-60,80)+1*(elapsed*50))
         if (self.controlMap["look_down"]!=0):
             self.player_neck.setH(bound(self.player_neck.getH(),-60,80)-1*(elapsed*50))
-
+        if (self.controlMap["jump"]!=0):
+            if abs(actorNode.getPhysicsObject().getVelocity()[2]) < .01:
+                actorNode.getPhysicsObject().addImpulse(Vec3(0,0,6))
+            # turn-off non-interval actions after use
+            self.controlMap["jump"]=0
 
         # allow dialogue window to gradually decay (changing transparancy) and then disappear
         self.last_spoke += elapsed
@@ -489,6 +507,7 @@ class Ralph(PhysicsCharacterController):
         if self.last_spoke > 2:
             self.speech_bubble['text'] = ""
 
+        # update animation
         # If the character is moving, loop the run animation.
         # If he is standing still, stop the animation.
         if (self.controlMap["move_forward"]!=0) or (self.controlMap["move_backward"]!=0) or (self.controlMap["move_left"]!=0) or (self.controlMap["move_right"]!=0):

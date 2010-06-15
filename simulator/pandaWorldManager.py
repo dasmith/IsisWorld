@@ -49,8 +49,12 @@ class PhysicsWorldManager():
         # allows detection of fast moving objects
         base.cTrav.setRespectPrevTransform(True)
         base.cPush = PhysicsCollisionHandler()
+        base.cPush.setStaticFrictionCoef(1)
+        base.cPush.setDynamicFrictionCoef(1.0)
+
         base.cEvent = CollisionHandlerEvent()
-        
+        angleInt = AngularEulerIntegrator() # Instantiate an AngleIntegrator()
+        base.physicsMgr.attachAngularIntegrator(angleInt)
         # init gravity force
         self.gravityFN = ForceNode('gravity-force')
         self.gravityFNP = base.render.attachNewNode(self.gravityFN)
@@ -61,8 +65,9 @@ class PhysicsWorldManager():
         # is defined automatically by base.enableParticles()
         base.physicsMgr.addLinearForce(self.gravityForce)
         # look for agent-on-agent collisions
-        base.cEvent.addAgainPattern("%(agent)fh-into-%(agent)ih")
-        base.accept("agent-into-agent",self.handleAgentOnAgentCollision)
+        base.cEvent.addInPattern("a2a%(""agent"")fh%(""agent"")ih")
+        #base.cEvent.addInPattern("%(agent)ft-into-%(agent)it")
+        base.accept("a2a",self.handleAgentOnAgentCollision)
 
         # see this website for a description of the patterns
         # https://www.panda3d.org/wiki/index.php/Collision_Handlers
@@ -91,11 +96,11 @@ https://www.panda3d.org/wiki/index.php/Collision_Entries
         offsetNodeOne = [x,0+y,0.5+z,0.5]
         offsetNodeTwo = [x,0+y,1.6+z,0.5]
         charAN = ActorNode("%s-physicsActorNode" % actor.name)
-        charAN.getPhysicsObject().setMass(400)
+        charAN.getPhysicsObject().setMass(200)
         charNP = NodePath(PandaNode("%s-physicsNode" % actor.name))
         charANP = charNP.attachNewNode(charAN)
         actor.actor.reparentTo(charANP)
-        cNode = charANP.attachNewNode(CollisionNode('%s-collider'%actor.name))
+        cNode = charANP.attachNewNode(CollisionNode('collider-%s'%actor.name))
         # collision tubes have not been written as good FROM collidemasks
         #cNode.node().addSolid(CollisionTube(*getCapsuleSize(actor.actor,2)))
         #To make the person tall, but not wide we use three collisionspheres
@@ -104,7 +109,7 @@ https://www.panda3d.org/wiki/index.php/Collision_Entries
         cNode.node().setIntoCollideMask(BitMask32.allOff()|AGENTMASK)
         #cNode.node().setFromCollideMask(FLOORMASK|WALLMASK)
         cNode.node().setFromCollideMask(BitMask32.allOn())
-        cNode.setTag('agent','agent-%s'% actor.name)
+        cNode.setTag('agent','agent')
         cNode.show()
 
         # let ralph fall, so he isn't positioned in something
@@ -114,6 +119,8 @@ https://www.panda3d.org/wiki/index.php/Collision_Entries
         base.cPush.addCollider(cNode, charANP)
         # add collider to global traverser
         base.cTrav.addCollider(cNode, base.cPush)
+        #base.cTrav.addCollider(cNode, base.cEvent)
+        #base.cTrav.addCollider(cNode, base.cEvent)
         charNP.reparentTo(base.render)
 
         return charNP

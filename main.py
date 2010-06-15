@@ -232,7 +232,7 @@ class IsisWorld(ShowBase):
             because "self.agentNum" need to be revaluated at the time the command
             is issued, necessitating this helper function"""
             if self.actionController.hasAction(command):
-                self.actionController.makeAgentDo(command, self.agents[self.agentNum])
+                self.actionController.makeAgentDo(self.agents[self.agentNum], command)
             else:
                 print "relayAgentControl: %s command not found in action controller" % (command)
                 raise self.actionController
@@ -240,23 +240,26 @@ class IsisWorld(ShowBase):
         text = "\n"
         text += "IsisWorld v%s\n" % (ISIS_VERSION)
         text += "\n\n"
-        text += "\nPress [1] to toggle wire frame\n"
-        text += "\nPress [2] to toggle texture\n"
-        text += "\nPress [3] to switch agent\n"
-        text += "\nPress [i] to hide/show this text\n"
-        text += "\n[o] lists objects in agent's f.o.v.\n"
-        text += "\n[Esc] to quit\n\n"
+        text += "\nPress [1] to toggle wire frame"
+        text += "\nPress [2] to toggle texture"
+        text += "\nPress [3] to switch agent"
+        text += "\nPress [i] to hide/show this text"
+        text += "\n[o] lists objects in agent's f.o.v."
+        text += "\n[Esc] to quit\n"
         # initialize actions
         self.actionController = ActionController("Version 1.0")
         self.actionController.addAction(IsisAction(commandName="turn_left",intervalAction=True,keyboardBinding="arrow_left"))
         self.actionController.addAction(IsisAction(commandName="turn_right",intervalAction=True,keyboardBinding="arrow_right"))
         self.actionController.addAction(IsisAction(commandName="move_forward",intervalAction=True,keyboardBinding="arrow_up"))
         self.actionController.addAction(IsisAction(commandName="move_backward",intervalAction=True,keyboardBinding="arrow_down"))
+        self.actionController.addAction(IsisAction(commandName="move_left",intervalAction=True))
+        self.actionController.addAction(IsisAction(commandName="move_right",intervalAction=True))
         self.actionController.addAction(IsisAction(commandName="look_right",intervalAction=True,keyboardBinding="l"))
         self.actionController.addAction(IsisAction(commandName="look_left",intervalAction=True,keyboardBinding="h"))
         self.actionController.addAction(IsisAction(commandName="look_up",intervalAction=True,keyboardBinding="k"))
         self.actionController.addAction(IsisAction(commandName="look_down",intervalAction=True,keyboardBinding="j"))
         self.actionController.addAction(IsisAction(commandName="jump",intervalAction=False,keyboardBinding="g"))
+        self.actionController.addAction(IsisAction(commandName="say",intervalAction=False,keyboardBinding="g"))
         self.actionController.addAction(IsisAction(commandName="use_aimed",intervalAction=False,keyboardBinding="u"))
 
         # initialze keybindings
@@ -266,7 +269,7 @@ class IsisWorld(ShowBase):
 
         # add documentation
         for helpString in self.actionController.helpStrings:
-            text += "\n%s\n" % (helpString)
+            text += "\n%s" % (helpString)
 
         props = WindowProperties( )
         props.setTitle( 'IsisWorld v%s' % ISIS_VERSION )

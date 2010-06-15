@@ -457,6 +457,7 @@ class Ralph(PhysicsCharacterController):
          # in case he falls off the map or runs into something.
         elapsed = globalClock.getDt()
         avatar = self.geom#.getChild(0)#.getChild(0)
+
         moveAtSpeed = 2.0
         self.velocity = Vec3(0.0, 0.0, 0.0)
 

@@ -43,11 +43,17 @@ class ActionController():
 
     def hasAction(self,action):
         """ Tells whether the ActionController has this action defined"""
-        return action in self.actionMap.values()
+        return action in self.actionMap.values() or action in self.actionMap.keys()
 
-    def makeAgentDo(self,command,agent):
+    def makeAgentDo(self,agent,command,args={}):
         """ Given a command and an agent pointer, tell the agent to do that command"""
-        eval("agent.%s()" % command)
+        #TODO: how can we send arguments through this?
+        result = eval("agent.%s()" % command)
+        # None objects are not serializable by XML-RPC
+        if result == None:
+            return "success"
+        else:
+            return result
 
     def addAction(self,action):
         """ Adds an action to the actionMap, containing commands that can be controlled through XMLRPC"""

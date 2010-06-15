@@ -53,7 +53,9 @@ class PhysicsWorldManager():
         base.cPush.setDynamicFrictionCoef(1.0)
 
         base.cEvent = CollisionHandlerEvent()
-        angleInt = AngularEulerIntegrator() # Instantiate an AngleIntegrator()
+        # instantiate an angular integrator, which is required
+        # in order to add angular velocity forces
+        angleInt = AngularEulerIntegrator()
         base.physicsMgr.attachAngularIntegrator(angleInt)
         # init gravity force
         self.gravityFN = ForceNode('gravity-force')

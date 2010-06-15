@@ -1,0 +1,3 @@
+forest at 0,0,-10
+panda at 0,0,0
+panda at 5,0,0

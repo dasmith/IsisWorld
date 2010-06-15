@@ -8,34 +8,34 @@ Syntax for worldgen files:
 '''
 
 class ObjectLoader():
-
 	def __init__(self, generators, target):
 		self.gens = generators
 		self.ids = {}
 		self.target = target
 
-	def loadObject(name):
-		if self.gens.hasKey(name):
+	def loadObject(self, name):
+		if name in self.gens:
 			obj = self.gens[name].generate()
 			self.ids[name] = id(obj)
 			return obj
 		return None
 
-	def parseFile(file):
+	def parseFile(self, file):
 		file = open(file, "r")
 
 		for s in file :
-			tokens = s.lower.().split(None, 3)
+			tokens = s.lower().split(None, 3)
 			dest = None
-			if self.ids.hasKey(tokens[2):
-				dest = self.target.find(tokens[2]+str(self.ids[tokens[2]])
-			obj = loadObject(tokens[0])
+			if tokens[2] in self.ids:
+				dest = self.target.find(tokens[2]+str(self.ids[tokens[2]]))
+			o = self.loadObject(tokens[0])
 
 			if tokens[1] == "at":
 				x, y, z = tokens[2].split(",")
-				obj.setPos(x, y, z)
+				o.setPos(float(x), float(y), float(z))
+				o.reparentTo(self.target)
 			elif dest:
 				if tokens[1] == "on":
-					dest.placeOn(obj)
+					dest.placeOn(o)
 				elif tokens[21] == "in":
-					dest.placeIn(obj)
+					dest.placeIn(o)

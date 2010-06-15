@@ -248,18 +248,18 @@ class IsisWorld(ShowBase):
         text += "\n[Esc] to quit\n"
         # initialize actions
         self.actionController = ActionController("Version 1.0")
-        self.actionController.addAction(IsisAction(commandName="turn_left",intervalAction=True,keyboardBinding="arrow_left"))
-        self.actionController.addAction(IsisAction(commandName="turn_right",intervalAction=True,keyboardBinding="arrow_right"))
+        self.actionController.addAction(IsisAction(commandName="move_left",intervalAction=True,keyboardBinding="arrow_left"))
+        self.actionController.addAction(IsisAction(commandName="move_right",intervalAction=True,keyboardBinding="arrow_right"))
         self.actionController.addAction(IsisAction(commandName="move_forward",intervalAction=True,keyboardBinding="arrow_up"))
         self.actionController.addAction(IsisAction(commandName="move_backward",intervalAction=True,keyboardBinding="arrow_down"))
-        self.actionController.addAction(IsisAction(commandName="move_left",intervalAction=True))
-        self.actionController.addAction(IsisAction(commandName="move_right",intervalAction=True))
+        self.actionController.addAction(IsisAction(commandName="turn_left",intervalAction=True))
+        self.actionController.addAction(IsisAction(commandName="turn_right",intervalAction=True))
         self.actionController.addAction(IsisAction(commandName="look_right",intervalAction=True,keyboardBinding="l"))
         self.actionController.addAction(IsisAction(commandName="look_left",intervalAction=True,keyboardBinding="h"))
         self.actionController.addAction(IsisAction(commandName="look_up",intervalAction=True,keyboardBinding="k"))
         self.actionController.addAction(IsisAction(commandName="look_down",intervalAction=True,keyboardBinding="j"))
         self.actionController.addAction(IsisAction(commandName="jump",intervalAction=False,keyboardBinding="g"))
-        self.actionController.addAction(IsisAction(commandName="say",intervalAction=False,keyboardBinding="g"))
+        self.actionController.addAction(IsisAction(commandName="say",intervalAction=False))
         self.actionController.addAction(IsisAction(commandName="use_aimed",intervalAction=False,keyboardBinding="u"))
 
         # initialze keybindings

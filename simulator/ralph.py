@@ -460,7 +460,7 @@ class Ralph(PhysicsCharacterController):
         moveAtSpeed = 2.0
         self.velocity = Vec3(0.0, 0.0, 0.0)
 
-        useAngularForces = True
+        useAngularForces = False
         actorNode = self.geom.getChild(0).node()
         # enforces bounds on a numeric value
         def bound(i, mn = -1, mx = 1): return min(max(i, mn), mx)

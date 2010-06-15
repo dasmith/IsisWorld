@@ -34,69 +34,69 @@ class Command_Handler(object):
         if cmd == 'sense':
             return self.handle_perception(agent_to_control, args)
         elif cmd == 'turn_left-start':
-            self.agents[agent_to_control].control__turn_left__start()
+            self.simulator.agents[agent_to_control].control__turn_left__start()
             return 'success'
         elif cmd == 'turn_left-stop':
-            self.agents[agent_to_control].control__turn_left__stop()
+            self.simulator.agents[agent_to_control].control__turn_left__stop()
             return 'success'
         elif cmd == 'turn_right-start':
-            self.agents[agent_to_control].control__turn_right__start()
+            self.simulator.agents[agent_to_control].control__turn_right__start()
             return 'success'
         elif cmd == 'turn_right-stop':
-            self.agents[agent_to_control].control__turn_right__stop()
+            self.simulator.agents[agent_to_control].control__turn_right__stop()
             return 'success'
         elif cmd == 'move_forward-start':
-            self.agents[agent_to_control].control__move_forward__start()
+            self.simulator.agents[agent_to_control].control__move_forward__start()
             return 'success'
         elif cmd == 'move_forward-stop':
-            self.agents[agent_to_control].control__move_forward__stop()
+            self.simulator.agents[agent_to_control].control__move_forward__stop()
             return 'success'
         elif cmd == 'move_backward-start':
-            self.agents[agent_to_control].control__move_backward__start()
+            self.simulator.agents[agent_to_control].control__move_backward__start()
             return 'success'
         elif cmd == 'move_backward-stop':
-            self.agents[agent_to_control].control__move_backward__stop()
+            self.simulator.agents[agent_to_control].control__move_backward__stop()
             return 'success'
         elif cmd == 'look_left-start':
-            self.agents[agent_to_control].control__look_left__start()
+            self.simulator.agents[agent_to_control].control__look_left__start()
             return 'success'
         elif cmd == 'look_left-stop':
-            self.agents[agent_to_control].control__look_left__stop()
+            self.simulator.agents[agent_to_control].control__look_left__stop()
             return 'success'
         elif cmd == 'look_right-start':
-            self.agents[agent_to_control].control__look_right__start()
+            self.simulator.agents[agent_to_control].control__look_right__start()
             return 'success'
         elif cmd == 'look_right-stop':
-            self.agents[agent_to_control].control__look_right__stop()
+            self.simulator.agents[agent_to_control].control__look_right__stop()
             return 'success'
         elif cmd == 'look_up-start':
-            self.agents[agent_to_control].control__look_up__start()
+            self.simulator.agents[agent_to_control].control__look_up__start()
             return 'success'
         elif cmd == 'look_up-stop':
-            self.agents[agent_to_control].control__look_up__stop()
+            self.simulator.agents[agent_to_control].control__look_up__stop()
             return 'success'
         elif cmd == 'look_down-start':
-            self.agents[agent_to_control].control__look_down__start()
+            self.simulator.agents[agent_to_control].control__look_down__start()
             return 'success'
         elif cmd == 'look_down-stop':
-            self.agents[agent_to_control].control__look_down__stop()
+            self.simulator.agents[agent_to_control].control__look_down__stop()
             return 'success'
         elif cmd == 'pick_up_with_right_hand':
             if args.has_key('object'):
                 pick_up_object = args['object']
             else:
                 return 'failure: need to define \'object\' slot for pick_up_with_right_hand command.'
-            return self.agents[agent_to_control].control__pick_up_with_right_hand(pick_up_object)
+            return self.simulator.agents[agent_to_control].control__pick_up_with_right_hand(pick_up_object)
         elif cmd == 'pick_up_with_left_hand':
             if args.has_key('object'):
                 pick_up_object = args['object']
             else:
                 return 'failure: need to define \'object\' slot for pick_up_with_left_hand command.'
-            return self.agents[agent_to_control].control__pick_up_with_left_hand(pick_up_object)
+            return self.simulator.agents[agent_to_control].control__pick_up_with_left_hand(pick_up_object)
         elif cmd == 'drop_from_right_hand':
-            return self.agents[agent_to_control].control__drop_from_right_hand()
+            return self.simulator.agents[agent_to_control].control__drop_from_right_hand()
         elif cmd == 'drop_from_left_hand':
-            return self.agents[agent_to_control].control__drop_from_left_hand()
+            return self.simulator.agents[agent_to_control].control__drop_from_left_hand()
         elif cmd == 'use':
             if args.has_key('object'):
                 use_object = args['object']
@@ -106,13 +106,13 @@ class Command_Handler(object):
                 with_object = args['with_object']
             else:
                 return 'failure: need to define \'with_object\' slot for use command.'
-            return self.agents[agent_to_control].control__use_object_with_object(use_object, with_object)
+            return self.simulator.agents[agent_to_control].control__use_object_with_object(use_object, with_object)
         elif cmd == 'say':
             if args.has_key('message'):
                 utterance = args['message']
             else:
                 return 'failure: need to define \'message\' slot for say command.'
-            self.agents[agent_to_control].control__say(utterance)
+            self.simulator.agents[agent_to_control].control__say(utterance)
             return 'success'
         elif cmd == 'step_simulation':
             seconds = 0.05

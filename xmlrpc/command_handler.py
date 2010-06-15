@@ -11,7 +11,7 @@ class Command_Handler(object):
     def __init__(self, simulator):
         self.simulator = simulator
 
-    def command_handler(self, cmd,args={}):
+    def command_handler(self,cmd,args={}):
         '''
         Takes command and optional labeled dictionary of arguments
         passed from the xmlrpc client and decides what to do with them.
@@ -31,7 +31,6 @@ class Command_Handler(object):
             for agent,id in self.simulator.agentsNamesToIDs.items():
                 print "\t (%i)  %s\n" % (id,agent)
             return 'failure'
-
         if cmd == 'sense':
             return self.handle_perception(agent_to_control, args)
         elif cmd == 'turn_left-start':

@@ -2,7 +2,7 @@ import xmlrpclib, sys, time
 import random
 from collections import defaultdict
 from utils import dprint
-
+import concept_learning
 ##### "CONNECT" FUNCTION #####
 
 # In this implementation, most individual resources and functions only know about others
@@ -272,11 +272,14 @@ class CriticSelectorArchitecture():
     def sense(self):
         """ This method asks the environment to return a frame-structure of perceptual
         data, and is called each step.  It prints the sensory frame to the terminal. """
-        self.sensorysystem.perceptions = self.env.do('sense')
+        self.sensorysystem.perceptions = self.env.do('sense', {'agent':'Ralph'})
+        print "result of sense", self.env.do('sense', {'agent':'Ralph'})
         if self.debug:
             print "Perceiving: "
             for modality, data in self.sensorysystem.perceptions.items():
                 print "\t%s : %s" % (modality, data)
+
+        print "result do", self.env.do('turn_left-start', {'agent':'Ralph'})
 
     def step(self,seconds=0.1):
         """ Step function 1) senses, 2) executes all layered resources (which tell "body"

@@ -385,13 +385,15 @@ class IsisWorld(ShowBase):
             agent_id = self.agentNum
         x,y,z = self.agents[agent_id].actor.getPos()
         h,p,r = self.agents[agent_id].actor.getHpr()
-        nh,np,nr = self.agents[agent_id].actor_neck.getHpr()
+        #FIXME
+        # neck is not positioned in Blockman nh,np,nr = self.agents[agent_id].actor_neck.getHpr()
         left_hand_obj = "" 
         right_hand_obj = "" 
         if self.agents[agent_id].left_hand_holding_object:  left_hand_obj = self.agents[agent_id].left_hand_holding_object.getName()
         if self.agents[agent_id].right_hand_holding_object: right_hand_obj = self.agents[agent_id].right_hand_holding_object.getName()
         return {'body_x': x, 'body_y': y, 'body_z': z,'body_h':h,\
-                'body_p': p, 'body_r': r, 'neck_h':nh,'neck_p':np,'neck_r':nr, 'in_left_hand': left_hand_obj, 'in_right_hand':right_hand_obj}
+                'body_p': p, 'body_r': r,  'in_left_hand': left_hand_obj, 'in_right_hand':right_hand_obj}
+        #'neck_h':nh,'neck_p':np,'neck_r':nr,
 
     def get_agent_vision(self,agent_id=None):
         if agent_id == None:

@@ -49,8 +49,8 @@ class PhysicsWorldManager():
         # allows detection of fast moving objects
         base.cTrav.setRespectPrevTransform(True)
         base.cPush = PhysicsCollisionHandler()
-        #base.cEvent = CollisionHandlerEvent()
-
+        base.cEvent = CollisionHandlerEvent()
+        
         # init gravity force
         self.gravityFN = ForceNode('gravity-force')
         self.gravityFNP = base.render.attachNewNode(self.gravityFN)
@@ -60,9 +60,23 @@ class PhysicsWorldManager():
         # attach gravity to global physics manager, which
         # is defined automatically by base.enableParticles()
         base.physicsMgr.addLinearForce(self.gravityForce)
+        # look for agent-on-agent collisions
+        base.cEvent.addAgainPattern("%(agent)fh-into-%(agent)ih")
+        base.accept("agent-into-agent",self.handleAgentOnAgentCollision)
 
-        #base.cPush.addInPattern("%fn-into-everything")
-        #base.cEvent.addAgainPattern("%fn-again-%in")
+        # see this website for a description of the patterns
+        # https://www.panda3d.org/wiki/index.php/Collision_Handlers
+
+    def handleAgentOnAgentCollision(self,entry):
+        print "Collision! between two agents"
+        print entry
+
+    def handleAllCollisions(self,entry):
+        """ Entries have information
+https://www.panda3d.org/wiki/index.php/Collision_Entries
+
+        """
+        print entry
 
     def addActorPhysics(self,actor):
         # ActorNode tracks physical interactions and applies
@@ -87,11 +101,13 @@ class PhysicsWorldManager():
         #To make the person tall, but not wide we use three collisionspheres
         cNode.node().addSolid(CollisionSphere(*offsetNodeOne))
         cNode.node().addSolid(CollisionSphere(*offsetNodeTwo))
-        cNode.node().setIntoCollideMask(BitMask32.allOff())
+        cNode.node().setIntoCollideMask(BitMask32.allOff()|AGENTMASK)
         #cNode.node().setFromCollideMask(FLOORMASK|WALLMASK)
         cNode.node().setFromCollideMask(BitMask32.allOn())
-        #cNode.show()
-        # let ralph fall, so he doesn' 
+        cNode.setTag('agent','agent-%s'% actor.name)
+        cNode.show()
+
+        # let ralph fall, so he isn't positioned in something
         charNP.setZ(10)
         base.physicsMgr.attachPhysicalNode(charAN)
         # attach collision node with actor node to it
@@ -99,7 +115,28 @@ class PhysicsWorldManager():
         # add collider to global traverser
         base.cTrav.addCollider(cNode, base.cPush)
         charNP.reparentTo(base.render)
+
         return charNP
+
+    def addSphereInWorld(self, obj, show=False):
+        # Get the size of the object for the collision sphere.
+        bounds = obj.getChild(0).getBounds()
+        center = bounds.getCenter()
+        radius = bounds.getRadius()
+
+        # Create a collision sphere and name it something understandable.
+        collSphereStr = 'CollisionHull' + str(self.collCount) + "_" + obj.getName()
+        self.collCount += 1
+        cNode = CollisionNode(collSphereStr)
+        cNode.addSolid(CollisionSphere(center, radius))
+
+        cNodepath = obj.attachNewNode(cNode)
+        if show:
+            cNodepath.show()
+
+        # Return a tuple with the collision node and its corrsponding string so
+        # that the bitmask can be set.
+        return (cNodepath, collSphereStr)
 
     def addObjectInWorld(nodePath,shape):
         if self.disable: return

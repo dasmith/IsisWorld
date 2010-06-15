@@ -4,8 +4,9 @@ from direct.showbase import DirectObject
 from direct.interval.IntervalGlobal import *
 from direct.actor.Actor import Actor
 from direct.gui.DirectGui import DirectLabel
+from direct.controls.GravityWalker import GravityWalker
 from pandac.PandaModules import PandaNode,NodePath,Camera
-import math
+import math, random
 
 class Ralph(PhysicsCharacterController):
     def __init__(self, worldManager, agentSimulator, myName):
@@ -16,11 +17,14 @@ class Ralph(PhysicsCharacterController):
         self.controlMap = {"turn_left":0, "turn_right":0, "move_forward":0, "move_backward":0, "move_right":0, "move_left":0,\
                            "look_up":0, "look_down":0, "look_left":0, "look_right":0}
         
-        self.actor= Actor("models/ralph/ralph",{"walk":"models/ralph/ralph-walk", "run": "models/ralph/ralph-run"})
+        self.actor= Actor("models/boxman",{"walk":"models/boxman-walk", "idle": "models/boxman-idle"})
+        #self.actor= Actor("models/ralph/ralph",{"walk":"models/ralph/ralph-walk", "run": "models/ralph/ralph-run"})
         self.actor.reparentTo(render)
-        self.actor.setScale(0.4)
+        self.actor.setScale(1.2)
+        self.actor.setH(180)
         #DirectObject.__init__(self)
 
+        self.actor.setColorScale(random.random(), random.random(), random.random(), 1.0)
         # Expose agent's right hand joint to attach objects to
         self.player_right_hand = self.actor.exposeJoint(None, 'modelRoot', 'RightHand')
         self.player_left_hand  = self.actor.exposeJoint(None, 'modelRoot', 'LeftHand')
@@ -37,11 +41,13 @@ class Ralph(PhysicsCharacterController):
         self.speech_bubble.setBillboardAxis()
         
         # visual processing
-        self.player_eye = self.actor.exposeJoint(None, 'modelRoot', 'LeftEyeLid')
+        #self.player_eye = self.actor.exposeJoint(None, 'modelRoot', 'LeftEyeLid')
+        self.player_eye = self.actor.exposeJoint(None, 'modelRoot', 'Head')
         # put a camera on ralph
         self.fov = NodePath(Camera('RaphViz'))
         self.fov.reparentTo(self.player_eye)
-        self.fov.setHpr(180,0,0)
+        self.fov.setHpr(0,-90,0)
+        #self.fov.lookAt(self.actor.getPos()+Vec3(0,0,0))
 
         # initialize physics handler
         PhysicsCharacterController.__init__(self,worldManager)
@@ -51,7 +57,7 @@ class Ralph(PhysicsCharacterController):
         lens.setNear(0.2)
         #self.fov.node().showFrustum() # displays a box around his head
 
-        self.player_neck = self.actor.controlJoint(None, 'modelRoot', 'Neck')
+        self.player_neck = self.actor.controlJoint(None, 'modelRoot', 'UpperColMesh')
 	
         # Define subpart of agent for when he's standing around
         self.actor.makeSubpart("arms", ["LeftShoulder", "RightShoulder"])
@@ -114,7 +120,7 @@ class Ralph(PhysicsCharacterController):
         objs = render.findAllMatches("**/+ModelNode")
         in_view = {}
         for o in objs:
-            o.hideBounds() # in case previously turned on
+            #o.hideBounds() # in case previously turned on
             o_pos = o.getPos(self.fov)
             if self.fov.node().isInView(o_pos):
                 if True:#self.agent_simulator.world_objects.has_key(o.getName()):
@@ -123,6 +129,7 @@ class Ralph(PhysicsCharacterController):
                     a_max = map3dToAspect2d(render, b_max)
                     if a_min == None or a_max == None:
                         continue
+                    o.showBounds()
                     x_diff = math.fabs(a_max[0]-a_min[0])
                     y_diff = math.fabs(a_max[2]-a_min[2])
                     area = 100*x_diff*y_diff  # percentage of screen
@@ -451,8 +458,8 @@ class Ralph(PhysicsCharacterController):
          # in case he falls off the map or runs into something.
         elapsed = globalClock.getDt()
         avatar = self.geom#.getChild(0)#.getChild(0)
-
-        moveAtSpeed = 1.0
+        x = GravityWalker()
+        moveAtSpeed = 2.0
         self.velocity = Vec3(0.0, 0.0, 0.0)
 
         # enforces bounds on a numeric value

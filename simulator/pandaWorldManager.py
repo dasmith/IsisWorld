@@ -112,7 +112,7 @@ https://www.panda3d.org/wiki/index.php/Collision_Entries
         #cNode.node().setFromCollideMask(FLOORMASK|WALLMASK)
         cNode.node().setFromCollideMask(BitMask32.allOn())
         cNode.setTag('agent','agent')
-        cNode.show()
+        #cNode.show()
 
         # let ralph fall, so he isn't positioned in something
         charNP.setZ(10)

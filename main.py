@@ -107,13 +107,14 @@ class IsisWorld(ShowBase):
               
  
     def setupMap(self):
-	""" The map consists of a plane, the "ground" that stretches to infinity
-	and a dome, the "sky" that sits concavely on the ground.
+        """ The map consists of a plane, the "ground" that stretches to infinity
+        and a dome, the "sky" that sits concavely on the ground.
 
-	For the ground component, a separate physics module must be created 
-	so that the characters and objects do not fall through it.
+        For the ground component, a separate physics module must be created 
+        so that the characters and objects do not fall through it.
 
-	This is done by calling the physics module:  physicsModule.setupGround()"""
+        This is done by calling the physics module:  physicsModule.setupGround()"""
+        
         cm = CardMaker("ground")
         groundTexture = loader.loadTexture("./textures/env_ground.jpg")
         cm.setFrame(-100, 100, -100, 100)
@@ -122,9 +123,17 @@ class IsisWorld(ShowBase):
         groundNP.setPos(0, 0, 0)
         groundNP.lookAt(0, 0, -1)
         groundNP.setTransparency(TransparencyAttrib.MAlpha)
-
+        groundGeom = OdePlaneGeom(self.worldManager.space, Vec4(0, 0, 1, 0))
+        groundGeom.setCollideBits(BitMask32(0x00000021))
+        groundGeom.setCategoryBits(BitMask32(0x00000012))
+        groundData = odeGeomData()
+        groundData.name = "ground"
+        groundData.surfaceFriction = 2.0
+        self.worldManager.setGeomData(groundGeom, groundData, None)
+        
+        
         # TODO: make sky inverted cylinder?
-        self.worldManager.setupGround(groundNP)
+        #self.worldManager.setupGround(groundNP)
         self.skydomeNP = SkyDome2(render)
         self.skydomeNP.setStandardControl()
         self.skydomeNP.att_skycolor.setColor(Vec4(0.3,0.3,0.3,1))
@@ -141,9 +150,23 @@ class IsisWorld(ShowBase):
         self.map = loader.loadModel("./models3/kitchen")
         self.map.reparentTo(render)
         self.mapNode = self.map.find("-PandaNode")
+        self.mapNode.setScale(1.2)
         self.room = self.mapNode.find("Wall")
         #self.worldManager.addItem(PhysicsTrimesh(name="Wall",world=self.worldManager.world, space=self.worldManager.space,pythonObject=self.room,density=800,surfaceFriction=10),False)
-        self.map.node().setIntoCollideMask(WALLMASK)
+        #self.map.node().setIntoCollideMask(WALLMASK)
+
+        roomGeomData = OdeTriMeshData(self.room, True)
+        roomGeom = OdeTriMeshGeom(self.worldManager.space, roomGeomData)
+        roomGeom.setPosition(self.room.getPos(render))
+        roomGeom.setQuaternion(self.room.getQuat(render))
+        self.worldManager.setGeomData(roomGeom, groundData, None)
+
+        self.steps = self.mapNode.find("Steps")
+        stepsGeomData = OdeTriMeshData(self.steps, True)
+        stepsGeom = OdeTriMeshGeom(self.worldManager.space, stepsGeomData)
+        stepsGeom.setPosition(self.steps.getPos(render))
+        stepsGeom.setQuaternion(self.steps.getQuat(render))
+        self.worldManager.setGeomData(stepsGeom, groundData, None)
 
         """
         Add a table to the room """
@@ -171,17 +194,14 @@ class IsisWorld(ShowBase):
         self.door = door(self.worldManager, self.doorNP)
         #self.worldObjects['door'] = door
         
-        #self.map.flattenStrong()
-        #self.table.flattenStrong()
-        #self.steps.flattenStrong()
-        self.doorNP.flattenStrong()
+
 
         
     def setupCameras(self):
         # Set up the camera 
         ### Set up displays and cameras ###
-        self.floating_camera = FloatingCamera(self.agents[self.agentNum].rootNode)
-        base.camera.reparentTo(self.agents[self.agentNum].rootNode)
+        self.floating_camera = FloatingCamera(self.agents[self.agentNum].actor)
+        base.camera.reparentTo(self.agents[self.agentNum].actor)
         # set up picture in picture
         dr = base.camNode.getDisplayRegion(0)
         aspect_ratio = 16.0 / 9.0
@@ -222,7 +242,7 @@ class IsisWorld(ShowBase):
         for name in self.agentsNamesToIDs.keys():
             newAgent = Ralph(base.worldManager, self, name)
             newAgent.control__say("Hi, I'm %s. Please build me." % name)
-            taskMgr.add(newAgent.update, "updateCharacter-%s" % name)
+            #taskMgr.add(newAgent.update, "updateCharacter-%s" % name)
             self.agents.append(newAgent)
 
         
@@ -249,11 +269,11 @@ class IsisWorld(ShowBase):
         text += "\n[Esc] to quit\n"
         # initialize actions
         self.actionController = ActionController("Version 1.0")
-        #self.actionController.addAction(IsisAction(commandName="move_left",intervalAction=True,keyboardBinding="arrow_left"))
+        self.actionController.addAction(IsisAction(commandName="move_left",intervalAction=True,keyboardBinding="arrow_left"))
         #self.actionController.addAction(IsisAction(commandName="move_right",intervalAction=True,keyboardBinding="arrow_right"))
         #self.actionController.addAction(IsisAction(commandName="turn_left",intervalAction=True))
         #self.actionController.addAction(IsisAction(commandName="turn_right",intervalAction=True))
-        self.actionController.addAction(IsisAction(commandName="turn_left",intervalAction=True,keyboardBinding="arrow_left"))
+        #self.actionController.addAction(IsisAction(commandName="turn_left",intervalAction=True,keyboardBinding="arrow_left"))
         self.actionController.addAction(IsisAction(commandName="turn_right",intervalAction=True,keyboardBinding="arrow_right"))
         self.actionController.addAction(IsisAction(commandName="move_forward",intervalAction=True,keyboardBinding="arrow_up"))
         self.actionController.addAction(IsisAction(commandName="move_backward",intervalAction=True,keyboardBinding="arrow_down"))
@@ -371,8 +391,8 @@ class IsisWorld(ShowBase):
         from the task manager"""
         if (self._globalClock == None):
           print "[IsisWorld] Pausing Simulator"
-          for name in self.agentsNamesToIDs.keys():
-             taskMgr.remove("updateCharacter-%s" % name)
+          #for name in self.agentsNamesToIDs.keys():
+          #   taskMgr.remove("updateCharacter-%s" % name)
           base.disableParticles()
           self._globalClock=ClockObject.getGlobalClock()
           self._globalClock.setMode(ClockObject.MSlave)
@@ -384,7 +404,7 @@ class IsisWorld(ShowBase):
           for name,id in self.agentsNamesToIDs.items():
              anAgent = self.agents[id]
              # add task for one iteration
-             taskMgr.add(anAgent.update, "updateCharacter-step-%s" % name)
+             #taskMgr.add(anAgent.update, "updateCharacter-step-%s" % name)
           self._globalClock=None
           print "[IsisWorld] Restarting Simulator"
 

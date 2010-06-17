@@ -16,5 +16,5 @@ Each *WorldManager must have the following methods defined:
 
 """
 
-from pandaWorldManager import *
-# from odeWorldManager import *
+#from pandaWorldManager import *
+from odeWorldManager import *

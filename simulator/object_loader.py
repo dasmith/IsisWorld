@@ -17,6 +17,9 @@ def load_objects(file, renderParent):
     context = {}
 
     for instruction in load_objects_file(file):
+        print instruction
+        if len(instruction) == 0 or instruction[0] == "#":
+            continue
         item = instruction.split("\t")[0]
         if len(instruction.split("\t")) > 1:
             parent = renderParent
@@ -38,7 +41,7 @@ def load_objects(file, renderParent):
                 elif val in context:
                     parent = context[val]
                     prep = key
-
+            print item
             if item in generators:
                 obj = generators[item].generate_instance()
                 obj.setHpr(rot)
@@ -57,4 +60,5 @@ def load_objects(file, renderParent):
                 print "Creating object %s" % (obj.name)
             else:
                 print "No default model for object %s" % (item)
+    print world_objects
     return world_objects

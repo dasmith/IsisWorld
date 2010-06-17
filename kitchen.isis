@@ -1,28 +1,7 @@
-table	named t1	at -2.2,2.8,0
-loaf	on table	at .5,0,-1
-loaf	on loaf
-loaf	on table	at .5,0,-1
-knife	on loaf	at 0,0,-.25
-knife	on loaf	at 0,0,-.25
-knife	on loaf	at 0,0,-.25
-knife	on loaf	at 0,0,-.25
-knife	on loaf	at 0,0,-.25
-table	at 3.5,2.8,0
-toaster	on table	at .5,0,-1
-toaster	on table	at .5,0,-1
-toaster	on table	at .5,0,-1
-toaster	on table	at .5,0,-1
-toaster	on table	at .5,0,-1
-toaster	on table	at .5,0,-1
-toaster	on table	at .5,0,-1
-toaster	on table	at .5,0,-1
-toaster	on table	at .5,0,-1
-toaster	on table	at .5,0,-1
-toaster	on table	at .5,0,-1
-toaster	on table	at .5,0,-1
-toaster	on table	at .5,0,-1
-toaster	on table	at .5,0,-1
-toaster	on table	at .5,0,-1
-toaster	on table	at .5,0,-1
-toaster	on table	at .5,0,-1
-loaf	on t1	at .5,0,-1	oriented 90,0,0
+table	at 0,0,0
+toaster	on table	at 0,0,-1
+loaf	on table	at 0,0,-1
+toaster	on table	at 0,0,-1
+loaf	on table	at 0,0,-1
+toaster	on table	at 0,0,-1
+loaf	on table	at 0,0,-1

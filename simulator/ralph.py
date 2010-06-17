@@ -10,21 +10,20 @@ import math, random
 
 class Ralph(PhysicsCharacterController):
     def __init__(self, worldManager, agentSimulator, myName):
-
+    
         self.name = myName
         self.agent_simulator = agentSimulator
-	
+        self.rootNode = NodePath('rootNode-%s'%self.name)
+        self.worldManager = worldManager	
         self.controlMap = {"turn_left":0, "turn_right":0, "move_forward":0, "move_backward":0, "move_right":0, "move_left":0,\
                            "look_up":0, "look_down":0, "look_left":0, "look_right":0, "jump":0}
         
         self.actor= Actor("models/boxman",{"walk":"models/boxman-walk", "idle": "models/boxman-idle"})
-        #self.actor= Actor("models/ralph/ralph",{"walk":"models/ralph/ralph-walk", "run": "models/ralph/ralph-run"})
-        self.actor.reparentTo(render)
         self.actor.setScale(1.2)
         self.actor.setH(180)
-        #DirectObject.__init__(self)
-
         self.actor.setColorScale(random.random(), random.random(), random.random(), 1.0)
+        self.actor.reparentTo(self.rootNode)
+        self.rootNode.reparentTo(render)
         # Expose agent's right hand joint to attach objects to
         self.player_right_hand = self.actor.exposeJoint(None, 'modelRoot', 'RightHand')
         self.player_left_hand  = self.actor.exposeJoint(None, 'modelRoot', 'LeftHand')
@@ -50,6 +49,24 @@ class Ralph(PhysicsCharacterController):
         #self.fov.lookAt(self.actor.getPos()+Vec3(0,0,0))
 
         # initialize physics handler
+        self.avatarControlForwardSpeed=6
+        self.avatarControlJumpForce=3
+        self.avatarControlReverseSpeed=1
+        self.avatarControlRotateSpeed=1
+        self.useHeightRay = 0
+        self.isAirborne = 0
+        self.highMark = 0
+        self.collisionsActive = 0
+        self.needToDeltaPos = 0
+        self.__oldContact=None
+        self.__oldPosDelta=Vec3(0)
+        self.__oldDt=0
+        self.__speed=0.0
+        self.__rotationSpeed=2.0
+        self.__hardLandingForce=16
+        self.__slideSpeed=0.0
+        self.__vel=Vec3(0.0)
+
         PhysicsCharacterController.__init__(self,worldManager)
 
         lens = self.fov.node().getLens()
@@ -129,7 +146,7 @@ class Ralph(PhysicsCharacterController):
                     a_max = map3dToAspect2d(render, b_max)
                     if a_min == None or a_max == None:
                         continue
-                    o.showBounds()
+                    #o.showBounds()
                     x_diff = math.fabs(a_max[0]-a_min[0])
                     y_diff = math.fabs(a_max[2]-a_min[2])
                     area = 100*x_diff*y_diff  # percentage of screen
@@ -146,6 +163,8 @@ class Ralph(PhysicsCharacterController):
 ##                    if (o.getAncestor(1).getName() == "Ralph"):
 ##                       for agent in self.agent_simulator.agents:
 ##                           if agent.
+
+        self.control__say("I see: "+' and '.join(in_view.keys())) 
         return in_view
 
 
@@ -442,43 +461,214 @@ class Ralph(PhysicsCharacterController):
         if data.selectionCallback:
             data.selectionCallback(self, dir)
 
-    def getH(self):
-        return self.geom.getChild(0).getChild(0).getH()
-        #return self.geom.getH()
-
-    def setH(self,h):
-        avatar = self.geom.getChild(0).getChild(0)
-        #avatar = self.geom
-        avatar.setH(h)
 
 
     def update(self, task):
          # save the character's initial position so that we can restore it,
          # in case he falls off the map or runs into something.
+       
+        physObject = self.actorNodePath.node().getPhysicsObject()
+        contact = self.actorNodePath.node().getContactVector()
         elapsed = globalClock.getDt()
-        avatar = self.geom#.getChild(0)#.getChild(0)
+        # hack fix for falling through the floor:
+        if contact==Vec3.zero() and self.rootNode.getZ()<-50.0:
+            # DCR: don't reset X and Y; allow player to move
+            self.reset()
+            self.rootNode.setZ(50.0)
+
+        # get the button states:
+        forward = self.controlMap["move_forward"] == 1
+        reverse = self.controlMap["move_backward"] == 1
+        turnLeft = self.controlMap["turn_left"] == 1 
+        turnRight = self.controlMap["turn_right"] == 1 
+        slideLeft = self.controlMap["move_left"] == 1 
+        slideRight = self.controlMap["move_right"] == 1 
+        jump = self.controlMap["jump"] == 1 
+       
+        # Determine what the speeds are based on the buttons:
+        self.__speed=(forward and self.avatarControlForwardSpeed or
+                reverse and -self.avatarControlReverseSpeed)
+        avatarSlideSpeed=self.avatarControlForwardSpeed*0.5
+        self.__slideSpeed=(
+                (turnLeft and -avatarSlideSpeed) or
+                (turnRight and avatarSlideSpeed))
+        self.__slideSpeed=(
+                (slideLeft and -avatarSlideSpeed) or
+                (slideRight and avatarSlideSpeed))
+        self.__rotationSpeed= (turnLeft and self.avatarControlRotateSpeed) or (turnRight and -self.avatarControlRotateSpeed)
+
+        # How far did we move based on the amount of time elapsed?
+
+        if self.needToDeltaPos:
+            velocity = self.__oldPosDelta*(1/self.__oldDt)*4.0 # *4.0 is a hack
+            assert self.debugPrint("  __oldPosDelta=%s"%(self.__oldPosDelta,))
+            assert self.debugPrint("  velocity=%s"%(velocity,))
+            self.priorParent.setVector(Vec3(velocity))
+            self.needToDeltaPos = 0
+        #self.__oldPosDelta = render.getRelativeVector(
+        #    self.avatarNodePath,
+        #    self.avatarNodePath.getPosDelta(render))
+        #self.__oldPosDelta = self.avatarNodePath.getRelativeVector(
+        #    render,
+        #    self.avatarNodePath.getPosDelta(render))
+        self.__oldPosDelta = self.rootNode.getPosDelta(render)
+        self.__oldDt = elapsed 
+        #posDelta = self.avatarNodePath.getPosDelta(render)
+        #if posDelta==Vec3.zero():
+        #    self.priorParent.setVector(self.__oldPosDelta)
+        #else:
+        #    self.priorParent.setVector(Vec3.zero())
+        #    # We must copy the vector to preserve it:
+        #    self.__oldPosDelta=Vec3(posDelta)
+        airborneHeight=1#self.getAirborneHeight()
+        if airborneHeight > 10:#self.highMark:
+            self.highMark = airborneHeight
+
+        #if airborneHeight < 0.1: #contact!=Vec3.zero():
+        if 1:
+            if (airborneHeight > self.avatarRadius*0.5 or physObject.getVelocity().getZ() > 0.0): # Check stair angles before changing this.
+                # ...the avatar is airborne (maybe a lot or a tiny amount).
+                self.isAirborne = 1
+            else:
+                # ...the avatar is very close to the ground (close enough to be
+                # considered on the ground).
+                if self.isAirborne and physObject.getVelocity().getZ() <= 0.0:
+                    # ...the avatar has landed.
+                    contactLength = contact.length()
+                    print "contact Length", contactLength
+                    if contactLength>self.__hardLandingForce:
+                        #print "jumpHardLand"
+                        messenger.send("jumpHardLand")
+                    else:
+                        #print "jumpLand"
+                        messenger.send("jumpLand")
+                    self.priorParent.setVector(Vec3.zero())
+                    self.isAirborne = 0
+                elif jump:
+                    print "jump"
+                    #self.__jumpButton=0
+                    messenger.send("jumpStart")
+                    if 0:
+                        # ...jump away from walls and with with the slope normal.
+                        jumpVec=Vec3(contact+Vec3.up())
+                        #jumpVec=Vec3(rotAvatarToPhys.xform(jumpVec))
+                        jumpVec.normalize()
+                    else:
+                        # ...jump straight up, even if next to a wall.
+                        jumpVec=Vec3.up()
+                    jumpVec*=self.avatarControlJumpForce
+                    physObject.addImpulse(Vec3(jumpVec))
+                    self.isAirborne = 1 # Avoid double impulse before fully airborne.
+                else:
+                    self.isAirborne = 0
+        else:
+            if contact!=Vec3.zero():
+                # ...the avatar has touched something (but might not be on the ground).
+                contactLength = contact.length()
+                contact.normalize()
+                angle=contact.dot(Vec3.up())
+                if angle>self.__standableGround:
+                    # ...avatar is on standable ground.
+                    if self.__oldContact==Vec3.zero():
+                    #if self.__oldAirborneHeight > 0.1: #self.__oldContact==Vec3.zero():
+                        # ...avatar was airborne.
+                        self.jumpCount-=1
+                        if contactLength>self.__hardLandingForce:
+                            messenger.send("jumpHardLand")
+                        else:
+                            messenger.send("jumpLand")
+                    elif jump:
+                        self.jumpCount+=1
+                        #self.__jumpButton=0
+                        messenger.send("jumpStart")
+                        jump=Vec3(contact+Vec3.up())
+                        #jump=Vec3(rotAvatarToPhys.xform(jump))
+                        jump.normalize()
+                        jump*=self.avatarControlJumpForce
+                        physObject.addImpulse(Vec3(jump))
+
+        if contact!=self.__oldContact:
+            # We must copy the vector to preserve it:
+            self.__oldContact=Vec3(contact)
+        self.__oldAirborneHeight=airborneHeight
+
+        moveToGround = Vec3.zero()
+        if not self.useHeightRay or self.isAirborne:
+            # ...the airborne check is a hack to stop sliding.
+            self.worldManager.doPhysics(elapsed)
+        else:
+            physObject.setVelocity(Vec3.zero())
+            #if airborneHeight>0.001 and contact==Vec3.zero():
+            #    moveToGround = Vec3(0.0, 0.0, -airborneHeight)
+            #moveToGround = Vec3(0.0, 0.0, -airborneHeight)
+            moveToGround = Vec3(0.0, 0.0, -self.determineHeight())
+        # Check to see if we're moving at all:
+        if self.__speed or self.__slideSpeed or self.__rotationSpeed or moveToGround!=Vec3.zero():
+            distance = elapsed * self.__speed
+            slideDistance = elapsed * self.__slideSpeed
+            rotation = elapsed * self.__rotationSpeed
+
+            #assert self.rootNode.getQuat().isSameDirection(physObject.getOrientation())
+            #assert self.rootNode.getPos().almostEqual(physObject.getPosition(), 0.0001)
+
+            # update pos:
+            # Take a step in the direction of our previous heading.
+            self.__vel=Vec3( Vec3.forward() * distance + Vec3.right() * slideDistance)
+
+            # rotMat is the rotation matrix corresponding to
+            # our previous heading.
+            rotMat=Mat3.rotateMatNormaxis(self.rootNode.getH(), Vec3.up())
+            step=rotMat.xform(self.__vel)
+            physObject.setPosition(Point3( physObject.getPosition()+step+moveToGround))
+
+            # update hpr:
+            o=physObject.getOrientation()
+            r=LRotationf()
+            r.setHpr(Vec3(rotation, 0.0, 0.0))
+            physObject.setOrientation(o*r)
+
+            # sync the change:
+            self.actorNodePath.node().updateTransform()
+
+            #assert self.rootNode.getQuat().isSameDirection(physObject.getOrientation())
+            #assert self.rootNode.getPos().almostEqual(physObject.getPosition(), 0.0001)
+        else:
+            self.__vel.set(0.0, 0.0, 0.0)
+        self.actorNodePath.node().setContactVector(Vec3.zero())
+        return task.cont
+
+
+    def update2(self,task):
 
         moveAtSpeed = 2.0
         self.velocity = Vec3(0.0, 0.0, 0.0)
-
-        useAngularForces = False
+        
+        return task.cont
+        avatar = self.geom#.getChild(0)#.getChild(0)
+        useAngularForces = True 
         actorNode = self.geom.getChild(0).node()
         # enforces bounds on a numeric value
         def bound(i, mn = -1, mx = 1): return min(max(i, mn), mx)
         # move the character if any of the move controls are activated.
         if (self.controlMap["turn_left"]!=0):
             if useAngularForces:
-                avf = AngularVectorForce(0.1,0,0)
-                avfn = ForceNode('avf')
-                avfn.addForce(avf)
+                fn = ForceNode("avf")
+                avfn = NodePath(fn)
+                avfn.reparentTo(self.geom)
+                avfn.reparentTo(render)
+                avf = AngularVectorForce(1,0,0)
+                fn.addForce(avf)
                 actorNode.getPhysical(0).addAngularForce(avf)
             else:
                 self.setH(self.getH() + elapsed*80)
         if (self.controlMap["turn_right"]!=0):
             if useAngularForces:
-                avf = AngularVectorForce(-0.1,0,0)
-                avfn = ForceNode('avf')
-                avfn.addForce(avf)
+                fn = ForceNode("avf")
+                avfn = NodePath(fn)
+                avfn.reparentTo(self.geom)
+                avfn.reparentTo(render)
+                avf = AngularVectorForce(-1,0,0)
+                fn.addForce(avf)
                 actorNode.getPhysical(0).addAngularForce(avf)
             else:
                 self.setH(self.getH() - elapsed*80)

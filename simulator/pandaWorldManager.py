@@ -10,9 +10,29 @@ AGENTMASK = BitMask32.bit(3)
 class PhysicsCharacterController(object):
     
     def __init__(self, worldManager):
-        self.velocity = Vec3(0.0,0.0,0.0)
-        self.actor.setCollideMask(BitMask32.allOff())
-        self.geom = worldManager.addActorPhysics(self)
+        # make sure parent node is off
+        import random
+        self.rootNode.setCollideMask(BitMask32.allOff())
+        x= random.randint(0,10)
+        y= random.randint(0,10)
+        z= random.randint(0,10)
+        self.actor.setPos(x,y,z)
+        self.avatarRadius = 0.8        
+        offsetNodeOne = [x,0+y,0.5+z,0.5]
+        offsetNodeTwo = [x,0+y,1.6+z,0.5]
+        # collision tubes have not been written as good FROM collidemasks
+        # to make the person tall, but not wide we use three collisionspheres
+        centerHeight = 1
+        self.avatarViscosity = 0
+        self.cNode = CollisionNode('collisionNode')
+        self.cNode.addSolid(CollisionSphere(0.0, 0.0, centerHeight, self.avatarRadius))
+        self.cNode.addSolid(CollisionSphere(0.0, 0.0, centerHeight + 2*self.avatarRadius, self.avatarRadius))
+        self.cNode.setFromCollideMask(BitMask32.allOn())
+        self.cNode.setIntoCollideMask(BitMask32.allOff()|AGENTMASK)
+        self.cNode.setTag('agent','agent')
+        self.cNodePath = self.actor.attachNewNode(self.cNode)
+        self.cNodePath.show()
+        self.priorParent, self.actorNodePath, self.acForce = worldManager.addActorPhysics(self)
 
 def getorientedboundingbox(collobj):
     ''' get the oriented bounding box '''
@@ -51,12 +71,13 @@ class PhysicsWorldManager():
         base.cPush = PhysicsCollisionHandler()
         base.cPush.setStaticFrictionCoef(1)
         base.cPush.setDynamicFrictionCoef(1.0)
-
-        base.cEvent = CollisionHandlerEvent()
+    
+        #base.cEvent = CollisionHandlerEvent()
         # instantiate an angular integrator, which is required
         # in order to add angular velocity forces
-        angleInt = AngularEulerIntegrator()
-        base.physicsMgr.attachAngularIntegrator(angleInt)
+
+        base.physicsMgr.attachLinearIntegrator(LinearEulerIntegrator())
+        base.physicsMgr.attachAngularIntegrator(AngularEulerIntegrator())
         # init gravity force
         self.gravityFN = ForceNode('gravity-force')
         self.gravityFNP = base.render.attachNewNode(self.gravityFN)
@@ -67,9 +88,12 @@ class PhysicsWorldManager():
         # is defined automatically by base.enableParticles()
         base.physicsMgr.addLinearForce(self.gravityForce)
         # look for agent-on-agent collisions
-        base.cEvent.addInPattern("a2a%(""agent"")fh%(""agent"")ih")
+        #base.cEvent.addInPattern("a2a%(""agent"")fh%(""agent"")ih")
         #base.cEvent.addInPattern("%(agent)ft-into-%(agent)it")
-        base.accept("a2a",self.handleAgentOnAgentCollision)
+        #base.accept("a2a",self.handleAgentOnAgentCollision)
+        
+        base.cPush.setInPattern("enter%in")
+        base.cPush.setOutPattern("enter%in")
 
         # see this website for a description of the patterns
         # https://www.panda3d.org/wiki/index.php/Collision_Handlers
@@ -90,42 +114,57 @@ https://www.panda3d.org/wiki/index.php/Collision_Entries
         # them to a model.  It keeps track of the elapsed times
         # in framerates
         import random
-        x= random.randint(0,10)
-        y= random.randint(0,10)
-        z= random.randint(0,10)
-        #actor.actor.getPos()
-        actor.actor.setPos(x,y,z)
-        offsetNodeOne = [x,0+y,0.5+z,0.5]
-        offsetNodeTwo = [x,0+y,1.6+z,0.5]
-        charAN = ActorNode("%s-physicsActorNode" % actor.name)
-        charAN.getPhysicsObject().setMass(200)
-        charNP = NodePath(PandaNode("%s-physicsNode" % actor.name))
-        charANP = charNP.attachNewNode(charAN)
-        actor.actor.reparentTo(charANP)
-        cNode = charANP.attachNewNode(CollisionNode('collider-%s'%actor.name))
-        # collision tubes have not been written as good FROM collidemasks
-        #cNode.node().addSolid(CollisionTube(*getCapsuleSize(actor.actor,2)))
-        #To make the person tall, but not wide we use three collisionspheres
-        cNode.node().addSolid(CollisionSphere(*offsetNodeOne))
-        cNode.node().addSolid(CollisionSphere(*offsetNodeTwo))
-        cNode.node().setIntoCollideMask(BitMask32.allOff()|AGENTMASK)
-        #cNode.node().setFromCollideMask(FLOORMASK|WALLMASK)
-        cNode.node().setFromCollideMask(BitMask32.allOn())
-        cNode.setTag('agent','agent')
-        cNode.show()
+        actorNode = ActorNode("%s-physicsActorNode" % actor.name)
+        actorNode.getPhysicsObject().setOriented(1)
+        actorNode.getPhysicsObject().setMass(200)
+        actorNode.getPhysical(0).setViscosity(0.1)
+        actorNodePath = NodePath(actorNode)#PandaNode("%s-physicsNode" % actor.name))
+        
+        actor.actor.reparentTo(actorNodePath)
+        actor.actor.assign(actorNodePath)
+        actorNodePath.reparentTo(actor.rootNode)
+        #actorNodePath.reparentTo(actor.rootNode)
+        #actorNodePath.assign(actor.rootNode)
 
-        # let ralph fall, so he isn't positioned in something
-        charNP.setZ(10)
-        base.physicsMgr.attachPhysicalNode(charAN)
+        # TODO: find out the meaning of this
+        fn = ForceNode("priorParent")
+        fnp = NodePath(fn)
+        fnp.reparentTo(render)
+        priorParent = LinearVectorForce(0.0, 0.0, 0)
+        fn.addForce(priorParent)
+        base.physicsMgr.addLinearForce(priorParent)
+        #actor.priorParentNp = fnp
+        #actor.priorParent = priorParent
+
+        fn = ForceNode("viscosity")
+        fnp = NodePath(fn)
+        fnp.reparentTo(render)
+        actor.avatarViscosity = LinearFrictionForce(0.0, 1.0, 0)
+        fn.addForce(actor.avatarViscosity)
+        base.physicsMgr.addLinearForce(actor.avatarViscosity)
+        base.physicsMgr.attachLinearIntegrator(LinearEulerIntegrator())
+        base.physicsMgr.attachPhysicalNode(actorNodePath.node())
+
+        actuatorForce = LinearVectorForce(0.0, 0.0, 0.0)
+        fn = ForceNode("actorControls")
+        fnp = NodePath(fn)
+        fnp.reparentTo(render)
+        fn.addForce(actuatorForce)
+        base.physicsMgr.addLinearForce(actuatorForce)
+       
+        # attach ralph to world
+        #base.physicsMgr.attachPhysicalNode(charAN)
         # attach collision node with actor node to it
-        base.cPush.addCollider(cNode, charANP)
-        # add collider to global traverser
-        base.cTrav.addCollider(cNode, base.cPush)
-        #base.cTrav.addCollider(cNode, base.cEvent)
-        #base.cTrav.addCollider(cNode, base.cEvent)
-        charNP.reparentTo(base.render)
 
-        return charNP
+
+        base.cPush.addCollider(actor.cNodePath, actor.actor)
+        # add collider to global traverser
+        base.cTrav.addCollider(actor.cNodePath, base.cPush)
+        #base.cTrav.addCollider(cNode, base.cEvent)
+        #base.cTrav.addCollider(cNode, base.cEvent)
+
+        return priorParent,actorNodePath,actuatorForce
+
 
     def addSphereInWorld(self, obj, show=False):
         # Get the size of the object for the collision sphere.
@@ -169,6 +208,9 @@ https://www.panda3d.org/wiki/index.php/Collision_Entries
         #planeNP.node().addSolid(cp)
         #planeNP.show()
         groundNP.node().setIntoCollideMask(FLOORMASK)
+
+    def doPhysics(self,dt):
+        base.physicsMgr.doPhysics(dt)
 
     def startPhysics(self):
         # everything is done in the __init__ method

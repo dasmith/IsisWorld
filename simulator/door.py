@@ -19,8 +19,8 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from odeWorldManager import *
 from direct.interval.IntervalGlobal import *
+from pandac.PandaModules import *
 
 """
 This is a class that can be used to make kinematic door.
@@ -31,7 +31,7 @@ class door():
     def __init__(self, worldManager, model):
         self.name = "door"
         self.state = "close"
-        self.speed = 0.5
+        self.speed = 0.05
 
         self.worldManager = worldManager
         self.doorNP = model
@@ -41,10 +41,9 @@ class door():
         back to the original position.
         """
         self.hpr = self.doorNP.getHpr()
-        self.odeGeom = self.worldManager.addBox(self.doorNP, 1000,self, self.select,True)
 
 
-    def select(self, character, direction):
+    def select(self, direction=1):
         if self.state == "close":
             self.open(self.doorNP.getQuat(render).xform(direction).getY())
         elif self.state == "open":
@@ -64,7 +63,7 @@ class door():
                 Func(self.changeState, "close"),
         ).start()
 
-    def open(self, dir):
+    def open(self, dir=-1):
         """
         The direction is here to make sure the door opens from the character
         instead of to it. This might be a little unrealistic (typpically door
@@ -98,14 +97,3 @@ class door():
     def getPosQuat(self):
         return self.doorNP.getPosQuat(render)
 
-    def update(self, posQuat):#timeStep):
-        """
-        Here we update the position of the OdeGeom to follow the
-        animated Panda Node. This method is what makes our object
-        a kinematic one.
-        """
-        quat = self.doorNP.getQuat(render)
-        pos = self.doorNP.getPos(render)
-
-        self.odeGeom.setPosition(pos)
-        self.odeGeom.setQuaternion(quat)

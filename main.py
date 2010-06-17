@@ -32,6 +32,7 @@ from simulator.skydome2 import *
 from simulator.physics import *
 from simulator.ralph import *
 from simulator.object_loader import *
+from simulator.door import *
 from simulator.actions import *
 from xmlrpc.xmlrpc_server import HomeSim_XMLRPC_Server
 from xmlrpc.command_handler import Command_Handler
@@ -167,20 +168,20 @@ class IsisWorld(ShowBase):
         More on door in the appropriate file.
         """
         self.doorNP = self.mapNode.find("Door")
-        #self.door = door(self.worldManager, self.doorNP)
+        self.door = door(self.worldManager, self.doorNP)
         #self.worldObjects['door'] = door
         
-        self.map.flattenStrong()
-        self.table.flattenStrong()
-        self.steps.flattenStrong()
-        #self.doorNP.flattenStrong()
+        #self.map.flattenStrong()
+        #self.table.flattenStrong()
+        #self.steps.flattenStrong()
+        self.doorNP.flattenStrong()
 
         
     def setupCameras(self):
         # Set up the camera 
         ### Set up displays and cameras ###
-        self.floating_camera = FloatingCamera(self.agents[self.agentNum].actor)
-        base.camera.reparentTo(self.agents[self.agentNum].actor)
+        self.floating_camera = FloatingCamera(self.agents[self.agentNum].rootNode)
+        base.camera.reparentTo(self.agents[self.agentNum].rootNode)
         # set up picture in picture
         dr = base.camNode.getDisplayRegion(0)
         aspect_ratio = 16.0 / 9.0
@@ -250,10 +251,12 @@ class IsisWorld(ShowBase):
         self.actionController = ActionController("Version 1.0")
         self.actionController.addAction(IsisAction(commandName="move_left",intervalAction=True,keyboardBinding="arrow_left"))
         self.actionController.addAction(IsisAction(commandName="move_right",intervalAction=True,keyboardBinding="arrow_right"))
+        self.actionController.addAction(IsisAction(commandName="turn_left",intervalAction=True))
+        #self.actionController.addAction(IsisAction(commandName="turn_right",intervalAction=True))
+        #self.actionController.addAction(IsisAction(commandName="turn_left",intervalAction=True,keyboardBinding="arrow_left"))
+        #self.actionController.addAction(IsisAction(commandName="turn_right",intervalAction=True,keyboardBinding="arrow_right"))
         self.actionController.addAction(IsisAction(commandName="move_forward",intervalAction=True,keyboardBinding="arrow_up"))
         self.actionController.addAction(IsisAction(commandName="move_backward",intervalAction=True,keyboardBinding="arrow_down"))
-        self.actionController.addAction(IsisAction(commandName="turn_left",intervalAction=True))
-        self.actionController.addAction(IsisAction(commandName="turn_right",intervalAction=True))
         self.actionController.addAction(IsisAction(commandName="look_right",intervalAction=True,keyboardBinding="l"))
         self.actionController.addAction(IsisAction(commandName="look_left",intervalAction=True,keyboardBinding="h"))
         self.actionController.addAction(IsisAction(commandName="look_up",intervalAction=True,keyboardBinding="k"))
@@ -337,6 +340,9 @@ class IsisWorld(ShowBase):
             x.command_box.suppressKeys=False
 
         def accept_message(message,x):
+            if message.strip() == "open":
+                self.door.select()
+                #self.door.open()
             x.teacher_utterances.append(message)
             x.command_box.enterText("")
 

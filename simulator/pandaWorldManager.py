@@ -22,7 +22,7 @@ class PhysicsCharacterController(object):
         offsetNodeTwo = [x,0+y,1.6+z,0.5]
         # collision tubes have not been written as good FROM collidemasks
         # to make the person tall, but not wide we use three collisionspheres
-        centerHeight = 1
+        centerHeight = 0.8
         self.avatarViscosity = 0
         self.cNode = CollisionNode('collisionNode')
         self.cNode.addSolid(CollisionSphere(0.0, 0.0, centerHeight, self.avatarRadius))

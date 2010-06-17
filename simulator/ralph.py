@@ -50,9 +50,9 @@ class Ralph(PhysicsCharacterController):
 
         # initialize physics handler
         self.avatarControlForwardSpeed=6
-        self.avatarControlJumpForce=3
-        self.avatarControlReverseSpeed=1
-        self.avatarControlRotateSpeed=1
+        self.avatarControlJumpForce=8
+        self.avatarControlReverseSpeed=5
+        self.avatarControlRotateSpeed=5
         self.useHeightRay = 0
         self.isAirborne = 0
         self.highMark = 0
@@ -484,6 +484,7 @@ class Ralph(PhysicsCharacterController):
         slideLeft = self.controlMap["move_left"] == 1 
         slideRight = self.controlMap["move_right"] == 1 
         jump = self.controlMap["jump"] == 1 
+        self.controlMap["jump"] = 0 
        
         # Determine what the speeds are based on the buttons:
         self.__speed=(forward and self.avatarControlForwardSpeed or
@@ -565,20 +566,19 @@ class Ralph(PhysicsCharacterController):
             if contact!=Vec3.zero():
                 # ...the avatar has touched something (but might not be on the ground).
                 contactLength = contact.length()
-                contact.normalize()
+                #contact.normalize()
                 angle=contact.dot(Vec3.up())
-                if angle>self.__standableGround:
+
+                if 1:#angle>self.__standableGround:
                     # ...avatar is on standable ground.
                     if self.__oldContact==Vec3.zero():
                     #if self.__oldAirborneHeight > 0.1: #self.__oldContact==Vec3.zero():
                         # ...avatar was airborne.
-                        self.jumpCount-=1
                         if contactLength>self.__hardLandingForce:
                             messenger.send("jumpHardLand")
                         else:
                             messenger.send("jumpLand")
                     elif jump:
-                        self.jumpCount+=1
                         #self.__jumpButton=0
                         messenger.send("jumpStart")
                         jump=Vec3(contact+Vec3.up())

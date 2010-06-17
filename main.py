@@ -139,7 +139,7 @@ class IsisWorld(ShowBase):
         that the map consists of.
         """
         self.map = loader.loadModel("./models3/kitchen")
-        #self.map.reparentTo(render)
+        self.map.reparentTo(render)
         self.mapNode = self.map.find("-PandaNode")
         self.room = self.mapNode.find("Wall")
         #self.worldManager.addItem(PhysicsTrimesh(name="Wall",world=self.worldManager.world, space=self.worldManager.space,pythonObject=self.room,density=800,surfaceFriction=10),False)
@@ -148,7 +148,7 @@ class IsisWorld(ShowBase):
         """
         Load Objects from 'kitchen.isis' """
 
-        self.worldObjects.update(load_objects("kitchen.isis", render))#self.map))
+        self.worldObjects.update(load_objects("kitchen.isis", self.map))
         for name in self.worldObjects:
             self.worldObjects[name].flattenStrong()
 
@@ -164,11 +164,11 @@ class IsisWorld(ShowBase):
         """
         self.doorNP = self.mapNode.find("Door")
         self.door = door(self.worldManager, self.doorNP)
-        #self.worldObjects['door'] = door
+        self.worldObjects['door'] = door
 
-        self.map.flattenStrong()
+        #self.map.flattenStrong()
         self.steps.flattenStrong()
-        #self.doorNP.flattenStrong()
+        self.doorNP.flattenStrong()
 
         
     def setupCameras(self):

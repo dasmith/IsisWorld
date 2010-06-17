@@ -145,16 +145,11 @@ class IsisWorld(ShowBase):
         self.map.node().setIntoCollideMask(WALLMASK)
 
         """
-        Add a table to the room """
+        Load Objects from 'kitchen.isis' """
 
-        self.table = loader.loadModel("./models3/table/table")
-        self.table.reparentTo(self.map)
-        self.table.setPosHpr(0,2.8,0,0,0,0)
-        self.table.setScale(0.007)
-
-        self.worldObjects['table'] = self.table
-
-        #self.worldManager.addItem(PhysicsBox(world=self.worldManager.world, space=self.worldManager.space,pythonObject=self.table,density=800,surfaceFriction=10),False)
+        self.worldObjects.update(load_objects("kitchen.isis", self.map))
+        for name in self.worldObjects:
+            self.worldObjects[name].flattenStrong()
 
 
         """
@@ -171,7 +166,6 @@ class IsisWorld(ShowBase):
         #self.worldObjects['door'] = door
         
         self.map.flattenStrong()
-        self.table.flattenStrong()
         self.steps.flattenStrong()
         #self.doorNP.flattenStrong()
 

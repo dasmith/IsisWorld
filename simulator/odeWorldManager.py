@@ -36,51 +36,51 @@ class odeGeomData:
         Any object can be handled as an Area Trigger,
         but for real Area Trigger functionality
         you need the odeTrigger class.
-        
+
         This isTrigger setting just tells the collision handler
         whether to make an actual collision between this object
         and others or just execute it's callback.
         """
         self.isTrigger = False
-        
+
         """
         The method to be called when a collision with the object
         that uses this Data occurs.
         """
         self.collisionCallback = None
-        
+
         """
         This is used when the player attempts to use an object
         Of course objects are usable (clickable) only when
         this is not None.
         """
         self.selectionCallback = None
-        
+
         """
         This is for general usage
         """
         self.pythonObject = None
-        
+
         self.name = ""
-        
+
         """
         And here we have the standard ODE stuff for collisions
         """
         self.surfaceFriction = 0.1
         self.surfaceBounce = 0.2
         self.surfaceBounceVel = 0.1
-        self.surfaceSoftERP = 0.0
-        self.surfaceSoftCFM = 0.00001
-        self.surfaceSlip = 0.1
-        self.surfaceDampen = 2.0
-        
+        self.surfaceSoftERP = 0.8
+        self.surfaceSoftCFM = 1e-3
+        self.surfaceSlip = 0.0
+        self.surfaceDampen = 0.1
+
 class PhysicsCharacterController:
     """
     The Kinematic Character Controller is the feature that is the most
     painfully missing from ODE in my personal opinion.
-    
+
     Some justification for using KCC over DCC.
-    
+
     I really don't know why, but most of the ODE sources (wiki, mailing list)
     suggest that the best approach to character control with ODE is the
     dynamic controller. Since this might look like the simpler sollution
@@ -89,7 +89,7 @@ class PhysicsCharacterController:
     is a reason why none (as far as I'm aware) of the physics engines
     that provide character controller use dynamic objects for this
     functionality.
-    
+
     The Dynamic CC, while easy to get started with is extremelly unpredictable
     and difficult to control. As a result they don't act like a character
     capable of conscious movement. This should come as no surprise,
@@ -97,7 +97,7 @@ class PhysicsCharacterController:
     Thus in order to get DCC to move more "character-like" you need to
     put lots and lots of constraints on it up to the point where it becomes
     pointless to even have a body there.
-    
+
     The sollution to those problems is the Kinematic Character Controller.
     This might sound like a step backwards, because it's strictly collision
     detection based and not physics based, so at first it seems like it's place
@@ -108,11 +108,11 @@ class PhysicsCharacterController:
         self.worldManager = worldManager
         self.odeWorld = self.worldManager.world
         self.space = self.worldManager.space
-        
+
         """
         Here we set the capsule Geom used for collision detection during movement.
         (for damage I suggest using separate hitboxes).
-        
+
         The values here fit my needs so far but, as you can see, they're hardcoded.
         I haven't made any kind of setHeight, setRadius etc. here, because I just
         don't need that at this point, and it prooved to be a little tricky (I guess
@@ -129,7 +129,7 @@ class PhysicsCharacterController:
         self.levitation = self.walkLevitation
         self.capsuleGeom = OdeCappedCylinderGeom(self.space, self.radius, self.length)
         self.setPos(self.actor.getPos())
-        
+
         """
         This is here mainly for fly-mode. but maybe I'll find other uses for this.
         Anyway, this var controls how the direction of movement is calculated.
@@ -138,7 +138,7 @@ class PhysicsCharacterController:
         matter.
         """
         self.movementParent = self.capsuleGeom
-        
+
         """
         The foot ray that's meant to control the levitation and so on.
         This is a rather typpical sollution for the "how to get character
@@ -146,10 +146,10 @@ class PhysicsCharacterController:
         """
         self.footRay = OdeRayGeom(self.space, 3.0)
         self.footRay.set(0, 0, 0, 0, 0, -1)
-        
+
         self.setCollideBits(BitMask32(0x00000122))
         self.setCategoryBits(BitMask32(0x0000111))
-        
+
         """
         The GeomData for the character capsule.
         """
@@ -160,11 +160,11 @@ class PhysicsCharacterController:
         self.capsuleData.pythonObject = self
         self.capsuleData.surfaceFriction = 2.0
         self.worldManager.setGeomData(self.capsuleGeom, self.capsuleData, self, True)
-        
+
         """
         The geomData for the footRay. Note that I don't set any of the
         typpically ODE stuff here (friction and the like) because it's not needed.
-        
+
         Also note that the capsule and the ray both have their own collision
         callback methods.
         """
@@ -172,13 +172,13 @@ class PhysicsCharacterController:
         footData.isTrigger = True
         footData.collisionCallback = self.footCollision
         self.worldManager.setGeomData(self.footRay, footData, None)
-        
+
         """
         The current speed of the character's movement. 2d because
         jumping is handled elswhere.
         """
         self.speed = [0, 0]
-        
+
         """
         The control variables for jumping and falling
         """
@@ -188,16 +188,16 @@ class PhysicsCharacterController:
         self.fallStartPos = 0.0
         self.fallSpeed = 0.0
         self.fallTime = 0.0
-        
+
         """
         This is used to block crouching in small spaces, so that character
         doesn't stand up inside of a ventilation shaft. Of course
         the shaft has to be "filled" with area trigger.
-        
+
         The test map has an example of how to use this.
         """
         self.crouchLock = False
-        
+
         """
         State variable to know what the character is currently doing.
         The possible values are:
@@ -207,31 +207,31 @@ class PhysicsCharacterController:
             - fly
         Crouching is not considered a state here, but it might be one
         in your FSM for example.
-        
+
         I don't use FSM here because it's too sophisticated for this task.
         """
         self.state = ""
-        
+
         """
         This is used to store the highest hit on the footray. It's needed
         to calculate the height we're currently on.
         """
         self.highestEntry = None
-            
+
     def setPos(self, pos):
         self.capsuleGeom.setPosition(pos)
         self.currentPos = pos
         self.actor.setPos(pos+self.offsetVec)
-        
+
     def setCollideBits(self, bits):
         self.capsuleGeom.setCollideBits(bits)
         self.footRay.setCollideBits(bits)
-        
+
     def setCategoryBits(self, bits):
         self.capsuleGeom.setCategoryBits(bits)
         self.footRay.setCategoryBits(bits)
-    
-    
+
+
     def setH(self, h):
         quat = self.getQuat()
         hpr = quat.getHpr()
@@ -239,40 +239,40 @@ class PhysicsCharacterController:
         quat.setHpr(hpr)
         self.actor.setHpr(hpr)
         self.setQuat(quat)
-        
+
     def setQuat(self, quat):
         self.actor.setQuat(Quat(quat))
         self.capsuleGeom.setQuaternion(Quat(quat))
-        
+
     def getQuat(self):
         return self.capsuleGeom.getQuaternion()
-        
+
     def crouch(self):
         self.levitation = self.crouchLevitation
         self.capsuleGeom.setParams(self.radius, self.crouchLength)
         return True
-        
+
     def crouchStop(self):
         if self.crouchLock:
             return False
         self.levitation = self.walkLevitation
         self.capsuleGeom.setParams(self.radius, self.walkLength)
         return True
-        
+
     def capsuleCollision(self, entry, geom1Data, geom2Data):
         """
         The character's Capsule Collision callback.
         """
         if not entry.getNumContacts() or geom1Data.isTrigger or geom2Data.isTrigger:
             return
-        
+
         """
         In the previous version of this code I've used forces to push bodies around,
         but I've found it to be not needed. And it gave worse results.
         Now, for bodies, I relly on ODE's internal systems, that are meant
         to stop bodies from penetrating static (or in this case kinematic,
         but for ODE it's the same) objects.
-        
+
         However, we still need to handle collisions between the character
         and the static environment or other kinematic objects (such as door).
         """
@@ -288,15 +288,15 @@ class PhysicsCharacterController:
                 geom = entry.getContactGeom(i)
                 depth = geom.getDepth()
                 normal = geom.getNormal()
-                
+
                 """
                 Move the character away from the object it collides with to prevent
                 penetrating it. ODE itself won't do that because the capsule
                 is not a body.
-                
+
                 I move it slightly less than the returned penetration depth because
                 I found the character to shake less this way.
-                
+
                 Note that the direction of movement is dependant on which object
                 in the collision process our character happens to be.
                 """
@@ -306,7 +306,7 @@ class PhysicsCharacterController:
                 else:
                     for i in range(3):
                         self.currentPos[i] -= depth * 0.8 * normal[i]
-            
+
             """
             This prevents the character from penetrating ceilings that are
             lower than the character's maximum jump height.
@@ -316,7 +316,7 @@ class PhysicsCharacterController:
                 self.fallSpeed = 0.0
                 self.fallTime = 0.0
                 self.state = "falling"
-                
+
     def footCollision(self, entry, geom1Data, geom2Data):
         """
         Here we handle the collisions that the foot ray participates in.
@@ -329,7 +329,7 @@ class PhysicsCharacterController:
             return
         if self.highestEntry is None or (entry.getContactPoint(0)[2] > self.highestEntry.getContactPoint(0)[2]):
             self.highestEntry = entry
-                
+
     def update(self, stepSize):
         """
         Find out how hight above the ground (directly beneath us) we are.
@@ -337,25 +337,25 @@ class PhysicsCharacterController:
         height = None
         if self.highestEntry is not None:
             height = self.capsuleGeom.getPosition()[2] - self.highestEntry.getContactPoint(0)[2]
-            
+
         """
         This will become the new position for our character.
         """
         print height
         newPos = self.currentPos
-        
+
         """
         If the state is fly that means we're in the fly mode so everything releated to
         walking is irrelevant
         """
         if self.state == "fly" :
             pass
-            
+
         elif self.state == "jumping":
             print "jumping"
             newPos[2] = self.processJump(newPos, stepSize, self.highestEntry)
             self.speed = [0,0]
-        
+
         elif height is None:
             """
             Height is None when we're too high for the foot ray to have anything to collide with.
@@ -363,7 +363,7 @@ class PhysicsCharacterController:
             """
             print "height 1"
             newPos = self.fall(newPos, stepSize, self.highestEntry)
-            
+
         elif height > self.levitation + 0.01 and height < self.levitation + 0.65 and self.state == "ground":
             print "height 2"
             """
@@ -372,22 +372,22 @@ class PhysicsCharacterController:
             to do something about it in the future.
             """
             newPos = self.stickToGround(newPos, stepSize, self.highestEntry)
-        
+
         elif height > self.levitation + 0.01:
             print "height 3"
             """
             We're falling but we're low enough for the ray to collide with the ground.
             """
             newPos = self.fall(newPos, stepSize, self.highestEntry)
-            
+
         elif height <= self.levitation + 0.01:
             print "height 4"
-            
+
             """"
             This means we're walking up stairs.
             """
             newPos = self.stickToGround(newPos, stepSize, self.highestEntry)
-        
+
         """
         Calculate the walking.
         """
@@ -402,10 +402,10 @@ class PhysicsCharacterController:
         """
         speedVec = quat.xform(speedVec)
         newPos += speedVec
-        
+
         """
         Finish and set the positions of everything
-        """    
+        """
         self.currentPos = newPos
         self.capsuleGeom.setPosition(newPos)
         self.actor.setPos(newPos+self.offsetVec)
@@ -414,32 +414,32 @@ class PhysicsCharacterController:
         self.footRay.setPosition(rayPos)
         npPos = Vec3(newPos)
         npPos[2] -= self.levitation + 0.15
-        
+
         """
         And clean the highest entry.
         """
         self.highestEntry = None
-        
+
     def processJump(self, newPos, stepSize, highestEntry):
         """
         Time elapsed since the beginning of the jump
         """
         self.jumpTime += stepSize
-        
+
         """
         Fall speed might be used to calculate how hard we hit the ground
         for character health.
         """
         self.fallSpeed = self.jumpSpeed*self.jumpTime + (-9.81)*(self.jumpTime)**2
-        
+
         np = self.jumpStartPos + self.fallSpeed
-        
+
         if highestEntry and np <= highestEntry.getContactPoint(0)[2] + self.levitation:
             self.state = "ground"
             return highestEntry.getContactPoint(0)[2] + self.levitation
-        
+
         return np
-        
+
     def stickToGround(self, newPos, stepSize, highestEntry):
         """
         If fallSpeed is set that means it's the first call of stickToGround since
@@ -449,18 +449,18 @@ class PhysicsCharacterController:
         if self.fallSpeed:
             self.fallCallback(self.fallSpeed)
         self.fallSpeed = 0.0
-        
+
         """
         Make sure the state is set correctly
         """
         self.state = "ground"
-        
+
         """
         Levitate the capsule
         """
         newPos[2] = highestEntry.getContactPoint(0)[2] + self.levitation
         return newPos
-        
+
     def fall(self, newPos, stepSize, highestEntry):
         if self.state != "falling":
             """
@@ -479,14 +479,14 @@ class PhysicsCharacterController:
             self.fallSpeed = (-9.81)*(self.fallTime)**2
         newPos[2] = self.fallStartPos + self.fallSpeed
         return newPos
-        
+
     def fallCallback(self, speed):
         print "A character has hit the ground with speed:", speed
-        
+
     def setSpeed(self, x, y):
         self.speed[0] = x
         self.speed[1] = y
-        
+
     def jump(self):
         """
         Start a jump
@@ -502,15 +502,15 @@ class PhysicsCharacterController:
 class odeTrigger:
     """
     The trigger mechanics for ODE.
-    
+
     The way it works is very simple. It has a list of the geoms
     that were there inside the trigger in the last update pass.
     This is the self.oldGeoms.
-    
+
     On the other hand it has a list of the geoms that collide
     in this pass for the first time.
     That's the self.newGeoms.
-    
+
     In every pass it compares the two lists. If something is
     in the self.newGeoms but not in self.oldGeoms that means
     this geom has just entered the trigger in this pass.
@@ -524,7 +524,7 @@ class odeTrigger:
         self.oldGeoms = []
         self.newGeoms = []
         self.transGeoms = []
-        
+
     def handleCollision(self, entry, geom1Data, geom2Data):
         if entry.getGeom1() == self.triggerGeom:
             geom = entry.getGeom2()
@@ -532,10 +532,10 @@ class odeTrigger:
             geom = entry.getGeom1()
         else:
             return
-        
+
         if geom not in self.newGeoms:
             self.newGeoms.append(geom)
-        
+
     def update(self, stepSize):
         for geom in self.newGeoms:
             if geom not in self.oldGeoms:
@@ -543,10 +543,10 @@ class odeTrigger:
         for geom in self.oldGeoms:
             if geom not in self.newGeoms:
                 messenger.send(self.triggerMessage+"_exit", [geom])
-                
+
         self.oldGeoms = list(self.newGeoms)
         self.newGeoms = []
-        
+
 
 class PhysicsWorldManager:
     """
@@ -557,15 +557,15 @@ class PhysicsWorldManager:
     def __init__(self):
         self.world = OdeWorld()
         self.world.setGravity(0, 0, -9.81)
-        
+
         self.timeAccu = 0.0
-        
+
         """
         The list of odeGeomData objects.
         More on this later.
         """
         self.geomsData = []
-        
+
         """
         Standard ODE setup
         """
@@ -573,19 +573,19 @@ class PhysicsWorldManager:
         self.space = OdeSimpleSpace()
         self.raySpace = OdeSimpleSpace()
         self.stepSize = 0.01
-        
+
         """
         This dictionary and list contain two, very different, types of objects.
         I will explain later what one is a dict and the other is a list.
         """
         self.dynamics = {}
         self.kinematics = []
-    
+
     def collideSelected(self, selected, exclude=[]):
         """
         A convenience method for colliding only one object with the rest
         instead of running the whole collision test on the whole space.
-        
+
         You can also exclude certain objects from the test.
         """
         entries = []
@@ -599,7 +599,7 @@ class PhysicsWorldManager:
             if entry.getNumContacts():
                 entries.append(entry)
         return entries
-    
+
     def doRaycast(self, ray, exclude=[]):
         """
         Similar to the above, but only for rays and I also sort the hits myself here.
@@ -623,7 +623,7 @@ class PhysicsWorldManager:
                     closestEntry = entry
                     closestGeom = geom
         return (closestEntry, closestGeom)
-    
+
     def getGeomData(self, geom):
         """
         Get the odeGeomData object associated with this geom.
@@ -635,55 +635,55 @@ class PhysicsWorldManager:
             return self.geomsData[idx]
         except IndexError:
             return None
-    
+
     def handleCollisions(self, arg, geom1, geom2):
         """
         A more flexible replacement for autoCollide.
         """
         entry = OdeUtil.collide(geom1, geom2)
-        
+
         if entry.isEmpty():
             return
-        
+
         geom1Data = self.getGeomData(geom1)
         geom2Data = self.getGeomData(geom2)
-        
+
         if geom1Data.isTrigger and geom2Data.isTrigger:
             """
             Detecting a collision between two area triggers would be a little pointless
             """
             return
-        
+
         if not geom1Data.isTrigger and not geom2Data.isTrigger:
             """
             Handle a typpical collision between two geoms of which none is a trigger.
             Create contact joint and the rest of the standard ODE stuff.
             """
             surfaceParams = OdeSurfaceParameters()
-            
+
             surfaceParams.setMu(geom2Data.surfaceFriction)
             surfaceParams.setMu2(geom1Data.surfaceFriction)
             surfaceParams.setBounce(geom1Data.surfaceBounce)
             surfaceParams.setBounceVel(geom1Data.surfaceBounceVel)
             surfaceParams.setSlip1(geom1Data.surfaceSlip)
             surfaceParams.setSlip2(geom2Data.surfaceSlip)
-            
+
             numContacts = entry.getNumContacts()
             if numContacts > 4:
                 numContacts = 4
             for i in range(numContacts):
                 cgeom = entry.getContactGeom(i)
-                
+
                 contactPoint = entry.getContactPoint(i)
-                
+
                 contact = OdeContact()
                 contact.setGeom(cgeom)
                 contact.setFdir1(cgeom.getNormal())
                 contact.setSurface(surfaceParams)
-                
+
                 contactJoint = OdeContactJoint(self.world, self.contactGroup, contact)
                 contactJoint.attach(geom1.getBody(), geom2.getBody())
-        
+
         """
         Collision callbacks for both objects
         Note that I also send the geomXData so the collisionCallback method must take 3 arguments.
@@ -692,10 +692,10 @@ class PhysicsWorldManager:
         """
         if geom1Data.collisionCallback is not None:
             geom1Data.collisionCallback(entry, geom1Data, geom2Data)
-        
+
         if geom2Data.collisionCallback is not None:
             geom2Data.collisionCallback(entry, geom1Data, geom2Data)
-        
+
     def setGeomData(self, geom, data, object=None, kinematic=False):
         """
         A very important method. It's used for adding objects to the simulation
@@ -707,22 +707,22 @@ class PhysicsWorldManager:
             when it's not already in the list
             """
             self.geomsData.append(data)
-            
+
         index = self.geomsData.index(data)
         """
         I use the OdeSpace's setSurfaceType to hold information about
         which geomData this specific geom uses.
         """
         self.space.setSurfaceType(geom, index)
-        
+
         """
         Here you set how the object is meant to be handled in
         the simulation update task.
-        
+
         For dynamic objects there is a dictionary of OdeGeom: NodePath
         form, because their updating is simply updating the pos
         and quat of the node path to track the geom.
-        
+
         For kinematics there is a list, because there's only one
         value to store - the python object with an self.update(...)
         method. Kinematic objects can be updated in a variaty of ways
@@ -735,7 +735,7 @@ class PhysicsWorldManager:
             self.dynamics[geom] = object
         elif kinematic:
             self.kinematics.append(object)
-            
+
     def destroyObject(self, objectToRemove):
         """
         Automatically destroy object and remove it from the worldManager
@@ -749,7 +749,7 @@ class PhysicsWorldManager:
             self.kinematics.pop(idx)
             return True
         return False
-        
+
     def simulationTask(self, task):
         """
         As you can see, I do not use autoCollide here at all.
@@ -757,13 +757,13 @@ class PhysicsWorldManager:
         it to the handleCollisions callback.
         """
         self.space.collide("", self.handleCollisions)
-        
+
         """
         And here we update the objects that take part in the simulation.
         """
         self.world.quickStep(self.stepSize)
         self.contactGroup.empty()
-        
+
         for object in self.kinematics:
             """
             All kinematic objects (such as the KCC or, for example, door)
@@ -772,10 +772,10 @@ class PhysicsWorldManager:
             method is the only requirement.
             """
             object.update(self.stepSize)
-        
+
         for geom, nodePath in self.dynamics.iteritems():
             """
-            The dynamic objects are updated in a more standard way, 
+            The dynamic objects are updated in a more standard way,
             by setting the nodePath's position and rotation to the one
             of the geom, and thus of the body.
             """
@@ -833,7 +833,7 @@ class PhysicsWorldManager:
         """
         isisworld.steps = isisworld.mapNode.find("Steps")
 
-        #self.map.flattenStrong()       
+        #self.map.flattenStrong()
 
 
 
@@ -843,7 +843,7 @@ class PhysicsWorldManager:
         I don't use the time accumulator to make the simulation run
         with a fixed time step, but instead I use the doMethodLater with
         task.again as the return value in self.simulationTask.
-        
+
         This gave me better results than using the time accumulator method.
         """
         self.stepSize = stepSize
@@ -922,4 +922,3 @@ class explosion:
         print "\n"
 
         self.collisions = []
-        

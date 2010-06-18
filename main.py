@@ -138,16 +138,18 @@ class IsisWorld(ShowBase):
         self.door = door(self.worldManager, self.doorNP)
         self.worldObjects['door'] = door
 
-        
-        
-        # TODO: make sky inverted cylinder?
-        #self.worldManager.setupGround(groundNP)
-        #self.skydomeNP = SkyDome2(render,self.visualizeClouds)
-        #self.skydomeNP.setPos(Vec3(0,0,-500))
-
+        """ 
+        Setup the skydome
+        """
+        self.skydomeNP = SkyDome2(render,self.visualizeClouds)
+        self.skydomeNP.setPos(Vec3(0,0,-500))
+        self.skydomeNP.setStandardControl()
+        self.skydomeNP.att_skycolor.setColor(Vec4(0.3,0.3,0.3,1))
+        """
+        Moving clouds are pretty but computationally expensive 
+        only visualize them if you have"""
         if self.visualizeClouds: 
-            self.skydomeNP.setStandardControl()
-            self.skydomeNP.att_skycolor.setColor(Vec4(0.3,0.3,0.3,1))
+           
             def timeUpdated(task):
                 self.skydomeNP.skybox.setShaderInput('time', task.time)
                 return task.cont

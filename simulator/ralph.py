@@ -14,7 +14,7 @@ class Ralph(PhysicsCharacterController):
         
         self.actor= Actor("models/boxman",{"walk":"models/boxman-walk", "idle": "models/boxman-idle"})
         self.actor.setScale(1.2)
-        self.actor.setH(180)
+        self.actor.setH(0)
         self.actor.setColorScale(random.random(), random.random(), random.random(), 1.0)
         self.actor.reparentTo(render)
         # Expose agent's right hand joint to attach objects to
@@ -47,16 +47,6 @@ class Ralph(PhysicsCharacterController):
         self.camH = self.walkCamH
 
         """
-        This is all directly releated to mouselook.
-        """
-        self.mouseLookSpeedX = 8.0
-        self.mouseLookSpeedY = 1.2
-        self.hCounter = 0
-        self.h = 0.0
-        self.p = 0.0
-        self.pCounter = 0
-        self.printMouseLook = False
-        """
         The ray sticking out of the camera and meant for clicking at
         objects in the world.
         """
@@ -85,18 +75,19 @@ class Ralph(PhysicsCharacterController):
         # visual processing
         #self.player_eye = self.actor.exposeJoint(None, 'modelRoot', 'LeftEyeLid')
         self.player_eye = self.actor.exposeJoint(None, 'modelRoot', 'Head')
+        self.player_neck = self.actor.exposeJoint(None, 'modelRoot', 'Head')
         # put a camera on ralph
         self.fov = NodePath(Camera('RaphViz'))
-        self.fov.reparentTo(self.player_eye)
-        self.fov.setHpr(0,-90,0)
-        #self.fov.lookAt(self.actor.getPos()+Vec3(0,0,0))
+        self.fov.reparentTo(self.player_neck)
+        self.fov.setHpr(0,0,0)
+        self.fov.lookAt(self.actor.getPos()+Vec3(0,0,0))
 
         lens = self.fov.node().getLens()
         lens.setFov(60) #  degree field of view (expanded from 40)
         lens.setNear(0.2)
-        #self.fov.node().showFrustum() # displays a box around his head
+        self.fov.node().showFrustum() # displays a box around his head
 
-        self.player_neck = self.actor.controlJoint(None, 'modelRoot', 'UpperColMesh')
+ 
     
         # Define subpart of agent for when he's standing around
         self.actor.makeSubpart("arms", ["LeftShoulder", "RightShoulder"])
@@ -497,7 +488,7 @@ class Ralph(PhysicsCharacterController):
         self.speed = [0.0, 0.0]
     
         if (self.controlMap["turn_left"]!=0):
-                self.setH(self.actor.getH() + stepSize*120)
+                self.setH(self.actor.getH() + stepSize*220)
         if (self.controlMap["turn_right"]!=0):
             if 0:# useAngularForces:
                 fn = ForceNode("avf")
@@ -508,19 +499,19 @@ class Ralph(PhysicsCharacterController):
                 fn.addForce(avf)
                 actorNode.getPhysical(0).addAngularForce(avf)
             else:
-                self.setH(self.actor.getH() - stepSize*120)
-        if (self.controlMap["move_forward"]!=0):     self.speed[1] = -moveAtSpeed
-        if (self.controlMap["move_backward"]!=0):    self.speed[1] = moveAtSpeed
+                self.setH(self.actor.getH() - stepSize*220)
+        if (self.controlMap["move_forward"]!=0):     self.speed[1] = moveAtSpeed
+        if (self.controlMap["move_backward"]!=0):    self.speed[1] = -moveAtSpeed
         if (self.controlMap["move_left"]!=0):        self.speed[0] = -moveAtSpeed
         if (self.controlMap["move_right"]!=0):       self.speed[0] = moveAtSpeed
         if (self.controlMap["look_left"]!=0):      
-            self.player_neck.setP(bound(self.player_neck.getP(),-60,60)+1*(stepSize*50))
+            self.fov.setP(bound(self.fov.getP(),-60,60)+1*(stepSize*50))
         if (self.controlMap["look_right"]!=0):
-            self.player_neck.setP(bound(self.player_neck.getP(),-60,60)-1*(stepSize*50))
+            self.fov.setP(bound(self.fov.getP(),-60,60)-1*(stepSize*50))
         if (self.controlMap["look_up"]!=0):
-            self.player_neck.setH(bound(self.player_neck.getH(),-60,80)+1*(stepSize*50))
+            self.fov.setH(bound(self.fov.getH(),-60,80)+1*(stepSize*50))
         if (self.controlMap["look_down"]!=0):
-            self.player_neck.setH(bound(self.player_neck.getH(),-60,80)-1*(stepSize*50))
+            self.fov.setH(bound(self.fov.getH(),-60,80)-1*(stepSize*50))
 
         if inputState.isSet("crouch") or self.crouchLock:
             self.camH = self.crouchCamH

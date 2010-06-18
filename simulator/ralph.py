@@ -497,7 +497,7 @@ class Ralph(PhysicsCharacterController):
         self.speed = [0.0, 0.0]
     
         if (self.controlMap["turn_left"]!=0):
-                self.setH(self.actor.getH() + stepSize*80)
+                self.setH(self.actor.getH() + stepSize*120)
         if (self.controlMap["turn_right"]!=0):
             if 0:# useAngularForces:
                 fn = ForceNode("avf")
@@ -508,7 +508,7 @@ class Ralph(PhysicsCharacterController):
                 fn.addForce(avf)
                 actorNode.getPhysical(0).addAngularForce(avf)
             else:
-                self.setH(self.actor.getH() - stepSize*80)
+                self.setH(self.actor.getH() - stepSize*120)
         if (self.controlMap["move_forward"]!=0):     self.speed[1] = -moveAtSpeed
         if (self.controlMap["move_backward"]!=0):    self.speed[1] = moveAtSpeed
         if (self.controlMap["move_left"]!=0):        self.speed[0] = -moveAtSpeed

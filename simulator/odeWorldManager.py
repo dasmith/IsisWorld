@@ -24,6 +24,7 @@ from direct.showbase.DirectObject import DirectObject
 from direct.showbase.InputStateGlobal import inputState
 
 
+
 class odeGeomData:
     """
     This is my class for keeping the surface data and more.
@@ -784,7 +785,58 @@ class PhysicsWorldManager:
             quat = Quat(geom.getQuaternion())
             nodePath.setPosQuat(render, pos, quat)
         return task.again
-        
+
+    def setupGround(self, isisworld):
+        cm = CardMaker("ground")
+        groundTexture = loader.loadTexture("./textures/env_ground.jpg")
+        cm.setFrame(-100, 100, -100, 100)
+        groundNP = render.attachNewNode(cm.generate())
+        groundNP.setTexture(groundTexture)
+        groundNP.setPos(0, 0, 0)
+        groundNP.lookAt(0, 0, -1)
+        groundNP.setTransparency(TransparencyAttrib.MAlpha)
+        groundGeom = OdePlaneGeom(self.space, Vec4(0, 0, 1, 0))
+        groundGeom.setCollideBits(BitMask32(0x00000021))
+        groundGeom.setCategoryBits(BitMask32(0x00000012))
+        groundData = odeGeomData()
+        groundData.name = "ground"
+        groundData.surfaceFriction = 2.0
+        self.setGeomData(groundGeom, groundData, None)
+        """
+        Get the map's panda node. This will allow us to find the objects
+        that the map consists of.
+        """
+        isisworld.map = loader.loadModel("./models3/kitchen")
+        isisworld.map.reparentTo(render)
+        isisworld.mapNode = isisworld.map.find("-PandaNode")
+        #self.mapNode.setScale(1.2)
+        isisworld.room = isisworld.mapNode.find("Wall")
+        #self.worldManager.addItem(PhysicsTrimesh(name="Wall",world=self.worldManager.world, space=self.worldManager.space,pythonObject=self.room,density=800,surfaceFriction=10),False)
+        #self.map.node().setIntoCollideMask(WALLMASK)
+
+        roomGeomData = OdeTriMeshData(isisworld.room, True)
+        roomGeom = OdeTriMeshGeom(self.space, roomGeomData)
+        roomGeom.setPosition(isisworld.room.getPos(render))
+        roomGeom.setQuaternion(isisworld.room.getQuat(render))
+        self.setGeomData(roomGeom, groundData, None)
+
+        isisworld.steps = isisworld.mapNode.find("Steps")
+        stepsGeomData = OdeTriMeshData(isisworld.steps, True)
+        stepsGeom = OdeTriMeshGeom(self.space, stepsGeomData)
+        stepsGeom.setPosition(isisworld.steps.getPos(render))
+        stepsGeom.setQuaternion(isisworld.steps.getQuat(render))
+        self.setGeomData(stepsGeom, groundData, None)
+
+        """
+        Steps is yet another part of the map.
+        Meant, obviously, to demonstrate the ability to climb stairs.
+        """
+        isisworld.steps = isisworld.mapNode.find("Steps")
+
+        #self.map.flattenStrong()       
+
+
+
     def startPhysics(self, stepSize=1.0/100.0):
         """
         Here's another thing that's different than in the Panda Manual.
@@ -870,3 +922,4 @@ class explosion:
         print "\n"
 
         self.collisions = []
+        

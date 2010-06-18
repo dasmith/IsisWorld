@@ -114,73 +114,22 @@ class IsisWorld(ShowBase):
         so that the characters and objects do not fall through it.
 
         This is done by calling the physics module:  physicsModule.setupGround()"""
+        # parameters
+        self.visualizeClouds = False
         
-        cm = CardMaker("ground")
-        groundTexture = loader.loadTexture("./textures/env_ground.jpg")
-        cm.setFrame(-100, 100, -100, 100)
-        groundNP = render.attachNewNode(cm.generate())
-        groundNP.setTexture(groundTexture)
-        groundNP.setPos(0, 0, 0)
-        groundNP.lookAt(0, 0, -1)
-        groundNP.setTransparency(TransparencyAttrib.MAlpha)
-        groundGeom = OdePlaneGeom(self.worldManager.space, Vec4(0, 0, 1, 0))
-        groundGeom.setCollideBits(BitMask32(0x00000021))
-        groundGeom.setCategoryBits(BitMask32(0x00000012))
-        groundData = odeGeomData()
-        groundData.name = "ground"
-        groundData.surfaceFriction = 2.0
-        self.worldManager.setGeomData(groundGeom, groundData, None)
+        self.mapNode = None
+        self.map = None
+        self.room = None
+        self.door = None
+        self.doorNP = None
         
-        
-        # TODO: make sky inverted cylinder?
-        #self.worldManager.setupGround(groundNP)
-        self.skydomeNP = SkyDome2(render)
-        self.skydomeNP.setStandardControl()
-        self.skydomeNP.att_skycolor.setColor(Vec4(0.3,0.3,0.3,1))
-        self.skydomeNP.setPos(Vec3(0,0,-500))
-        def timeUpdated(task):
-            self.skydomeNP.skybox.setShaderInput('time', task.time)
-            return task.cont
-        taskMgr.add(timeUpdated, "timeUpdated")
-
-        """
-        Get the map's panda node. This will allow us to find the objects
-        that the map consists of.
-        """
-        self.map = loader.loadModel("./models3/kitchen")
-        self.map.reparentTo(render)
-        self.mapNode = self.map.find("-PandaNode")
-        #self.mapNode.setScale(1.2)
-        self.room = self.mapNode.find("Wall")
-        #self.worldManager.addItem(PhysicsTrimesh(name="Wall",world=self.worldManager.world, space=self.worldManager.space,pythonObject=self.room,density=800,surfaceFriction=10),False)
-        #self.map.node().setIntoCollideMask(WALLMASK)
-
-        roomGeomData = OdeTriMeshData(self.room, True)
-        roomGeom = OdeTriMeshGeom(self.worldManager.space, roomGeomData)
-        roomGeom.setPosition(self.room.getPos(render))
-        roomGeom.setQuaternion(self.room.getQuat(render))
-        self.worldManager.setGeomData(roomGeom, groundData, None)
-
-        self.steps = self.mapNode.find("Steps")
-        stepsGeomData = OdeTriMeshData(self.steps, True)
-        stepsGeom = OdeTriMeshGeom(self.worldManager.space, stepsGeomData)
-        stepsGeom.setPosition(self.steps.getPos(render))
-        stepsGeom.setQuaternion(self.steps.getQuat(render))
-        self.worldManager.setGeomData(stepsGeom, groundData, None)
-
+        self.worldManager.setupGround(self)
         """
         Load Objects from 'kitchen.isis' """
 
         self.worldObjects.update(load_objects("kitchen.isis", self.map))
         for name in self.worldObjects:
-            self.worldObjects[name].flattenStrong()
-
-
-        """
-        Steps is yet another part of the map.
-        Meant, obviously, to demonstrate the ability to climb stairs.
-        """
-        self.steps = self.mapNode.find("Steps")
+          self.worldObjects[name].flattenStrong()
         """
         Door functionality is also provided here.
         More on door in the appropriate file.
@@ -189,7 +138,21 @@ class IsisWorld(ShowBase):
         self.door = door(self.worldManager, self.doorNP)
         self.worldObjects['door'] = door
 
-        #self.map.flattenStrong()
+        
+        
+        # TODO: make sky inverted cylinder?
+        #self.worldManager.setupGround(groundNP)
+        #self.skydomeNP = SkyDome2(render,self.visualizeClouds)
+        #self.skydomeNP.setPos(Vec3(0,0,-500))
+
+        if self.visualizeClouds: 
+            self.skydomeNP.setStandardControl()
+            self.skydomeNP.att_skycolor.setColor(Vec4(0.3,0.3,0.3,1))
+            def timeUpdated(task):
+                self.skydomeNP.skybox.setShaderInput('time', task.time)
+                return task.cont
+            taskMgr.add(timeUpdated, "timeUpdated")
+  
 
         
     def setupCameras(self):
@@ -264,11 +227,11 @@ class IsisWorld(ShowBase):
         text += "\n[Esc] to quit\n"
         # initialize actions
         self.actionController = ActionController("Version 1.0")
-        self.actionController.addAction(IsisAction(commandName="move_left",intervalAction=True,keyboardBinding="arrow_left"))
+        #self.actionController.addAction(IsisAction(commandName="move_left",intervalAction=True,keyboardBinding="arrow_left"))
         #self.actionController.addAction(IsisAction(commandName="move_right",intervalAction=True,keyboardBinding="arrow_right"))
         #self.actionController.addAction(IsisAction(commandName="turn_left",intervalAction=True))
         #self.actionController.addAction(IsisAction(commandName="turn_right",intervalAction=True))
-        #self.actionController.addAction(IsisAction(commandName="turn_left",intervalAction=True,keyboardBinding="arrow_left"))
+        self.actionController.addAction(IsisAction(commandName="turn_left",intervalAction=True,keyboardBinding="arrow_left"))
         self.actionController.addAction(IsisAction(commandName="turn_right",intervalAction=True,keyboardBinding="arrow_right"))
         self.actionController.addAction(IsisAction(commandName="move_forward",intervalAction=True,keyboardBinding="arrow_up"))
         self.actionController.addAction(IsisAction(commandName="move_backward",intervalAction=True,keyboardBinding="arrow_down"))

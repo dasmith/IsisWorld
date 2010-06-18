@@ -140,7 +140,7 @@ class Att_color(Att_base):
         self.notify()
 
 class SkyDome1(Att_base):
-    def __init__(self, scene, rate=(0.005,0.05),
+    def __init__(self, scene, dynamic=True, rate=(0.005,0.05),
             texturescale=(10,10),
             scale=(400,400,600), texturefile=None):
         Att_base.__init__(self,False, "Sky Dome 1")
@@ -159,8 +159,8 @@ class SkyDome1(Att_base):
         self.skybox.reparentTo(scene)
         self.rate = rate
         self.textureScale = texturescale
-
-        taskMgr.add(self.shiftTextureTask,"skycloudsshifttask" )
+        if not dynamic:
+            taskMgr.add(self.shiftTextureTask,"skycloudsshifttask" )
 
     def shiftTextureTask(self, task):
         offsetx = (task.time * self.rate[0]) % 1.0
@@ -206,7 +206,7 @@ class SkyDome1(Att_base):
 
 
 class SkyDome2(Att_base):
-    def __init__(self, scene, rate=Vec4(0.004, 0.002, 0.008, 0.010),
+    def __init__(self, scene, dynamic=False, rate=Vec4(0.004, 0.002, 0.008, 0.010),
                 skycolor=Vec4(0.25, 0.5, 1, 0),
                 texturescale=Vec4(1,1,1,1),
                 scale=(4000,4000,1000),
@@ -228,8 +228,10 @@ class SkyDome2(Att_base):
         self.rate = rate
         self.textureScale = texturescale
         self.skycolor = skycolor
-        self.skybox.setShader( loader.loadShader( 'shaders/skydome2.sha' ) )
-        self.setShaderInput()
+        self.dynamic = dynamic
+        if self.dynamic:
+            self.skybox.setShader( loader.loadShader( 'shaders/skydome2.sha' ) )
+            self.setShaderInput()
 
     def setRate(self, rate):
         self.rate = rate

@@ -15,6 +15,9 @@ tar: *.py
 package: simulator.py
 	packp3d -o isis_world.p3d  -d . -D -r ode -r morepy -m simulator.py -e isis -e py -p xmlrpc -p shaders -p models -p models3 -p textures -p simulator -p som -c auto_start=1
 
+panda:
+	wget http://runtime.panda3d.org/packp3d.p3d
+	panda3d -a packp3d.p3d
 
 build: 
 	echo "Packaging isis_world.p3d"

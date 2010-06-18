@@ -150,7 +150,7 @@ class IsisWorld(ShowBase):
         self.map = loader.loadModel("./models3/kitchen")
         self.map.reparentTo(render)
         self.mapNode = self.map.find("-PandaNode")
-        self.mapNode.setScale(1.2)
+        #self.mapNode.setScale(1.2)
         self.room = self.mapNode.find("Wall")
         #self.worldManager.addItem(PhysicsTrimesh(name="Wall",world=self.worldManager.world, space=self.worldManager.space,pythonObject=self.room,density=800,surfaceFriction=10),False)
         #self.map.node().setIntoCollideMask(WALLMASK)

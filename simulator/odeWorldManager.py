@@ -119,20 +119,16 @@ class PhysicsCharacterController:
         this point finding the right values is trial and error. Sorry.
         """
         self.offsetVec = Vec3(0,0,-1.5)
-        self.radius = .5
-        self.walkLength = 1.8
+        self.radius = .4
+        self.walkLength = 2
         self.walkLevitation = 1.5
         self.crouchLength = .1
         self.crouchLevitation = 1.2
-        self.length = self.walkLength + 0.0
+        self.length = self.walkLength + 1.0
         self.levitation = self.walkLevitation
         self.capsuleGeom = OdeCappedCylinderGeom(self.space, self.radius, self.length)
-        import random
-        #x= random.randint(0,10)
-        #y= random.randint(0,10)
-        #z= random.randint(0,10)
-        #self.actor.setPos(x,y,z)
-        #self.setPos(self.actor.getPos())
+        self.setPos(self.actor.getPos())
+        
         """
         This is here mainly for fly-mode. but maybe I'll find other uses for this.
         Anyway, this var controls how the direction of movement is calculated.
@@ -186,8 +182,8 @@ class PhysicsCharacterController:
         The control variables for jumping and falling
         """
         self.jumpStartPos = 0.0
-        self.jumpTime = 1.0
-        self.jumpSpeed = 2.0
+        self.jumpTime = 0.0
+        self.jumpSpeed = 0.0
         self.fallStartPos = 0.0
         self.fallSpeed = 0.0
         self.fallTime = 0.0
@@ -244,7 +240,7 @@ class PhysicsCharacterController:
         self.setQuat(quat)
         
     def setQuat(self, quat):
-        self.actor.setQuaternion(Quat(quat))
+        self.actor.setQuat(Quat(quat))
         self.capsuleGeom.setQuaternion(Quat(quat))
         
     def getQuat(self):
@@ -344,6 +340,7 @@ class PhysicsCharacterController:
         """
         This will become the new position for our character.
         """
+        print height
         newPos = self.currentPos
         
         """
@@ -382,7 +379,7 @@ class PhysicsCharacterController:
             """
             newPos = self.fall(newPos, stepSize, self.highestEntry)
             
-        elif height <= self.levitation - 0.3:
+        elif height <= self.levitation + 0.01:
             print "height 4"
             
             """"
@@ -541,7 +538,6 @@ class odeTrigger:
     def update(self, stepSize):
         for geom in self.newGeoms:
             if geom not in self.oldGeoms:
-                print "%s_enter"% self.triggerMessage, geom
                 messenger.send(self.triggerMessage+"_enter", [geom])
         for geom in self.oldGeoms:
             if geom not in self.newGeoms:

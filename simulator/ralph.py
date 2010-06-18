@@ -21,8 +21,6 @@ class Ralph(PhysicsCharacterController):
         self.player_right_hand = self.actor.exposeJoint(None, 'modelRoot', 'RightHand')
         self.player_left_hand  = self.actor.exposeJoint(None, 'modelRoot', 'LeftHand')
     
-    
-    
         self.name = myName
         self.agent_simulator = agentSimulator
         self.rootNode = NodePath('rootNode-%s'%self.name)
@@ -497,7 +495,20 @@ class Ralph(PhysicsCharacterController):
 
         moveAtSpeed = 10.0
         self.speed = [0.0, 0.0]
-
+    
+        if (self.controlMap["turn_left"]!=0):
+                self.setH(self.actor.getH() + stepSize*80)
+        if (self.controlMap["turn_right"]!=0):
+            if 0:# useAngularForces:
+                fn = ForceNode("avf")
+                avfn = NodePath(fn)
+                avfn.reparentTo(self.geom)
+                avfn.reparentTo(render)
+                avf = AngularVectorForce(-1,0,0)
+                fn.addForce(avf)
+                actorNode.getPhysical(0).addAngularForce(avf)
+            else:
+                self.setH(self.actor.getH() - stepSize*80)
         if (self.controlMap["move_forward"]!=0):     self.speed[1] = -moveAtSpeed
         if (self.controlMap["move_backward"]!=0):    self.speed[1] = moveAtSpeed
         if (self.controlMap["move_left"]!=0):        self.speed[0] = -moveAtSpeed

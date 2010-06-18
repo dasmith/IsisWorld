@@ -1,3 +1,4 @@
-knife	on table
-bread on table
-toaster	on table
+table	at 0,2.8,0
+toaster	on table	at 0,0,-1
+loaf	on table	at 0,0,-1
+knife	on loaf	at 0,0,-.2

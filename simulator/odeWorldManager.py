@@ -23,7 +23,7 @@ from pandac.PandaModules import *
 from direct.showbase.DirectObject import DirectObject
 from direct.showbase.InputStateGlobal import inputState
 
-
+from ODEWireGeom import wireGeom 
 
 class odeGeomData:
     """
@@ -119,16 +119,27 @@ class PhysicsCharacterController:
         sizes in ODE do not follow the Panda's world when things are scaled), so at
         this point finding the right values is trial and error. Sorry.
         """
-        self.offsetVec = Vec3(0,0,-1.5)
-        self.radius = .4
-        self.walkLength = 2
-        self.walkLevitation = 1.5
+        
+        self.radius = .5
+        self.walkLength =  2.6
+        self.walkLevitation = 2.6
         self.crouchLength = .1
         self.crouchLevitation = 1.2
-        self.length = self.walkLength + 1.0
+        self.length = self.walkLength
         self.levitation = self.walkLevitation
-        self.capsuleGeom = OdeCappedCylinderGeom(self.space, self.radius, self.length)
-        self.setPos(self.actor.getPos())
+        self.capsuleGeom = OdeCappedCylinderGeom(self.space, self.length- self.radius*2.0, self.length)
+        # TODO, create a second physics that uses the body.
+        
+        #self.cylinderNodepath = wireGeom().generate ('cylinder', radius=self.radius, length=self.length- self.radius*2.0) 
+        #self.cylinderNodepath.reparentTo(self.actor)
+        #self.capsuleGeom.setOffsetPosition(0,0,1.7)
+        
+        self.offsetVec = Vec3(0,0,-1.9)
+        import random
+        x = random.randint(0,10)
+        y = random.randint(0,10)
+        z = random.randint(5,10)
+        self.setPos(Vec3(x,y,z))
 
         """
         This is here mainly for fly-mode. but maybe I'll find other uses for this.
@@ -160,7 +171,7 @@ class PhysicsCharacterController:
         self.capsuleData.pythonObject = self
         self.capsuleData.surfaceFriction = 2.0
         self.worldManager.setGeomData(self.capsuleGeom, self.capsuleData, self, True)
-
+     
         """
         The geomData for the footRay. Note that I don't set any of the
         typpically ODE stuff here (friction and the like) because it's not needed.
@@ -491,6 +502,7 @@ class PhysicsCharacterController:
         """
         Start a jump
         """
+        print "UMPING", self.state
         if self.state != "ground":
             return
         self.jumpSpeed = 8.0
@@ -792,9 +804,9 @@ class PhysicsWorldManager:
         cm.setFrame(-100, 100, -100, 100)
         groundNP = render.attachNewNode(cm.generate())
         groundNP.setTexture(groundTexture)
-        groundNP.setPos(0, 0, 0)
+        groundNP.setPosHpr(0, 0, 0.0, 0, 0, 0)
         groundNP.lookAt(0, 0, -1)
-        groundNP.setTransparency(TransparencyAttrib.MAlpha)
+        #groundNP.setTransparency(TransparencyAttrib.MAlpha)
         groundGeom = OdePlaneGeom(self.space, Vec4(0, 0, 1, 0))
         groundGeom.setCollideBits(BitMask32(0x00000021))
         groundGeom.setCategoryBits(BitMask32(0x00000012))
@@ -808,8 +820,8 @@ class PhysicsWorldManager:
         """
         isisworld.map = loader.loadModel("./models3/kitchen")
         isisworld.map.reparentTo(render)
+        #isisworld.map.hide()
         isisworld.mapNode = isisworld.map.find("-PandaNode")
-        #self.mapNode.setScale(1.2)
         isisworld.room = isisworld.mapNode.find("Wall")
         #self.worldManager.addItem(PhysicsTrimesh(name="Wall",world=self.worldManager.world, space=self.worldManager.space,pythonObject=self.room,density=800,surfaceFriction=10),False)
         #self.map.node().setIntoCollideMask(WALLMASK)
@@ -832,7 +844,9 @@ class PhysicsWorldManager:
         Meant, obviously, to demonstrate the ability to climb stairs.
         """
         isisworld.steps = isisworld.mapNode.find("Steps")
-
+        isisworld.map.flattenLight()
+        isisworld.steps.flattenLight()
+        isisworld.room.flattenLight()
         #self.map.flattenStrong()
 
 
@@ -911,7 +925,7 @@ class explosion:
                 #forceVector = (geom.getPosition() - self.sphere.getPosition()) * force
                 forceVector = -normal * force
                 geom.getBody().addForceAtPos(forceVector, point)
-
+                print "force vector", forceVector
                 if geomData.damageCallback:
                     geomData.damageCallback(100.0)
 

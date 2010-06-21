@@ -228,7 +228,7 @@ class IsisWorld(ShowBase):
         text += "\n[o] lists objects in agent's f.o.v."
         text += "\n[Esc] to quit\n"
         # initialize actions
-        self.actionController = ActionController("Version 1.0")
+        self.actionController = ActionController("Version 0.1")
         #self.actionController.addAction(IsisAction(commandName="move_left",intervalAction=True,keyboardBinding="arrow_left"))
         #self.actionController.addAction(IsisAction(commandName="move_right",intervalAction=True,keyboardBinding="arrow_right"))
         #self.actionController.addAction(IsisAction(commandName="turn_left",intervalAction=True))
@@ -243,6 +243,7 @@ class IsisWorld(ShowBase):
         self.actionController.addAction(IsisAction(commandName="look_down",intervalAction=True,keyboardBinding="j"))
         self.actionController.addAction(IsisAction(commandName="jump",intervalAction=False,keyboardBinding="g"))
         self.actionController.addAction(IsisAction(commandName="say",intervalAction=False))
+        self.actionController.addAction(IsisAction(commandName="sense",intervalAction=False))
         self.actionController.addAction(IsisAction(commandName="use_aimed",intervalAction=False,keyboardBinding="u"))
 
         # initialze keybindings
@@ -303,7 +304,7 @@ class IsisWorld(ShowBase):
         base.accept("2",               base.toggleTexture, [])
         base.accept("3",               changeAgent, [])
         self.accept("space",           self.step_simulation, [.1]) # argument is amount of second to advance
-        self.accept("o",               self.printObjects, []) # displays objects in field of view
+        #self.accept("o",               self.printObjects, []) # displays objects in field of view
         self.accept("p",               self.togglePaused)
         #self.accept("r",              self.reset_simulation)
         base.accept("escape",         sys.exit)
@@ -369,75 +370,6 @@ class IsisWorld(ShowBase):
           print "[IsisWorld] Restarting Simulator"
 
 
-    def get_agent_position(self, agent_id=None):
-        if agent_id == None:
-            agent_id = self.agentNum
-        x,y,z = self.agents[agent_id].actor.getPos()
-        h,p,r = self.agents[agent_id].actor.getHpr()
-        #FIXME
-        # neck is not positioned in Blockman nh,np,nr = self.agents[agent_id].actor_neck.getHpr()
-        left_hand_obj = "" 
-        right_hand_obj = "" 
-        if self.agents[agent_id].left_hand_holding_object:  left_hand_obj = self.agents[agent_id].left_hand_holding_object.getName()
-        if self.agents[agent_id].right_hand_holding_object: right_hand_obj = self.agents[agent_id].right_hand_holding_object.getName()
-        return {'body_x': x, 'body_y': y, 'body_z': z,'body_h':h,\
-                'body_p': p, 'body_r': r,  'in_left_hand': left_hand_obj, 'in_right_hand':right_hand_obj}
-        #'neck_h':nh,'neck_p':np,'neck_r':nr,
-
-    def get_agent_vision(self,agent_id=None):
-        if agent_id == None:
-            agent_id = self.agentNum
-        return []
-        # FIXME: this screenshot function causes a crash
-        base.win.saveScreenshot( Filename( 'driving scene 2.png' ) )
-        def make_screenshot(widthPixels=100,heightPixels=100): 
-            tex=Texture() 
-            width=widthPixels*4 
-            height=heightPixels*4
-            mybuffer=base.win.makeTextureBuffer('ScreenShotBuff',width,height,tex,True)  
-            dis = mybuffer.makeDisplayRegion()
-            cam=Camera('ScreenShotCam') 
-            cam.setLens(self.agents[self.agentNum].fov.node().getLens().makeCopy()) 
-            cam.getLens().setAspectRatio(width/height) 
-            mycamera = base.makeCamera(mybuffer,useCamera=self.agents[self.agentNum].fov) 
-            myscene = base.render 
-            dis.setCamera(self.agents[self.agentNum].fov)
-            mycamera.node().setScene(myscene) 
-            print "a" 
-            base.graphicsEngine.renderFrame() 
-            print "a" 
-            tex = mybuffer.getTexture() 
-            print "a" 
-            mybuffer.setActive(False) 
-            print "a" 
-            tex.write("screenshots/ralph_screen_"+str(time())+".jpg")
-            print "a" 
-            base.graphicsEngine.removeWindow(mybuffer)
-        # TODO: not yet implemented (needs to print out and read image from camera)
-        make_screenshot()
-        return []# str(self.agent.fov.node().getCameraMask())
-
-    def get_objects(self, agent_id=None):
-        if agent_id == None:
-            agent_id = self.agentNum
-        return self.agents[agent_id].get_objects()
-
-    def get_utterances(self):
-        """ Clear out the buffer of things that the teacher has typed,
-        FIXME: perpahs these should be timestamped if they are not 
-         at the right time? """
-        utterances = self.teacher_utterances
-        self.teacher_utterances = []
-        return utterances
-
-
-    def printObjects(self):
-        text = "Objects in FOV: "+ ", ".join(self.get_objects().keys())
-        print text
-
-
-            
-            
 
 
 w = IsisWorld()

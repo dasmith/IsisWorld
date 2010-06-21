@@ -74,19 +74,22 @@ class Ralph(PhysicsCharacterController):
         
         # visual processing
         #self.player_eye = self.actor.exposeJoint(None, 'modelRoot', 'LeftEyeLid')
-        self.player_eye = self.actor.exposeJoint(None, 'modelRoot', 'Head')
-        self.player_neck = self.actor.exposeJoint(None, 'modelRoot', 'Head')
+        #self.player_eye = self.actor.exposeJoint(None, 'modelRoot', 'Head')
+        self.player_neck = self.actor.controlJoint(None, 'modelRoot', 'Head')
         # put a camera on ralph
         self.fov = NodePath(Camera('RaphViz'))
+        # position the camera to be infront of Boxman's face.
+        # strangely, the Head join'ts position is somewhere other than the face.
+        self.fov.setPos(self.player_neck.getPos()+Vec3(0,-1.9,2.9))
         self.fov.reparentTo(self.player_neck)
         self.fov.setHpr(0,0,0)
-        self.fov.lookAt(self.actor.getPos()+Vec3(0,0,0))
+        #self.fov.lookAt(self.actor.getPos()+Vec3(3,0,0))
 
         lens = self.fov.node().getLens()
         lens.setFov(60) #  degree field of view (expanded from 40)
         lens.setNear(0.2)
         self.fov.node().showFrustum() # displays a box around his head
-
+        #self.fov.place()
  
     
         # Define subpart of agent for when he's standing around
@@ -261,6 +264,20 @@ class Ralph(PhysicsCharacterController):
     def control__jump(self):
          PhysicsCharacterController.jump(self)
 
+
+    def control__sense(self):
+        """ perceives the world, returns percepts dict """
+        percepts = dict()
+        # eyes: visual matricies
+        percepts['vision'] = self.sense__get_vision()
+        # objects in purview (cheating object recognition)
+        percepts['objects'] = self.sense__get_objects()
+        # global position in environment - our robots can have GPS :)
+        percepts['position'] = self.sense__get_position()
+        # language: get last utterances that were typed
+        percepts['language'] = self.sense__get_utterances()
+        return percepts
+ 
     def can_grasp(self, object_name):
         objects = self.get_objects()
         if objects.has_key(object_name):
@@ -300,7 +317,7 @@ class Ralph(PhysicsCharacterController):
         else:
             return 'object (' + pick_up_object + ') is not graspable (i.e. in view and close enough).'
 
-    def put_object_in_empty_left_hand(self, object_name):
+    def control__put_object_in_empty_left_hand(self, object_name):
         if (self.left_hand_holding_object is not False):
             return False
         world_object = self.agent_simulator.world_objects[object_name]
@@ -436,7 +453,7 @@ class Ralph(PhysicsCharacterController):
         """
         self.isSitting = chair
 
-    def disable(self):
+    def obsolete__disable(self):
         """
         Disable collisions for this character
         """
@@ -475,6 +492,71 @@ class Ralph(PhysicsCharacterController):
             data.selectionCallback(self, dir)
 
 
+    def sense__get_position(self):
+        x,y,z = self.actor.getPos()
+        h,p,r = self.actor.getHpr()
+        #FIXME
+        # neck is not positioned in Blockman nh,np,nr = self.agents[agent_id].actor_neck.getHpr()
+        left_hand_obj = "" 
+        right_hand_obj = "" 
+        if self.left_hand_holding_object:  left_hand_obj = self.left_hand_holding_object.getName()
+        if self.right_hand_holding_object: right_hand_obj = self.right_hand_holding_object.getName()
+        return {'body_x': x, 'body_y': y, 'body_z': z,'body_h':h,\
+                'body_p': p, 'body_r': r,  'in_left_hand': left_hand_obj, 'in_right_hand':right_hand_obj}
+        #'neck_h':nh,'neck_p':np,'neck_r':nr,
+
+    def sense__get_vision(self):
+        return []
+        # FIXME: this screenshot function causes a crash
+        base.win.saveScreenshot( Filename( 'driving scene 2.png' ) )
+        def make_screenshot(widthPixels=100,heightPixels=100): 
+            tex=Texture() 
+            width=widthPixels*4 
+            height=heightPixels*4
+            mybuffer=base.win.makeTextureBuffer('ScreenShotBuff',width,height,tex,True)  
+            dis = mybuffer.makeDisplayRegion()
+            cam=Camera('ScreenShotCam') 
+            cam.setLens(self.agents[self.agentNum].fov.node().getLens().makeCopy()) 
+            cam.getLens().setAspectRatio(width/height) 
+            mycamera = base.makeCamera(mybuffer,useCamera=self.agents[self.agentNum].fov) 
+            myscene = base.render 
+            dis.setCamera(self.agents[self.agentNum].fov)
+            mycamera.node().setScene(myscene) 
+            print "a" 
+            base.graphicsEngine.renderFrame() 
+            print "a" 
+            tex = mybuffer.getTexture() 
+            print "a" 
+            mybuffer.setActive(False) 
+            print "a" 
+            tex.write("screenshots/ralph_screen_"+str(time())+".jpg")
+            print "a" 
+            base.graphicsEngine.removeWindow(mybuffer)
+        # TODO: not yet implemented (needs to print out and read image from camera)
+        make_screenshot()
+        return []# str(self.agent.fov.node().getCameraMask())
+
+    def sense__get_objects(self, agent_id=None):
+        if agent_id == None:
+            agent_id = self.agentNum
+        return self.agents[agent_id].get_objects()
+
+    def sense__get_utterances(self):
+        """ Clear out the buffer of things that the teacher has typed,
+        FIXME: this doesn't work right now """
+        return []
+        utterances = self.teacher_utterances
+        self.teacher_utterances = []
+        return utterances
+
+
+    def debug__print_objects(self):
+        text = "Objects in FOV: "+ ", ".join(self.sense__get_objects().keys())
+        print text
+
+
+
+
     def update(self, stepSize):
         if self.isSitting:
             if inputState.isSet("forward"):
@@ -505,13 +587,15 @@ class Ralph(PhysicsCharacterController):
         if (self.controlMap["move_left"]!=0):        self.speed[0] = -moveAtSpeed
         if (self.controlMap["move_right"]!=0):       self.speed[0] = moveAtSpeed
         if (self.controlMap["look_left"]!=0):      
-            self.fov.setP(bound(self.fov.getP(),-60,60)+1*(stepSize*50))
+            self.player_neck.setH(bound(self.player_neck.getH(),-60,60)+1*(stepSize*50))
         if (self.controlMap["look_right"]!=0):
-            self.fov.setP(bound(self.fov.getP(),-60,60)-1*(stepSize*50))
+            print "look right"
+            self.player_neck.setR(bound(self.player_neck.getR(),-60,60)-1*(stepSize*50))
         if (self.controlMap["look_up"]!=0):
-            self.fov.setH(bound(self.fov.getH(),-60,80)+1*(stepSize*50))
+            self.player_neck.setP(bound(self.player_neck.getP(),-60,80)+1*(stepSize*50))
         if (self.controlMap["look_down"]!=0):
-            self.fov.setH(bound(self.fov.getH(),-60,80)-1*(stepSize*50))
+            print "look down"
+            self.player_neck.setP(bound(self.player_neck.getP(),-60,80)-1*(stepSize*50))
 
         if inputState.isSet("crouch") or self.crouchLock:
             self.camH = self.crouchCamH

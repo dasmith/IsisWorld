@@ -18,14 +18,11 @@
 
 import posixpath
 
-from pandac.PandaModules import *
-
 import math
-
 from pandac.PandaModules import *
 from direct.showbase import DirectObject
 
-def eggToOde(np,surfaceType): # ,depth = 0
+def eggToOde(np,surfaceType=None): # ,depth = 0
     """Given a node path, usually from an egg that has been octreed, this constructs the same structure in ode, using a space for each node with tri-meshes within. Implimented as a generator so it doesn't screw with the framerate; final yield will return the root geom, or None if there was nothing to collide with. (This geom will probably be a space, but only probably.)"""
     output = []
     np.flattenLight()
@@ -60,7 +57,7 @@ def eggToOde(np,surfaceType): # ,depth = 0
         space = OdeSimpleSpace()
         for geom in output:
             space.add(geom)
-            space.setSurfaceType(geom,surfaceType)
+            #space.setSurfaceType(geom,surfaceType)
         yield OdeUtil.spaceToGeom(space)
 
 class PhysicsWorldManager(DirectObject.DirectObject):
@@ -72,7 +69,6 @@ class PhysicsWorldManager(DirectObject.DirectObject):
         slip = 0.0#float(xml.find('param').get('slip',0.0))
         dampen = 0.1#float(xml.find('param').get('dampen',0.1))
 
-        print "INITTTTTTTTT"
         self.world = OdeWorld()
         self.world.setGravity(0.0, 0.0, -9.81)#self.world.setErp(erp)
         self.world.setCfm(cfm)
@@ -142,10 +138,12 @@ class PhysicsWorldManager(DirectObject.DirectObject):
         groundGeom = OdePlaneGeom(self.space, Vec4(0, 0, 1, 0))
         groundGeom.setCollideBits(BitMask32(0x00000021))
         groundGeom.setCategoryBits(BitMask32(0x00000012))
-        groundData = odeGeomData()
-        groundData.name = "ground"
-        groundData.surfaceFriction = 2.0
-        self.setGeomData(groundGeom, groundData, None)
+        self.getSpace().add(groundGeom)
+        return
+        #groundData = odeGeomData()
+        #groundData.name = "ground"
+        #groundData.surfaceFriction = 2.0
+        #self.setGeomData(groundGeom, groundData, None)
         """
         Get the map's panda node. This will allow us to find the objects
         that the map consists of.
@@ -157,7 +155,7 @@ class PhysicsWorldManager(DirectObject.DirectObject):
         isisworld.room = isisworld.mapNode.find("Wall")
         #self.worldManager.addItem(PhysicsTrimesh(name="Wall",world=self.worldManager.world, space=self.worldManager.space,pythonObject=self.room,density=800,surfaceFriction=10),False)
         #self.map.node().setIntoCollideMask(WALLMASK)
-
+            
         roomGeomData = OdeTriMeshData(isisworld.room, True)
         roomGeom = OdeTriMeshGeom(self.space, roomGeomData)
         roomGeom.setPosition(isisworld.room.getPos(render))

@@ -20,7 +20,7 @@ class Ralph(PhysicsCharacterController):
         # Expose agent's right hand joint to attach objects to
         self.player_right_hand = self.actor.exposeJoint(None, 'modelRoot', 'RightHand')
         self.player_left_hand  = self.actor.exposeJoint(None, 'modelRoot', 'LeftHand')
-    
+        self.player_head  = self.actor.exposeJoint(None, 'modelRoot', 'Head')
         self.name = myName
         self.agent_simulator = agentSimulator
         self.rootNode = NodePath('rootNode-%s'%self.name)
@@ -72,18 +72,17 @@ class Ralph(PhysicsCharacterController):
         self.speech_bubble.component('text0').textNode.setCardDecal(1)
         self.speech_bubble.setBillboardAxis()
         
-        # visual processing
-        #self.player_eye = self.actor.exposeJoint(None, 'modelRoot', 'LeftEyeLid')
-        #self.player_eye = self.actor.exposeJoint(None, 'modelRoot', 'Head')
+        # expose <Joint> Head, so that this can be controled by control__look_* commands
         self.player_neck = self.actor.controlJoint(None, 'modelRoot', 'Head')
         # put a camera on ralph
         self.fov = NodePath(Camera('RaphViz'))
+        
         # position the camera to be infront of Boxman's face.
-        # strangely, the Head join'ts position is somewhere other than the face.
-        self.fov.setPos(self.player_neck.getPos()+Vec3(0,-1.9,2.9))
-        self.fov.reparentTo(self.player_neck)
-        self.fov.setHpr(0,0,0)
-        #self.fov.lookAt(self.actor.getPos()+Vec3(3,0,0))
+        self.fov.reparentTo(self.player_head)
+        # x,y,z are not in standard orientation when parented to player-Head
+        self.fov.setPos(0, 0.2, 0)
+        # if P=0, canrea is looking directly up. 90 is back of head. -90 is on face.
+        self.fov.setHpr(0,-90,0)
 
         lens = self.fov.node().getLens()
         lens.setFov(60) #  degree field of view (expanded from 40)

@@ -23,6 +23,12 @@ from pandac.PandaModules import *
 from direct.showbase.DirectObject import DirectObject
 from direct.showbase.InputStateGlobal import inputState
 
+
+FLOORMASK = BitMask32.bit(0)        
+WALLMASK = BitMask32.bit(1)
+PICKMASK = BitMask32.bit(2)
+AGENTMASK = BitMask32.bit(3)
+
 from ODEWireGeom import wireGeom 
 
 class odeGeomData:
@@ -121,8 +127,8 @@ class PhysicsCharacterController:
         """
         
         self.radius = .5
-        self.walkLength =  2.6
-        self.walkLevitation = 2.6
+        self.walkLength =  2.1
+        self.walkLevitation = 2.1
         self.crouchLength = .1
         self.crouchLevitation = 1.2
         self.length = self.walkLength
@@ -837,6 +843,8 @@ class PhysicsWorldManager:
         stepsGeom = OdeTriMeshGeom(self.space, stepsGeomData)
         stepsGeom.setPosition(isisworld.steps.getPos(render))
         stepsGeom.setQuaternion(isisworld.steps.getQuat(render))
+        stepsGeom.setCollideBits(FLOORMASK)
+        stepsGeom.setCategoryBits(FLOORMASK)
         self.setGeomData(stepsGeom, groundData, None)
 
         """

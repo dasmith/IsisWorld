@@ -70,6 +70,7 @@ class IsisWorld(ShowBase):
         # start physics manager
 
         self.inspectState = False
+        self.textObjectVisible = True
         # this is defined in simulator/physics.py
         self.physicsManager = PhysicsWorldManager()
         # setup components
@@ -263,7 +264,6 @@ class IsisWorld(ShowBase):
         props.setTitle( 'IsisWorld v%s' % ISIS_VERSION )
         base.win.requestProperties( props )
         
-        self.textObjectVisisble = True
         self.textObject = OnscreenText(
                 text = text,
                 fg = (.98, .9, .9, 1),
@@ -273,13 +273,6 @@ class IsisWorld(ShowBase):
                 align = TextNode.ALeft,
                 wordwrap = 15,
         )
-        def hideText():
-            if self.textObjectVisisble:
-                self.textObject.detachNode()
-                self.textObjectVisisble = False
-            else:
-                self.textObject.reparentTo(aspect2d)
-                self.textObjectVisisble = True
 
         def changeAgent():
             if (self.agentNum == (len(self.agents)-1)):
@@ -301,7 +294,7 @@ class IsisWorld(ShowBase):
         # control keys to move the character
         
         b = DirectButton(pos=(-1.3,0.0,-0.95),text = ("Inspect", "click!", "rolling over", "disabled"), scale=0.05, command = self.toggleInspect)
-        #base.accept("o", toggle)
+        #base.accept("o", toggleInstructionsWindow)
 
         # key input
         base.accept("1",               base.toggleWireframe, [])
@@ -350,22 +343,45 @@ class IsisWorld(ShowBase):
             #        print (time2-time1), (time2-time1)/FRAME_RATE
             self.togglePaused()
 
+    def toggleInstructionsWindow(self):
+        if self.textObjectVisible:
+            self.textObject.detachNode()
+            self.textObjectVisible = False
+        else:
+            self.textObject.reparentTo(aspect2d)
+            self.textObjectVisible = True
+    
     def toggleInspect(self):
         self.inspectState = not self.inspectState
         print "Inspect State", self.inspectState
         if self.inspectState:
+            if (self._globalClock == None): # pause it
+                self.togglePaused()
             self.agentCamera.setActive(0)
             #base.camera.setPos(self.agents[self.agentNum].actor.getPos()+Vec3(2,0,0))
             #base.camera.setHpr(0,0,0)
-            base.camera.lookAt(self.agents[self.agentNum].actor.getX(),self.agents[self.agentNum].actor.getY()+2,0)
             active_agent = self.agents[self.agentNum].actor
+            base.camera.reparentTo(active_agent)
+            base.camera.lookAt(active_agent)
             for child in render.getChildren():
-                if child != active_agent and child.getName()[-5:] != "Light" and child.getName() != "ground": 
+                if child != active_agent and child.getName()[-5:] != "Light" and child.getName() != "Armature":
                     child.hide()
-                    print child.getName()[-5:]
-                    print "removing", child
+                    print "hiding", child.getName()
+            for i, other_agent in enumerate(self.agents):
+                if i != self.agentNum: other_agent.actor.hide()
+            # turn off directobject widgets
+            self.command_box.hide()
+            # turn off text object if visible
+            if self.textObjectVisible:
+                self.toggleInstructionsWindow()
+
         else:
             for child in render.getChildren(): child.show()
+            self.agentCamera.setActive(1)
+            self.command_box.show()
+            # turn it back on if visible
+            if self.textObjectVisible:
+                self.toggleInstructionsWindow()
 
     def togglePaused(self):
         """ by default, the simulator is unpaused/running.

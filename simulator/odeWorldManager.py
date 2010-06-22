@@ -597,6 +597,34 @@ class PhysicsWorldManager:
         self.dynamics = {}
         self.kinematics = []
 
+        # for pausing the simulator
+        self.paused = False
+        self._globalClock = ClockObject.getGlobalClock()
+        self._globalClock.setMode(ClockObject.MLimited)
+        #self._globalClock.setFrameRate(FRAME_RATE)
+        self._globalClock=None
+        self._frameTime = None
+
+    def stepSimulation(self, stepTime):
+        if self.paused:
+            self.togglePaused(stepTime)
+        else:
+            print "Error, cannot step while simulator is running"
+
+    def togglePaused(self, stepTime=None):
+        """ by default, the simulator is unpaused/running."""
+        if (self.paused):
+            print "[IsisWorld] Restarting Simulator"
+            self._frameTime=self._globalClock.getFrameTime()
+            self._globalClock.setRealTime(self._frameTime)
+            self._globalClock.setMode(ClockObject.MNormal)
+            #base.enableParticles()
+            self._globalClock=None
+            self.startPhysics(stepTime)
+        else:
+            self.stopPhysics()
+        self.paused = not self.paused
+
     def collideSelected(self, selected, exclude=[]):
         """
         A convenience method for colliding only one object with the rest
@@ -759,10 +787,16 @@ class PhysicsWorldManager:
         """ Takes an IsisObject and adds it as a dynamic or kinematic 
         object in the physics simulator """
         objectGeomData = OdeTriMeshData(objectToAdd, True)
-        objectGeom = OdeTriMeshGeom(self.space, roomGeomData)
+        objectGeom = OdeTriMeshGeom(self.space, objectGeomData)
+        objectGeom.setCollideBits(FLOORMASK)
+        objectGeom.setCategoryBits(FLOORMASK)
         objectGeom.setPosition(objectToAdd.getPos(render))
         objectGeom.setQuaternion(objectToAdd.getQuat(render))
-        self.setGeomData(objectGeom, objectGeomData, None)
+        objectData = odeGeomData()
+        objectData.name = objectToAdd.name
+        objectData.surfaceFriction = 2.0
+
+        self.setGeomData(objectGeom, objectData, None)
         return objectGeom
 
     def destroyObject(self, objectToRemove):
@@ -840,8 +874,6 @@ class PhysicsWorldManager:
         #isisworld.map.hide()
         isisworld.mapNode = isisworld.map.find("-PandaNode")
         isisworld.room = isisworld.mapNode.find("Wall")
-        #self.worldManager.addItem(PhysicsTrimesh(name="Wall",world=self.worldManager.world, space=self.worldManager.space,pythonObject=self.room,density=800,surfaceFriction=10),False)
-        #self.map.node().setIntoCollideMask(WALLMASK)
 
         roomGeomData = OdeTriMeshData(isisworld.room, True)
         roomGeom = OdeTriMeshGeom(self.space, roomGeomData)
@@ -864,9 +896,14 @@ class PhysicsWorldManager:
         isisworld.steps.flattenLight()
         isisworld.room.flattenLight()
 
+    def stopPhysics(self,task=None):
+        print "[IsisWorld] Stopping Physical Simulator"
+        taskMgr.remove("ODE_simulationTask")
+        #base.disableParticles()
+        self._globalClock=ClockObject.getGlobalClock()
+        self._globalClock.setMode(ClockObject.MSlave)
 
-
-    def startPhysics(self, stepSize=1.0/80.0):
+    def startPhysics(self, stopAt=None):
         """
         Here's another thing that's different than in the Panda Manual.
         I don't use the time accumulator to make the simulation run
@@ -875,8 +912,15 @@ class PhysicsWorldManager:
 
         This gave me better results than using the time accumulator method.
         """
-        self.stepSize = stepSize
-        taskMgr.doMethodLater(stepSize, self.simulationTask, "ODE_simulationTask")
+        self.stepSize = 1.0/80.0
+        if stopAt != None:
+            assert stopAt > 0.0
+            assert stopAt > self.stepSize # cannot step less than physical simulator
+            taskMgr.doMethodLater(stopAt, self.stopPhysics, "ODE_simulationTaskEnder")
+            # or can you 
+            taskMgr.doMethodLater(min(self.stepSize,stopAt), self.simulationTask, "ODE_simulationTask")
+        else:
+            taskMgr.doMethodLater(self.stepSize, self.simulationTask, "ODE_simulationTask")
 
 class explosion:
     """

@@ -68,7 +68,6 @@ class IsisWorld(ShowBase):
         self.worldObjects = {}
         #self.worldObjects.update(load_objects_in_world(self.physicsManager,render, self.worldObjects))
         # start physics manager
-
         self.inspectState = False
         self.textObjectVisible = True
         # this is defined in simulator/physics.py
@@ -90,11 +89,6 @@ class IsisWorld(ShowBase):
         base.camLens.setFov(75)
         base.camLens.setNear(0.2)
         base.disableMouse()
-        self._globalClock = ClockObject.getGlobalClock()
-        self._globalClock.setMode(ClockObject.MLimited)
-        self._globalClock.setFrameRate(FRAME_RATE)
-        self._globalClock=None
-        self._frameTime = None
         # debugging stuff
         if debug:
             # display all events
@@ -302,7 +296,7 @@ class IsisWorld(ShowBase):
         base.accept("3",               changeAgent, [])
         self.accept("space",           self.step_simulation, [.1]) # argument is amount of second to advance
         #self.accept("o",               self.printObjects, []) # displays objects in field of view
-        self.accept("p",               self.togglePaused)
+        self.accept("p",               self.physicsManager.togglePaused)
         #self.accept("r",              self.reset_simulation)
         base.accept("escape",         sys.exit)
     
@@ -329,19 +323,7 @@ class IsisWorld(ShowBase):
         base.win.setClearColor(Vec4(0,0,0,1))
 
     def step_simulation(self,stepTime=2):
-        if self._globalClock != None:
-            self.togglePaused()
-            gc = ClockObject.getGlobalClock()
-            #time1 = gc.getFrameTime()
-            time.sleep(stepTime)
-            #print "Framerate", FRAME_RATE, time1
-            #while(True):
-            #    time2 = gc.getFrameTime()
-            #    if (time2-time1)/FRAME_RATE > stepTime:
-            #        break
-            #    else:
-            #        print (time2-time1), (time2-time1)/FRAME_RATE
-            self.togglePaused()
+        self.physicsManager.stepSimulation(stepTime)
 
     def toggleInstructionsWindow(self):
         if self.textObjectVisible:
@@ -356,10 +338,8 @@ class IsisWorld(ShowBase):
         print "Inspect State", self.inspectState
         if self.inspectState:
             if (self._globalClock == None): # pause it
-                self.togglePaused()
+                self.physicsManager.togglePaused()
             self.agentCamera.setActive(0)
-            #base.camera.setPos(self.agents[self.agentNum].actor.getPos()+Vec3(2,0,0))
-            #base.camera.setHpr(0,0,0)
             active_agent = self.agents[self.agentNum].actor
             base.camera.reparentTo(active_agent)
             base.camera.lookAt(active_agent)
@@ -383,28 +363,6 @@ class IsisWorld(ShowBase):
             if self.textObjectVisible:
                 self.toggleInstructionsWindow()
 
-    def togglePaused(self):
-        """ by default, the simulator is unpaused/running.
-        toggling it will remove each ralph's update() function
-        from the task manager"""
-        if (self._globalClock == None):
-          print "[IsisWorld] Pausing Simulator"
-          #for name in self.agentsNamesToIDs.keys():
-          #   taskMgr.remove("updateCharacter-%s" % name)
-          base.disableParticles()
-          self._globalClock=ClockObject.getGlobalClock()
-          self._globalClock.setMode(ClockObject.MSlave)
-        else:
-          self._frameTime=self._globalClock.getFrameTime()
-          self._globalClock.setRealTime(self._frameTime)
-          self._globalClock.setMode(ClockObject.MNormal)
-          base.enableParticles()
-          for name,id in self.agentsNamesToIDs.items():
-             anAgent = self.agents[id]
-             # add task for one iteration
-             #taskMgr.add(anAgent.update, "updateCharacter-step-%s" % name)
-          self._globalClock=None
-          print "[IsisWorld] Restarting Simulator"
 
 
 

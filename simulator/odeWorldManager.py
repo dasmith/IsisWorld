@@ -19,18 +19,24 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-
-from pandac.PandaModules import OdeWorld,  OdeUtil, OdeSurfaceParameters, OdeJointGroup, OdeTriMeshData,OdeTriMeshGeom, OdeSimpleSpace, OdeHashSpace, OdeBody, OdeMass, OdeBoxGeom, OdeCappedCylinderGeom, OdeRayGeom
-from pandac.PandaModules import BitMask32, Vec3, Vec4, Quat, OdeContact,OdeContactJoint, OdeSphereGeom, OdePlaneGeom, GeomVertexReader
-from pandac.PandaModules import GeomVertexFormat, GeomVertexData,Geom, GeomVertexWriter
+from pandac.PandaModules import *
+from direct.showbase.DirectObject import DirectObject
 from direct.showbase.InputStateGlobal import inputState
-import random
 
-class OdeObject:
-    ''' the base class of ODE boxes, spheres, capsules, and TriMeshes used here
-    '''
+FLOORMASK = BitMask32.bit(0)        
+WALLMASK = BitMask32.bit(1)
+PICKMASK = BitMask32.bit(2)
+AGENTMASK = BitMask32.bit(3)
+
+#from ODEWireGeom import wireGeom 
+
+class odeGeomData:
+    """
+    This is my class for keeping the surface data and more.
+    If you want to use my odeWorldManager you must also use this class
+    and not the standard Panda/ODE surfaceTable
+    """
     def __init__(self):
-
         """
         Any object can be handled as an Area Trigger,
         but for real Area Trigger functionality
@@ -42,6 +48,11 @@ class OdeObject:
         """
         self.isTrigger = False
 
+        """
+        The method to be called when a collision with the object
+        that uses this Data occurs.
+        """
+        self.collisionCallback = None
 
         """
         This is used when the player attempts to use an object
@@ -49,360 +60,32 @@ class OdeObject:
         this is not None.
         """
         self.selectionCallback = None
+
+        """
+        This is for general usage
+        """
         self.pythonObject = None
+
         self.name = ""
-        self.collisionCallback = None
-        self.surfaceFriction =  150
-        self.surfaceBounce = 0.0
-        self.surfaceBounceVel = 9.0
-        self.surfaceSoftERP = 0.9
-        self.surfaceSoftCFM = 0.00001
+
+        """
+        And here we have the standard ODE stuff for collisions
+        """
+        self.surfaceFriction = 0.1
+        self.surfaceBounce = 0.2
+        self.surfaceBounceVel = 0.1
+        self.surfaceSoftERP = 0.8
+        self.surfaceSoftCFM = 1e-3
         self.surfaceSlip = 0.0
-        self.surfaceDampen = 0.002
-        self.density=1000
+        self.surfaceDampen = 0.1
 
-    def storeProps(self, pythonObject, density, surfaceFriction, noColl_ID=None,name='unamed'):
-        self.pythonObject = pythonObject
-        self.name = ""
-        self.surfaceFriction = surfaceFriction
-        self.density=density
-        # randomize geom's collision ID, if not supplied
-        if noColl_ID==None:
-           if pythonObject:
-              noColl_ID=id(pythonObject)
-           else:
-              noColl_ID=random.random()*random.random()*1000
-        self.noColl=noColl_ID
-
-    def destroy(self):
-        if hasattr(self,'body'):
-           del self.body
-        self.geom.getSpace().remove(self.geom)
-        del self.geom
-        if hasattr(self,'visualizer'):
-           self.visualizer.removeNode()
-
-        if self.pythonObject:
-           self.pythonObject.removeNode()
-
-    def getOBB(self,collObj):
-        ''' get the Oriented Bounding Box '''
-        # save object's parent and transformation
-        parent=collObj.getParent()
-        trans=collObj.getTransform()
-        # ODE need everything in world's coordinate space,
-        # so bring the object directly under render, but keep the transformation
-        collObj.wrtReparentTo(render)
-        # get the tight bounds before any rotation
-        collObj.setHpr(0,0,0)
-        bounds=collObj.getTightBounds()
-        # bring object to it's parent and restore it's transformation
-        collObj.reparentTo(parent)
-        collObj.setTransform(trans)
-        # (max - min) bounds
-        box=bounds[1]-bounds[0]
-        return [box[0],box[1],box[2]]
-
-
-class PhysicsBox(OdeObject):
-    ''' An easy setup for creating OdeBoxGeom (based on the tight bounding box),
-        and it's body.
-
-        If you have a geometry you'd like to use to define GeomBox size precisely,
-        pass it as "collObj", or otherwise
-        the "pythonObject" will be used to define GeomBox size.
-
-        "noColl_ID" is an arbitrary number, use it when you need to build
-        a larger collision structure from several geoms, which might overlap each other.
-        Geoms with the same "noColl_ID" will NOT be tested for collision.
-        In such case, don't pass your "pythonObject" to every geoms, or else
-        your "pythonObject" transformation will be updated based on your every geoms.
-        Pass it only when creating the main geom.
-    '''
-    def __init__(self, world, space, pythonObject=None, collObj=None,
-                       density=0, surfaceFriction=0, noColl_ID=None,name='unamed'):
-        if pythonObject==None:
-           obj=collObj
-        else:
-           obj=pythonObject
-           if collObj==None:
-              collObj=pythonObject
-
-        OdeObject.__init__(self)
-        boundingBox=self.getOBB(collObj)
-        self.name =name
-
-        self.geom = OdeBoxGeom(space, *boundingBox)
-        if density:  # create body if the object is dynamic, otherwise don't
-           self.body = OdeBody(world)
-           M = OdeMass()
-           M.setBox(density, *boundingBox)
-           self.body.setMass(M)
-           self.geom.setBody(self.body)
-        # synchronize ODE geom's transformation according to the real object's
-        self.geom.setPosition(obj.getPos(render))
-        self.geom.setQuaternion(obj.getQuat(render))
-        # store object's properties
-        self.storeProps(pythonObject, density, surfaceFriction, noColl_ID)
-
-
-class PhysicsSphere(OdeObject):
-    ''' An easy setup for creating ode.GeomSphere (based on the tight bounding box),
-        and it's body.
-
-        If you have a geometry you'd like to use to define GeomSphere size precisely,
-        pass it as "collObj", or otherwise
-        the "pythonObject" will be used to define GeomSphere size.
-
-        "noColl_ID" is an arbitrary number, use it when you need to build
-        a larger collision structure from several geoms, which might overlap each other.
-        Geoms with the same "noColl_ID" will NOT be tested for collision.
-        In such case, don't pass your "pythonObject" to every geoms, or else
-        your "pythonObject" transformation will be updated based on your every geoms.
-        Pass it only when creating the main geom.
-    '''
-    def __init__(self, world, space, pythonObject=None, collObj=None,
-                       density=0, surfaceFriction=0, noColl_ID=None,name='unamed'):
-        if pythonObject==None:
-           obj=collObj
-        else:
-           obj=pythonObject
-           if collObj==None:
-              collObj=pythonObject
-
-        OdeObject.__init__(self)
-        boundingBox=self.getOBB(collObj)
-        self.name =name
-        radius=.5*max(*boundingBox)
-
-        self.geom = OdeSphereGeom(space, radius)
-        if density:  # create body if the object is dynamic, otherwise don't
-           self.body = OdeBody(world)
-           M = OdeMass()
-           M.setSphere(density, radius)
-           self.body.setMass(M)
-           self.geom.setBody(self.body)
-        # synchronize ODE geom's transformation according to the real object's
-        self.geom.setPosition(obj.getPos(render))
-        self.geom.setQuaternion(obj.getQuat(render))
-        # store object's properties
-        self.storeProps(pythonObject, density, surfaceFriction, noColl_ID)
-
-
-class PhysicsCapsule(OdeObject):
-    ''' An easy setup for creating ode.GeomCapsule (based on the tight bounding box),
-        and it's body.
-
-        If you have a geometry you'd like to use to define GeomCapsule size precisely,
-        pass it as "collObj", or otherwise
-        the "pythonObject" will be used to define GeomCapsule size.
-
-        "noColl_ID" is an arbitrary number, use it when you need to build
-        a larger collision structure from several geoms, which might overlap each other.
-        Geoms with the same "noColl_ID" will NOT be tested for collision.
-        In such case, don't pass your "pythonObject" to every geoms, or else
-        your "pythonObject" transformation will be updated based on your every geoms.
-        Pass it only when creating the main geom.
-    '''
-    def __init__(self, world, space, pythonObject=None, collObj=None,
-                       density=0, surfaceFriction=0, noColl_ID=None,name='unamed'):
-        if pythonObject==None:
-           obj=collObj
-        else:
-           obj=pythonObject
-           if collObj==None:
-              collObj=pythonObject
-
-        OdeObject.__init__(self)
-        boundingBox=self.getOBB(collObj)
-        # capsule's radius is half of the smallest bound
-        radius=.5*min(*boundingBox)
-        # capsule's length is the largest bound and without the half sphere caps
-        length=max(*boundingBox)-2.*radius
-        # find which direction is the capsule's long axis (x=1, y=2, z=3)
-        for b in range(len(boundingBox)):
-            if boundingBox[b]==max(*boundingBox):
-               longAxis=b+1
-               break
-
-        self.name =name
-        self.geom = OdeCappedCylinderGeom(space, radius, length)
-        if density:  # create body if the object is dynamic, otherwise don't
-           self.body = OdeBody(world)
-           M = OdeMass()
-           M.setCapsule(density, direction=longAxis, radius=radius, length=length)
-           self.body.setMass(M)
-           self.geom.setBody(self.body)
-        # synchronize ODE geom's transformation according to the real object's
-        self.geom.setPosition(collObj.getPos(render))
-        self.geom.setQuaternion(collObj.getQuat(render))
-        # store object's properties
-        self.storeProps(pythonObject, density, surfaceFriction, noColl_ID)
-
-
-class PhysicsTrimesh(OdeObject):
-    ''' An easy setup for creating ode.GeomTriMesh and it's body.
-
-        Pass any nodepath as "collObj", all geometries' polygons under that node will be sent to ODE,
-        including the current transformation (position, rotation, scale), except shear.
-        If not given, your "pythonObject" will be used.
-
-        You can also set the object's mass density and surfaceFriction coefficient (mu),
-        set density=0 to set the object as a static object, or
-        setting it larger than 0 will automatically set the object as a dynamic one.
-    '''
-    def __init__(self, world, space, pythonObject, collObj=None, density=0, surfaceFriction=0, showCollObj=0, noColl_ID=None,name='unamed'):
-        if collObj==None:
-           collObj=pythonObject
-        # find any geomnode under the given node
-        geomList=collObj.findAllMatches('**/+GeomNode').asList()
-        if not geomList:
-           geomList.append(collObj)
-        OdeObject.__init__(self)
-        self.name =name
-        # get the node's scale to preserve it
-        meshScale=collObj.getScale(render)
-        collNumVtx=0
-        collnumface=0
-        # dictionary to keep the overall vertex data length before appending the new data
-        vDataStart={}
-        # list for the vertices
-        collVertices=[]
-        # list for the vertices index
-        collFaces=[]
-
-        # append all vertex data into a complete list
-        for collGeom in geomList:
-            for gIdx in range(collGeom.node().getNumGeoms()):
-                currentGeom=collGeom.node().getGeom(gIdx)
-                collVtxData=currentGeom.getVertexData()
-                numVtx=collVtxData.getNumRows()
-                # append the current vertex data, IF it hasn't been added to the list,
-                # otherwise, don't add it again, to avoid duplicated vertex data,
-                # which may be shared by several geoms
-                if not vDataStart.has_key(collVtxData):
-                   # store the number of the collected vertices so far,
-                   # to mark the index start for the next vertex data
-                   vDataStart[collVtxData]=collNumVtx
-                   # create vertex reader
-                   collvtxreader=GeomVertexReader(collVtxData)
-                   # set the start position for reading the vertices,
-                   # begin reading at column 0, which is the vertex position
-                   collvtxreader.setColumn(0)
-                   # begin reading at vertex 0
-                   collvtxreader.setRow(0)
-                   for i in range(numVtx):
-                       # respect each geomNode's transformation which may be exist
-                       vtx=collObj.getRelativePoint(collGeom,collvtxreader.getData3f())
-                       # synchronize TriMesh to the current scale of the collision mesh
-                       vtx1=vtx[0]*meshScale[0]
-                       vtx2=vtx[1]*meshScale[1]
-                       vtx3=vtx[2]*meshScale[2]
-                       collVertices.append((vtx1,vtx2,vtx3))
-                   # add the current collected vertices count
-                   collNumVtx+=numVtx
-
-        # storing the vertices index
-        for collGeom in geomList:
-            for gIdx in range(collGeom.node().getNumGeoms()):
-                geom=collGeom.node().getGeom(gIdx)
-                collVtxData=geom.getVertexData()
-                vDataBegin=vDataStart[collVtxData]
-                for prim in range(geom.getNumPrimitives()):
-                    # store the vertices index for each triangle
-                    collFaceData=geom.getPrimitive(prim).decompose()
-                    # get the triangle counts
-                    numface=collFaceData.getNumFaces()
-                    # get the start index of current primitive at geom's vertex data
-                    s = collFaceData.getPrimitiveStart(prim)
-                    for i in range(numface):
-                        # refer to the vertex data length list created earlier
-                        vtx1=vDataBegin+collFaceData.getVertex(s+i*3)
-                        vtx2=vDataBegin+collFaceData.getVertex(s+i*3+1)
-                        vtx3=vDataBegin+collFaceData.getVertex(s+i*3+2)
-                        collFaces.append((vtx1,vtx2,vtx3))
-                    collnumface+=numface
-
-        meshdata=OdeTriMeshData(collObj)
-        # create TriMesh data
-        ##meshdata.build(collVertices,collFaces)
-        # and pass it to ODE
-        self.geom = OdeTriMeshGeom(space,meshdata)
-
-        # create body if the object is dynamic, otherwise don't
-        if density:
-           M2 = OdeMass()
-           M2.setBox(density, 1,1,1)
-           self.body = OdeBody(world)
-           self.body.setMass(M2)
-           self.geom.setBody(self.body)
-        # store object's properties
-        self.storeProps(pythonObject, density, surfaceFriction, noColl_ID)
-
-        print '###############################'
-        print collObj
-        collObj.analyze()
-        print '--- sent to ODE ---'
-        print 'Vertices : ',collNumVtx
-        print 'Faces    : ',collnumface
-        print '###############################\n'
-
-        # originally only to debug the transfer method
-        self.visualize(collnumface)
-
-        # synchronize TriMesh to the current transformation (position & rotation) of the collision mesh
-        self.geom.setPosition(collObj.getPos(render))
-        self.geom.setQuaternion(collObj.getQuat(render))
-
-        # hide the collision geometry, if it's not the visible object
-        #if not showCollObj and collObj!=pythonObject:
-        #   collObj.hide()
-
-    def visualize(self,collnumface):
-        ''' this method creates the actual geometry succesfully sent to ODE,
-            originally only to debug the transfer method '''
-
-        return  #(step.1) create GeomVertexData and add vertex information
-        format=GeomVertexFormat.getV3()
-        vdata=GeomVertexData('vertices', format, Geom.UHStatic)
-        vertexWriter=GeomVertexWriter(vdata, 'vertex')
-        tris=GeomTriangles(Geom.UHStatic)
-
-        for i in range(collnumface):
-          vtx1,vtx2,vtx3=self.geom.getTriangle(i)
-          vertexWriter.addData3f(*vtx1)
-          vertexWriter.addData3f(*vtx2)
-          vertexWriter.addData3f(*vtx3)
-          #(step.2) make primitives and assign vertices to them
-          tris.addConsecutiveVertices(i*3,3)
-          #indicates that we have finished adding vertices for the triangle
-          tris.closePrimitive()
-
-        #(step.3) make a Geom object to hold the primitives
-        collmeshGeom=Geom(vdata)
-        collmeshGeom.addPrimitive(tris)
-        #(step.4) now put geom in a GeomNode
-        collmeshGN=GeomNode('')
-        collmeshGN.addGeom(collmeshGeom)
-
-        self.visualizer = self.pythonObject.attachNewNode(collmeshGN)
-        self.visualizer.setRenderModeWireframe(1)
-        self.visualizer.setColor(1,1,1,1)
-        scale=self.pythonObject.getScale()
-        self.visualizer.setScale(1./scale[0],1./scale[1],1./scale[2])
-        self.visualizer.setLightOff()
-        # put the axis at object's origin (represents it's center of gravity)
-        axis = loader.loadModelCopy('zup-axis')
-        axis.reparentTo(self.visualizer)
-        axis.setScale(.25)
-        
-class PhysicsCharacterController(PhysicsCapsule):
+class PhysicsCharacterController:
     """
     The Kinematic Character Controller is the feature that is the most
     painfully missing from ODE in my personal opinion.
-    
+
     Some justification for using KCC over DCC.
-    
+
     I really don't know why, but most of the ODE sources (wiki, mailing list)
     suggest that the best approach to character control with ODE is the
     dynamic controller. Since this might look like the simpler sollution
@@ -411,7 +94,7 @@ class PhysicsCharacterController(PhysicsCapsule):
     is a reason why none (as far as I'm aware) of the physics engines
     that provide character controller use dynamic objects for this
     functionality.
-    
+
     The Dynamic CC, while easy to get started with is extremelly unpredictable
     and difficult to control. As a result they don't act like a character
     capable of conscious movement. This should come as no surprise,
@@ -419,7 +102,7 @@ class PhysicsCharacterController(PhysicsCapsule):
     Thus in order to get DCC to move more "character-like" you need to
     put lots and lots of constraints on it up to the point where it becomes
     pointless to even have a body there.
-    
+
     The sollution to those problems is the Kinematic Character Controller.
     This might sound like a step backwards, because it's strictly collision
     detection based and not physics based, so at first it seems like it's place
@@ -430,25 +113,39 @@ class PhysicsCharacterController(PhysicsCapsule):
         self.worldManager = worldManager
         self.odeWorld = self.worldManager.world
         self.space = self.worldManager.space
-        
+
         """
         Here we set the capsule Geom used for collision detection during movement.
         (for damage I suggest using separate hitboxes).
-        
+
         The values here fit my needs so far but, as you can see, they're hardcoded.
         I haven't made any kind of setHeight, setRadius etc. here, because I just
         don't need that at this point, and it prooved to be a little tricky (I guess
         sizes in ODE do not follow the Panda's world when things are scaled), so at
         this point finding the right values is trial and error. Sorry.
         """
+        
         self.radius = .5
-        self.walkLength = .7
-        self.walkLevitation = 0.8 #1.5
+        self.walkLength =  2.1
+        self.walkLevitation = 2.1 
         self.crouchLength = .1
         self.crouchLevitation = 1.2
         self.length = self.walkLength
         self.levitation = self.walkLevitation
-        PhysicsCapsule.__init__(self,world=worldManager.world, space=worldManager.space, pythonObject=self, collObj=self.actor, density= 10000, noColl_ID=id(self.actor), surfaceFriction =2)
+        self.capsuleGeom = OdeCappedCylinderGeom(self.space, self.length- self.radius*2.0, self.length)
+        # TODO, create a second physics that uses the body.
+        
+        #self.cylinderNodepath = wireGeom().generate ('cylinder', radius=self.radius, length=self.length- self.radius*2.0) 
+        #self.cylinderNodepath.reparentTo(self.actor)
+        #self.capsuleGeom.setOffsetPosition(0,0,1.7)
+        
+        self.offsetVec = Vec3(0,0,-1.9)
+        import random
+        x = random.randint(0,10)
+        y = random.randint(0,10)
+        z = random.randint(5,10)
+        self.setPos(Vec3(x,y,z))
+
         """
         This is here mainly for fly-mode. but maybe I'll find other uses for this.
         Anyway, this var controls how the direction of movement is calculated.
@@ -456,7 +153,8 @@ class PhysicsCharacterController(PhysicsCapsule):
         In walking mode I set it to the capsule so that it moves in a more 2D
         matter.
         """
-        self.movementParent = self.actor
+        self.movementParent = self.capsuleGeom
+
         """
         The foot ray that's meant to control the levitation and so on.
         This is a rather typpical sollution for the "how to get character
@@ -464,26 +162,29 @@ class PhysicsCharacterController(PhysicsCapsule):
         """
         self.footRay = OdeRayGeom(self.space, 3.0)
         self.footRay.set(0, 0, 0, 0, 0, -1)
-        
+
+        self.setCollideBits(BitMask32(0x00000122))
+        self.setCategoryBits(BitMask32(0x0000111))
 
         """
         The GeomData for the character capsule.
         """
-
-        self.name = "charCapsule"
-        self.isTrigger = False
-        self.collisionCallback = self.capsuleCollision
-        self.pythonObject = self
-        self.surfaceFriction = 200.0
-        self.worldManager.addItem(self, node_path=self.actor, is_kinematic=True, collide_bits=BitMask32(0x00000122),category_bits=BitMask32(0x000111))
+        self.capsuleData = odeGeomData()
+        self.capsuleData.name = "charCapsule"
+        self.capsuleData.isTrigger = False
+        self.capsuleData.collisionCallback = self.capsuleCollision
+        self.capsuleData.pythonObject = self
+        self.capsuleData.surfaceFriction = 2.0
+        self.worldManager.setGeomData(self.capsuleGeom, self.capsuleData, self, True)
+     
         """
         The geomData for the footRay. Note that I don't set any of the
         typpically ODE stuff here (friction and the like) because it's not needed.
-        
+
         Also note that the capsule and the ray both have their own collision
         callback methods.
         """
-        footData = OdeObject()
+        footData = odeGeomData()
         footData.isTrigger = True
         footData.collisionCallback = self.footCollision
         self.worldManager.setGeomData(self.footRay, footData, None)
@@ -493,7 +194,7 @@ class PhysicsCharacterController(PhysicsCapsule):
         jumping is handled elswhere.
         """
         self.speed = [0, 0]
-        
+
         """
         The control variables for jumping and falling
         """
@@ -503,16 +204,16 @@ class PhysicsCharacterController(PhysicsCapsule):
         self.fallStartPos = 0.0
         self.fallSpeed = 0.0
         self.fallTime = 0.0
-        
+
         """
         This is used to block crouching in small spaces, so that character
         doesn't stand up inside of a ventilation shaft. Of course
         the shaft has to be "filled" with area trigger.
-        
+
         The test map has an example of how to use this.
         """
         self.crouchLock = False
-        
+
         """
         State variable to know what the character is currently doing.
         The possible values are:
@@ -522,68 +223,72 @@ class PhysicsCharacterController(PhysicsCapsule):
             - fly
         Crouching is not considered a state here, but it might be one
         in your FSM for example.
-        
+
         I don't use FSM here because it's too sophisticated for this task.
         """
         self.state = ""
-        
+
         """
         This is used to store the highest hit on the footray. It's needed
         to calculate the height we're currently on.
         """
         self.highestEntry = None
-            
+
     def setPos(self, pos):
-        self.geom.setPosition(pos)
+        self.capsuleGeom.setPosition(pos)
         self.currentPos = pos
-        
+        self.actor.setPos(pos+self.offsetVec)
+
     def setCollideBits(self, bits):
-        self.geom.setCollideBits(bits)
+        self.capsuleGeom.setCollideBits(bits)
         self.footRay.setCollideBits(bits)
-        
+
     def setCategoryBits(self, bits):
-        self.geom.setCategoryBits(bits)
+        self.capsuleGeom.setCategoryBits(bits)
         self.footRay.setCategoryBits(bits)
-    
+
+
     def setH(self, h):
         quat = self.getQuat()
         hpr = quat.getHpr()
         hpr[0] = h
         quat.setHpr(hpr)
+        self.actor.setHpr(hpr)
         self.setQuat(quat)
-        
+
     def setQuat(self, quat):
-        self.geom.setQuaternion(Quat(quat))
-        
+        self.actor.setQuat(Quat(quat))
+        self.capsuleGeom.setQuaternion(Quat(quat))
+
     def getQuat(self):
-        return self.geom.getQuaternion()
-        
+        return self.capsuleGeom.getQuaternion()
+
     def crouch(self):
         self.levitation = self.crouchLevitation
-        self.geom.setParams(self.radius, self.crouchLength)
+        self.capsuleGeom.setParams(self.radius, self.crouchLength)
         return True
-        
+
     def crouchStop(self):
         if self.crouchLock:
             return False
         self.levitation = self.walkLevitation
-        self.geom.setParams(self.radius, self.walkLength)
+        self.capsuleGeom.setParams(self.radius, self.walkLength)
         return True
-        
+
     def capsuleCollision(self, entry, geom1Data, geom2Data):
         """
         The character's Capsule Collision callback.
         """
         if not entry.getNumContacts() or geom1Data.isTrigger or geom2Data.isTrigger:
             return
-        
+
         """
         In the previous version of this code I've used forces to push bodies around,
         but I've found it to be not needed. And it gave worse results.
         Now, for bodies, I relly on ODE's internal systems, that are meant
         to stop bodies from penetrating static (or in this case kinematic,
         but for ODE it's the same) objects.
-        
+
         However, we still need to handle collisions between the character
         and the static environment or other kinematic objects (such as door).
         """
@@ -599,15 +304,15 @@ class PhysicsCharacterController(PhysicsCapsule):
                 geom = entry.getContactGeom(i)
                 depth = geom.getDepth()
                 normal = geom.getNormal()
-                
+
                 """
                 Move the character away from the object it collides with to prevent
                 penetrating it. ODE itself won't do that because the capsule
                 is not a body.
-                
+
                 I move it slightly less than the returned penetration depth because
                 I found the character to shake less this way.
-                
+
                 Note that the direction of movement is dependant on which object
                 in the collision process our character happens to be.
                 """
@@ -617,17 +322,17 @@ class PhysicsCharacterController(PhysicsCapsule):
                 else:
                     for i in range(3):
                         self.currentPos[i] -= depth * 0.8 * normal[i]
-            
+
             """
             This prevents the character from penetrating ceilings that are
             lower than the character's maximum jump height.
             """
             if normal[2] == -1 and self.state == "jumping":
-                self.fallStartPos = self.geom.getPosition()[2]
+                self.fallStartPos = self.capsuleGeom.getPosition()[2]
                 self.fallSpeed = 0.0
                 self.fallTime = 0.0
                 self.state = "falling"
-                
+
     def footCollision(self, entry, geom1Data, geom2Data):
         """
         Here we handle the collisions that the foot ray participates in.
@@ -636,60 +341,69 @@ class PhysicsCharacterController(PhysicsCapsule):
         """
         if not entry.getNumContacts():
             return
-        if entry.getGeom1() == self.geom or entry.getGeom2() == self.geom:
+        if entry.getGeom1() == self.capsuleGeom or entry.getGeom2() == self.capsuleGeom:
             return
         if self.highestEntry is None or (entry.getContactPoint(0)[2] > self.highestEntry.getContactPoint(0)[2]):
             self.highestEntry = entry
-                
+
     def update(self, stepSize):
         """
         Find out how hight above the ground (directly beneath us) we are.
         """
         height = None
         if self.highestEntry is not None:
-            height = self.geom.getPosition()[2] - self.highestEntry.getContactPoint(0)[2]
-            
+            height = self.capsuleGeom.getPosition()[2] - self.highestEntry.getContactPoint(0)[2]
+
         """
         This will become the new position for our character.
         """
-        newPos = self.actor.getPos()
+        newPos = self.currentPos
+
         """
         If the state is fly that means we're in the fly mode so everything releated to
         walking is irrelevant
         """
         if self.state == "fly" :
             pass
-            
+
         elif self.state == "jumping":
+            print "jumping"
             newPos[2] = self.processJump(newPos, stepSize, self.highestEntry)
-        
+            self.speed = [0,0]
+
         elif height is None:
             """
             Height is None when we're too high for the foot ray to have anything to collide with.
             That means we have to fall.
             """
+            #print "height 1"
             newPos = self.fall(newPos, stepSize, self.highestEntry)
-            
+
         elif height > self.levitation + 0.01 and height < self.levitation + 0.65 and self.state == "ground":
+            #print "height 2"
             """
             This means we're walking down stairs.
             Step walking is kinda harsh and I know that. It's fine with me, but I might still try
             to do something about it in the future.
             """
             newPos = self.stickToGround(newPos, stepSize, self.highestEntry)
-        
+
         elif height > self.levitation + 0.01:
+            #print "height 3 ", self.levitation+0.01, height
             """
             We're falling but we're low enough for the ray to collide with the ground.
             """
             newPos = self.fall(newPos, stepSize, self.highestEntry)
-            
+
         elif height <= self.levitation + 0.01:
-            """
+            #print "height 4 ", self.levitation+0.01, height
+            #print "height 4"
+
+            """"
             This means we're walking up stairs.
             """
             newPos = self.stickToGround(newPos, stepSize, self.highestEntry)
-        
+
         """
         Calculate the walking.
         """
@@ -704,43 +418,44 @@ class PhysicsCharacterController(PhysicsCapsule):
         """
         speedVec = quat.xform(speedVec)
         newPos += speedVec
-        
+
         """
         Finish and set the positions of everything
-        """    
-        self.actor.setPos(newPos)
-        self.geom.setPosition(newPos)
+        """
+        self.currentPos = newPos
+        self.capsuleGeom.setPosition(newPos)
+        self.actor.setPos(newPos+self.offsetVec)
         rayPos = Vec3(newPos)
         rayPos[2] -= self.length/2
         self.footRay.setPosition(rayPos)
         npPos = Vec3(newPos)
         npPos[2] -= self.levitation + 0.15
-        
+
         """
         And clean the highest entry.
         """
         self.highestEntry = None
-        
+
     def processJump(self, newPos, stepSize, highestEntry):
         """
         Time elapsed since the beginning of the jump
         """
         self.jumpTime += stepSize
-        
+
         """
         Fall speed might be used to calculate how hard we hit the ground
         for character health.
         """
         self.fallSpeed = self.jumpSpeed*self.jumpTime + (-9.81)*(self.jumpTime)**2
-        
+
         np = self.jumpStartPos + self.fallSpeed
-        
+
         if highestEntry and np <= highestEntry.getContactPoint(0)[2] + self.levitation:
             self.state = "ground"
             return highestEntry.getContactPoint(0)[2] + self.levitation
-        
+
         return np
-        
+
     def stickToGround(self, newPos, stepSize, highestEntry):
         """
         If fallSpeed is set that means it's the first call of stickToGround since
@@ -750,25 +465,25 @@ class PhysicsCharacterController(PhysicsCapsule):
         if self.fallSpeed:
             self.fallCallback(self.fallSpeed)
         self.fallSpeed = 0.0
-        
+
         """
         Make sure the state is set correctly
         """
         self.state = "ground"
-        
+
         """
         Levitate the capsule
         """
         newPos[2] = highestEntry.getContactPoint(0)[2] + self.levitation
         return newPos
-        
+
     def fall(self, newPos, stepSize, highestEntry):
         if self.state != "falling":
             """
             This means we've just started to fall.
             Let's reset everything.
             """
-            self.fallStartPos = self.geom.getPosition()[2]
+            self.fallStartPos = self.capsuleGeom.getPosition()[2]
             self.fallSpeed = 0.0
             self.fallTime = 0.0
             self.state = "falling"
@@ -780,22 +495,23 @@ class PhysicsCharacterController(PhysicsCapsule):
             self.fallSpeed = (-9.81)*(self.fallTime)**2
         newPos[2] = self.fallStartPos + self.fallSpeed
         return newPos
-        
+
     def fallCallback(self, speed):
         print "A character has hit the ground with speed:", speed
-        
+
     def setSpeed(self, x, y):
         self.speed[0] = x
         self.speed[1] = y
-        
+
     def jump(self):
         """
         Start a jump
         """
+        print "UMPING", self.state
         if self.state != "ground":
             return
         self.jumpSpeed = 8.0
-        self.jumpStartPos = self.geom.getPosition()[2]
+        self.jumpStartPos = self.capsuleGeom.getPosition()[2]
         self.jumpTime = 0.0
         self.state = "jumping"
 
@@ -803,15 +519,15 @@ class PhysicsCharacterController(PhysicsCapsule):
 class odeTrigger:
     """
     The trigger mechanics for ODE.
-    
+
     The way it works is very simple. It has a list of the geoms
     that were there inside the trigger in the last update pass.
     This is the self.oldGeoms.
-    
+
     On the other hand it has a list of the geoms that collide
     in this pass for the first time.
     That's the self.newGeoms.
-    
+
     In every pass it compares the two lists. If something is
     in the self.newGeoms but not in self.oldGeoms that means
     this geom has just entered the trigger in this pass.
@@ -825,7 +541,7 @@ class odeTrigger:
         self.oldGeoms = []
         self.newGeoms = []
         self.transGeoms = []
-        
+
     def handleCollision(self, entry, geom1Data, geom2Data):
         if entry.getGeom1() == self.triggerGeom:
             geom = entry.getGeom2()
@@ -833,10 +549,10 @@ class odeTrigger:
             geom = entry.getGeom1()
         else:
             return
-        
+
         if geom not in self.newGeoms:
             self.newGeoms.append(geom)
-        
+
     def update(self, stepSize):
         for geom in self.newGeoms:
             if geom not in self.oldGeoms:
@@ -844,10 +560,10 @@ class odeTrigger:
         for geom in self.oldGeoms:
             if geom not in self.newGeoms:
                 messenger.send(self.triggerMessage+"_exit", [geom])
-                
+
         self.oldGeoms = list(self.newGeoms)
         self.newGeoms = []
-        
+
 
 class PhysicsWorldManager:
     """
@@ -858,15 +574,15 @@ class PhysicsWorldManager:
     def __init__(self):
         self.world = OdeWorld()
         self.world.setGravity(0, 0, -9.81)
-        
+
         self.timeAccu = 0.0
-        
+
         """
         The list of odeGeomData objects.
         More on this later.
         """
         self.geomsData = []
-        
+
         """
         Standard ODE setup
         """
@@ -874,21 +590,19 @@ class PhysicsWorldManager:
         self.space = OdeSimpleSpace()
         self.raySpace = OdeSimpleSpace()
         self.stepSize = 0.01
-        #self.world.setContactSurfaceLayer(.0001)
-        #self.floor = OdePlaneGeom(self.space, Vec4(0, 0, 0.5,0))
-        
+
         """
         This dictionary and list contain two, very different, types of objects.
         I will explain later what one is a dict and the other is a list.
         """
         self.dynamics = {}
         self.kinematics = []
-    
+
     def collideSelected(self, selected, exclude=[]):
         """
         A convenience method for colliding only one object with the rest
         instead of running the whole collision test on the whole space.
-        
+
         You can also exclude certain objects from the test.
         """
         entries = []
@@ -902,7 +616,7 @@ class PhysicsWorldManager:
             if entry.getNumContacts():
                 entries.append(entry)
         return entries
-    
+
     def doRaycast(self, ray, exclude=[]):
         """
         Similar to the above, but only for rays and I also sort the hits myself here.
@@ -926,7 +640,7 @@ class PhysicsWorldManager:
                     closestEntry = entry
                     closestGeom = geom
         return (closestEntry, closestGeom)
-    
+
     def getGeomData(self, geom):
         """
         Get the odeGeomData object associated with this geom.
@@ -938,54 +652,58 @@ class PhysicsWorldManager:
             return self.geomsData[idx]
         except IndexError:
             return None
-    
+
     def handleCollisions(self, arg, geom1, geom2):
         """
         A more flexible replacement for autoCollide.
         """
         entry = OdeUtil.collide(geom1, geom2)
-        
+
         if entry.isEmpty():
             return
-        
+
         geom1Data = self.getGeomData(geom1)
         geom2Data = self.getGeomData(geom2)
+        
+
         if geom1Data.isTrigger and geom2Data.isTrigger:
             """
             Detecting a collision between two area triggers would be a little pointless
             """
             return
-        
+
         if not geom1Data.isTrigger and not geom2Data.isTrigger:
             """
             Handle a typpical collision between two geoms of which none is a trigger.
             Create contact joint and the rest of the standard ODE stuff.
             """
             surfaceParams = OdeSurfaceParameters()
+
             surfaceParams.setMu(geom2Data.surfaceFriction)
             surfaceParams.setMu2(geom1Data.surfaceFriction)
-            surfaceParams.setSoftErp(geom1Data.surfaceSoftERP)
-            surfaceParams.setSoftCfm(geom1Data.surfaceSoftCFM)
             surfaceParams.setBounce(geom1Data.surfaceBounce)
             surfaceParams.setBounceVel(geom1Data.surfaceBounceVel)
             surfaceParams.setSlip1(geom1Data.surfaceSlip)
             surfaceParams.setSlip2(geom2Data.surfaceSlip)
+
             numContacts = entry.getNumContacts()
             if numContacts > 4:
                 numContacts = 4
             for i in range(numContacts):
+                if (geom1Data.name == "ground" or geom1Data.name == "door") and geom2Data.name == "ground": continue
                 cgeom = entry.getContactGeom(i)
-                
+
                 contactPoint = entry.getContactPoint(i)
-                
+
                 contact = OdeContact()
                 contact.setGeom(cgeom)
                 contact.setFdir1(cgeom.getNormal())
                 contact.setSurface(surfaceParams)
-                
+                #debug()
+                print "Contact between ", geom1.getBody(), geom2.getBody(), geom1Data.name, geom2Data.name
                 contactJoint = OdeContactJoint(self.world, self.contactGroup, contact)
                 contactJoint.attach(geom1.getBody(), geom2.getBody())
-        
+
         """
         Collision callbacks for both objects
         Note that I also send the geomXData so the collisionCallback method must take 3 arguments.
@@ -994,57 +712,50 @@ class PhysicsWorldManager:
         """
         if geom1Data.collisionCallback is not None:
             geom1Data.collisionCallback(entry, geom1Data, geom2Data)
-        
+
         if geom2Data.collisionCallback is not None:
             geom2Data.collisionCallback(entry, geom1Data, geom2Data)
 
-
-    def addItem(self, object, node_path=None, is_kinematic=False, collide_bits=BitMask32(0x00000021),category_bits=BitMask32(0x00000012)):
-        object.geom.setCollideBits(collide_bits)
-        object.geom.setCategoryBits(category_bits)
-        self.setGeomData(object.geom, object, node_path, is_kinematic)
-        
-    def setGeomData(self, geom, data, node_path=None, is_kinematic=False):
+    def setGeomData(self, geom, data, object=None, kinematic=False):
         """
         A very important method. It's used for adding objects to the simulation
         so that they can benefit from the odeWorldManager features.
         """
-
         if data not in self.geomsData:
             """
             The data might be reused, so it's only added
             when it's not already in the list
             """
             self.geomsData.append(data)
-            
+
         index = self.geomsData.index(data)
         """
         I use the OdeSpace's setSurfaceType to hold information about
         which geomData this specific geom uses.
         """
         self.space.setSurfaceType(geom, index)
-        
+
         """
         Here you set how the object is meant to be handled in
         the simulation update task.
-        
+
         For dynamic objects there is a dictionary of OdeGeom: NodePath
         form, because their updating is simply updating the pos
         and quat of the node path to track the geom.
-        
+
         For kinematics there is a list, because there's only one
         value to store - the python object with an self.update(...)
         method. Kinematic objects can be updated in a variaty of ways
         depending on the need, so all the world manager cares about
         is whether they have the update method.
         """
-        if not is_kinematic:
-            if node_path is None:
-                return
-            self.dynamics[data] = node_path
-        elif is_kinematic:
-            self.kinematics.append(data)
-            
+        if object is None:
+            return
+        elif not kinematic:
+            self.dynamics[geom] = object
+        elif kinematic:
+            self.kinematics.append(object)
+
     def destroyObject(self, objectToRemove):
         """
         Automatically destroy object and remove it from the worldManager
@@ -1058,7 +769,7 @@ class PhysicsWorldManager:
             self.kinematics.pop(idx)
             return True
         return False
-        
+
     def simulationTask(self, task):
         """
         As you can see, I do not use autoCollide here at all.
@@ -1066,13 +777,13 @@ class PhysicsWorldManager:
         it to the handleCollisions callback.
         """
         self.space.collide("", self.handleCollisions)
-        
+
         """
         And here we update the objects that take part in the simulation.
         """
         self.world.quickStep(self.stepSize)
         self.contactGroup.empty()
-        
+
         for object in self.kinematics:
             """
             All kinematic objects (such as the KCC or, for example, door)
@@ -1080,31 +791,155 @@ class PhysicsWorldManager:
             inside that method is only up to you as the codder, the update
             method is the only requirement.
             """
-            object.pythonObject.update(self.stepSize)
-        
+            object.update(self.stepSize)
+
         for geom, nodePath in self.dynamics.iteritems():
             """
-            The dynamic objects are updated in a more standard way, 
+            The dynamic objects are updated in a more standard way,
             by setting the nodePath's position and rotation to the one
             of the geom, and thus of the body.
             """
-            print "Node Path", geom.name, nodePath
             if not nodePath:
                 continue
             pos = Vec3(geom.getPosition())
             quat = Quat(geom.getQuaternion())
             nodePath.setPosQuat(render, pos, quat)
         return task.again
-        
+
+    def setupGround(self, isisworld):
+        cm = CardMaker("ground")
+        groundTexture = loader.loadTexture("./textures/env_ground.jpg")
+        cm.setFrame(-100, 100, -100, 100)
+        groundNP = render.attachNewNode(cm.generate())
+        groundNP.setTexture(groundTexture)
+        groundNP.setPosHpr(0, 0, 0.0, 0, 0, 0)
+        groundNP.lookAt(0, 0, -1)
+        #groundNP.setTransparency(TransparencyAttrib.MAlpha)
+        groundGeom = OdePlaneGeom(self.space, Vec4(0, 0, 1, 0))
+        groundGeom.setCollideBits(FLOORMASK)
+        groundGeom.setCategoryBits(FLOORMASK)
+        groundData = odeGeomData()
+        groundData.name = "ground"
+        groundData.surfaceFriction = 2.0
+        self.setGeomData(groundGeom, groundData, None)
+        """
+        Get the map's panda node. This will allow us to find the objects
+        that the map consists of.
+        """
+        isisworld.map = loader.loadModel("./models3/kitchen")
+        isisworld.map.reparentTo(render)
+        #isisworld.map.hide()
+        isisworld.mapNode = isisworld.map.find("-PandaNode")
+        isisworld.room = isisworld.mapNode.find("Wall")
+        #self.worldManager.addItem(PhysicsTrimesh(name="Wall",world=self.worldManager.world, space=self.worldManager.space,pythonObject=self.room,density=800,surfaceFriction=10),False)
+        #self.map.node().setIntoCollideMask(WALLMASK)
+
+        roomGeomData = OdeTriMeshData(isisworld.room, True)
+        roomGeom = OdeTriMeshGeom(self.space, roomGeomData)
+        roomGeom.setPosition(isisworld.room.getPos(render))
+        roomGeom.setQuaternion(isisworld.room.getQuat(render))
+        self.setGeomData(roomGeom, groundData, None)
+
+        isisworld.steps = isisworld.mapNode.find("Steps")
+        stepsGeomData = OdeTriMeshData(isisworld.steps, True)
+        stepsGeom = OdeTriMeshGeom(self.space, stepsGeomData)
+        stepsGeom.setPosition(isisworld.steps.getPos(render))
+        self.setGeomData(stepsGeom, groundData, None)
+
+        """
+        Steps is yet another part of the map.
+        Meant, obviously, to demonstrate the ability to climb stairs.
+        """
+        isisworld.steps = isisworld.mapNode.find("Steps")
+        isisworld.map.flattenLight()
+        isisworld.steps.flattenLight()
+        isisworld.room.flattenLight()
+        #self.map.flattenStrong()
+
+
+
     def startPhysics(self, stepSize=1.0/100.0):
         """
         Here's another thing that's different than in the Panda Manual.
         I don't use the time accumulator to make the simulation run
         with a fixed time step, but instead I use the doMethodLater with
         task.again as the return value in self.simulationTask.
-        
+
         This gave me better results than using the time accumulator method.
         """
         self.stepSize = stepSize
         taskMgr.doMethodLater(stepSize, self.simulationTask, "ODE_simulationTask")
 
+class explosion:
+    """
+    Explosion mechanics for ODE.
+
+    To use it, just do:
+
+    explosion(worldManager, Vec3(...))
+
+    It will destroy itself once it's done.
+
+    TODO - Explain more and make an example on the map
+    """
+    def __init__(self, worldManager, pos):
+        self.worldManager = worldManager
+        self.odeWorld = self.worldManager.world
+        self.space = self.worldManager.space
+
+        self.timeElapsed = 0.0
+        self.speed = 2000.0
+        self.force = 150.0
+        self.currentForce = 0.0
+        self.radius = 0.0
+
+        self.collisions = []
+
+        sphereData = odeGeomData()
+        sphereData.name = "explosion"
+        sphereData.isTrigger = True
+        sphereData.collisionCallback = self.handleCollision
+
+        self.sphere = OdeSphereGeom(self.worldManager.space, 0.0)
+        self.sphere.setPosition(pos)
+
+        self.worldManager.setGeomData(self.sphere, sphereData, self, True)
+
+    def handleCollision(self, entry, geom1Data, geom2Data):
+        if entry.getGeom1() == self.sphere:
+            geom = entry.getGeom2()
+            geomData = geom2Data
+        elif entry.getGeom2() == self.sphere:
+            geom = entry.getGeom1()
+            geomData = geom1Data
+        else:
+            return
+        self.collisions.append([geom, entry.getContactGeom(0).getNormal(), entry.getContactPoint(0), geomData])
+
+    def update(self, timeStep):
+        self.timeElapsed += timeStep
+        print "T", self.timeElapsed
+        if self.timeElapsed > .1:
+            self.worldManager.destroyObject(self)
+            self.sphere.destroy()
+            return
+
+        force = self.force - self.sphere.getRadius()/10.0
+        print "F", force
+
+        for geom, normal, point, geomData in self.collisions:
+            if geom.hasBody():
+                #forceVector = (geom.getPosition() - self.sphere.getPosition()) * force
+                forceVector = -normal * force
+                geom.getBody().addForceAtPos(forceVector, point)
+                print "force vector", forceVector
+                if geomData.damageCallback:
+                    geomData.damageCallback(100.0)
+
+        self.radius += self.speed * self.timeElapsed**2
+        print "R", self.radius
+        self.sphere.setRadius(self.radius)
+
+        print "\n"
+
+        self.collisions = []

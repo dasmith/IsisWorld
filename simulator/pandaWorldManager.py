@@ -22,7 +22,7 @@ class PhysicsCharacterController(object):
         offsetNodeTwo = [x,0+y,1.6+z,0.5]
         # collision tubes have not been written as good FROM collidemasks
         # to make the person tall, but not wide we use three collisionspheres
-        centerHeight = 1
+        centerHeight = 0.8
         self.avatarViscosity = 0
         self.cNode = CollisionNode('collisionNode')
         self.cNode.addSolid(CollisionSphere(0.0, 0.0, centerHeight, self.avatarRadius))
@@ -34,20 +34,20 @@ class PhysicsCharacterController(object):
         self.cNodePath.show()
         self.priorParent, self.actorNodePath, self.acForce = worldManager.addActorPhysics(self)
 
-def getorientedboundingbox(collobj):
+def getOrientedBoundedBox(collobj):
     ''' get the oriented bounding box '''
     # save object's parent and transformation
-    parent=collobj.getparent()
-    trans=collobj.gettransform()
+    parent=collobj.getParent()
+    trans=collobj.getTransform()
     # ode need everything in world's coordinate space,
     # so bring the object directly under render, but keep the transformation
-    collobj.wrtreparentto(render)
+    collobj.wrtParentTo(render)
     # get the tight bounds before any rotation
     collobj.sethpr(0,0,0)
-    bounds=collobj.gettightbounds()
+    bounds=collobj.getTightBounds()
     # bring object to it's parent and restore it's transformation
-    collobj.reparentto(parent)
-    collobj.settransform(trans)
+    collobj.reparentTo(parent)
+    collobj.settransForm(trans)
     # (max - min) bounds
     box=bounds[1]-bounds[0]
     return [box[0],box[1],box[2]]

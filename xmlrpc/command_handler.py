@@ -10,7 +10,7 @@ class Command_Handler(object):
 
     def __init__(self, simulator):
         self.simulator = simulator
-        self.meta_commands  = ['meta_step','meta_pause','meta_list_actions','step_simulation','sense']
+        self.meta_commands  = ['meta_step','meta_pause','meta_list_actions','step_simulation']
 
     def command_handler(self,cmd,args={}):
         '''
@@ -47,9 +47,15 @@ class Command_Handler(object):
             # not a meta command and agent_to_control is defined
             # TODO: check to see if proper keys are defined for the given command
             return self._relayAgentControl(agent_to_control,cmd,args)
-        elif cmd == 'sense':
-            return self._handle_perception(agent_to_control)
-        elif cmd == 'meta_step' or cmd == 'step_simulation':
+        elif cmd == 'meta_step':
+            seconds = 0.05
+            print "stepping simulator"
+            if args.has_key('seconds'):
+                seconds = args['seconds']
+            self.simulator.step_simulation(seconds)
+            return 'success'            
+        elif cmd == 'step_simulation':
+            print "WARNING, the step_simulation command will soon be deprecated. use 'meta_step' instead"
             seconds = 0.05
             print "stepping simulator"
             if args.has_key('seconds'):
@@ -64,26 +70,17 @@ class Command_Handler(object):
         else:
             raise "Undefined meta command: %s" % cmd
 
-    def _handle_perception(self, agent_to_control, *args):
-        """ perceives the world, returns percepts dict """
-        percepts = dict()
-        # eyes: visual matricies
-        percepts['vision'] = self.simulator.get_agent_vision(agent_to_control)
-        # objects in purview (cheating object recognition)
-        percepts['objects'] = self.simulator.get_objects(agent_to_control)
-        # global position in environment - our robots can have GPS :)
-        percepts['position'] = self.simulator.get_agent_position(agent_to_control)
-        # language: get last utterances that were typed
-        percepts['language'] = self.simulator.get_utterances()
-        return percepts
-
     
     def _relayAgentControl(self, agentID, command, args):
         fullCmd = self.simulator.actionController.actionMap[command]
         return self.simulator.actionController.makeAgentDo(self.simulator.agents[agentID], fullCmd, args)
 
 
+
     #obsolete cruft
+    def _handle_perception(self,args):
+        raise NotImplementedError, "_handle_perception has moved to Ralph.control__sense"
+    
     def handle_move_action(self,args):
         raise NotImplementedError, "handle_move_action through xmlrpc not implemented"
 

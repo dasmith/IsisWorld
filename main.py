@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+
+
 """ IsisWorld is a simulated world for testing commonsense reasoning systems
 
 For more details, see: http://mmp.mit.edu/isisworld/
@@ -15,7 +17,7 @@ aux-display tinydisplay
 winow-title "IsisWorld"
 win-size 800 600
 clock-mode limited
-clock-frame-rate %i
+#clock-frame-rate %i
 textures-power-2 none 
 basic-shaders-only f""" % FRAME_RATE )
 
@@ -23,7 +25,7 @@ from direct.showbase.ShowBase import ShowBase
 from direct.gui.OnscreenText import OnscreenText
 from direct.task import Task, TaskManagerGlobal
 from direct.filter.CommonFilters import CommonFilters 
-from direct.gui.DirectGui import DirectEntry
+from direct.gui.DirectGui import DirectEntry, DirectButton
 from direct.showbase.DirectObject import DirectObject
 from pandac.PandaModules import *
 
@@ -64,14 +66,16 @@ class IsisWorld(ShowBase):
         # load the objects into the world
         self.setupEnvironment(debug=False)
         self.worldObjects = {}
-        #self.worldObjects.update(load_objects_in_world(self.worldManager,render, self.worldObjects))
+        #self.worldObjects.update(load_objects_in_world(self.physicsManager,render, self.worldObjects))
         # start physics manager
+
+        self.inspectState = False
         # this is defined in simulator/physics.py
-        self.worldManager = PhysicsWorldManager()
+        self.physicsManager = PhysicsWorldManager()
         # setup components
         self.setupMap()
         self.setupLights()
-        self.worldManager.startPhysics()
+        self.physicsManager.startPhysics()
         self.setupAgent()
         self.setupCameras()
         base.taskMgr.add(self.floating_camera.update_camera, 'update_camera')
@@ -107,89 +111,75 @@ class IsisWorld(ShowBase):
               
  
     def setupMap(self):
-	""" The map consists of a plane, the "ground" that stretches to infinity
-	and a dome, the "sky" that sits concavely on the ground.
+        """ The map consists of a plane, the "ground" that stretches to infinity
+        and a dome, the "sky" that sits concavely on the ground.
 
-	For the ground component, a separate physics module must be created 
-	so that the characters and objects do not fall through it.
+        For the ground component, a separate physics module must be created 
+        so that the characters and objects do not fall through it.
 
-	This is done by calling the physics module:  physicsModule.setupGround()"""
-        cm = CardMaker("ground")
-        groundTexture = loader.loadTexture("./textures/env_ground.jpg")
-        cm.setFrame(-100, 100, -100, 100)
-        groundNP = render.attachNewNode(cm.generate())
-        groundNP.setTexture(groundTexture)
-        groundNP.setPos(0, 0, 0)
-        groundNP.lookAt(0, 0, -1)
-        groundNP.setTransparency(TransparencyAttrib.MAlpha)
-
-        # TODO: make sky inverted cylinder?
-        self.worldManager.setupGround(groundNP)
-        self.skydomeNP = SkyDome2(render)
-        self.skydomeNP.setStandardControl()
-        self.skydomeNP.att_skycolor.setColor(Vec4(0.3,0.3,0.3,1))
-        self.skydomeNP.setPos(Vec3(0,0,-500))
-        def timeUpdated(task):
-            self.skydomeNP.skybox.setShaderInput('time', task.time)
-            return task.cont
-        taskMgr.add(timeUpdated, "timeUpdated")
-
+        This is done by calling the physics module:  physicsModule.setupGround()"""
+        # parameters
+        self.visualizeClouds = True 
+        
+        self.mapNode = None
+        self.map = None
+        self.room = None
+        self.door = None
+        self.doorNP = None
+        
+        self.physicsManager.setupGround(self)
         """
-        Get the map's panda node. This will allow us to find the objects
-        that the map consists of.
-        """
-        self.map = loader.loadModel("./models3/kitchen")
-        self.map.reparentTo(render)
-        self.mapNode = self.map.find("-PandaNode")
-        self.room = self.mapNode.find("Wall")
-        #self.worldManager.addItem(PhysicsTrimesh(name="Wall",world=self.worldManager.world, space=self.worldManager.space,pythonObject=self.room,density=800,surfaceFriction=10),False)
-        self.map.node().setIntoCollideMask(WALLMASK)
-
-        """
-        Load Objects from 'kitchen.isis' """
-
-        self.worldObjects.update(load_objects("kitchen.isis", self.map))
+        Load Objects from '.isis' file """
+        self.worldObjects.update(load_objects("kitchen.isis", self.map, self.physicsManager))
         for name in self.worldObjects:
-            self.worldObjects[name].flattenStrong()
-
-
-        """
-        Steps is yet another part of the map.
-        Meant, obviously, to demonstrate the ability to climb stairs.
-        """
-        self.steps = self.mapNode.find("Steps")
+          self.worldObjects[name].flattenLight()
         """
         Door functionality is also provided here.
         More on door in the appropriate file.
         """
         self.doorNP = self.mapNode.find("Door")
-        self.door = door(self.worldManager, self.doorNP)
+        self.door = door(self.physicsManager, self.doorNP)
         self.worldObjects['door'] = door
 
-        #self.map.flattenStrong()
-        self.steps.flattenStrong()
-        self.doorNP.flattenStrong()
+        """ 
+        Setup the skydome
+        """
+        """
+        Moving clouds are pretty but computationally expensive 
+        only visualize them if you have"""
+        if self.visualizeClouds: 
+            self.skydomeNP = SkyDome2(render,self.visualizeClouds)
+            self.skydomeNP.setPos(Vec3(0,0,-500))
+            self.skydomeNP.setStandardControl()
+            self.skydomeNP.att_skycolor.setColor(Vec4(0.3,0.3,0.3,1))
+            def timeUpdated(task):
+                self.skydomeNP.skybox.setShaderInput('time', task.time)
+                return task.cont
+            taskMgr.add(timeUpdated, "timeUpdated")
+        else:
+            self.skydomeNP = SkyDome1(render,self.visualizeClouds)
+
 
         
     def setupCameras(self):
         # Set up the camera 
         ### Set up displays and cameras ###
-        self.floating_camera = FloatingCamera(self.agents[self.agentNum].rootNode)
-        base.camera.reparentTo(self.agents[self.agentNum].rootNode)
+        self.floating_camera = FloatingCamera(self.agents[self.agentNum].actor)
+        base.camera.reparentTo(self.agents[self.agentNum].actor)
         # set up picture in picture
         dr = base.camNode.getDisplayRegion(0)
         aspect_ratio = 16.0 / 9.0
         window = dr.getWindow()
         pip_size = 0.40 # percentage of width of screen
-        dr_pip = window.makeDisplayRegion(1-pip_size,1,0,\
+        self.agentCamera = window.makeDisplayRegion(1-pip_size,1,0,\
              (1.0 / aspect_ratio) * float(dr.getPixelWidth())/float(dr.getPixelHeight()) * pip_size)
-        dr_pip.setCamera(self.agents[self.agentNum].fov)
-        dr_pip.setSort(dr.getSort())
-        dr_pip.setClearColor(VBase4(0, 0, 0, 1))
-        dr_pip.setClearColorActive(True)
-        dr_pip.setClearDepthActive(True)
+        self.agentCamera.setCamera(self.agents[self.agentNum].fov)
+        self.agentCamera.setSort(dr.getSort())
+        self.agentCamera.setClearColor(VBase4(0, 0, 0, 1))
+        self.agentCamera.setClearColorActive(True)
+        self.agentCamera.setClearDepthActive(True)
         #self.agent.fov.node().getLens().setAspectRatio(aspect_ratio)
-        dr_pip.setActive(1)
+        self.agentCamera.setActive(1)
 
 
     def setupLights(self):
@@ -214,9 +204,9 @@ class IsisWorld(ShowBase):
         self.agentsNamesToIDs = {'Ralph':0, 'Lauren':1, 'David':2}
         # add and initialize new agents
         for name in self.agentsNamesToIDs.keys():
-            newAgent = Ralph(base.worldManager, self, name)
+            newAgent = Ralph(base.physicsManager, self, name)
             newAgent.control__say("Hi, I'm %s. Please build me." % name)
-            taskMgr.add(newAgent.update, "updateCharacter-%s" % name)
+            #taskMgr.add(newAgent.update, "updateCharacter-%s" % name)
             self.agents.append(newAgent)
 
         
@@ -242,13 +232,13 @@ class IsisWorld(ShowBase):
         text += "\n[o] lists objects in agent's f.o.v."
         text += "\n[Esc] to quit\n"
         # initialize actions
-        self.actionController = ActionController("Version 1.0")
-        self.actionController.addAction(IsisAction(commandName="move_left",intervalAction=True,keyboardBinding="arrow_left"))
-        self.actionController.addAction(IsisAction(commandName="move_right",intervalAction=True,keyboardBinding="arrow_right"))
-        self.actionController.addAction(IsisAction(commandName="turn_left",intervalAction=True))
+        self.actionController = ActionController("Version 0.1")
+        #self.actionController.addAction(IsisAction(commandName="move_left",intervalAction=True,keyboardBinding="arrow_left"))
+        #self.actionController.addAction(IsisAction(commandName="move_right",intervalAction=True,keyboardBinding="arrow_right"))
+        #self.actionController.addAction(IsisAction(commandName="turn_left",intervalAction=True))
         #self.actionController.addAction(IsisAction(commandName="turn_right",intervalAction=True))
-        #self.actionController.addAction(IsisAction(commandName="turn_left",intervalAction=True,keyboardBinding="arrow_left"))
-        #self.actionController.addAction(IsisAction(commandName="turn_right",intervalAction=True,keyboardBinding="arrow_right"))
+        self.actionController.addAction(IsisAction(commandName="turn_left",intervalAction=True,keyboardBinding="arrow_left"))
+        self.actionController.addAction(IsisAction(commandName="turn_right",intervalAction=True,keyboardBinding="arrow_right"))
         self.actionController.addAction(IsisAction(commandName="move_forward",intervalAction=True,keyboardBinding="arrow_up"))
         self.actionController.addAction(IsisAction(commandName="move_backward",intervalAction=True,keyboardBinding="arrow_down"))
         self.actionController.addAction(IsisAction(commandName="look_right",intervalAction=True,keyboardBinding="l"))
@@ -257,6 +247,7 @@ class IsisWorld(ShowBase):
         self.actionController.addAction(IsisAction(commandName="look_down",intervalAction=True,keyboardBinding="j"))
         self.actionController.addAction(IsisAction(commandName="jump",intervalAction=False,keyboardBinding="g"))
         self.actionController.addAction(IsisAction(commandName="say",intervalAction=False))
+        self.actionController.addAction(IsisAction(commandName="sense",intervalAction=False))
         self.actionController.addAction(IsisAction(commandName="use_aimed",intervalAction=False,keyboardBinding="u"))
 
         # initialze keybindings
@@ -308,16 +299,16 @@ class IsisWorld(ShowBase):
         self.accept("f-up", self.floating_camera.setControl, ["zoom-out",  0])
         #if self.is_ralph == True:
         # control keys to move the character
-         
-
-        base.accept("o", hideText)
+        
+        b = DirectButton(pos=(-1.3,0.0,-0.95),text = ("Inspect", "click!", "rolling over", "disabled"), scale=0.05, command = self.toggleInspect)
+        #base.accept("o", toggle)
 
         # key input
         base.accept("1",               base.toggleWireframe, [])
         base.accept("2",               base.toggleTexture, [])
         base.accept("3",               changeAgent, [])
         self.accept("space",           self.step_simulation, [.1]) # argument is amount of second to advance
-        self.accept("o",               self.printObjects, []) # displays objects in field of view
+        #self.accept("o",               self.printObjects, []) # displays objects in field of view
         self.accept("p",               self.togglePaused)
         #self.accept("r",              self.reset_simulation)
         base.accept("escape",         sys.exit)
@@ -359,14 +350,31 @@ class IsisWorld(ShowBase):
             #        print (time2-time1), (time2-time1)/FRAME_RATE
             self.togglePaused()
 
+    def toggleInspect(self):
+        self.inspectState = not self.inspectState
+        print "Inspect State", self.inspectState
+        if self.inspectState:
+            self.agentCamera.setActive(0)
+            #base.camera.setPos(self.agents[self.agentNum].actor.getPos()+Vec3(2,0,0))
+            #base.camera.setHpr(0,0,0)
+            base.camera.lookAt(self.agents[self.agentNum].actor.getX(),self.agents[self.agentNum].actor.getY()+2,0)
+            active_agent = self.agents[self.agentNum].actor
+            for child in render.getChildren():
+                if child != active_agent and child.getName()[-5:] != "Light" and child.getName() != "ground": 
+                    child.hide()
+                    print child.getName()[-5:]
+                    print "removing", child
+        else:
+            for child in render.getChildren(): child.show()
+
     def togglePaused(self):
         """ by default, the simulator is unpaused/running.
         toggling it will remove each ralph's update() function
         from the task manager"""
         if (self._globalClock == None):
           print "[IsisWorld] Pausing Simulator"
-          for name in self.agentsNamesToIDs.keys():
-             taskMgr.remove("updateCharacter-%s" % name)
+          #for name in self.agentsNamesToIDs.keys():
+          #   taskMgr.remove("updateCharacter-%s" % name)
           base.disableParticles()
           self._globalClock=ClockObject.getGlobalClock()
           self._globalClock.setMode(ClockObject.MSlave)
@@ -378,80 +386,11 @@ class IsisWorld(ShowBase):
           for name,id in self.agentsNamesToIDs.items():
              anAgent = self.agents[id]
              # add task for one iteration
-             taskMgr.add(anAgent.update, "updateCharacter-step-%s" % name)
+             #taskMgr.add(anAgent.update, "updateCharacter-step-%s" % name)
           self._globalClock=None
           print "[IsisWorld] Restarting Simulator"
 
 
-    def get_agent_position(self, agent_id=None):
-        if agent_id == None:
-            agent_id = self.agentNum
-        x,y,z = self.agents[agent_id].actor.getPos()
-        h,p,r = self.agents[agent_id].actor.getHpr()
-        #FIXME
-        # neck is not positioned in Blockman nh,np,nr = self.agents[agent_id].actor_neck.getHpr()
-        left_hand_obj = "" 
-        right_hand_obj = "" 
-        if self.agents[agent_id].left_hand_holding_object:  left_hand_obj = self.agents[agent_id].left_hand_holding_object.getName()
-        if self.agents[agent_id].right_hand_holding_object: right_hand_obj = self.agents[agent_id].right_hand_holding_object.getName()
-        return {'body_x': x, 'body_y': y, 'body_z': z,'body_h':h,\
-                'body_p': p, 'body_r': r,  'in_left_hand': left_hand_obj, 'in_right_hand':right_hand_obj}
-        #'neck_h':nh,'neck_p':np,'neck_r':nr,
-
-    def get_agent_vision(self,agent_id=None):
-        if agent_id == None:
-            agent_id = self.agentNum
-        return []
-        # FIXME: this screenshot function causes a crash
-        base.win.saveScreenshot( Filename( 'driving scene 2.png' ) )
-        def make_screenshot(widthPixels=100,heightPixels=100): 
-            tex=Texture() 
-            width=widthPixels*4 
-            height=heightPixels*4
-            mybuffer=base.win.makeTextureBuffer('ScreenShotBuff',width,height,tex,True)  
-            dis = mybuffer.makeDisplayRegion()
-            cam=Camera('ScreenShotCam') 
-            cam.setLens(self.agents[self.agentNum].fov.node().getLens().makeCopy()) 
-            cam.getLens().setAspectRatio(width/height) 
-            mycamera = base.makeCamera(mybuffer,useCamera=self.agents[self.agentNum].fov) 
-            myscene = base.render 
-            dis.setCamera(self.agents[self.agentNum].fov)
-            mycamera.node().setScene(myscene) 
-            print "a" 
-            base.graphicsEngine.renderFrame() 
-            print "a" 
-            tex = mybuffer.getTexture() 
-            print "a" 
-            mybuffer.setActive(False) 
-            print "a" 
-            tex.write("screenshots/ralph_screen_"+str(time())+".jpg")
-            print "a" 
-            base.graphicsEngine.removeWindow(mybuffer)
-        # TODO: not yet implemented (needs to print out and read image from camera)
-        make_screenshot()
-        return []# str(self.agent.fov.node().getCameraMask())
-
-    def get_objects(self, agent_id=None):
-        if agent_id == None:
-            agent_id = self.agentNum
-        return self.agents[agent_id].get_objects()
-
-    def get_utterances(self):
-        """ Clear out the buffer of things that the teacher has typed,
-        FIXME: perpahs these should be timestamped if they are not 
-         at the right time? """
-        utterances = self.teacher_utterances
-        self.teacher_utterances = []
-        return utterances
-
-
-    def printObjects(self):
-        text = "Objects in FOV: "+ ", ".join(self.get_objects().keys())
-        print text
-
-
-            
-            
 
 
 w = IsisWorld()

@@ -586,12 +586,10 @@ class Ralph(PhysicsCharacterController):
         if (self.controlMap["look_left"]!=0):      
             self.player_neck.setR(bound(self.player_neck.getR(),-60,60)+1*(stepSize*50))
         if (self.controlMap["look_right"]!=0):
-            print "look right"
             self.player_neck.setR(bound(self.player_neck.getR(),-60,60)-1*(stepSize*50))
         if (self.controlMap["look_up"]!=0):
             self.player_neck.setP(bound(self.player_neck.getP(),-60,80)+1*(stepSize*50))
         if (self.controlMap["look_down"]!=0):
-            print "look down"
             self.player_neck.setP(bound(self.player_neck.getP(),-60,80)-1*(stepSize*50))
 
         if inputState.isSet("crouch") or self.crouchLock:

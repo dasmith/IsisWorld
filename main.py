@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+
+
 """ IsisWorld is a simulated world for testing commonsense reasoning systems
 
 For more details, see: http://mmp.mit.edu/isisworld/
@@ -15,7 +17,7 @@ aux-display tinydisplay
 winow-title "IsisWorld"
 win-size 800 600
 clock-mode limited
-clock-frame-rate %i
+#clock-frame-rate %i
 textures-power-2 none 
 basic-shaders-only f""" % FRAME_RATE )
 
@@ -64,14 +66,16 @@ class IsisWorld(ShowBase):
         # load the objects into the world
         self.setupEnvironment(debug=False)
         self.worldObjects = {}
-        #self.worldObjects.update(load_objects_in_world(self.worldManager,render, self.worldObjects))
+        #self.worldObjects.update(load_objects_in_world(self.physicsManager,render, self.worldObjects))
         # start physics manager
+
+        self.inspectState = False
         # this is defined in simulator/physics.py
-        self.worldManager = PhysicsWorldManager()
+        self.physicsManager = PhysicsWorldManager()
         # setup components
         self.setupMap()
         self.setupLights()
-        self.worldManager.startPhysics()
+        self.physicsManager.startPhysics()
         self.setupAgent()
         self.setupCameras()
         base.taskMgr.add(self.floating_camera.update_camera, 'update_camera')
@@ -123,19 +127,18 @@ class IsisWorld(ShowBase):
         self.door = None
         self.doorNP = None
         
-        self.worldManager.setupGround(self)
+        self.physicsManager.setupGround(self)
         """
         Load Objects from 'kitchen.isis' """
-
-        self.worldObjects.update(load_objects("kitchen.isis", self.map))
+        self.worldObjects.update(load_objects("kitchen.isis", self.map, self.physicsManager))
         for name in self.worldObjects:
-          self.worldObjects[name].flattenStrong()
+          self.worldObjects[name].flattenLight()
         """
         Door functionality is also provided here.
         More on door in the appropriate file.
         """
         self.doorNP = self.mapNode.find("Door")
-        self.door = door(self.worldManager, self.doorNP)
+        self.door = door(self.physicsManager, self.doorNP)
         self.worldObjects['door'] = door
 
         """ 
@@ -168,15 +171,15 @@ class IsisWorld(ShowBase):
         aspect_ratio = 16.0 / 9.0
         window = dr.getWindow()
         pip_size = 0.40 # percentage of width of screen
-        self.agent_camera = window.makeDisplayRegion(1-pip_size,1,0,\
+        self.agentCamera = window.makeDisplayRegion(1-pip_size,1,0,\
              (1.0 / aspect_ratio) * float(dr.getPixelWidth())/float(dr.getPixelHeight()) * pip_size)
-        self.agent_camera.setCamera(self.agents[self.agentNum].fov)
-        self.agent_camera.setSort(dr.getSort())
-        self.agent_camera.setClearColor(VBase4(0, 0, 0, 1))
-        self.agent_camera.setClearColorActive(True)
-        self.agent_camera.setClearDepthActive(True)
+        self.agentCamera.setCamera(self.agents[self.agentNum].fov)
+        self.agentCamera.setSort(dr.getSort())
+        self.agentCamera.setClearColor(VBase4(0, 0, 0, 1))
+        self.agentCamera.setClearColorActive(True)
+        self.agentCamera.setClearDepthActive(True)
         #self.agent.fov.node().getLens().setAspectRatio(aspect_ratio)
-        self.agent_camera.setActive(1)
+        self.agentCamera.setActive(1)
 
 
     def setupLights(self):
@@ -201,7 +204,7 @@ class IsisWorld(ShowBase):
         self.agentsNamesToIDs = {'Ralph':0, 'Lauren':1, 'David':2}
         # add and initialize new agents
         for name in self.agentsNamesToIDs.keys():
-            newAgent = Ralph(base.worldManager, self, name)
+            newAgent = Ralph(base.physicsManager, self, name)
             newAgent.control__say("Hi, I'm %s. Please build me." % name)
             #taskMgr.add(newAgent.update, "updateCharacter-%s" % name)
             self.agents.append(newAgent)
@@ -297,8 +300,8 @@ class IsisWorld(ShowBase):
         #if self.is_ralph == True:
         # control keys to move the character
         
-        b = DirectButton(pos=(0.2,0.3,-.5),text = ("OK", "click!", "rolling over", "disabled"), scale=0.05 )
-        base.accept("o", hideText)
+        b = DirectButton(pos=(-1.3,0.0,-0.95),text = ("Inspect", "click!", "rolling over", "disabled"), scale=0.05, command = self.toggleInspect)
+        #base.accept("o", toggle)
 
         # key input
         base.accept("1",               base.toggleWireframe, [])
@@ -346,6 +349,15 @@ class IsisWorld(ShowBase):
             #    else:
             #        print (time2-time1), (time2-time1)/FRAME_RATE
             self.togglePaused()
+
+    def toggleInspect(self):
+        self.inspectState = not self.inspectState
+        print "Inspect State", self.inspectState
+        if self.inspectState:
+            self.agentCamera.setActive(0)
+            base.camera.setPos(self.agents[self.agentNum].actor.getPos()+Vec3(3,0,0))
+            base.camera.lookAt(self.agents[self.agentNum].actor.getPos())
+
 
     def togglePaused(self):
         """ by default, the simulator is unpaused/running.

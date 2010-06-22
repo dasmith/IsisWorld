@@ -12,7 +12,7 @@ tar: *.py
 # /Developer/Panda3D/lib/direct/p3d/packp3d.py
 #panda3d makescripts/packp3d.p3d
 
-package: simulator.py
+package: main.py
 	packp3d -o isis_world.p3d  -d . -D -r ode -r morepy  -c auto_start=1
 
 panda: *.p3d
@@ -20,9 +20,13 @@ panda: *.p3d
 	wget http://runtime.panda3d.org/packp3d.p3d
 	wget http://runtime.panda3d.org/pdeploy.p3d
 
-build: 
+build: package 
 	echo "Packaging isis_world.p3d"
 	pdeploy -n isis_world -N "IsisWorld v$(SIM_VERSION)"  -l "GPL v3" -L COPYING -t width=800 -t height=600  -v $(SIM_VERSION)  -s isis_world.p3d standalone 
+
+install: package 
+	echo "Packaging isis_world.p3d"
+	pdeploy -n isis_world -N "IsisWorld v$(SIM_VERSION)"  -l "GPL v3" -P osx_i386 -L COPYING -t width=800 -t height=600  -v $(SIM_VERSION)  -s isis_world.p3d installer 
 
 mac:
 	panda3d packp3d.p3d -o isis_world.p3d  -d . -r ode -r morepy

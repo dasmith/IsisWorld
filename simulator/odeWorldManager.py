@@ -23,14 +23,12 @@ from pandac.PandaModules import *
 from direct.showbase.DirectObject import DirectObject
 from direct.showbase.InputStateGlobal import inputState
 
-from IPython.Debugger import Tracer; debug = Tracer() 
-
 FLOORMASK = BitMask32.bit(0)        
 WALLMASK = BitMask32.bit(1)
 PICKMASK = BitMask32.bit(2)
 AGENTMASK = BitMask32.bit(3)
 
-from ODEWireGeom import wireGeom 
+#from ODEWireGeom import wireGeom 
 
 class odeGeomData:
     """
@@ -129,7 +127,7 @@ class PhysicsCharacterController:
         
         self.radius = .5
         self.walkLength =  2.1
-        self.walkLevitation = 2.1
+        self.walkLevitation = 2.1 
         self.crouchLength = .1
         self.crouchLevitation = 1.2
         self.length = self.walkLength
@@ -391,14 +389,15 @@ class PhysicsCharacterController:
             newPos = self.stickToGround(newPos, stepSize, self.highestEntry)
 
         elif height > self.levitation + 0.01:
-            #print "height 3"
+            #print "height 3 ", self.levitation+0.01, height
             """
             We're falling but we're low enough for the ray to collide with the ground.
             """
             newPos = self.fall(newPos, stepSize, self.highestEntry)
 
         elif height <= self.levitation + 0.01:
-            print "height 4"
+            #print "height 4 ", self.levitation+0.01, height
+            #print "height 4"
 
             """"
             This means we're walking up stairs.
@@ -691,7 +690,7 @@ class PhysicsWorldManager:
             if numContacts > 4:
                 numContacts = 4
             for i in range(numContacts):
-                if geom1Data.name == "door" and geom2Data.name == "ground": continue
+                if (geom1Data.name == "ground" or geom1Data.name == "door") and geom2Data.name == "ground": continue
                 cgeom = entry.getContactGeom(i)
 
                 contactPoint = entry.getContactPoint(i)

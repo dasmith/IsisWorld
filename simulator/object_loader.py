@@ -10,7 +10,7 @@ def load_objects_file(file):
     return map(lambda x: x.strip(), open(file,'r').readlines())
     
 
-def load_objects(file, renderParent):
+def load_objects(file, renderParent, physicsManager):
     # add each object to the world
     generators = load_generators()
     world_objects = {}

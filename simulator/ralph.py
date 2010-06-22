@@ -584,7 +584,7 @@ class Ralph(PhysicsCharacterController):
         if (self.controlMap["move_left"]!=0):        self.speed[0] = -moveAtSpeed
         if (self.controlMap["move_right"]!=0):       self.speed[0] = moveAtSpeed
         if (self.controlMap["look_left"]!=0):      
-            self.player_neck.setH(bound(self.player_neck.getH(),-60,60)+1*(stepSize*50))
+            self.player_neck.setR(bound(self.player_neck.getR(),-60,60)+1*(stepSize*50))
         if (self.controlMap["look_right"]!=0):
             print "look right"
             self.player_neck.setR(bound(self.player_neck.getR(),-60,60)-1*(stepSize*50))

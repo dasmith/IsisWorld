@@ -130,7 +130,7 @@ class IsisWorld(ShowBase):
         self.physicsManager.setupGround(self)
         """
         Load Objects from '.isis' file """
-        self.worldObjects.update(load_objects("kitchen.isis", self.map, self.physicsManager))
+        self.worldObjects.update(load_objects("./kitchen.isis", self.map, self.physicsManager))
         for name in self.worldObjects:
           self.worldObjects[name].flattenLight()
         """

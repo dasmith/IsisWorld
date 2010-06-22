@@ -507,7 +507,6 @@ class PhysicsCharacterController:
         """
         Start a jump
         """
-        print "UMPING", self.state
         if self.state != "ground":
             return
         self.jumpSpeed = 8.0
@@ -756,6 +755,16 @@ class PhysicsWorldManager:
         elif kinematic:
             self.kinematics.append(object)
 
+    def addObject(self, objectToAdd):
+        """ Takes an IsisObject and adds it as a dynamic or kinematic 
+        object in the physics simulator """
+        objectGeomData = OdeTriMeshData(objectToAdd, True)
+        objectGeom = OdeTriMeshGeom(self.space, roomGeomData)
+        objectGeom.setPosition(objectToAdd.getPos(render))
+        objectGeom.setQuaternion(objectToAdd.getQuat(render))
+        self.setGeomData(objectGeom, objectGeomData, None)
+        return objectGeom
+
     def destroyObject(self, objectToRemove):
         """
         Automatically destroy object and remove it from the worldManager
@@ -788,7 +797,7 @@ class PhysicsWorldManager:
             """
             All kinematic objects (such as the KCC or, for example, door)
             must have an update method taking one argument. What happens
-            inside that method is only up to you as the codder, the update
+            inside that method is only up to you as the coder, the update
             method is the only requirement.
             """
             object.update(self.stepSize)
@@ -854,11 +863,10 @@ class PhysicsWorldManager:
         isisworld.map.flattenLight()
         isisworld.steps.flattenLight()
         isisworld.room.flattenLight()
-        #self.map.flattenStrong()
 
 
 
-    def startPhysics(self, stepSize=1.0/100.0):
+    def startPhysics(self, stepSize=1.0/80.0):
         """
         Here's another thing that's different than in the Panda Manual.
         I don't use the time accumulator to make the simulation run

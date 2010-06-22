@@ -43,7 +43,7 @@ def load_objects(file, renderParent, physicsManager):
                     prep = key
             print item
             if item in generators:
-                obj = generators[item].generate_instance()
+                obj = generators[item].generate_instance(physicsManager)
                 obj.setHpr(rot)
                 if prep == "on":
                     parent.putOn(obj)

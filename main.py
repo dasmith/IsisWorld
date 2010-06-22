@@ -298,7 +298,7 @@ class IsisWorld(ShowBase):
         #self.accept("o",               self.printObjects, []) # displays objects in field of view
         self.accept("p",               self.physicsManager.togglePaused)
         #self.accept("r",              self.reset_simulation)
-        base.accept("escape",         sys.exit)
+        base.accept("escape",          self.safe_shutdown)
     
         self.teacher_utterances = [] # last message typed
         # main dialogue box
@@ -363,6 +363,11 @@ class IsisWorld(ShowBase):
             if self.textObjectVisible:
                 self.toggleInstructionsWindow()
 
+    def safe_shutdown(self):
+        if not self.physicsManager.paused:
+            self.physicsManager.togglePaused()
+        print "\n[IsisWorld] quitting IsisWorld...\n"
+        sys.exit()
 
 
 

@@ -13,7 +13,7 @@ class Ralph(PhysicsCharacterController):
     
         
         self.actor= Actor("models/boxman",{"walk":"models/boxman-walk", "idle": "models/boxman-idle"})
-        self.actor.setScale(1.2)
+        self.actor.setScale(1.0)
         self.actor.setH(0)
         self.actor.setColorScale(random.random(), random.random(), random.random(), 1.0)
         self.actor.reparentTo(render)

@@ -23,6 +23,7 @@ from pandac.PandaModules import *
 from direct.showbase.DirectObject import DirectObject
 from direct.showbase.InputStateGlobal import inputState
 
+from IPython.Debugger import Tracer; debug = Tracer() 
 
 FLOORMASK = BitMask32.bit(0)        
 WALLMASK = BitMask32.bit(1)
@@ -358,7 +359,6 @@ class PhysicsCharacterController:
         """
         This will become the new position for our character.
         """
-        print height
         newPos = self.currentPos
 
         """
@@ -378,11 +378,11 @@ class PhysicsCharacterController:
             Height is None when we're too high for the foot ray to have anything to collide with.
             That means we have to fall.
             """
-            print "height 1"
+            #print "height 1"
             newPos = self.fall(newPos, stepSize, self.highestEntry)
 
         elif height > self.levitation + 0.01 and height < self.levitation + 0.65 and self.state == "ground":
-            print "height 2"
+            #print "height 2"
             """
             This means we're walking down stairs.
             Step walking is kinda harsh and I know that. It's fine with me, but I might still try
@@ -391,7 +391,7 @@ class PhysicsCharacterController:
             newPos = self.stickToGround(newPos, stepSize, self.highestEntry)
 
         elif height > self.levitation + 0.01:
-            print "height 3"
+            #print "height 3"
             """
             We're falling but we're low enough for the ray to collide with the ground.
             """
@@ -665,6 +665,7 @@ class PhysicsWorldManager:
 
         geom1Data = self.getGeomData(geom1)
         geom2Data = self.getGeomData(geom2)
+        
 
         if geom1Data.isTrigger and geom2Data.isTrigger:
             """
@@ -690,6 +691,7 @@ class PhysicsWorldManager:
             if numContacts > 4:
                 numContacts = 4
             for i in range(numContacts):
+                if geom1Data.name == "door" and geom2Data.name == "ground": continue
                 cgeom = entry.getContactGeom(i)
 
                 contactPoint = entry.getContactPoint(i)
@@ -698,7 +700,8 @@ class PhysicsWorldManager:
                 contact.setGeom(cgeom)
                 contact.setFdir1(cgeom.getNormal())
                 contact.setSurface(surfaceParams)
-
+                #debug()
+                print "Contact between ", geom1.getBody(), geom2.getBody(), geom1Data.name, geom2Data.name
                 contactJoint = OdeContactJoint(self.world, self.contactGroup, contact)
                 contactJoint.attach(geom1.getBody(), geom2.getBody())
 
@@ -814,8 +817,8 @@ class PhysicsWorldManager:
         groundNP.lookAt(0, 0, -1)
         #groundNP.setTransparency(TransparencyAttrib.MAlpha)
         groundGeom = OdePlaneGeom(self.space, Vec4(0, 0, 1, 0))
-        groundGeom.setCollideBits(BitMask32(0x00000021))
-        groundGeom.setCategoryBits(BitMask32(0x00000012))
+        groundGeom.setCollideBits(FLOORMASK)
+        groundGeom.setCategoryBits(FLOORMASK)
         groundData = odeGeomData()
         groundData.name = "ground"
         groundData.surfaceFriction = 2.0
@@ -842,9 +845,6 @@ class PhysicsWorldManager:
         stepsGeomData = OdeTriMeshData(isisworld.steps, True)
         stepsGeom = OdeTriMeshGeom(self.space, stepsGeomData)
         stepsGeom.setPosition(isisworld.steps.getPos(render))
-        stepsGeom.setQuaternion(isisworld.steps.getQuat(render))
-        stepsGeom.setCollideBits(FLOORMASK)
-        stepsGeom.setCategoryBits(FLOORMASK)
         self.setGeomData(stepsGeom, groundData, None)
 
         """

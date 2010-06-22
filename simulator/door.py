@@ -46,6 +46,7 @@ class door():
         self.doorGeom = OdeTriMeshGeom(self.worldManager.space, self.doorGeomData)
         self.doorGeom.setPosition(self.doorNP.getPos(render))
         self.doorGeom.setQuaternion(self.doorNP.getQuat(render))
+        self.doorGeom.setCollideBits(FLOORMASK)
         
         self.doorData = odeGeomData()
         self.doorData.name = "door"
@@ -54,7 +55,7 @@ class door():
         
         self.worldManager.setGeomData(self.doorGeom, self.doorData, self, True)
         
-    def select(self, character=None, direction=1):
+    def select(self, character=None, direction=0):
         if self.state == "close":
             self.open(self.doorNP.getQuat(render).xform(direction).getY())
         elif self.state == "open":

@@ -87,7 +87,7 @@ class Ralph(PhysicsCharacterController):
         lens = self.fov.node().getLens()
         lens.setFov(60) #  degree field of view (expanded from 40)
         lens.setNear(0.2)
-        self.fov.node().showFrustum() # displays a box around his head
+        #self.fov.node().showFrustum() # displays a box around his head
         #self.fov.place()
  
     

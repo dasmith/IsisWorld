@@ -23,7 +23,7 @@ from direct.showbase.ShowBase import ShowBase
 from direct.gui.OnscreenText import OnscreenText
 from direct.task import Task, TaskManagerGlobal
 from direct.filter.CommonFilters import CommonFilters 
-from direct.gui.DirectGui import DirectEntry
+from direct.gui.DirectGui import DirectEntry, DirectButton
 from direct.showbase.DirectObject import DirectObject
 from pandac.PandaModules import *
 
@@ -115,7 +115,7 @@ class IsisWorld(ShowBase):
 
         This is done by calling the physics module:  physicsModule.setupGround()"""
         # parameters
-        self.visualizeClouds = False
+        self.visualizeClouds = True 
         
         self.mapNode = None
         self.map = None
@@ -141,20 +141,21 @@ class IsisWorld(ShowBase):
         """ 
         Setup the skydome
         """
-        self.skydomeNP = SkyDome2(render,self.visualizeClouds)
-        self.skydomeNP.setPos(Vec3(0,0,-500))
-        self.skydomeNP.setStandardControl()
-        self.skydomeNP.att_skycolor.setColor(Vec4(0.3,0.3,0.3,1))
         """
         Moving clouds are pretty but computationally expensive 
         only visualize them if you have"""
         if self.visualizeClouds: 
-           
+            self.skydomeNP = SkyDome2(render,self.visualizeClouds)
+            self.skydomeNP.setPos(Vec3(0,0,-500))
+            self.skydomeNP.setStandardControl()
+            self.skydomeNP.att_skycolor.setColor(Vec4(0.3,0.3,0.3,1))
             def timeUpdated(task):
                 self.skydomeNP.skybox.setShaderInput('time', task.time)
                 return task.cont
             taskMgr.add(timeUpdated, "timeUpdated")
-  
+        else:
+            self.skydomeNP = SkyDome1(render,self.visualizeClouds)
+
 
         
     def setupCameras(self):
@@ -167,15 +168,15 @@ class IsisWorld(ShowBase):
         aspect_ratio = 16.0 / 9.0
         window = dr.getWindow()
         pip_size = 0.40 # percentage of width of screen
-        dr_pip = window.makeDisplayRegion(1-pip_size,1,0,\
+        self.agent_camera = window.makeDisplayRegion(1-pip_size,1,0,\
              (1.0 / aspect_ratio) * float(dr.getPixelWidth())/float(dr.getPixelHeight()) * pip_size)
-        dr_pip.setCamera(self.agents[self.agentNum].fov)
-        dr_pip.setSort(dr.getSort())
-        dr_pip.setClearColor(VBase4(0, 0, 0, 1))
-        dr_pip.setClearColorActive(True)
-        dr_pip.setClearDepthActive(True)
+        self.agent_camera.setCamera(self.agents[self.agentNum].fov)
+        self.agent_camera.setSort(dr.getSort())
+        self.agent_camera.setClearColor(VBase4(0, 0, 0, 1))
+        self.agent_camera.setClearColorActive(True)
+        self.agent_camera.setClearDepthActive(True)
         #self.agent.fov.node().getLens().setAspectRatio(aspect_ratio)
-        dr_pip.setActive(1)
+        self.agent_camera.setActive(1)
 
 
     def setupLights(self):
@@ -295,8 +296,8 @@ class IsisWorld(ShowBase):
         self.accept("f-up", self.floating_camera.setControl, ["zoom-out",  0])
         #if self.is_ralph == True:
         # control keys to move the character
-         
-
+        
+        b = DirectButton(pos=(0.2,0.3,-.5),text = ("OK", "click!", "rolling over", "disabled"), scale=0.05 )
         base.accept("o", hideText)
 
         # key input

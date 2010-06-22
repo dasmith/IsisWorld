@@ -129,7 +129,7 @@ class IsisWorld(ShowBase):
         
         self.physicsManager.setupGround(self)
         """
-        Load Objects from 'kitchen.isis' """
+        Load Objects from '.isis' file """
         self.worldObjects.update(load_objects("kitchen.isis", self.map, self.physicsManager))
         for name in self.worldObjects:
           self.worldObjects[name].flattenLight()
@@ -355,9 +355,17 @@ class IsisWorld(ShowBase):
         print "Inspect State", self.inspectState
         if self.inspectState:
             self.agentCamera.setActive(0)
-            base.camera.setPos(self.agents[self.agentNum].actor.getPos()+Vec3(3,0,0))
-            base.camera.lookAt(self.agents[self.agentNum].actor.getPos())
-
+            #base.camera.setPos(self.agents[self.agentNum].actor.getPos()+Vec3(2,0,0))
+            #base.camera.setHpr(0,0,0)
+            base.camera.lookAt(self.agents[self.agentNum].actor.getX(),self.agents[self.agentNum].actor.getY()+2,0)
+            active_agent = self.agents[self.agentNum].actor
+            for child in render.getChildren():
+                if child != active_agent and child.getName()[-5:] != "Light" and child.getName() != "ground": 
+                    child.hide()
+                    print child.getName()[-5:]
+                    print "removing", child
+        else:
+            for child in render.getChildren(): child.show()
 
     def togglePaused(self):
         """ by default, the simulator is unpaused/running.

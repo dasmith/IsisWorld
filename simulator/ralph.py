@@ -535,10 +535,8 @@ class Ralph(PhysicsCharacterController):
         make_screenshot()
         return []# str(self.agent.fov.node().getCameraMask())
 
-    def sense__get_objects(self, agent_id=None):
-        if agent_id == None:
-            agent_id = self.agentNum
-        return self.agents[agent_id].get_objects()
+    def sense__get_objects(self):
+        return self.get_objects()
 
     def sense__get_utterances(self):
         """ Clear out the buffer of things that the teacher has typed,

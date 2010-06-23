@@ -27,6 +27,7 @@ FLOORMASK = BitMask32.bit(0)
 WALLMASK = BitMask32.bit(1)
 PICKMASK = BitMask32.bit(2)
 AGENTMASK = BitMask32.bit(3)
+THINGMASK = BitMask32.bit(4)
 
 #from ODEWireGeom import wireGeom 
 
@@ -135,6 +136,8 @@ class PhysicsCharacterController:
         self.capsuleGeom = OdeCappedCylinderGeom(self.space, self.length- self.radius*2.0, self.length)
         # TODO, create a second physics that uses the body.
         
+        self.capsuleGeom.setCollideBits(BitMask32.allOn())
+        #self.capsuleGeom.setIntoCollideMask(BitMask32.allOff()|AGENTMASK)
         #self.cylinderNodepath = wireGeom().generate ('cylinder', radius=self.radius, length=self.length- self.radius*2.0) 
         #self.cylinderNodepath.reparentTo(self.actor)
         #self.capsuleGeom.setOffsetPosition(0,0,1.7)
@@ -163,7 +166,7 @@ class PhysicsCharacterController:
         self.footRay = OdeRayGeom(self.space, 3.0)
         self.footRay.set(0, 0, 0, 0, 0, -1)
 
-        self.setCollideBits(BitMask32(0x00000122))
+        #self.setCollideBits(BitMask32(0x00000122))
         self.setCategoryBits(BitMask32(0x0000111))
 
         """
@@ -598,12 +601,13 @@ class PhysicsWorldManager:
         self.kinematics = []
 
         # for pausing the simulator
-        self.paused = False
+        self.paused = True 
         self._globalClock = ClockObject.getGlobalClock()
+        self._frameTime=self._globalClock.getFrameTime()
+        self._globalClock.setRealTime(self._frameTime)
         self._globalClock.setMode(ClockObject.MLimited)
+        self.togglePaused()
         #self._globalClock.setFrameRate(FRAME_RATE)
-        self._globalClock=None
-        self._frameTime = None
 
     def stepSimulation(self, stepTime):
         if self.paused:
@@ -783,20 +787,53 @@ class PhysicsWorldManager:
         elif kinematic:
             self.kinematics.append(object)
 
-    def addObject(self, objectToAdd):
+    def addObject(self, obj):
         """ Takes an IsisObject and adds it as a dynamic or kinematic 
         object in the physics simulator """
-        objectGeomData = OdeTriMeshData(objectToAdd, True)
-        objectGeom = OdeTriMeshGeom(self.space, objectGeomData)
-        objectGeom.setCollideBits(FLOORMASK)
-        objectGeom.setCategoryBits(FLOORMASK)
-        objectGeom.setPosition(objectToAdd.getPos(render))
-        objectGeom.setQuaternion(objectToAdd.getQuat(render))
-        objectData = odeGeomData()
-        objectData.name = objectToAdd.name
-        objectData.surfaceFriction = 2.0
+        # find object's rotation
+        if False:
+            onp = obj.model
+        def getOBB(collObj):
+            ''' get the Oriented Bounding Box '''
+            # save object's parent and transformation
+            #parent=collObj.getParent()
+            #trans=collObj.getTransform()
+            # ODE need everything in world's coordinate space,
+            # so bring the object directly under render, but keep the transformation
+            #collObj.wrtReparentTo(render)
+            # get the tight bounds before any rotation
+            #collObj.setHpr(0,0,0)
+            bounds=collObj.getTightBounds()
+            # bring object to it's parent and restore it's transformation
+            #collObj.reparentTo(parent)
+            #collObj.setTransform(trans)
+            # (max - min) bounds
+            box=bounds[1]-bounds[0]
+            return [box[0],box[1],box[2]]
+          
+        boundingBox = getOBB(obj.model)
+        hpr = obj.model.getHpr()
+        obj.model.setHpr(0,0,0)
+        offset=obj.model.getBounds().getCenter()-obj.model.getPos() 
+        obj.model.setHpr(hpr) 
+        objectGeom = OdeBoxGeom(self.space, *boundingBox) 
+        objectBody = OdeBody(self.world)
+        M = OdeMass()
+        M.setBox(obj.density, *boundingBox)
+        objectBody.setMass(M)
+        # synchronize ODE geom's transformation according to the real object's
 
-        self.setGeomData(objectGeom, objectData, None)
+        objectGeom.setPosition(obj.getPos(render))
+        objectGeom.setQuaternion(obj.getQuat(render))
+        objectGeom.setCollideBits(THINGMASK)
+        objectGeom.setCategoryBits(THINGMASK)
+        objectGeom.setBody(objectBody)
+        objectGeom.setOffsetPosition(Vec3(*offset))
+
+        objectData = odeGeomData()
+        objectData.name = obj.name
+        objectData.surfaceFriction = 2.0
+        self.setGeomData(objectGeom, objectData, obj, True)
         return objectGeom
 
     def destroyObject(self, objectToRemove):
@@ -912,7 +949,7 @@ class PhysicsWorldManager:
 
         This gave me better results than using the time accumulator method.
         """
-        self.stepSize = 1.0/80.0
+        self.stepSize = 1.0/50.0
         if stopAt != None:
             assert stopAt > 0.0
             assert stopAt > self.stepSize # cannot step less than physical simulator

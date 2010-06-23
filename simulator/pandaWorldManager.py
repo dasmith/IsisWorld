@@ -186,7 +186,9 @@ https://www.panda3d.org/wiki/index.php/Collision_Entries
         # that the bitmask can be set.
         return (cNodepath, collSphereStr)
 
-    def addObjectInWorld(nodePath,shape):
+
+    def addObject(nodePath,shape):
+        return 0
         if self.disable: return
         collider = nodePath.attachNewNode(CollisionNode(nodePath.name+"-collider"))
         boundingBox=getOrientedBoundingBox(collObj)
@@ -196,18 +198,49 @@ https://www.panda3d.org/wiki/index.php/Collision_Entries
             geom = CollisionSphere(posVec)
             return geom
 
-    def setupGround(self,groundNP):
+    def setupGround(self,isisWorld):
         # Ground collision: represented as an infinite plane
         # any object below the plane, no matter how far, is
         # considered to be intersecting the plane.
         #
         # Constructed with Panda3D plane object, one way to
         # do this is with a point and a normal
-        #cp = CollisionPlane(Plane(Vec3(0, 0, 1), Point3(0, 0, 0)))
-        #planeNP = base.render.attachNewNode(CollisionNode('groundcnode'))
-        #planeNP.node().addSolid(cp)
-        #planeNP.show()
-        groundNP.node().setIntoCollideMask(FLOORMASK)
+        cm = CardMaker("ground")
+        groundTexture = loader.loadTexture("./textures/env_ground.jpg")
+        cm.setFrame(-100, 100, -100, 100)
+        isisWorld.groundNP = render.attachNewNode(cm.generate())
+        isisWorld.groundNP.setTexture(groundTexture)
+        isisWorld.groundNP.setPos(0, 0, 0)
+        isisWorld.groundNP.lookAt(0, 0, -1)
+        isisWorld.groundNP.setTransparency(TransparencyAttrib.MAlpha)
+
+        """
+        Get the map's panda node. This will allow us to find the objects
+        that the map consists of.
+        """
+        isisWorld.map = loader.loadModel("./models3/kitchen")
+        isisWorld.map.reparentTo(render)
+        isisWorld.mapNode = isisWorld.map.find("-PandaNode")
+        isisWorld.room = isisWorld.mapNode.find("Wall")
+        #self.worldManager.addItem(PhysicsTrimesh(name="Wall",world=self.worldManager.world, space=self.worldManager.space,pythonObject=self.room,density=800,surfaceFriction=10),False)
+        isisWorld.map.node().setIntoCollideMask(WALLMASK)
+
+        """
+        Steps is yet another part of the map.
+        Meant, obviously, to demonstrate the ability to climb stairs.
+        """
+        isisWorld.steps = isisWorld.mapNode.find("Steps")
+        """
+        Door functionality is also provided here.
+        More on door in the appropriate file.
+        """
+        isisWorld.doorNP = isisWorld.mapNode.find("Door")
+        #self.door = door(self.worldManager, self.doorNP)
+        #self.worldObjects['door'] = door
+
+        #isisWorld.map.f()
+        #isisWorld.steps.flattenStrong()
+        #isisWorld.groundNP.node().setIntoCollideMask(FLOORMASK)
 
     def doPhysics(self,dt):
         base.physicsMgr.doPhysics(dt)

@@ -132,9 +132,9 @@ class IsisWorld(ShowBase):
         Door functionality is also provided here.
         More on door in the appropriate file.
         """
-        self.doorNP = self.mapNode.find("Door")
-        self.door = door(self.physicsManager, self.doorNP)
-        self.worldObjects['door'] = door
+        #self.doorNP = self.mapNode.find("Door")
+        #self.door = door(self.physicsManager, self.doorNP)
+        #self.worldObjects['door'] = door
 
         """ 
         Setup the skydome
@@ -201,11 +201,12 @@ class IsisWorld(ShowBase):
         for name in self.agentsNamesToIDs.keys():
             newAgent = Ralph(base.physicsManager, self, name)
             newAgent.control__say("Hi, I'm %s. Please build me." % name)
-            #taskMgr.add(newAgent.update, "updateCharacter-%s" % name)
             self.agents.append(newAgent)
 
         
     def setupControls(self):
+        """ Initializes commands that are related to the XML-Server and
+        the keyboard bindings """
 
         def relayAgentControl(command):
             """ Accepts an instruction issued through the bound keyboard commands
@@ -323,9 +324,11 @@ class IsisWorld(ShowBase):
         base.win.setClearColor(Vec4(0,0,0,1))
 
     def step_simulation(self,stepTime=2):
+        """ Relays the command to the physics manager """
         self.physicsManager.stepSimulation(stepTime)
 
     def toggleInstructionsWindow(self):
+        """ Hides the instruction window """
         if self.textObjectVisible:
             self.textObject.detachNode()
             self.textObjectVisible = False
@@ -334,6 +337,7 @@ class IsisWorld(ShowBase):
             self.textObjectVisible = True
     
     def toggleInspect(self):
+        """ jump into the psychologist mode"""
         self.inspectState = not self.inspectState
         print "Inspect State", self.inspectState
         if self.inspectState:
@@ -364,14 +368,14 @@ class IsisWorld(ShowBase):
                 self.toggleInstructionsWindow()
 
     def safe_shutdown(self):
+        """ Garbage collect and clean up here... Currently, this doesn't do anything special """
         if not self.physicsManager.paused:
             self.physicsManager.togglePaused()
         print "\n[IsisWorld] quitting IsisWorld...\n"
         sys.exit()
 
 
-
-
+# run the world here
 w = IsisWorld()
-
+# this cannot be done within __main__, because it won't load when packaged for distribution
 w.run()

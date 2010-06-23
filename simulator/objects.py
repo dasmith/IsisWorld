@@ -71,6 +71,14 @@ class IsisObject(NodePath):
         self.on_layout = HorizontalGridLayout((self.getWidth(), self.getLength()), self.getHeight())
         self.in_layout = self.on_layout
 
+    def update(self, timeStep):
+        """ This method is called at each physics step by the Physics Controller
+        whenever the object is added as a Kinematic, rather than Dynamic, object""" 
+        quat = self.model.getQuat(render)
+        pos = self.model.getPos(render)
+        self.geom.setPosition(pos)
+        self.geom.setQuaternion(quat)
+    
     def rescaleModel(self,scale):
         """ Changes the model's dimensions to a given scale"""
         self.model.setScale(scale)
@@ -144,7 +152,6 @@ class IsisObject(NodePath):
         self.weight = self.density*self.width*self.length*self.height
         self._needToRecalculateScalingProperties = False
 
-
 # Object generators used to instantiate various objects
 
 class IsisObjectGenerator():
@@ -166,7 +173,10 @@ class IsisObjectGenerator():
 
         obj = IsisObject(self.name, model, self.density)
         # add object to physical manager
-        physicalManager.addObject(obj)
+        geom = 0#physicalManager.addObject(obj)
+        # and store its geometry
+        obj.geom = geom
+
         if parent:
             obj.reparentTo(parent)
         obj.setPos(pos)

@@ -8,6 +8,12 @@ from direct.controls.GravityWalker import GravityWalker
 from pandac.PandaModules import PandaNode,NodePath,Camera
 import math, random
 
+def frange(x,y,inc):
+    """ Floating point xrange """
+    while x <= y:
+        yield x
+        x += inc
+
 class Ralph(PhysicsCharacterController):
     def __init__(self, worldManager, agentSimulator, myName):
     
@@ -106,7 +112,7 @@ class Ralph(PhysicsCharacterController):
         """
         Object used for picking objects in the field of view
         """
-        self.picker = Picker(self.fov)
+        self.picker = Picker(self.fov, None)
 
 
     def setControl(self, control, value):
@@ -663,10 +669,12 @@ class Picker(DirectObject.DirectObject):
                 else:
                     parent = parent.getParent()
         return None
+
+
     def getObjectsInView(self, xpoints = 50, ypoints = 50):
         objects = []
-        for x in xrange(-1, 1, 2.0/xpoints):
-            for y in xrange(-1, 1, 2.0/ypoints):
+        for x in frange(-1, 1, 2.0/xpoints):
+            for y in frange(-1, 1, 2.0/ypoints):
                 o = self.pick((x, y))
                 if o and (o not in objects):
                     objects.append(o)

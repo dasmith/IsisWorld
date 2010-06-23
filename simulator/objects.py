@@ -70,6 +70,8 @@ class IsisObject(NodePath):
         # organize environments for internal layouts
         self.on_layout = HorizontalGridLayout((self.getWidth(), self.getLength()), self.getHeight())
         self.in_layout = self.on_layout
+        # adds a pickable tag to allow an agent to view this object
+        self.setTag('pickable', 'true')
 
     def update(self, timeStep):
         """ This method is called at each physics step by the Physics Controller

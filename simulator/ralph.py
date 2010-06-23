@@ -11,7 +11,10 @@ import math, random
 def frange(x,y,inc):
     """ Floating point xrange """
     while x <= y:
-        yield x
+        if x < 0:
+            yield -(abs(x)**2)
+        else:
+            yield x**2
         x += inc
 
 class Ralph(PhysicsCharacterController):
@@ -112,7 +115,7 @@ class Ralph(PhysicsCharacterController):
         """
         Object used for picking objects in the field of view
         """
-        self.picker = Picker(self.fov, None)
+        self.picker = Picker(self.fov)
 
 
     def setControl(self, control, value):
@@ -655,11 +658,11 @@ class Picker(DirectObject.DirectObject):
         self.picker.addCollider(self.pickerNP, self.queue)
 
     def pick(self, pos):
-        self.pickerRay.setFromLens(self.camera, pos[0], pos[1])
+        self.pickerRay.setFromLens(self.camera.node(), pos[0], pos[1])
         self.picker.traverse(render)
-        if self.queue.getNumEntries() > 0:
+        if self.queue.getNumEntries() > 1:
             self.queue.sortEntries()
-            node = self.queue.getEntry(0).getIntoNodePath().getParent()
+            parent = self.queue.getEntry(1).getIntoNodePath().getParent()
 
             while parent != render:
                 if(self.tag == None):
@@ -671,7 +674,7 @@ class Picker(DirectObject.DirectObject):
         return None
 
 
-    def getObjectsInView(self, xpoints = 50, ypoints = 50):
+    def getObjectsInView(self, xpoints = 32, ypoints = 24):
         objects = []
         for x in frange(-1, 1, 2.0/xpoints):
             for y in frange(-1, 1, 2.0/ypoints):

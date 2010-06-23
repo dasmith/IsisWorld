@@ -245,6 +245,7 @@ class IsisWorld(ShowBase):
         self.actionController.addAction(IsisAction(commandName="say",intervalAction=False))
         self.actionController.addAction(IsisAction(commandName="sense",intervalAction=False))
         self.actionController.addAction(IsisAction(commandName="use_aimed",intervalAction=False,keyboardBinding="u"))
+        self.actionController.addAction(IsisAction(commandName="view_objects",intervalAction=False,keyboardBinding="o"))
 
         # initialze keybindings
         for keybinding, command in self.actionController.keyboardMap.items():
@@ -296,7 +297,6 @@ class IsisWorld(ShowBase):
         base.accept("2",               base.toggleTexture, [])
         base.accept("3",               changeAgent, [])
         self.accept("space",           self.step_simulation, [.1]) # argument is amount of second to advance
-        #self.accept("o",               self.printObjects, []) # displays objects in field of view
         self.accept("p",               self.physicsManager.togglePaused)
         #self.accept("r",              self.reset_simulation)
         base.accept("escape",          self.safe_shutdown)

@@ -263,6 +263,11 @@ class Ralph(PhysicsCharacterController):
     def control__jump(self):
          PhysicsCharacterController.jump(self)
 
+    def control__view_objects(self):
+        """ calls a raytrace to to all objects in view """
+        objects = self.raytrace_getAllObjectsInView()
+        print "Objects in view:", objects
+        return objects
 
     def control__sense(self):
         """ perceives the world, returns percepts dict """

@@ -29,7 +29,7 @@ install: package
 	pdeploy -n isis_world -N "IsisWorld v$(SIM_VERSION)"  -l "GPL v3" -P osx_i386 -L COPYING -t width=800 -t height=600  -v $(SIM_VERSION)  -s isis_world.p3d installer 
 
 mac:
-	panda3d packp3d.p3d -o isis_world.p3d  -d . -r ode -r morepy -e isis
+	panda3d packp3d.p3d -o isis_world.p3d  -d . -r ode -r morepy -n isis -e isis
 	rm -rf ~/Library/Caches/Panda3d/
 	rm -rf osx_i386
 	panda3d pdeploy.p3d -n isis_world -N "IsisWorld v$(SIM_VERSION)"  -l "GPL v3" -L COPYING -t width=800 -t height=600  -v $(SIM_VERSION)  -P osx_i386 -s isis_world.p3d standalone 

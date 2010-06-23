@@ -27,6 +27,7 @@ FLOORMASK = BitMask32.bit(0)
 WALLMASK = BitMask32.bit(1)
 PICKMASK = BitMask32.bit(2)
 AGENTMASK = BitMask32.bit(3)
+THINGMASK = BitMask32.bit(4)
 
 #from ODEWireGeom import wireGeom 
 
@@ -135,6 +136,8 @@ class PhysicsCharacterController:
         self.capsuleGeom = OdeCappedCylinderGeom(self.space, self.length- self.radius*2.0, self.length)
         # TODO, create a second physics that uses the body.
         
+        self.capsuleGeom.setCollideBits(BitMask32.allOn())
+        #self.capsuleGeom.setIntoCollideMask(BitMask32.allOff()|AGENTMASK)
         #self.cylinderNodepath = wireGeom().generate ('cylinder', radius=self.radius, length=self.length- self.radius*2.0) 
         #self.cylinderNodepath.reparentTo(self.actor)
         #self.capsuleGeom.setOffsetPosition(0,0,1.7)
@@ -163,7 +166,7 @@ class PhysicsCharacterController:
         self.footRay = OdeRayGeom(self.space, 3.0)
         self.footRay.set(0, 0, 0, 0, 0, -1)
 
-        self.setCollideBits(BitMask32(0x00000122))
+        #self.setCollideBits(BitMask32(0x00000122))
         self.setCategoryBits(BitMask32(0x0000111))
 
         """
@@ -507,7 +510,6 @@ class PhysicsCharacterController:
         """
         Start a jump
         """
-        print "UMPING", self.state
         if self.state != "ground":
             return
         self.jumpSpeed = 8.0
@@ -597,6 +599,35 @@ class PhysicsWorldManager:
         """
         self.dynamics = {}
         self.kinematics = []
+
+        # for pausing the simulator
+        self.paused = True 
+        self._globalClock = ClockObject.getGlobalClock()
+        self._frameTime=self._globalClock.getFrameTime()
+        self._globalClock.setRealTime(self._frameTime)
+        self._globalClock.setMode(ClockObject.MLimited)
+        self.togglePaused()
+        #self._globalClock.setFrameRate(FRAME_RATE)
+
+    def stepSimulation(self, stepTime):
+        if self.paused:
+            self.togglePaused(stepTime)
+        else:
+            print "Error, cannot step while simulator is running"
+
+    def togglePaused(self, stepTime=None):
+        """ by default, the simulator is unpaused/running."""
+        if (self.paused):
+            print "[IsisWorld] Restarting Simulator"
+            self._frameTime=self._globalClock.getFrameTime()
+            self._globalClock.setRealTime(self._frameTime)
+            self._globalClock.setMode(ClockObject.MNormal)
+            #base.enableParticles()
+            self._globalClock=None
+            self.startPhysics(stepTime)
+        else:
+            self.stopPhysics()
+        self.paused = not self.paused
 
     def collideSelected(self, selected, exclude=[]):
         """
@@ -756,6 +787,55 @@ class PhysicsWorldManager:
         elif kinematic:
             self.kinematics.append(object)
 
+    def addObject(self, obj):
+        """ Takes an IsisObject and adds it as a dynamic or kinematic 
+        object in the physics simulator """
+        # find object's rotation
+        if False:
+            onp = obj.model
+        def getOBB(collObj):
+            ''' get the Oriented Bounding Box '''
+            # save object's parent and transformation
+            #parent=collObj.getParent()
+            #trans=collObj.getTransform()
+            # ODE need everything in world's coordinate space,
+            # so bring the object directly under render, but keep the transformation
+            #collObj.wrtReparentTo(render)
+            # get the tight bounds before any rotation
+            #collObj.setHpr(0,0,0)
+            bounds=collObj.getTightBounds()
+            # bring object to it's parent and restore it's transformation
+            #collObj.reparentTo(parent)
+            #collObj.setTransform(trans)
+            # (max - min) bounds
+            box=bounds[1]-bounds[0]
+            return [box[0],box[1],box[2]]
+          
+        boundingBox = getOBB(obj.model)
+        hpr = obj.model.getHpr()
+        obj.model.setHpr(0,0,0)
+        offset=obj.model.getBounds().getCenter()-obj.model.getPos() 
+        obj.model.setHpr(hpr) 
+        objectGeom = OdeBoxGeom(self.space, *boundingBox) 
+        objectBody = OdeBody(self.world)
+        M = OdeMass()
+        M.setBox(obj.density, *boundingBox)
+        objectBody.setMass(M)
+        # synchronize ODE geom's transformation according to the real object's
+
+        objectGeom.setPosition(obj.getPos(render))
+        objectGeom.setQuaternion(obj.getQuat(render))
+        objectGeom.setCollideBits(THINGMASK)
+        objectGeom.setCategoryBits(THINGMASK)
+        objectGeom.setBody(objectBody)
+        objectGeom.setOffsetPosition(Vec3(*offset))
+
+        objectData = odeGeomData()
+        objectData.name = obj.name
+        objectData.surfaceFriction = 2.0
+        self.setGeomData(objectGeom, objectData, obj, True)
+        return objectGeom
+
     def destroyObject(self, objectToRemove):
         """
         Automatically destroy object and remove it from the worldManager
@@ -788,7 +868,7 @@ class PhysicsWorldManager:
             """
             All kinematic objects (such as the KCC or, for example, door)
             must have an update method taking one argument. What happens
-            inside that method is only up to you as the codder, the update
+            inside that method is only up to you as the coder, the update
             method is the only requirement.
             """
             object.update(self.stepSize)
@@ -831,8 +911,6 @@ class PhysicsWorldManager:
         #isisworld.map.hide()
         isisworld.mapNode = isisworld.map.find("-PandaNode")
         isisworld.room = isisworld.mapNode.find("Wall")
-        #self.worldManager.addItem(PhysicsTrimesh(name="Wall",world=self.worldManager.world, space=self.worldManager.space,pythonObject=self.room,density=800,surfaceFriction=10),False)
-        #self.map.node().setIntoCollideMask(WALLMASK)
 
         roomGeomData = OdeTriMeshData(isisworld.room, True)
         roomGeom = OdeTriMeshGeom(self.space, roomGeomData)
@@ -854,11 +932,15 @@ class PhysicsWorldManager:
         isisworld.map.flattenLight()
         isisworld.steps.flattenLight()
         isisworld.room.flattenLight()
-        #self.map.flattenStrong()
 
+    def stopPhysics(self,task=None):
+        print "[IsisWorld] Stopping Physical Simulator"
+        taskMgr.remove("ODE_simulationTask")
+        #base.disableParticles()
+        self._globalClock=ClockObject.getGlobalClock()
+        self._globalClock.setMode(ClockObject.MSlave)
 
-
-    def startPhysics(self, stepSize=1.0/100.0):
+    def startPhysics(self, stopAt=None):
         """
         Here's another thing that's different than in the Panda Manual.
         I don't use the time accumulator to make the simulation run
@@ -867,8 +949,15 @@ class PhysicsWorldManager:
 
         This gave me better results than using the time accumulator method.
         """
-        self.stepSize = stepSize
-        taskMgr.doMethodLater(stepSize, self.simulationTask, "ODE_simulationTask")
+        self.stepSize = 1.0/50.0
+        if stopAt != None:
+            assert stopAt > 0.0
+            assert stopAt > self.stepSize # cannot step less than physical simulator
+            taskMgr.doMethodLater(stopAt, self.stopPhysics, "ODE_simulationTaskEnder")
+            # or can you 
+            taskMgr.doMethodLater(min(self.stepSize,stopAt), self.simulationTask, "ODE_simulationTask")
+        else:
+            taskMgr.doMethodLater(self.stepSize, self.simulationTask, "ODE_simulationTask")
 
 class explosion:
     """

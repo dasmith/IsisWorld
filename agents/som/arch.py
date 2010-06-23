@@ -188,14 +188,15 @@ class CriticSelectorArchitecture():
     def __init__(self,debug=True,name="Ralph",*args,**kwargs):
         # store the name of the agent to control
         self.name = name
-        try:
+        #try:
+        if True:
             # connect to environment via XML-RPC
             self.env = xmlrpclib.ServerProxy('http://localhost:8001')
             start = time.clock()
             self.env.do('step_simulation',{'seconds':0.02,'agent':self.name})
             self.delay = time.clock()-start
             print "Delay: ", self.delay
-        except:
+        else:#except:
             print "Error: Cannot connect to the simulator." 
             sys.exit()
         self.debug = debug  # outputs error messages

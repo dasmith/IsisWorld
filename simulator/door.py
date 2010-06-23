@@ -35,13 +35,11 @@ class door():
         self.worldManager = worldManager
         
         self.doorNP = model
-        
         """
         Here we store the initial hpr of the door so that they can close
         back to the original position.
         """
-        self.hpr = self.doorNP.getHpr()
-        
+        self.hpr = self.doorNP.getHpr(render)
         self.doorGeomData = OdeTriMeshData(self.doorNP, True)
         self.doorGeom = OdeTriMeshGeom(self.worldManager.space, self.doorGeomData)
         self.doorGeom.setPosition(self.doorNP.getPos(render))
@@ -82,9 +80,9 @@ class door():
         open one way), but it tends to give better results.
         """
         if dir > 0:
-            newH = -85.0
+            newH = 23.0
         else:
-            newH = 85.0
+            newH = -23.0
         
         """
         Calculate the new heading for the door.
@@ -111,6 +109,5 @@ class door():
         """
         quat = self.doorNP.getQuat(render)
         pos = self.doorNP.getPos(render)
-        
         self.doorGeom.setPosition(pos)
         self.doorGeom.setQuaternion(quat)

@@ -66,10 +66,19 @@ class IsisObject(NodePath):
         self.length = None
         self.height = None
         self.weight = None
+        self.geom = None # collision geometry for physics
         # organize environments for internal layouts
         self.on_layout = HorizontalGridLayout((self.getWidth(), self.getLength()), self.getHeight())
         self.in_layout = self.on_layout
 
+    def update(self, timeStep):
+        """ This method is called at each physics step by the Physics Controller
+        whenever the object is added as a Kinematic, rather than Dynamic, object""" 
+        quat = self.model.getQuat(render)
+        pos = self.model.getPos(render)
+        self.geom.setPosition(pos)
+        self.geom.setQuaternion(quat)
+    
     def rescaleModel(self,scale):
         """ Changes the model's dimensions to a given scale"""
         self.model.setScale(scale)
@@ -143,7 +152,6 @@ class IsisObject(NodePath):
         self.weight = self.density*self.width*self.length*self.height
         self._needToRecalculateScalingProperties = False
 
-
 # Object generators used to instantiate various objects
 
 class IsisObjectGenerator():
@@ -153,16 +161,22 @@ class IsisObjectGenerator():
         self.model = model
         self.scale = scale
         self.density = density
-        #TO-DO: Automatically center models once they are loaded
+        #TODO: Automatically center models once they are loaded
         self.offsets = offsets
    
-    def generate_instance(self, pos = (0, 0, 0), parent = None):
+    def generate_instance(self, physicalManager, pos = (0, 0, 0), parent = None):
         """ Generates a new object and adds it to the world"""
         model = loader.loadModel(self.model)
         model.setScale(self.scale)
-        model.flattenStrong()
+        # flatten strong causes problem with physics
+        model.flattenLight()
 
         obj = IsisObject(self.name, model, self.density)
+        # add object to physical manager
+        geom = 0#physicalManager.addObject(obj)
+        # and store its geometry
+        obj.geom = geom
+
         if parent:
             obj.reparentTo(parent)
         obj.setPos(pos)

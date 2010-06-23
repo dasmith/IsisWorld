@@ -13,7 +13,7 @@ class Ralph(PhysicsCharacterController):
     
         
         self.actor= Actor("models/boxman",{"walk":"models/boxman-walk", "idle": "models/boxman-idle"})
-        self.actor.setScale(1.2)
+        self.actor.setScale(1.0)
         self.actor.setH(0)
         self.actor.setColorScale(random.random(), random.random(), random.random(), 1.0)
         self.actor.reparentTo(render)
@@ -584,14 +584,12 @@ class Ralph(PhysicsCharacterController):
         if (self.controlMap["move_left"]!=0):        self.speed[0] = -moveAtSpeed
         if (self.controlMap["move_right"]!=0):       self.speed[0] = moveAtSpeed
         if (self.controlMap["look_left"]!=0):      
-            self.player_neck.setH(bound(self.player_neck.getH(),-60,60)+1*(stepSize*50))
+            self.player_neck.setR(bound(self.player_neck.getR(),-60,60)+1*(stepSize*50))
         if (self.controlMap["look_right"]!=0):
-            print "look right"
             self.player_neck.setR(bound(self.player_neck.getR(),-60,60)-1*(stepSize*50))
         if (self.controlMap["look_up"]!=0):
             self.player_neck.setP(bound(self.player_neck.getP(),-60,80)+1*(stepSize*50))
         if (self.controlMap["look_down"]!=0):
-            print "look down"
             self.player_neck.setP(bound(self.player_neck.getP(),-60,80)-1*(stepSize*50))
 
         if inputState.isSet("crouch") or self.crouchLock:

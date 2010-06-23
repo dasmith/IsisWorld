@@ -52,7 +52,7 @@ class Command_Handler(object):
             print "stepping simulator"
             if args.has_key('seconds'):
                 seconds = args['seconds']
-            self.simulator.step_simulation(seconds)
+            self.simulator.physicsManager.stepSimulation(seconds)
             return 'success'            
         elif cmd == 'step_simulation':
             print "WARNING, the step_simulation command will soon be deprecated. use 'meta_step' instead"
@@ -60,10 +60,10 @@ class Command_Handler(object):
             print "stepping simulator"
             if args.has_key('seconds'):
                 seconds = args['seconds']
-            self.simulator.step_simulation(seconds)
+            self.simulator.physicsManager.stepSimulation(seconds)
             return 'success'
         elif cmd == 'meta_pause':
-            self.simulator.togglePaused()
+            self.simulator.physicsManager.togglePaused()
             return 'success'
         elif cmd == 'meta_list_actions':
             return self.simulator.actionController.actionMap.keys()+self.meta_commands

@@ -653,7 +653,7 @@ class Picker(DirectObject.DirectObject):
             while parent != render:
                 if(self.tag == None):
                     return parent
-                else if parent.getTag(self.tag) == self.value
+                elif parent.getTag(self.tag) == self.value:
                     return parent
                 else:
                     parent = parent.getParent()

@@ -103,6 +103,11 @@ class Ralph(PhysicsCharacterController):
         self.isSitting = False
         self.isDisabled = False
 
+        """
+        Object used for picking objects in the field of view
+        """
+        self.picker = Picker(self.fov)
+
 
     def setControl(self, control, value):
         """Set the state of one of the character's movement controls.  """
@@ -182,13 +187,8 @@ class Ralph(PhysicsCharacterController):
         self.control__say("I see: "+' and '.join(in_view.keys())) 
         return in_view
 
-
-    def raytrace_getFirstObject(self):
-        pickerNode = CollisionNode('raytrace')
-        #pickerNP = self.player_eye.
-
     def raytrace_getAllObjectsInView(self):
-        pass
+        return self.picker.getObjectsInView()
             
     def control__turn_left__start(self):
         self.setControl("turn_left",  1)
@@ -625,3 +625,44 @@ class Ralph(PhysicsCharacterController):
                 self.current_frame_count -= total_frame_num
                 self.actor.pose('walk', self.current_frame_count)
 
+class Picker(DirectObject.DirectObject):
+    """Picker class derived from http://www.panda3d.org/phpbb2/viewtopic.php?p=4532&sid=d5ec617d578fbcc4c4db0fc68ee87ac0"""
+    def __init__(self, camera, tag = 'pickable', value = 'true'):
+        self.camera = camera
+        self.tag = tag
+        self.value = value
+        self.picker = CollisionTraverser()
+        self.queue = CollisionHandlerQueue()
+        self.pickerNode = CollisionNode('mouseRay')
+        self.pickerNP = self.camera.attachNewNode(self.pickerNode)
+
+        self.pickerNode.setFromCollideMask(GeomNode.getDefaultCollideMask())
+
+        self.pickerRay = CollisionRay()
+        self.pickerNode.addSolid(self.pickerRay)
+
+        self.picker.addCollider(self.pickerNP, self.queue)
+
+    def pick(self, pos):
+        self.pickerRay.setFromLens(self.camera, pos[0], pos[1])
+        self.picker.traverse(render)
+        if self.queue.getNumEntries() > 0:
+            self.queue.sortEntries()
+            node = self.queue.getEntry(0).getIntoNodePath().getParent()
+
+            while parent != render:
+                if(self.tag == None):
+                    return parent
+                else if parent.getTag(self.tag) == self.value
+                    return parent
+                else:
+                    parent = parent.getParent()
+        return None
+    def getObjectsInView(self, xpoints = 50, ypoints = 50):
+        objects = []
+        for x in xrange(-1, 1, 2.0/xpoints):
+            for y in xrange(-1, 1, 2.0/ypoints):
+                o = self.pick((x, y))
+                if o and (o not in objects):
+                    objects.append(o)
+        return objects

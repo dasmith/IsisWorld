@@ -29,7 +29,7 @@ PICKMASK = BitMask32.bit(2)
 AGENTMASK = BitMask32.bit(3)
 THINGMASK = BitMask32.bit(4)
 
-#from ODEWireGeom import wireGeom 
+from ODEWireGeom import wireGeom 
 
 class odeGeomData:
     """
@@ -72,9 +72,9 @@ class odeGeomData:
         """
         And here we have the standard ODE stuff for collisions
         """
-        self.surfaceFriction = 0.1
+        self.surfaceFriction = OdeUtil.getInfinity()#0.1
         self.surfaceBounce = 0.2
-        self.surfaceBounceVel = 0.1
+        self.surfaceBounceVel = 0.3
         self.surfaceSoftERP = 0.8
         self.surfaceSoftCFM = 1e-3
         self.surfaceSlip = 0.0
@@ -136,7 +136,6 @@ class PhysicsCharacterController:
         self.capsuleGeom = OdeCappedCylinderGeom(self.space, self.length- self.radius*2.0, self.length)
         # TODO, create a second physics that uses the body.
         
-        self.capsuleGeom.setCollideBits(BitMask32.allOn())
         #self.capsuleGeom.setIntoCollideMask(BitMask32.allOff()|AGENTMASK)
         #self.cylinderNodepath = wireGeom().generate ('cylinder', radius=self.radius, length=self.length- self.radius*2.0) 
         #self.cylinderNodepath.reparentTo(self.actor)
@@ -166,7 +165,7 @@ class PhysicsCharacterController:
         self.footRay = OdeRayGeom(self.space, 3.0)
         self.footRay.set(0, 0, 0, 0, 0, -1)
 
-        #self.setCollideBits(BitMask32(0x00000122))
+        self.setCollideBits(BitMask32(0x00000122))
         self.setCategoryBits(BitMask32(0x0000111))
 
         """
@@ -180,6 +179,7 @@ class PhysicsCharacterController:
         self.capsuleData.surfaceFriction = 2.0
         self.worldManager.setGeomData(self.capsuleGeom, self.capsuleData, self, True)
      
+        #self.capsuleGeom.setCollideBits(BitMask32.allOn())
         """
         The geomData for the footRay. Note that I don't set any of the
         typpically ODE stuff here (friction and the like) because it's not needed.
@@ -307,7 +307,7 @@ class PhysicsCharacterController:
                 geom = entry.getContactGeom(i)
                 depth = geom.getDepth()
                 normal = geom.getNormal()
-
+                print geom
                 """
                 Move the character away from the object it collides with to prevent
                 penetrating it. ODE itself won't do that because the capsule
@@ -573,12 +573,12 @@ class PhysicsWorldManager:
     It also contains some functionality that is crucial to the functioning
     of triggers and KCC.
     """
-    def __init__(self):
+    def __init__(self, FRAME_RATE=20):
         self.world = OdeWorld()
         self.world.setGravity(0, 0, -9.81)
 
         self.timeAccu = 0.0
-
+        self.FRAME_RATE = FRAME_RATE
         """
         The list of odeGeomData objects.
         More on this later.
@@ -606,8 +606,8 @@ class PhysicsWorldManager:
         self._frameTime=self._globalClock.getFrameTime()
         self._globalClock.setRealTime(self._frameTime)
         self._globalClock.setMode(ClockObject.MLimited)
+        self._globalClock.setFrameRate(self.FRAME_RATE)
         self.togglePaused()
-        #self._globalClock.setFrameRate(FRAME_RATE)
 
     def stepSimulation(self, stepTime):
         if self.paused:
@@ -622,6 +622,7 @@ class PhysicsWorldManager:
             self._frameTime=self._globalClock.getFrameTime()
             self._globalClock.setRealTime(self._frameTime)
             self._globalClock.setMode(ClockObject.MNormal)
+            self._globalClock.setFrameRate(self.FRAME_RATE)
             #base.enableParticles()
             self._globalClock=None
             self.startPhysics(stepTime)
@@ -731,7 +732,8 @@ class PhysicsWorldManager:
                 contact.setFdir1(cgeom.getNormal())
                 contact.setSurface(surfaceParams)
                 #debug()
-                print "Contact between ", geom1.getBody(), geom2.getBody(), geom1Data.name, geom2Data.name
+                if geom1Data.name == "charCapsule" or geom2Data.name == "charCapsule":
+                    print "Contact between ", geom1.getBody(), geom2.getBody(), geom1Data.name, geom2Data.name
                 contactJoint = OdeContactJoint(self.world, self.contactGroup, contact)
                 contactJoint.attach(geom1.getBody(), geom2.getBody())
 
@@ -790,51 +792,63 @@ class PhysicsWorldManager:
     def addObject(self, obj):
         """ Takes an IsisObject and adds it as a dynamic or kinematic 
         object in the physics simulator """
-        # find object's rotation
-        if False:
-            onp = obj.model
+        model = obj.model
+        name = obj.name
+        density = obj.density
+        #obj.model.showBounds()
         def getOBB(collObj):
             ''' get the Oriented Bounding Box '''
-            # save object's parent and transformation
-            #parent=collObj.getParent()
-            #trans=collObj.getTransform()
-            # ODE need everything in world's coordinate space,
-            # so bring the object directly under render, but keep the transformation
-            #collObj.wrtReparentTo(render)
-            # get the tight bounds before any rotation
-            #collObj.setHpr(0,0,0)
             bounds=collObj.getTightBounds()
-            # bring object to it's parent and restore it's transformation
-            #collObj.reparentTo(parent)
-            #collObj.setTransform(trans)
-            # (max - min) bounds
             box=bounds[1]-bounds[0]
             return [box[0],box[1],box[2]]
-          
-        boundingBox = getOBB(obj.model)
-        hpr = obj.model.getHpr()
-        obj.model.setHpr(0,0,0)
-        offset=obj.model.getBounds().getCenter()-obj.model.getPos() 
-        obj.model.setHpr(hpr) 
-        objectGeom = OdeBoxGeom(self.space, *boundingBox) 
+        bounds = getOBB(obj.model)
+        h_bounds = bounds #[x/2.0 for x in bounds]
+        boxNodepath = wireGeom().generate ('box', extents=h_bounds) 
+        boxNodepath.reparentTo(obj)
+        """
+        Get the map's panda node. This will allow us to find the objects
+        that the map consists of.
+        """
+        # find object's rotation
+        objectGeom = OdeBoxGeom(self.space, *bounds) 
         objectBody = OdeBody(self.world)
-        M = OdeMass()
-        M.setBox(obj.density, *boundingBox)
-        objectBody.setMass(M)
+        if density:
+            M = OdeMass()
+            M.setBox(density, *bounds)
+            objectBody.setMass(M)
         # synchronize ODE geom's transformation according to the real object's
 
-        objectGeom.setPosition(obj.getPos(render))
-        objectGeom.setQuaternion(obj.getQuat(render))
-        objectGeom.setCollideBits(THINGMASK)
-        objectGeom.setCategoryBits(THINGMASK)
+        objectGeom.setPosition(model.getPos(render))
+        objectGeom.setQuaternion(model.getQuat(render))
+        objectGeom.setCategoryBits(BitMask32.allOn())
+        objectGeom.setCollideBits(BitMask32.allOn())
+        #objectGeom.setCollideBits(THINGMASK)
+        #objectGeom.setCategoryBits(THINGMASK)
         objectGeom.setBody(objectBody)
-        objectGeom.setOffsetPosition(Vec3(*offset))
-
+        #objectGeom.setOffsetPosition(Vec3(*offset))
+        objData = odeGeomData()
+        objData.name = name
+        objData.surfaceFriction = 20.0
+        #objData.collisionCallback = obj.collide
+        self.setGeomData(objectGeom, objData, obj, False)#True)
+        return objectGeom
+        
         objectData = odeGeomData()
-        objectData.name = obj.name
+        objectData.name = name
         objectData.surfaceFriction = 2.0
         self.setGeomData(objectGeom, objectData, obj, True)
-        return objectGeom
+        objGeomData = OdeTriMeshData(model, True)
+        objGeom = OdeTriMeshGeom(self.space, objGeomData)
+        objGeom.setPosition(model.getPos(render))
+        objgeom.setcategorybits(bitmask32.allon())
+        objgeom.setcollidebits(bitmask32.allon())
+        objGeom.setQuaternion(model.getQuat(render))
+        objData = odeGeomData()
+        objData.name = name
+        objData.surfaceFriction = 2.0
+        #objData.collisionCallback = obj.collide
+        self.setGeomData(objGeom, objData, obj, True)
+        return objGeom
 
     def destroyObject(self, objectToRemove):
         """
@@ -896,12 +910,14 @@ class PhysicsWorldManager:
         groundNP.lookAt(0, 0, -1)
         #groundNP.setTransparency(TransparencyAttrib.MAlpha)
         groundGeom = OdePlaneGeom(self.space, Vec4(0, 0, 1, 0))
+        #groundGeom.setPos
         groundGeom.setCollideBits(FLOORMASK)
         groundGeom.setCategoryBits(FLOORMASK)
         groundData = odeGeomData()
         groundData.name = "ground"
         groundData.surfaceFriction = 2.0
         self.setGeomData(groundGeom, groundData, None)
+        return
         """
         Get the map's panda node. This will allow us to find the objects
         that the map consists of.
@@ -949,7 +965,7 @@ class PhysicsWorldManager:
 
         This gave me better results than using the time accumulator method.
         """
-        self.stepSize = 1.0/50.0
+        self.stepSize = 1.0/150.0
         if stopAt != None:
             assert stopAt > 0.0
             assert stopAt > self.stepSize # cannot step less than physical simulator
@@ -992,7 +1008,8 @@ class explosion:
         self.sphere = OdeSphereGeom(self.worldManager.space, 0.0)
         self.sphere.setPosition(pos)
 
-        self.worldManager.setGeomData(self.sphere, sphereData, self, True)
+        self.worldManager.setGeomData(self.sphere, sphereData, self, False)#True)
+
 
     def handleCollision(self, entry, geom1Data, geom2Data):
         if entry.getGeom1() == self.sphere:

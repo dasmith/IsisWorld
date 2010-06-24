@@ -1,7 +1,6 @@
 """  Objects defined by the IsisWorld simulator """
 from math import sin, cos, pi
-from pandac.PandaModules import NodePath
-
+from pandac.PandaModules import NodePath, Quat
 
 # Various layout managers used to generate coordinates for placing objects
 
@@ -61,21 +60,26 @@ class IsisObject(NodePath):
         # private flag to lazily recompute properties when necessary
         self._needToRecalculateScalingProperties = True 
         self.density = density
+        self.geom = None# collision geometry for physics
         # initialize dummy variables
         self.width = None
         self.length = None
         self.height = None
         self.weight = None
-        self.geom = None # collision geometry for physics
+
+        self.on_layout = None
+        self.in_layout = None
+
         # organize environments for internal layouts
         self.on_layout = HorizontalGridLayout((self.getWidth(), self.getLength()), self.getHeight())
         self.in_layout = self.on_layout
 
-    def update(self, timeStep):
+    def update(self, timeStep=1):
         """ This method is called at each physics step by the Physics Controller
         whenever the object is added as a Kinematic, rather than Dynamic, object""" 
-        quat = self.model.getQuat(render)
-        pos = self.model.getPos(render)
+        #self.model.setPosQuat(render, self.geom.getPosition(), Quat(self.geom.getQuaternion()))
+        quat = self.model.getQuat(self)
+        pos = self.model.getPos(self)
         self.geom.setPosition(pos)
         self.geom.setQuaternion(quat)
     
@@ -169,18 +173,20 @@ class IsisObjectGenerator():
         model = loader.loadModel(self.model)
         model.setScale(self.scale)
         # flatten strong causes problem with physics
-        model.flattenLight()
+        #model.flattenLight()
 
+        # add item to Isisworld
         obj = IsisObject(self.name, model, self.density)
-        # add object to physical manager
-        geom = 0#physicalManager.addObject(obj)
-        # and store its geometry
-        obj.geom = geom
-
         if parent:
             obj.reparentTo(parent)
         obj.setPos(pos)
         model.setPos(self.offsets[0]*obj.width, self.offsets[1]*obj.length, self.offsets[2]*obj.height)
+        # add object to physical manager
+        geom = physicalManager.addObject(obj)
+        # and store its geometry
+        obj.geom = geom
+
+        #obj.update()
 
         return obj
 
@@ -270,7 +276,7 @@ def load_generators():
     def getPosQuat(self):
         return self.NP.getPosQuat()
 
-    def update(self, timeStep):
+    def update(self, timeStep=1):
         """
         Here we update the position of the OdeGeom to follow the
         animated Panda Node. This method is what makes our object

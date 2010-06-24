@@ -17,7 +17,7 @@ aux-display tinydisplay
 winow-title "IsisWorld"
 win-size 800 600
 clock-mode limited
-#clock-frame-rate %i
+clock-frame-rate %i
 textures-power-2 none 
 basic-shaders-only f""" % FRAME_RATE )
 
@@ -125,7 +125,7 @@ class IsisWorld(ShowBase):
         self.physicsManager.setupGround(self)
         """
         Load Objects from '.isis' file """
-        self.worldObjects.update(load_objects("./kitchen.isis", self.map, self.physicsManager))
+        self.worldObjects.update(load_objects("./kitchen.isis", render, self.physicsManager))
         for name in self.worldObjects:
           self.worldObjects[name].flattenLight()
         """
@@ -138,8 +138,6 @@ class IsisWorld(ShowBase):
 
         """ 
         Setup the skydome
-        """
-        """
         Moving clouds are pretty but computationally expensive 
         only visualize them if you have"""
         if self.visualizeClouds: 

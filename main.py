@@ -71,7 +71,7 @@ class IsisWorld(ShowBase):
         self.inspectState = False
         self.textObjectVisible = True
         # this is defined in simulator/physics.py
-        self.physicsManager = PhysicsWorldManager()
+        self.physicsManager = PhysicsWorldManager(FRAME_RATE)
         # setup components
         self.setupMap()
         self.setupLights()

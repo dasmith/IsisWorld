@@ -74,10 +74,10 @@ class odeGeomData:
         """
         self.surfaceFriction = 0.1#OdeUtil.getInfinity()#0.1
         self.surfaceBounce = 0.2
-        self.surfaceBounceVel = 0.1
-        self.surfaceSoftERP = 0.8
+        self.surfaceBounceVel = 0.0
+        self.surfaceSoftERP = 0.0
         self.surfaceSoftCFM = 1e-3
-        self.surfaceSlip = 0.0
+        self.surfaceSlip = 0.1
         self.surfaceDampen = 0.2
 
 class PhysicsCharacterController:
@@ -915,7 +915,7 @@ class PhysicsWorldManager:
         groundGeom.setCategoryBits(FLOORMASK)
         groundData = odeGeomData()
         groundData.name = "ground"
-        groundData.surfaceFriction = 2.0
+        groundData.surfaceFriction = 20#OdeUtil.getInfinity()#20.0
         self.setGeomData(groundGeom, groundData, None)
         return
         """

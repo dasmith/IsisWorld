@@ -11,11 +11,14 @@ import math, random
 def frange(x,y,inc):
     """ Floating point xrange """
     while x <= y:
-        yield x
+        if x < 0:
+            yield -(abs(x)**2)
+        else:
+            yield x**2
         x += inc
 
 class Ralph(PhysicsCharacterController):
-    def __init__(self, worldManager, agentSimulator, myName):
+    def __init__(self, worldManager, agentSimulator, myName, queueSize = 100):
     
         
         self.actor= Actor("models/boxman",{"walk":"models/boxman-walk", "idle": "models/boxman-idle"})
@@ -112,7 +115,11 @@ class Ralph(PhysicsCharacterController):
         """
         Object used for picking objects in the field of view
         """
-        self.picker = Picker(self.fov, None)
+        self.picker = Picker(self.fov)
+
+        # Initialize the action queue, with a maximum length of queueSize
+        self.queue = []
+        self.queueSize = queueSize
 
 
     def setControl(self, control, value):
@@ -562,6 +569,18 @@ class Ralph(PhysicsCharacterController):
         text = "Objects in FOV: "+ ", ".join(self.sense__get_objects().keys())
         print text
 
+    def addAction(self, timeStamp, action, args):
+        self.queue.append((timeStamp, action, args))
+        if len(self.queue) > self.queueSize:
+            self.queue.pop(0)
+
+    def getActionsSince(self, timeStamp):
+        actions = []
+        for ts, a, args in self.queue:
+            if ts >= timeStamp:
+                actions.append((ts, a, args))
+        return actions
+
 
 
 
@@ -655,11 +674,11 @@ class Picker(DirectObject.DirectObject):
         self.picker.addCollider(self.pickerNP, self.queue)
 
     def pick(self, pos):
-        self.pickerRay.setFromLens(self.camera, pos[0], pos[1])
+        self.pickerRay.setFromLens(self.camera.node(), pos[0], pos[1])
         self.picker.traverse(render)
-        if self.queue.getNumEntries() > 0:
+        if self.queue.getNumEntries() > 1:
             self.queue.sortEntries()
-            node = self.queue.getEntry(0).getIntoNodePath().getParent()
+            parent = self.queue.getEntry(1).getIntoNodePath().getParent()
 
             while parent != render:
                 if(self.tag == None):
@@ -671,7 +690,7 @@ class Picker(DirectObject.DirectObject):
         return None
 
 
-    def getObjectsInView(self, xpoints = 50, ypoints = 50):
+    def getObjectsInView(self, xpoints = 32, ypoints = 24):
         objects = []
         for x in frange(-1, 1, 2.0/xpoints):
             for y in frange(-1, 1, 2.0/ypoints):

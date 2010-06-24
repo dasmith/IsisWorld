@@ -244,6 +244,7 @@ class IsisWorld(ShowBase):
         self.actionController.addAction(IsisAction(commandName="sense",intervalAction=False))
         self.actionController.addAction(IsisAction(commandName="use_aimed",intervalAction=False,keyboardBinding="u"))
         self.actionController.addAction(IsisAction(commandName="view_objects",intervalAction=False,keyboardBinding="o"))
+        self.actionController.addAction(IsisAction(commandName="pick_up_with_right_hand",intervalAction=False,keyboardBinding="i"))
 
         # initialze keybindings
         for keybinding, command in self.actionController.keyboardMap.items():

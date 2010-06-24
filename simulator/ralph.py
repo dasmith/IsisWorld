@@ -316,7 +316,15 @@ class Ralph(PhysicsCharacterController):
         self.control__say(("I hear ya, " + speaker))
         
 
-    def control__pick_up_with_right_hand(self, pick_up_object):
+    def control__pick_up_with_right_hand(self, pick_up_object=None):
+        if not pick_up_object:
+            list = self.raytrace_getAllObjectsInView()
+            if len(list) > 0:
+                print type(list[0].getChild(1))
+                pick_up_object = list[0].name
+            else:
+                print "no objects in view to pick up"
+                return
         print "attempting to pick up " + pick_up_object + " with right hand.\n"
         if self.right_hand_holding_object:
             return 'right hand is already holding ' + self.right_hand_holding_object.getName() + '.'

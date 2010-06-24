@@ -18,7 +18,7 @@ def frange(x,y,inc):
         x += inc
 
 class Ralph(PhysicsCharacterController):
-    def __init__(self, worldManager, agentSimulator, myName):
+    def __init__(self, worldManager, agentSimulator, myName, queueSize = 100):
     
         
         self.actor= Actor("models/boxman",{"walk":"models/boxman-walk", "idle": "models/boxman-idle"})
@@ -116,6 +116,10 @@ class Ralph(PhysicsCharacterController):
         Object used for picking objects in the field of view
         """
         self.picker = Picker(self.fov)
+
+        # Initialize the action queue, with a maximum length of queueSize
+        self.queue = []
+        self.queueSize = queueSize
 
 
     def setControl(self, control, value):
@@ -564,6 +568,18 @@ class Ralph(PhysicsCharacterController):
     def debug__print_objects(self):
         text = "Objects in FOV: "+ ", ".join(self.sense__get_objects().keys())
         print text
+
+    def addAction(self, timeStamp, action, args):
+        self.queue.append((timeStamp, action, args))
+        if len(self.queue) > self.queueSize:
+            self.queue.pop(0)
+
+    def getActionsSince(self, timeStamp):
+        actions = []
+        for ts, a, args in self.queue:
+            if ts >= timeStamp:
+                actions.append((ts, a, args))
+        return actions
 
 
 

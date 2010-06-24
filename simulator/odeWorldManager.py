@@ -72,13 +72,13 @@ class odeGeomData:
         """
         And here we have the standard ODE stuff for collisions
         """
-        self.surfaceFriction = OdeUtil.getInfinity()#0.1
+        self.surfaceFriction = 0.1#OdeUtil.getInfinity()#0.1
         self.surfaceBounce = 0.2
-        self.surfaceBounceVel = 0.3
+        self.surfaceBounceVel = 0.1
         self.surfaceSoftERP = 0.8
         self.surfaceSoftCFM = 1e-3
         self.surfaceSlip = 0.0
-        self.surfaceDampen = 0.1
+        self.surfaceDampen = 0.2
 
 class PhysicsCharacterController:
     """
@@ -965,7 +965,7 @@ class PhysicsWorldManager:
 
         This gave me better results than using the time accumulator method.
         """
-        self.stepSize = 1.0/150.0
+        self.stepSize = 1.0/100.0
         if stopAt != None:
             assert stopAt > 0.0
             assert stopAt > self.stepSize # cannot step less than physical simulator

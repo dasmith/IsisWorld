@@ -47,8 +47,7 @@ class ActionController():
 
     def makeAgentDo(self,agent,command,args={}):
         """ Given a command and an agent pointer, tell the agent to do that command"""
-        #TODO: how can we send arguments through this?
-        result = eval("agent.%s()" % command)
+        result = eval("agent.%s(%s)" % (command,','.join(map(lambda a: '%s=args[%s]' % (a,a), args.keys()))))
         # None objects are not serializable by XML-RPC
         if result == None:
             return "success"

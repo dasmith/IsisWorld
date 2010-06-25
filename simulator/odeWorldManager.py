@@ -72,13 +72,15 @@ class odeGeomData:
         """
         And here we have the standard ODE stuff for collisions
         """
-        self.surfaceFriction = 0.1#OdeUtil.getInfinity()#0.1
-        self.surfaceBounce = 0.2
-        self.surfaceBounceVel = 0.0
-        self.surfaceSoftERP = 0.0
+        self.surfaceFriction = 0.5#OdeUtil.getInfinity()#0.1
+        self.surfaceBounce = 0.7
+        self.surfaceBounceVel = 1.0 # absorb
+        self.surfaceSoftERP = 0.8
         self.surfaceSoftCFM = 1e-3
-        self.surfaceSlip = 0.1
-        self.surfaceDampen = 0.15
+        self.surfaceSlip = 0.0
+        self.surfaceDampen = 0.1
+
+
 
 class PhysicsCharacterController:
     """
@@ -176,7 +178,9 @@ class PhysicsCharacterController:
         self.capsuleData.isTrigger = False
         self.capsuleData.collisionCallback = self.capsuleCollision
         self.capsuleData.pythonObject = self
-        self.capsuleData.surfaceFriction = 2.0
+        self.capsuleData.surfaceFriction = 0.0
+        self.capsuleData.surfaceBounce = 0.0
+        self.capsuleData.surfaceBounceVel = 100.0
         self.worldManager.setGeomData(self.capsuleGeom, self.capsuleData, self, True)
      
         #self.capsuleGeom.setCollideBits(BitMask32.allOn())
@@ -576,7 +580,9 @@ class PhysicsWorldManager:
     def __init__(self, FRAME_RATE=20):
         self.world = OdeWorld()
         self.world.setGravity(0, 0, -9.81)
-
+        self.world.setErp(0.3)
+        #self.world.setCfm(1e-3)
+        self.world.setAutoDisableFlag(True)
         self.timeAccu = 0.0
         self.FRAME_RATE = FRAME_RATE
         """
@@ -719,6 +725,8 @@ class PhysicsWorldManager:
             surfaceParams.setBounceVel(geom1Data.surfaceBounceVel)
             surfaceParams.setSlip1(geom1Data.surfaceSlip)
             surfaceParams.setSlip2(geom2Data.surfaceSlip)
+            surfaceParams.setSoftCfm(geom1Data.surfaceSoftCFM)
+            surfaceParams.setSoftErp(geom1Data.surfaceSoftERP)
 
             numContacts = entry.getNumContacts()
             if numContacts > 4:
@@ -734,8 +742,8 @@ class PhysicsWorldManager:
                 contact.setFdir1(cgeom.getNormal())
                 contact.setSurface(surfaceParams)
                 #debug()
-                if geom1Data.name == "charCapsule" or geom2Data.name == "charCapsule":
-                    print "Contact between ", geom1.getBody(), geom2.getBody(), geom1Data.name, geom2Data.name
+                #if geom1Data.name == "charCapsule" or geom2Data.name == "charCapsule":
+                print "Contact between ", geom1.getBody(), geom2.getBody(), geom1Data.name, geom2Data.name
                 contactJoint = OdeContactJoint(self.world, self.contactGroup, contact)
                 contactJoint.attach(geom1.getBody(), geom2.getBody())
 
@@ -794,7 +802,6 @@ class PhysicsWorldManager:
     def addObject(self, obj):
         """ Takes an IsisObject and adds it as a dynamic or kinematic 
         object in the physics simulator """
-        return obj
         model = obj.model
         name = obj.name
         density = obj.density
@@ -807,7 +814,7 @@ class PhysicsWorldManager:
         bounds = getOBB(obj.model)
         h_bounds = [x/2.0 for x in bounds]
         boxNodepath = wireGeom().generate ('box', extents=h_bounds) 
-        boxNodepath.reparentTo(obj)
+        boxNodepath.reparentTo(obj.model)
         """
         Get the map's panda node. This will allow us to find the objects
         that the map consists of.
@@ -833,7 +840,7 @@ class PhysicsWorldManager:
         objData.name = name
         objData.surfaceFriction = 2.0
         #objData.collisionCallback = obj.collide
-        self.setGeomData(objectGeom, objData, obj, False)
+        self.setGeomData(objectGeom, objData, obj, True)
         return objectGeom
         
         objectData = odeGeomData()

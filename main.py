@@ -33,7 +33,8 @@ from simulator.floating_camera import FloatingCamera
 from simulator.skydome2 import *
 from simulator.physics import *
 from simulator.ralph import *
-from simulator.object_loader import *
+# object loader
+from simulator.loader import *
 from simulator.door import *
 from simulator.actions import *
 from xmlrpc.xmlrpc_server import HomeSim_XMLRPC_Server

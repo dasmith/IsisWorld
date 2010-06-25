@@ -13,7 +13,7 @@ tar: *.py
 #panda3d makescripts/packp3d.p3d
 
 package: main.py
-	packp3d -o isis_world.p3d  -d . -r ode -r morepy -e isis -c auto_start=1
+	packp3d -o isis_world.p3d  -d . -r ode -r morepy -D -e isis -c auto_start=1
 
 panda: *.p3d
 	rm *.p3d

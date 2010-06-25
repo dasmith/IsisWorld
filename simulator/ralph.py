@@ -27,8 +27,10 @@ class Ralph(PhysicsCharacterController):
         self.actor.setColorScale(random.random(), random.random(), random.random(), 1.0)
         self.actor.reparentTo(render)
         # Expose agent's right hand joint to attach objects to
-        self.player_right_hand = self.actor.exposeJoint(None, 'modelRoot', 'RightHand')
-        self.player_left_hand  = self.actor.exposeJoint(None, 'modelRoot', 'LeftHand')
+        self.player_right_hand = self.actor.exposeJoint(None, 'modelRoot', 'Hand.R')
+        #self.player_right_hand.showBounds()
+        self.player_left_hand  = self.actor.exposeJoint(None, 'modelRoot', 'Hand.R')
+
         self.player_head  = self.actor.exposeJoint(None, 'modelRoot', 'Head')
         self.name = myName
         self.agent_simulator = agentSimulator
@@ -332,16 +334,18 @@ class Ralph(PhysicsCharacterController):
         if self.right_hand_holding_object:
             return 'right hand is already holding ' + self.right_hand_holding_object.getName() + '.'
         if d[pick_up_object] < 5.0:
-            if (pick_up_object.heldBy == None):
+            if pick_up_object.getNetTag('heldBy') == '':
                 pick_up_object.wrtReparentTo(self.player_right_hand)
-                pick_up_object.setPos(0, 0, 0)
-                pick_up_object.setHpr(0, 0, 0)
+                # pick_up_object.setPos(0, 0, 0)
+                #pick_up_object.setHpr(0, 0, 0)
                 self.right_hand_holding_object = pick_up_object
-                pick_up_object.heldBy = self
+                pick_up_object.setTag('heldBy', self.name)
                 print "sucess!"
+                print self.player_right_hand.getPos()
+                print pick_up_object.getPos()
                 return 'success'
             else:
-                print "Object being held by " + str(pick_up_object.heldBy)
+                print "Object being held by " + str(pick_up_object.node().getTag('heldBy'))
                 return 'object (' + pick_up_object.name + ') is already held by something or someone.'
         else:
             print "Object not graspable, dist=" + str(d[pick_up_object])
@@ -377,7 +381,7 @@ class Ralph(PhysicsCharacterController):
         if self.right_hand_holding_object is False:
             return 'right hand is not holding an object.'
         world_object = self.right_hand_holding_object
-        world_object.heldBy = None
+        world_object.clearTag('heldBy')
         self.right_hand_holding_object = False
         world_object.wrtReparentTo(self.agent_simulator.render)
         world_object.setHpr(0, 0, 0)

@@ -18,7 +18,7 @@ def frange(x,y,inc):
         x += inc
 
 class Ralph(PhysicsCharacterController):
-    def __init__(self, worldManager, agentSimulator, myName, queueSize = 100):
+    def __init__(self, worldManager, agentSimulator, myName, worldObjectsDict, queueSize = 100):
     
         
         self.actor= Actor("models/boxman",{"walk":"models/boxman-walk", "idle": "models/boxman-idle"})
@@ -115,7 +115,7 @@ class Ralph(PhysicsCharacterController):
         """
         Object used for picking objects in the field of view
         """
-        self.picker = Picker(self.fov)
+        self.picker = Picker(self.fov, worldObjectsDict)
 
         # Initialize the action queue, with a maximum length of queueSize
         self.queue = []
@@ -189,10 +189,10 @@ class Ralph(PhysicsCharacterController):
                                    'area':area,\
                                    'orientation': o.getH(self.fov)}
                     in_view[o.getName()]=object_dict
-                    print o.getName(), object_dict
-                    print o.getAncestor(1).getName()
-                    print o.getAncestor(1).listTags()
-                    print self.player_neck.getH()
+#                    print o.getName(), object_dict
+#                    print o.getAncestor(1).getName()
+#                    print o.getAncestor(1).listTags()
+#                    print self.player_neck.getH()
 ##                    if (o.getAncestor(1).getName() == "Ralph"):
 ##                       for agent in self.agent_simulator.agents:
 ##                           if agent.
@@ -297,9 +297,13 @@ class Ralph(PhysicsCharacterController):
  
     def can_grasp(self, object_name):
         objects = self.get_objects()
+        print object_name
+        print objects
         if objects.has_key(object_name):
+            print "found object"
             object_view = objects[object_name]
             distance = object_view['distance']
+            print distance
             if (distance < 5.0):
                 return True
         return False
@@ -316,23 +320,32 @@ class Ralph(PhysicsCharacterController):
         self.control__say(("I hear ya, " + speaker))
         
 
-    def control__pick_up_with_right_hand(self, pick_up_object):
-        print "attempting to pick up " + pick_up_object + " with right hand.\n"
+    def control__pick_up_with_right_hand(self, pick_up_object=None):
+        if not pick_up_object:
+            d = self.raytrace_getAllObjectsInView()
+            if len(d) > 0:
+                pick_up_object = d.keys()[0]
+            else:
+                print "no objects in view to pick up"
+                return
+        print "attempting to pick up " + pick_up_object.name + " with right hand.\n"
         if self.right_hand_holding_object:
             return 'right hand is already holding ' + self.right_hand_holding_object.getName() + '.'
-        if self.can_grasp(pick_up_object):
-            world_object = self.agent_simulator.world_objects[pick_up_object]
-            object_parent = world_object.getParent()
-            if (object_parent == self.agent_simulator.env):
-                world_object.wrtReparentTo(self.player_right_hand)
-                world_object.setPos(0, 0, 0)
-                world_object.setHpr(0, 0, 0)
-                self.right_hand_holding_object = world_object
+        if d[pick_up_object] < 5.0:
+            if (pick_up_object.heldBy == None):
+                pick_up_object.wrtReparentTo(self.player_right_hand)
+                pick_up_object.setPos(0, 0, 0)
+                pick_up_object.setHpr(0, 0, 0)
+                self.right_hand_holding_object = pick_up_object
+                pick_up_object.heldBy = self
+                print "sucess!"
                 return 'success'
             else:
-                return 'object (' + pick_up_object + ') is already held by something or someone.'
+                print "Object being held by " + str(pick_up_object.heldBy)
+                return 'object (' + pick_up_object.name + ') is already held by something or someone.'
         else:
-            return 'object (' + pick_up_object + ') is not graspable (i.e. in view and close enough).'
+            print "Object not graspable, dist=" + str(d[pick_up_object])
+            return 'object (' + pick_up_object.name + ') is not graspable (i.e. in view and close enough).'
 
     def control__put_object_in_empty_left_hand(self, object_name):
         if (self.left_hand_holding_object is not False):
@@ -364,10 +377,11 @@ class Ralph(PhysicsCharacterController):
         if self.right_hand_holding_object is False:
             return 'right hand is not holding an object.'
         world_object = self.right_hand_holding_object
+        world_object.heldBy = None
         self.right_hand_holding_object = False
-        world_object.wrtReparentTo(self.agent_simulator.env)
+        world_object.wrtReparentTo(self.agent_simulator.render)
         world_object.setHpr(0, 0, 0)
-        world_object.setPos(self.position() + self.forward_normal_vector() * 0.5)
+        #world_object.setPos(self.position() + self.forward_normal_vector() * 0.5)
         world_object.setZ(world_object.getZ() + 1.0)
         return 'success'
 
@@ -376,8 +390,9 @@ class Ralph(PhysicsCharacterController):
         if self.left_hand_holding_object is False:
             return 'left hand is not holding an object.'
         world_object = self.left_hand_holding_object
+        world_object.heldBy = None
         self.left_hand_holding_object = False
-        world_object.wrtReparentTo(self.agent_simulator.env)
+        world_object.wrtReparentTo(self.agent_simulator.render)
         world_object.setHpr(0, 0, 0)
         world_object.setPos(self.position() + self.forward_normal_vector() * 0.5)
         world_object.setZ(world_object.getZ() + 1.0)
@@ -657,7 +672,7 @@ class Ralph(PhysicsCharacterController):
 
 class Picker(DirectObject.DirectObject):
     """Picker class derived from http://www.panda3d.org/phpbb2/viewtopic.php?p=4532&sid=d5ec617d578fbcc4c4db0fc68ee87ac0"""
-    def __init__(self, camera, tag = 'pickable', value = 'true'):
+    def __init__(self, camera, worldObjects, tag = 'pickable', value = 'true'):
         self.camera = camera
         self.tag = tag
         self.value = value
@@ -672,6 +687,7 @@ class Picker(DirectObject.DirectObject):
         self.pickerNode.addSolid(self.pickerRay)
 
         self.picker.addCollider(self.pickerNP, self.queue)
+        self.worldObjects = worldObjects
 
     def pick(self, pos):
         self.pickerRay.setFromLens(self.camera.node(), pos[0], pos[1])
@@ -679,22 +695,25 @@ class Picker(DirectObject.DirectObject):
         if self.queue.getNumEntries() > 1:
             self.queue.sortEntries()
             parent = self.queue.getEntry(1).getIntoNodePath().getParent()
+            point = self.queue.getEntry(1).getSurfacePoint(self.camera)
+            dist = math.sqrt(point.getX()**2+point.getY()**2+point.getZ()**2)
 
             while parent != render:
                 if(self.tag == None):
-                    return parent
+                    return (parent, dist)
                 elif parent.getTag(self.tag) == self.value:
-                    return parent
+                    name = str(parent)
+                    return (self.worldObjects[name[name.rfind("IsisObject"):]], dist)
                 else:
                     parent = parent.getParent()
         return None
 
 
     def getObjectsInView(self, xpoints = 32, ypoints = 24):
-        objects = []
+        objects = {}
         for x in frange(-1, 1, 2.0/xpoints):
             for y in frange(-1, 1, 2.0/ypoints):
                 o = self.pick((x, y))
-                if o and (o not in objects):
-                    objects.append(o)
+                if o and (o[0] not in objects or o[1] < objects[o[0]]):
+                    objects[o[0]] = o[1]
         return objects

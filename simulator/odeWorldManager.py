@@ -1,4 +1,4 @@
-# -*- coding: UTF-8 -*-
+﻿# -*- coding: UTF-8 -*-
 
 # Copyright (c) 2009, Piotr Podgórski
 # All rights reserved.
@@ -794,6 +794,7 @@ class PhysicsWorldManager:
     def addObject(self, obj):
         """ Takes an IsisObject and adds it as a dynamic or kinematic 
         object in the physics simulator """
+        return obj
         model = obj.model
         name = obj.name
         density = obj.density

@@ -201,7 +201,7 @@ class IsisWorld(ShowBase):
         self.agentsNamesToIDs = {'Ralph':0, 'Lauren':1, 'David':2}
         # add and initialize new agents
         for name in self.agentsNamesToIDs.keys():
-            newAgent = Ralph(base.physicsManager, self, name)
+            newAgent = Ralph(base.physicsManager, self, name, self.worldObjects)
             newAgent.control__say("Hi, I'm %s. Please build me." % name)
             self.agents.append(newAgent)
 
@@ -248,6 +248,8 @@ class IsisWorld(ShowBase):
         self.actionController.addAction(IsisAction(commandName="sense",intervalAction=False))
         self.actionController.addAction(IsisAction(commandName="use_aimed",intervalAction=False,keyboardBinding="u"))
         self.actionController.addAction(IsisAction(commandName="view_objects",intervalAction=False,keyboardBinding="o"))
+        self.actionController.addAction(IsisAction(commandName="pick_up_with_right_hand",intervalAction=False,keyboardBinding="b"))
+        self.actionController.addAction(IsisAction(commandName="drop_from_right_hand",intervalAction=False,keyboardBinding="m"))
 
         # initialze keybindings
         for keybinding, command in self.actionController.keyboardMap.items():

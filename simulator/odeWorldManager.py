@@ -628,7 +628,9 @@ class PhysicsWorldManager:
             self.startPhysics(stepTime)
         else:
             self.stopPhysics()
-        self.paused = not self.paused
+        # only untoggle bit if pause is called, not step
+        if stepTime == None:
+            self.paused = not self.paused
 
     def collideSelected(self, selected, exclude=[]):
         """

@@ -79,7 +79,8 @@ class IsisObject(NodePath):
     def update(self, timeStep=1):
         """ This method is called at each physics step by the Physics Controller
         whenever the object is added as a Kinematic, rather than Dynamic, object""" 
-        #self.model.setPosQuat(render, self.geom.getPosition(), Quat(self.geom.getQuaternion()))
+        self.model.setPosQuat(render, self.geom.getPosition(), Quat(self.geom.getQuaternion()))
+        return
         quat = self.model.getQuat(self)
         pos = self.model.getPos(self)
         self.geom.setPosition(pos)

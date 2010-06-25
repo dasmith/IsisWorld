@@ -75,8 +75,6 @@ class Command_Handler(object):
         fullCmd = self.simulator.actionController.actionMap[command]
         return self.simulator.actionController.makeAgentDo(self.simulator.agents[agentID], fullCmd, args)
 
-
-
     #obsolete cruft
     def _handle_perception(self,args):
         raise NotImplementedError, "_handle_perception has moved to Ralph.control__sense"

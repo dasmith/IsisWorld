@@ -66,7 +66,6 @@ class IsisWorld(ShowBase):
         # load the objects into the world
         self.setupEnvironment(debug=False)
         self.worldObjects = {}
-        #self.worldObjects.update(load_objects_in_world(self.physicsManager,render, self.worldObjects))
         # start physics manager
         self.inspectState = False
         self.textObjectVisible = True
@@ -102,6 +101,11 @@ class IsisWorld(ShowBase):
         self.server.register_function(xmlrpc_command_handler.command_handler,'do')
         self.server_thread = threading.Thread(group=None, target=self.server.serve_forever, name='isisworld-xmlrpc')
         self.server_thread.start()
+        if base.appRunner!=None:
+            print 'In multifile, root = '+base.appRunner.multifileRoot
+            self.baseDir = base.appRunner.multifileRoot+'/'
+        else:
+            self.baseDir = ''
 
               
  
@@ -125,7 +129,7 @@ class IsisWorld(ShowBase):
         self.physicsManager.setupGround(self)
         """
         Load Objects from '.isis' file """
-        self.worldObjects.update(load_objects("./kitchen.isis", render, self.physicsManager))
+        self.worldObjects.update(load_objects(self.baseDir+"kitchen.isis", render, self.physicsManager))
         for name in self.worldObjects:
           self.worldObjects[name].flattenLight()
         """
@@ -250,7 +254,7 @@ class IsisWorld(ShowBase):
             print "adding command to ", keybinding, command
             base.accept(keybinding, relayAgentControl, [command])
 
-        # add documentation
+        # add on-screen documentation
         for helpString in self.actionController.helpStrings:
             text += "\n%s" % (helpString)
 

@@ -78,7 +78,7 @@ class odeGeomData:
         self.surfaceSoftERP = 0.0
         self.surfaceSoftCFM = 1e-3
         self.surfaceSlip = 0.1
-        self.surfaceDampen = 0.2
+        self.surfaceDampen = 0.15
 
 class PhysicsCharacterController:
     """
@@ -127,8 +127,8 @@ class PhysicsCharacterController:
         """
         
         self.radius = .5
-        self.walkLength =  2.1
-        self.walkLevitation = 2.1 
+        self.walkLength =  2.0
+        self.walkLevitation = 2.0
         self.crouchLength = .1
         self.crouchLevitation = 1.2
         self.length = self.walkLength
@@ -165,8 +165,8 @@ class PhysicsCharacterController:
         self.footRay = OdeRayGeom(self.space, 3.0)
         self.footRay.set(0, 0, 0, 0, 0, -1)
 
-        self.setCollideBits(BitMask32(0x00000122))
-        self.setCategoryBits(BitMask32(0x0000111))
+        self.setCollideBits(AGENTMASK)#BitMask32(0x00000122))
+        self.setCategoryBits(BitMask32.allOn())#BitMask32(0x0000111))
 
         """
         The GeomData for the character capsule.
@@ -804,7 +804,7 @@ class PhysicsWorldManager:
             box=bounds[1]-bounds[0]
             return [box[0],box[1],box[2]]
         bounds = getOBB(obj.model)
-        h_bounds = bounds #[x/2.0 for x in bounds]
+        h_bounds = [x/2.0 for x in bounds]
         boxNodepath = wireGeom().generate ('box', extents=h_bounds) 
         boxNodepath.reparentTo(obj)
         """
@@ -812,7 +812,7 @@ class PhysicsWorldManager:
         that the map consists of.
         """
         # find object's rotation
-        objectGeom = OdeBoxGeom(self.space, *bounds) 
+        objectGeom = OdeBoxGeom(self.space, *h_bounds) 
         objectBody = OdeBody(self.world)
         if density:
             M = OdeMass()
@@ -823,16 +823,16 @@ class PhysicsWorldManager:
         objectGeom.setPosition(model.getPos(render))
         objectGeom.setQuaternion(model.getQuat(render))
         objectGeom.setCategoryBits(BitMask32.allOn())
-        objectGeom.setCollideBits(BitMask32.allOn())
+        objectGeom.setCollideBits(AGENTMASK)#BitMask32.allOn())
         #objectGeom.setCollideBits(THINGMASK)
         #objectGeom.setCategoryBits(THINGMASK)
         objectGeom.setBody(objectBody)
         #objectGeom.setOffsetPosition(Vec3(*offset))
         objData = odeGeomData()
         objData.name = name
-        objData.surfaceFriction = 20.0
+        objData.surfaceFriction = 2.0
         #objData.collisionCallback = obj.collide
-        self.setGeomData(objectGeom, objData, obj, False)#True)
+        self.setGeomData(objectGeom, objData, obj, False)
         return objectGeom
         
         objectData = odeGeomData()
@@ -954,7 +954,6 @@ class PhysicsWorldManager:
     def stopPhysics(self,task=None):
         print "[IsisWorld] Stopping Physical Simulator"
         taskMgr.remove("ODE_simulationTask")
-        #base.disableParticles()
         self._globalClock=ClockObject.getGlobalClock()
         self._globalClock.setMode(ClockObject.MSlave)
 

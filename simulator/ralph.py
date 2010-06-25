@@ -332,16 +332,16 @@ class Ralph(PhysicsCharacterController):
         if self.right_hand_holding_object:
             return 'right hand is already holding ' + self.right_hand_holding_object.getName() + '.'
         if d[pick_up_object] < 5.0:
-            object_parent = pick_up_object.getParent()
-            if (object_parent == self.agent_simulator.render):
+            if (pick_up_object.heldBy == None):
                 pick_up_object.wrtReparentTo(self.player_right_hand)
                 pick_up_object.setPos(0, 0, 0)
                 pick_up_object.setHpr(0, 0, 0)
                 self.right_hand_holding_object = pick_up_object
+                pick_up_object.heldBy = self
                 print "sucess!"
                 return 'success'
             else:
-                print "Object being held by " + str(object_parent)
+                print "Object being held by " + str(pick_up_object.heldBy)
                 return 'object (' + pick_up_object.name + ') is already held by something or someone.'
         else:
             print "Object not graspable, dist=" + str(d[pick_up_object])
@@ -377,6 +377,7 @@ class Ralph(PhysicsCharacterController):
         if self.right_hand_holding_object is False:
             return 'right hand is not holding an object.'
         world_object = self.right_hand_holding_object
+        world_object.heldBy = None
         self.right_hand_holding_object = False
         world_object.wrtReparentTo(self.agent_simulator.render)
         world_object.setHpr(0, 0, 0)
@@ -389,8 +390,9 @@ class Ralph(PhysicsCharacterController):
         if self.left_hand_holding_object is False:
             return 'left hand is not holding an object.'
         world_object = self.left_hand_holding_object
+        world_object.heldBy = None
         self.left_hand_holding_object = False
-        world_object.wrtReparentTo(self.agent_simulator.env)
+        world_object.wrtReparentTo(self.agent_simulator.render)
         world_object.setHpr(0, 0, 0)
         world_object.setPos(self.position() + self.forward_normal_vector() * 0.5)
         world_object.setZ(world_object.getZ() + 1.0)

@@ -70,6 +70,8 @@ class IsisObject(NodePath):
         self.on_layout = None
         self.in_layout = None
 
+        self.heldBy = None
+
         # organize environments for internal layouts
         self.on_layout = HorizontalGridLayout((self.getWidth(), self.getLength()), self.getHeight())
         self.in_layout = self.on_layout
@@ -124,6 +126,10 @@ class IsisObject(NodePath):
         """ Allows Ralph to pick up a given object """
         if self.weight < 5000:
             self.reparentTo(parent)
+            self.heldBy = parent
+    def drop(self):
+        """ Clears the heldBy variable """
+        self.heldBy = None
 
     def putOn(self, obj):
         # TODO: requires that object has an exposed surface

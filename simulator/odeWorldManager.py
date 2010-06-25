@@ -602,7 +602,7 @@ class PhysicsWorldManager:
         self.contactGroup = OdeJointGroup()
         self.space.setAutoCollideJointGroup(self.contactGroup)
         self.raySpace = OdeHashSpace()
-        #self.space.setCollisionEvent("collision")
+        self.space.setCollisionEvent("collision")
         self.stepSize = 0.01
 
         """
@@ -739,10 +739,10 @@ class PhysicsWorldManager:
 
                 contactPoint = entry.getContactPoint(i)
 
-                contact = OdeContact()
-                contact.setGeom(cgeom)
-                contact.setFdir1(cgeom.getNormal())
-                contact.setSurface(surfaceParams)
+                #contact = OdeContact()
+                #contact.setGeom(cgeom)
+                #contact.setFdir1(cgeom.getNormal())
+                #contact.setSurface(surfaceParams)
                 #debug()
                 #if geom1Data.name == "charCapsule" or geom2Data.name == "charCapsule":
                 print "Contact between ", geom1.getBody(), geom2.getBody(), geom1Data.name, geom2Data.name
@@ -877,7 +877,7 @@ class PhysicsWorldManager:
         # find object's rotation
         objectGeom = OdeBoxGeom(self.space, *h_bounds) 
         objectBody = OdeBody(self.world)
-        if density:
+        if False:#density:
             M = OdeMass()
             M.setBox(density, *bounds)
             objectBody.setMass(M)
@@ -956,8 +956,7 @@ class PhysicsWorldManager:
             inside that method is only up to you as the coder, the update
             method is the only requirement.
             """
-            print "do nothing"
-            #object.update(self.stepSize)
+            object.update(self.stepSize)
 
         for geom, nodePath in self.dynamics.iteritems():
             """
@@ -969,7 +968,6 @@ class PhysicsWorldManager:
                 continue
             pos = Vec3(geom.getPosition())
             quat = Quat(geom.getQuaternion())
-            print pos, quat
             nodePath.setPosQuat(render, pos, quat)
         return task.again
 

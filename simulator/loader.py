@@ -1,8 +1,8 @@
 """  Object Loader for IsisWorld Simulator """
-import sys, re, time
-from random import randint, random
 from direct.interval.IntervalGlobal import *
 from pandac.PandaModules import BitMask32, CardMaker, Vec4, Quat
+from random import randint, random
+import sys, re, time
 from isis_objects.generator import IsisObjectGenerator
 from isis_objects.isisobject import IsisObject
 

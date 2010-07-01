@@ -581,8 +581,11 @@ class PhysicsWorldManager:
         self.world = OdeWorld()
         self.world.setGravity(0, 0, -9.81)
         self.world.setErp(0.3)
-        #self.world.setCfm(1e-3)
+        self.world.setCfm(1e-3)
         self.world.setAutoDisableFlag(True)
+        
+        self.world.initSurfaceTable(1)
+        self.world.setSurfaceEntry(0, 0, 150, 0.0, 9.1, 0.9, 0.00001, 0.0, 0.002)
         self.timeAccu = 0.0
         self.FRAME_RATE = FRAME_RATE
         """
@@ -594,9 +597,12 @@ class PhysicsWorldManager:
         """
         Standard ODE setup
         """
+        self.space = OdeHashSpace()
+        self.space.setAutoCollideWorld(self.world)
         self.contactGroup = OdeJointGroup()
-        self.space = OdeSimpleSpace()
-        self.raySpace = OdeSimpleSpace()
+        self.space.setAutoCollideJointGroup(self.contactGroup)
+        self.raySpace = OdeHashSpace()
+        self.space.setCollisionEvent("collision")
         self.stepSize = 0.01
 
         """
@@ -687,13 +693,62 @@ class PhysicsWorldManager:
         I use the getSurfaceType for convenience so that
         I don't need to write my own stuff.
         """
+        return None
         idx = self.space.getSurfaceType(geom)
         try:
             return self.geomsData[idx]
         except IndexError:
             return None
+            
+    def handleCollisions(self, entry):
+        geom1 = entry.getGeom1()
+        geom2 = entry.getGeom2()
 
-    def handleCollisions(self, arg, geom1, geom2):
+        return
+        geom1Data = self.getGeomData(geom1)
+        geom2Data = self.getGeomData(geom2)
+
+        if geom1Data.isTrigger and geom2Data.isTrigger:
+            """
+            Detecting a collision between two area triggers would be a little pointless
+            """
+            return
+
+        if not geom1Data.isTrigger and not geom2Data.isTrigger:
+            """
+            Handle a typpical collision between two geoms of which none is a trigger.
+            Create contact joint and the rest of the standard ODE stuff.
+            """
+            surfaceParams = OdeSurfaceParameters()
+
+            surfaceParams.setMu(geom2Data.surfaceFriction)
+            surfaceParams.setMu2(geom1Data.surfaceFriction)
+            surfaceParams.setBounce(geom1Data.surfaceBounce)
+            surfaceParams.setBounceVel(geom1Data.surfaceBounceVel)
+            surfaceParams.setSlip1(geom1Data.surfaceSlip)
+            surfaceParams.setSlip2(geom2Data.surfaceSlip)
+            surfaceParams.setSoftCfm(geom1Data.surfaceSoftCFM)
+            surfaceParams.setSoftErp(geom1Data.surfaceSoftERP)
+
+            numContacts = entry.getNumContacts()
+            if numContacts > 4:
+                numContacts = 4
+            for i in range(numContacts):
+                if (geom1Data.name == "ground" or geom1Data.name == "door") and geom2Data.name == "ground": continue
+                cgeom = entry.getContactGeom(i)
+
+                contactPoint = entry.getContactPoint(i)
+
+                #contact = OdeContact()
+                #contact.setGeom(cgeom)
+                #contact.setFdir1(cgeom.getNormal())
+                #contact.setSurface(surfaceParams)
+                #debug()
+                #if geom1Data.name == "charCapsule" or geom2Data.name == "charCapsule":
+                print "Contact between ", geom1.getBody(), geom2.getBody(), geom1Data.name, geom2Data.name
+                #contactJoint = OdeContactJoint(self.world, self.contactGroup, contact)
+                #contactJoint.attach(geom1.getBody(), geom2.getBody())
+    def handleCollisions2(self, arg, geom1, geom2):
         """
         A more flexible replacement for autoCollide.
         """
@@ -772,11 +827,11 @@ class PhysicsWorldManager:
             self.geomsData.append(data)
 
         index = self.geomsData.index(data)
-        """
+        """    
         I use the OdeSpace's setSurfaceType to hold information about
         which geomData this specific geom uses.
         """
-        self.space.setSurfaceType(geom, index)
+        self.space.setSurfaceType(geom, 0)
 
         """
         Here you set how the object is meant to be handled in
@@ -822,7 +877,7 @@ class PhysicsWorldManager:
         # find object's rotation
         objectGeom = OdeBoxGeom(self.space, *h_bounds) 
         objectBody = OdeBody(self.world)
-        if density:
+        if False:#density:
             M = OdeMass()
             M.setBox(density, *bounds)
             objectBody.setMass(M)
@@ -840,7 +895,7 @@ class PhysicsWorldManager:
         objData.name = name
         objData.surfaceFriction = 2.0
         #objData.collisionCallback = obj.collide
-        self.setGeomData(objectGeom, objData, obj, True)
+        self.setGeomData(objectGeom, objData, obj, False)
         return objectGeom
         
         objectData = odeGeomData()
@@ -874,19 +929,25 @@ class PhysicsWorldManager:
             return True
         return False
 
+
     def simulationTask(self, task):
         """
         As you can see, I do not use autoCollide here at all.
         Instead I only use the space's collide method pointing
         it to the handleCollisions callback.
         """
-        self.space.collide("", self.handleCollisions)
+        self.space.autoCollide() # Setup the contact joints
+        self.world.quickStep(self.stepSize)
+        #self.timeRem -= self.step
+        self.contactGroup.empty() 
+        
+        
+        #self.space.collide("", self.handleCollisions)
 
         """
         And here we update the objects that take part in the simulation.
         """
-        self.world.quickStep(self.stepSize)
-        self.contactGroup.empty()
+
 
         for object in self.kinematics:
             """
@@ -974,6 +1035,7 @@ class PhysicsWorldManager:
 
         This gave me better results than using the time accumulator method.
         """
+        base.accept("collision",self.handleCollisions)
         self.stepSize = 1.0/100.0
         if stopAt != None:
             assert stopAt > 0.0
@@ -983,78 +1045,3 @@ class PhysicsWorldManager:
             taskMgr.doMethodLater(min(self.stepSize,stopAt), self.simulationTask, "ODE_simulationTask")
         else:
             taskMgr.doMethodLater(self.stepSize, self.simulationTask, "ODE_simulationTask")
-
-class explosion:
-    """
-    Explosion mechanics for ODE.
-
-    To use it, just do:
-
-    explosion(worldManager, Vec3(...))
-
-    It will destroy itself once it's done.
-
-    TODO - Explain more and make an example on the map
-    """
-    def __init__(self, worldManager, pos):
-        self.worldManager = worldManager
-        self.odeWorld = self.worldManager.world
-        self.space = self.worldManager.space
-
-        self.timeElapsed = 0.0
-        self.speed = 2000.0
-        self.force = 150.0
-        self.currentForce = 0.0
-        self.radius = 0.0
-
-        self.collisions = []
-
-        sphereData = odeGeomData()
-        sphereData.name = "explosion"
-        sphereData.isTrigger = True
-        sphereData.collisionCallback = self.handleCollision
-
-        self.sphere = OdeSphereGeom(self.worldManager.space, 0.0)
-        self.sphere.setPosition(pos)
-
-        self.worldManager.setGeomData(self.sphere, sphereData, self, False)#True)
-
-
-    def handleCollision(self, entry, geom1Data, geom2Data):
-        if entry.getGeom1() == self.sphere:
-            geom = entry.getGeom2()
-            geomData = geom2Data
-        elif entry.getGeom2() == self.sphere:
-            geom = entry.getGeom1()
-            geomData = geom1Data
-        else:
-            return
-        self.collisions.append([geom, entry.getContactGeom(0).getNormal(), entry.getContactPoint(0), geomData])
-
-    def update(self, timeStep):
-        self.timeElapsed += timeStep
-        print "T", self.timeElapsed
-        if self.timeElapsed > .1:
-            self.worldManager.destroyObject(self)
-            self.sphere.destroy()
-            return
-
-        force = self.force - self.sphere.getRadius()/10.0
-        print "F", force
-
-        for geom, normal, point, geomData in self.collisions:
-            if geom.hasBody():
-                #forceVector = (geom.getPosition() - self.sphere.getPosition()) * force
-                forceVector = -normal * force
-                geom.getBody().addForceAtPos(forceVector, point)
-                print "force vector", forceVector
-                if geomData.damageCallback:
-                    geomData.damageCallback(100.0)
-
-        self.radius += self.speed * self.timeElapsed**2
-        print "R", self.radius
-        self.sphere.setRadius(self.radius)
-
-        print "\n"
-
-        self.collisions = []

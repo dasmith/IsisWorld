@@ -61,7 +61,7 @@ class Ralph(PhysicsCharacterController):
         The ray sticking out of the camera and meant for clicking at
         objects in the world.
         """
-        self.aimRay = OdeRayGeom(self.worldManager.raySpace, 2.5)
+        self.aimRay = None
         self.aimed = None
 
 
@@ -515,7 +515,9 @@ class Ralph(PhysicsCharacterController):
         dir = render.getRelativeVector(self.fov, Vec3(0, 1.0, 0))
         pos = self.fov.getPos(render) 
         print "relative vector", pos
-        self.aimRay.set(pos, dir)
+        # FIXME: work with non-ODE
+        return
+        #self.aimRay.set(pos, dir)
 
         # raycast
         closestEntry, closestGeom = self.worldManager.doRaycast(self.aimRay, [self.capsuleGeom])

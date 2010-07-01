@@ -1,5 +1,5 @@
-
 from pandac.PandaModules import *
+#from direct.showbase.DirectObject import DirectObject
 # initialize collision mask constants
 FLOORMASK = BitMask32.bit(0)        
 WALLMASK = BitMask32.bit(1)
@@ -33,6 +33,10 @@ class PhysicsCharacterController(object):
         self.cNodePath = self.actor.attachNewNode(self.cNode)
         self.cNodePath.show()
         self.priorParent, self.actorNodePath, self.acForce = worldManager.addActorPhysics(self)
+        
+    
+    def jump(self,x=0):
+        pass
 
 def getOrientedBoundedBox(collobj):
     ''' get the oriented bounding box '''
@@ -61,6 +65,10 @@ def getCapsuleSize(collobj,radius=1):
 class PhysicsWorldManager():
     
     def __init__(self):
+        
+        # whether simulator is paused
+        self.paused = False
+        
         """Setup the collision pushers, handler, and traverser"""
         # cTrav is in charage to drive collisions
         base.cTrav = CollisionTraverser('Collision Traverser')
@@ -187,6 +195,9 @@ https://www.panda3d.org/wiki/index.php/Collision_Entries
         return (cNodepath, collSphereStr)
 
 
+    def togglePaused(self,time=1):
+        pass
+        
     def addObject(nodePath,shape):
         return 0
         if self.disable: return
@@ -243,7 +254,8 @@ https://www.panda3d.org/wiki/index.php/Collision_Entries
         #isisWorld.groundNP.node().setIntoCollideMask(FLOORMASK)
 
     def doPhysics(self,dt):
-        base.physicsMgr.doPhysics(dt)
+        pass
+        #base.physicsMgr.doPhysics(dt)
 
     def startPhysics(self):
         # everything is done in the __init__ method

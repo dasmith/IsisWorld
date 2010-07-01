@@ -10,8 +10,18 @@ ISIS_VERSION = 0.4
 FRAME_RATE = 20
 
 from pandac.PandaModules import loadPrcFileData
+loadPrcFileData("", 
+"""sync-video 0
+load-display pandagl
+aux-display tinydisplay
+winow-title "IsisWorld"
+win-size 800 600
+clock-mode limited
+clock-frame-rate %i
+textures-power-2 none 
+basic-shaders-only f""" % FRAME_RATE )
 
-#from direct.showself.ShowBase import ShowBase
+#from direct.showbase.ShowBase import ShowBase
 from direct.gui.OnscreenText import OnscreenText
 from direct.task import Task, TaskManagerGlobal
 from direct.filter.CommonFilters import CommonFilters 
@@ -33,12 +43,13 @@ from random import randint, random
 import threading, sys
         
 class IsisWorld(DirectObject):
-    """ IsisWorld is the simulator class inheriting from Panda3D's DirectObject.
+    """ IsisWorld is the simulator class inheriting from Panda3D's ShowBase
+    class, which inherits from the DirectObject.
 
     Among other things, this instantiates a taskMgr which can be launched
     by a single call to `run()`.
 
-    Several variables are attributes of the DirectObject instance, including
+    Several variables are attributes of the ShowBase instance, including
 
         - base
         - render: the default 3D scene graph
@@ -52,7 +63,7 @@ class IsisWorld(DirectObject):
     For a complete list, see: http://www.panda3d.org/wiki/index.php/ShowBase
     """
     def __init__(self):
-        #Showself.__init__(self)
+
         # load the objects into the world
         self.setupEnvironment(debug=False)
         self.worldObjects = {}
@@ -60,7 +71,7 @@ class IsisWorld(DirectObject):
         self.inspectState = False
         self.textObjectVisible = True
         # this is defined in simulator/physics.py
-        self.physicsManager = PhysicsWorldManager()
+        self.physicsManager = PhysicsWorldManager(FRAME_RATE)
         # setup components
         self.setupMap()
         self.setupLights()
@@ -91,7 +102,11 @@ class IsisWorld(DirectObject):
         self.server.register_function(xmlrpc_command_handler.command_handler,'do')
         self.server_thread = threading.Thread(group=None, target=self.server.serve_forever, name='isisworld-xmlrpc')
         self.server_thread.start()
-        self.baseDir = ''
+        if base.appRunner!=None:
+            print 'In multifile, root = '+base.appRunner.multifileRoot
+            self.baseDir = base.appRunner.multifileRoot+'/'
+        else:
+            self.baseDir = ''
 
               
  
@@ -240,7 +255,7 @@ class IsisWorld(DirectObject):
         # initialze keybindings
         for keybinding, command in self.actionController.keyboardMap.items():
             print "adding command to ", keybinding, command
-            self.accept(keybinding, relayAgentControl, [command])
+            base.accept(keybinding, relayAgentControl, [command])
 
         # add on-screen documentation
         for helpString in self.actionController.helpStrings:
@@ -280,16 +295,16 @@ class IsisWorld(DirectObject):
         # control keys to move the character
         
         b = DirectButton(pos=(-1.3,0.0,-0.95),text = ("Inspect", "click!", "rolling over", "disabled"), scale=0.05, command = self.toggleInspect)
-        #self.accept("o", toggleInstructionsWindow)
+        #base.accept("o", toggleInstructionsWindow)
 
         # key input
-        self.accept("1",               base.toggleWireframe, [])
-        self.accept("2",               base.toggleTexture, [])
-        self.accept("3",               changeAgent, [])
+        base.accept("1",               base.toggleWireframe, [])
+        base.accept("2",               base.toggleTexture, [])
+        base.accept("3",               changeAgent, [])
         self.accept("space",           self.step_simulation, [.1]) # argument is amount of second to advance
         self.accept("p",               self.physicsManager.togglePaused)
         #self.accept("r",              self.reset_simulation)
-        self.accept("escape",          self.safe_shutdown)
+        base.accept("escape",          self.safe_shutdown)
     
         self.teacher_utterances = [] # last message typed
         # main dialogue box

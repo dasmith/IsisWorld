@@ -1,16 +1,11 @@
 
 #cp COPYING $(SIM_NAME)_$(SIM_VERSION)/
 SIM_VERSION=0.4
-SIM_NAME=isis_world
-tar: *.py
-	touch som/test.pyc
-	rm */*.pyc
-	tar cf simulator-$(SIM_VERSION).tar COPYING simulator.py som models visual xmlrpc lab1_ralph.py lab2_ralph.py
-	gzip simulator-$(SIM_VERSION).tar
-	scp simulator-$(SIM_VERSION).tar.gz dustin@ml.media.mit.edu:public_html/6.868/
-
 # /Developer/Panda3D/lib/direct/p3d/packp3d.py
 #panda3d makescripts/packp3d.p3d
+
+make: main.py
+	ipython -pdb main.py
 
 package: main.py
 	packp3d -o isis_world.p3d  -d . -r ode -r morepy -D -e isis -c auto_start=1

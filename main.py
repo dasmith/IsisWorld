@@ -36,12 +36,13 @@ import sys, os, threading
 
 class IsisWorld(DirectObject.DirectObject):
 
-    rootDirectory = ExecutionEnvironment.getEnvironmentVariable("MAIN_DIR")
+   
 
     def __init__(self):
         # load the main simulated environment
         self.isisMessage("Starting Up")
-        config = loadPrcFile(Filename(IsisWorld.rootDirectory, 'config.prc'))
+        self.rootDirectory = "."#Filename.fromOsSpecific(ExecutionEnvironment.getCwd())
+        config = loadPrcFile(Filename(self.rootDirectory, 'config.prc'))
         self._setupEnvironment(debug=False)
         self._setupWorld()
         self._setupAgents()
@@ -99,7 +100,7 @@ class IsisWorld(DirectObject.DirectObject):
 
     	This is done by calling the physics module:  physicsModule.setupGround()"""
         cm = CardMaker("ground")
-        groundTexture = loader.loadTexture(IsisWorld.rootDirectory+"/media/textures/env_ground.jpg")
+        groundTexture = loader.loadTexture(self.rootDirectory+"/media/textures/env_ground.jpg")
         cm.setFrame(-100, 100, -100, 100)
         groundNP = render.attachNewNode(cm.generate())
         groundNP.setTexture(groundTexture)
@@ -107,7 +108,7 @@ class IsisWorld(DirectObject.DirectObject):
         groundNP.lookAt(0, 0, -1)
         groundNP.setTransparency(TransparencyAttrib.MAlpha)
 
-        self.map = loader.loadModel(IsisWorld.rootDirectory+"/media/models/kitchen")
+        self.map = loader.loadModel(self.rootDirectory+"/media/models/kitchen")
         self.map.reparentTo(render)
         self.mapNode = self.map.find("-PandaNode")
         self.room = self.mapNode.find("Wall")
@@ -133,7 +134,7 @@ class IsisWorld(DirectObject.DirectObject):
         #self.doorNP.flattenStrong()
 
 
-        self.worldObjects.update(load_objects(IsisWorld.rootDirectory+"/kitchen.isis", render, self.physicsManager))
+        self.worldObjects.update(load_objects(self.rootDirectory+"/kitchen.isis", render, self.physicsManager))
         for name in self.worldObjects:
           self.worldObjects[name].flattenLight()
 

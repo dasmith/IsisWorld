@@ -38,7 +38,7 @@ class Ralph(DirectObject.DirectObject):
     def __init__(self, worldManager, agentSimulator, name, worldObjectsDict, queueSize = 100):
 
         # setup the visual aspects of ralph
-        self.actor= Actor("models/boxman",{"walk":"models/boxman-walk", "idle": "models/boxman-idle"})
+        self.actor= Actor("media/models/boxman",{"walk":"media/models/boxman-walk", "idle": "media/models/boxman-idle"})
         self.actor.setScale(1.0)
         self.actor.setH(0)
         self.actor.setColorScale(random.random(), random.random(), random.random(), 1.0)

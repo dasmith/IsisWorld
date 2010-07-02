@@ -21,7 +21,7 @@ class Ralph(PhysicsCharacterController):
     def __init__(self, worldManager, agentSimulator, myName, worldObjectsDict, queueSize = 100):
     
         
-        self.actor= Actor("models/boxman",{"walk":"models/boxman-walk", "idle": "models/boxman-idle"})
+        self.actor= Actor("/media/models/boxman",{"walk":"/media/models/boxman-walk", "idle": "/media/models/boxman-idle"})
         self.actor.setScale(1.0)
         self.actor.setH(0)
         self.actor.setColorScale(random.random(), random.random(), random.random(), 1.0)

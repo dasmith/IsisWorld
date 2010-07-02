@@ -87,7 +87,7 @@ class IsisWorld(DirectObject.DirectObject):
         
         self.worldObjects = {}
         base.cTrav = CollisionTraverser( ) 
-        base.cTrav.showCollisions( render )        
+        base.cTrav.showCollisions(render)        
         
         # parameters
         self.visualizeClouds = True 
@@ -107,8 +107,15 @@ class IsisWorld(DirectObject.DirectObject):
         groundNP.setPos(0, 0, 0)
         groundNP.lookAt(0, 0, -1)
         groundNP.setTransparency(TransparencyAttrib.MAlpha)
-        groundNP.node().setIntoCollideMask(BitMask32.bit(0))
+        groundNP.node().setIntoCollideMask(BitMask32.bit(1))
+        groundNP.setCollideMask(BitMask32.allOff() | FLOORMASK)
 
+
+        self.worldObjects.update(load_objects(self.rootDirectory+"/kitchen.isis", render, self.physicsManager))
+        for name in self.worldObjects:
+          self.worldObjects[name].flattenLight()
+
+        return
         self.map = loader.loadModel(self.rootDirectory+"/media/models/kitchen")
         self.map.reparentTo(render)
         self.mapNode = self.map.find("-PandaNode")
@@ -134,13 +141,6 @@ class IsisWorld(DirectObject.DirectObject):
         #self.map.flattenStrong()
         #self.steps.flattenStrong()
         #self.doorNP.flattenStrong()
-
-
-        self.worldObjects.update(load_objects(self.rootDirectory+"/kitchen.isis", render, self.physicsManager))
-        for name in self.worldObjects:
-          self.worldObjects[name].flattenLight()
-
-
         """ 
         Setup the skydome
         Moving clouds are pretty but computationally expensive 

@@ -74,7 +74,8 @@ class PhysicsWorldManager(DirectObject.DirectObject):
         # Get the collision node the Nodepath is referring to.
         floorCollisionNode = floorCollisionNP.node()
         # The floor is only an into object, so just need to set its into mask.
-        floorCollisionNode.setIntoCollideMask(FLOORMASK)
+        floorCollisionNode.setIntoCollideMask(BitMask32.allOff() | AGENTMASK | FLOORMASK)
+        
         
     def stepSimulation(self,stepTime=1):
         if self.paused:

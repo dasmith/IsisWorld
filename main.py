@@ -251,8 +251,12 @@ class IsisWorld(DirectObject.DirectObject):
         self.actionController.addAction(IsisAction(commandName="sense",intervalAction=False))
         self.actionController.addAction(IsisAction(commandName="use_aimed",intervalAction=False,keyboardBinding="u"))
         self.actionController.addAction(IsisAction(commandName="view_objects",intervalAction=False,keyboardBinding="o"))
+        self.actionController.addAction(IsisAction(commandName="pick_up_with_left_hand",intervalAction=False,keyboardBinding="v"))
         self.actionController.addAction(IsisAction(commandName="pick_up_with_right_hand",intervalAction=False,keyboardBinding="b"))
+        self.actionController.addAction(IsisAction(commandName="drop_from_left_hand",intervalAction=False,keyboardBinding="n"))
         self.actionController.addAction(IsisAction(commandName="drop_from_right_hand",intervalAction=False,keyboardBinding="m"))
+        self.actionController.addAction(IsisAction(commandName="use_left_hand",intervalAction=False,keyboardBinding=","))
+        self.actionController.addAction(IsisAction(commandName="use_right_hand",intervalAction=False,keyboardBinding="."))
 
         # initialze keybindings
         for keybinding, command in self.actionController.keyboardMap.items():

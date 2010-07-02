@@ -112,6 +112,8 @@ class Ralph(DirectObject.DirectObject):
         # Expose agent's right hand joint to attach objects to
         self.player_right_hand = self.actor.exposeJoint(None, 'modelRoot', 'Hand.R')
         self.player_left_hand  = self.actor.exposeJoint(None, 'modelRoot', 'Hand.L')
+        self.player_right_hand.setColorScaleOff()
+        self.player_left_hand.setColorScaleOff()
         self.player_head  = self.actor.exposeJoint(None, 'modelRoot', 'Head')
         self.player_neck = self.actor.controlJoint(None, 'modelRoot', 'Head')
 
@@ -395,6 +397,35 @@ class Ralph(DirectObject.DirectObject):
             print "Object not graspable, dist=" + str(d[pick_up_object])
             return 'object (' + pick_up_object.name + ') is not graspable (i.e. in view and close enough).'
 
+    def control__pick_up_with_left_hand(self, pick_up_object = None):
+        if not pick_up_object:
+            d = self.raytrace_getAllObjectsInView()
+            if len(d) > 0:
+                pick_up_object = d.keys()[0]
+            else:
+                print "no objects in view to pick up"
+                return
+        print "attempting to pick up " + pick_up_object.name + " with left hand.\n"
+        if self.left_hand_holding_object:
+            return 'left hand is already holding ' + self.left_hand_holding_object.getName() + '.'
+        if d[pick_up_object] < 5.0:
+            if pick_up_object.getNetTag('heldBy') == '':
+                pick_up_object.wrtReparentTo(self.player_left_hand)
+                # pick_up_object.setPos(0, 0, 0)
+                #pick_up_object.setHpr(0, 0, 0)
+                self.left_hand_holding_object = pick_up_object
+                pick_up_object.setTag('heldBy', self.name)
+                print "sucess!"
+                print self.player_left_hand.getPos()
+                print pick_up_object.getPos()
+                return 'success'
+            else:
+                print "Object being held by " + str(pick_up_object.node().getTag('heldBy'))
+                return 'object (' + pick_up_object.name + ') is already held by something or someone.'
+        else:
+            print "Object not graspable, dist=" + str(d[pick_up_object])
+            return 'object (' + pick_up_object.name + ') is not graspable (i.e. in view and close enough).'
+
     def control__put_object_in_empty_left_hand(self, object_name):
         if (self.left_hand_holding_object is not False):
             return False
@@ -415,21 +446,6 @@ class Ralph(DirectObject.DirectObject):
         self.right_hand_holding_object = world_object
         return True
 
-    def control__pick_up_with_left_hand(self, pick_up_object):
-        print "attempting to pick up " + pick_up_object + " with left hand.\n"
-        if self.left_hand_holding_object:
-            return 'left hand is already holding ' + self.left_hand_holding_object.getName() + '.'
-        if self.can_grasp(pick_up_object):
-            world_object = self.agent_simulator.world_objects[pick_up_object]
-            object_parent = world_object.getParent()
-            if (object_parent == self.agent_simulator.env):
-                self.put_object_in_empty_left_hand(pick_up_object)
-                return 'success'
-            else:
-                return 'object (' + pick_up_object + ') is already held by something or someone.'
-        else:
-                return 'object (' + pick_up_object + ') is not graspable (i.e. in view and close enough).'
-
     def control__drop_from_right_hand(self):
         print "attempting to drop object from right hand.\n"
         if self.right_hand_holding_object is False:
@@ -437,7 +453,7 @@ class Ralph(DirectObject.DirectObject):
         world_object = self.right_hand_holding_object
         world_object.clearTag('heldBy')
         self.right_hand_holding_object = False
-        world_object.wrtReparentTo(self.agent_simulator.render)
+        world_object.wrtReparentTo(render)
         world_object.setHpr(0, 0, 0)
         #world_object.setPos(self.position() + self.forward_normal_vector() * 0.5)
         world_object.setZ(world_object.getZ() + 1.0)
@@ -448,13 +464,37 @@ class Ralph(DirectObject.DirectObject):
         if self.left_hand_holding_object is False:
             return 'left hand is not holding an object.'
         world_object = self.left_hand_holding_object
-        world_object.heldBy = None
+        world_object.clearTag('heldBy')
         self.left_hand_holding_object = False
-        world_object.wrtReparentTo(self.agent_simulator.render)
+        world_object.wrtReparentTo(render)
         world_object.setHpr(0, 0, 0)
-        world_object.setPos(self.position() + self.forward_normal_vector() * 0.5)
+        #world_object.setPos(self.position() + self.forward_normal_vector() * 0.5)
         world_object.setZ(world_object.getZ() + 1.0)
         return 'success'
+
+    def control__use_right_hand(self, target = None, action = "divide"):
+        if not target:
+            target = self.picker.pick((0, 0))
+            if not target:
+                return
+            else:
+                target = target[0]
+        else:
+            target = self.agent_simulator.world_objects[target]
+        if self.can_grasp(target.name):
+            target.call(self, action, self.right_hand_holding_object)
+
+    def control__use_left_hand(self, target = None, action = "divide"):
+        if not target:
+            target = self.picker.pick((0, 0))
+            if not target:
+                return
+            else:
+                target = target[0]
+        else:
+            target = self.agent_simulator.world_objects[target]
+        if self.can_grasp(target.name):
+            target.call(self, action, self.left_hand_holding_object)
 
     def is_holding(self, object_name):
         return ((self.left_hand_holding_object  and (self.left_hand_holding_object.getName()  == object_name)) \
@@ -469,29 +509,6 @@ class Ralph(DirectObject.DirectObject):
 
     def has_empty_hand(self):
         return (self.empty_hand() is not False)
-
-    def control__use_object_with_object(self, use_object, with_object):
-        if ((use_object == 'knife') and (with_object == 'loaf_of_bread')):
-            if self.is_holding('knife'):
-                if self.can_grasp('loaf_of_bread'):
-                    if self.has_empty_hand():
-                        empty_hand      = self.empty_hand()
-                        new_object_name = self.agent_simulator.create_object__slice_of_bread([float(x) for x in empty_hand.getPos()])
-                    if (empty_hand == self.player_left_hand):
-                        self.put_object_in_empty_left_hand(new_object_name)
-                    elif (empty_hand == self.player_right_hand):
-                        self.put_object_in_empty_right_hand(new_object_name)
-                    else:
-                        return "simulator error: empty hand is not left or right.  (are there others?)"
-                    return 'success'
-                else:
-                    return 'failure: one hand must be empty to hold loaf_of_bread in place while using knife.'
-            else:
-                return 'failure: loaf of bread is not graspable (in view and close enough)'
-        else:
-            return 'failure: must be holding knife object to use it.'
-        return 'failure: don\'t know how to use ' + use_object + ' with ' + with_object + '.'
-
 
     def control__use_aimed(self):
         """

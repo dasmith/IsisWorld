@@ -7,13 +7,12 @@ class isisworld(p3d):
     config(display_name = "IsisWorld")
     require("morepy")
     require("panda3d")
-    require("fmod")
-    require("ode")
+    #require("ode")
 
     # Add the data and configuration files
     loadPrcFile("config.prc")
     dir("media", "media")
-    dir("simulator", "simulator")
+    dir("src", "src")
     file("config.prc")
     file("kitchen.isis")
 

@@ -7,8 +7,12 @@ SIM_VERSION=0.4
 make: main.py
 	ipython -pdb main.py
 
+
+clean: 
+	rm -rf **/*.pyc *.pyo; **/*.pyo
+
 package: main.py
-	packp3d -o isis_world.p3d  -d . -r ode -r morepy -D -e isis -c auto_start=1
+	ppackage -i build isisworld.pdef
 
 panda: *.p3d
 	rm *.p3d

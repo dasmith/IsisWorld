@@ -413,6 +413,16 @@ class Ralph(DirectObject.DirectObject):
         self.left_hand_holding_object = world_object
         return True
 
+    def control__put_object_in_empty_right_hand(self, object_name):
+        if (self.right_hand_holding_object is not False):
+            return False
+        world_object = self.agent_simulator.world_objects[object_name]
+        world_object.wrtReparentTo(self.player_right_hand)
+        world_object.setPos(0, 0, 0)
+        world_object.setHpr(0, 0, 0)
+        self.right_hand_holding_object = world_object
+        return True
+
     def control__pick_up_with_left_hand(self, pick_up_object):
         print "attempting to pick up " + pick_up_object + " with left hand.\n"
         if self.left_hand_holding_object:

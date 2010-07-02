@@ -133,3 +133,29 @@ class IsisObject(NodePath):
         #PhysicsObjectController.__init__(self,self.physicsManager,self.density)
         self._needToRecalculateScalingProperties = False
 
+    def call(self, agent, action, object = None):
+        try:
+            return getattr(self, "action_"+action)(agent, object)
+        except AttributeError:
+            return None
+        except:
+            return None
+
+class Dividable(IsisObject):
+    def __init__(self, self, name, model, density, pieceGenerator, physicsManager, initialPos, offsetVec=Vec3(0,0,0)):
+        IsisObject.__init__(self, name, model, density, physicsManager, initialPos, offsetVec=Vec3(0, 0, 0))
+        self.piece = pieceGenerator
+
+    def action_divide(self, agent, object):
+        if object != None && isinstance(object, SharpObject):
+            if agent.right_hand_holding_object:
+                agent.control__put_object_in_empty_right_hand(self.piece.generate_instance(self.physicsManager))
+                return true
+            elif agent.left_hand_holding_object:
+                agent.control__put_object_in_empty_right_hand(self.piece.generate_instance(self.physicsManager))
+                return true
+        return false
+
+class SharpObject(IsisObject)
+    def __init__(self, self, name, model, density, physicsManager, initialPos, offsetVec=Vec3(0,0,0)):
+        IsisObject.__init__(self, name, model, density, physicsManager, initialPos, offsetVec=Vec3(0, 0, 0))

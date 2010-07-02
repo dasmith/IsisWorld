@@ -7,11 +7,12 @@ from isis_objects.generator import IsisObjectGenerator
 from isis_objects.isisobject import IsisObject
 
 def load_generators():
-    return {"table":IsisObjectGenerator("table", "media/models/table/table", .006, 4000),
-            "knife":IsisObjectGenerator("knife", "media/models/knife", .01, 1000),
-            "toaster":IsisObjectGenerator("toaster", "media/models/kitchen_models/toaster", .7, 5000, (.5, 0, 0)),
-            "bread":IsisObjectGenerator("bread", "media/models/kitchen_models/slice_of_bread", .5, 1000),
-            "loaf":IsisObjectGenerator("loaf", "media/models/kitchen_models/loaf_of_bread", .3, 1000)}
+    gen = {"table":IsisObjectGenerator("table", "media/models/table/table", .006, 4000),
+           "knife":SharpGenerator("knife", "media/models/knife", .01, 1000),
+           "toaster":IsisObjectGenerator("toaster", "media/models/kitchen_models/toaster", .7, 5000, (.5, 0, 0)),
+           "bread":IsisObjectGenerator("bread", "media/models/kitchen_models/slice_of_bread", .5, 1000)}
+    gen["loaf"] = DividableGenerator("loaf", "media/models/kitchen_models/loaf_of_bread", gen["bread"], .3, 1000)}
+    return gen
 
 def load_objects_file(file):
     return map(lambda x: x.strip(), open(file,'r').readlines()) 

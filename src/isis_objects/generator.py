@@ -1,4 +1,4 @@
-from isisobject import IsisObject
+from isisobject import IsisObject, Dividable, Sharp
 from pandac.PandaModules import Vec3
 # Object generators used to instantiate various objects
 
@@ -24,5 +24,37 @@ class IsisObjectGenerator():
         if parent:
             obj.reparentTo(parent)
         #obj.update()
+
+        return obj
+
+class DividableGenerator(IsisObjectGenerator):
+    def __init__(self, name, model, piece, scale = 1, density = 200, offsets = Vec3(0, 0, 0):
+        """ Defines dividable objects which return pieces of themselves """
+        IsisObjectGenerator.__init__(self, name, model, scale, density, offsets)
+        self.piece = piece
+
+    def generate_instance(self, physicsManager=None, pos = Vec3(0, 0, 0), parent = None):
+        """ Generate a new object and adds it to the world"""
+        model = loader.loadModel(self.model)
+        model.setScale(self.scale)
+
+        obj = Dividable(self.name, model, self.density, self.piece, physicsManager, pos, self.offsets)
+        if parent:
+            obj.repartenTo(parent)
+
+        return obj
+
+class SharpGenerator(IsisObjectGenerator):
+    def __init__(self, name, model, scale = 1, density = 200, offsets = Vec3(0, 0, 0)):
+        IsisObjectGenerator.__init__(self, name, model, scale, density, offsets)
+   
+    def generate_instance(self, physicsManager=None, pos =Vec3(0, 0, 0), parent = None):
+        """ Generates a new object and adds it to the world"""
+        model = loader.loadModel(self.model)
+        model.setScale(self.scale)
+
+        obj = SharpObject(self.name, model, self.density, physicsManager, initialPos=pos, offsetVec=self.offsets)
+        if parent:
+            obj.reparentTo(parent)
 
         return obj

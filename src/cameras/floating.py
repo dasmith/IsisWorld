@@ -50,7 +50,7 @@ class FloatingCamera:
         if self.controlMap['left'] != 0:
             """Rotate the camera to the left"""
             #increment the camera timer, determines speed of camera rotation
-            self.timer += .1
+            self.timer += .01
             angledegrees = self.timer * 50
             angleradians = angledegrees * (math.pi / 180.0)
 
@@ -71,7 +71,7 @@ class FloatingCamera:
         if self.controlMap['right'] !=0:
             """Rotate the camera to the right"""
             #increment the camera timer
-            self.timer -= .1
+            self.timer -= .01
             angledegrees = self.timer * 50
             angleradians = angledegrees * (math.pi / 180.0)
             base.camera.setPos(self.zoom* math.sin(angleradians), -self.zoom * math.cos(angleradians), base.camera.getZ())
@@ -81,16 +81,16 @@ class FloatingCamera:
         #ZOOM IN
         if self.controlMap['zoom-in'] !=0:
             #Zoom in
-            base.camera.setY(base.camera, +(self.elapsed*10))
+            base.camera.setY(base.camera, +(self.elapsed*1))
             #Store the camera position
-            self.zoom -= self.elapsed*10
+            self.zoom -= self.elapsed*1
 
         #ZOOM OUT
         if self.controlMap['zoom-out'] !=0:
             #Zoom out
-            base.camera.setY(base.camera, -(self.elapsed*10))
+            base.camera.setY(base.camera, -(self.elapsed*1))
             #Store the camera position
-            self.zoom += self.elapsed*10
+            self.zoom += self.elapsed*1
 
         return Task.cont
 

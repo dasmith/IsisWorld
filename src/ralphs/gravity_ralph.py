@@ -47,8 +47,14 @@ class Ralph(DirectObject.DirectObject):
         self.actorNode = ActorNode('physicsControler-%s' % name)
         self.actorNodePath = render.attachNewNode(self.actorNode)
         self.actor.reparentTo(self.actorNodePath)
+        self.actor.setCollideMask(BitMask32.allOff())
         self.name = name
         
+        
+        boundingBox, offset = getOrientedBoundedBox(self.actor)
+        self.radius = boundingBox[0]/2.0
+        low, high = self.actor.getTightBounds()
+        self.height = high[0]-low[0]
 
         DirectObject.DirectObject.__init__(self) 
         self.agent_simulator = agentSimulator
@@ -56,10 +62,10 @@ class Ralph(DirectObject.DirectObject):
         x = random.randint(0,10)
         y = random.randint(0,10)
         z = random.randint(5,10)
-        self.actorNodePath.setPos(Vec3(x,y,z))
+        self.actorNodePath.setFluidPos(Vec3(x,y,z))
 
         self.__gravity=9.48
-        self.__standableGround=2.0
+        self.__standableGround=0.0
         self.__hardLandingForce=16
         self._legacyLifter = False
 
@@ -95,25 +101,11 @@ class Ralph(DirectObject.DirectObject):
         # walker methods
         self.setAvatar( self.actorNodePath ) 
         self.setWalkSpeed( -10, 30, -6, 90 ) 
-        self.setWallBitMask( BitMask32.bit(2) ) 
-        self.setFloorBitMask( BitMask32.bit(1) ) 
+        self.setWallBitMask( WALLMASK ) 
+        self.setFloorBitMask( FLOORMASK ) 
         self.initializeCollisions( base.cTrav, self.actorNodePath ) 
         self.placeOnFloor( )
-        
-        boundingBox, offset = getOrientedBoundedBox(self.actor)
-        self.radius = boundingBox[0]/2.0
-        low, high = self.actor.getTightBounds()
-        height = high[0]-low[0]
-        
-        self.cNode = CollisionNode('collisionNode')
-        self.cNode.addSolid(CollisionSphere(0.0, 0.0, height, self.radius))
-        self.cNode.addSolid(CollisionSphere(0.0, 0.0, height + 2 * self.radius, self.radius))
-        self.cNode.setFromCollideMask(BitMask32.allOn())
-        self.cNode.setIntoCollideMask(BitMask32.allOff() | AGENTMASK)
-        self.cNode.setTag('agent', 'agent')
-        self.cNodePath = self.actorNodePath.attachNewNode(self.cNode)
-        self.cNodePath.show()
-        self.cWallSphereNodePath.setCollideMask(BitMask32().bit(3))
+
     
         self.actor.makeSubpart("arms", ["LeftShoulder", "RightShoulder"])    
         
@@ -170,7 +162,7 @@ class Ralph(DirectObject.DirectObject):
         """
         Object used for picking objects in the field of view
         """
-        self.picker =None# Picker(self.fov, worldObjectsDict)
+        self.picker =Picker(self.fov, worldObjectsDict)
 
         # Initialize the action queue, with a maximum length of queueSize
         self.queue = []
@@ -651,63 +643,76 @@ class Ralph(DirectObject.DirectObject):
 
         self.lifter.addCollider(self.cRayNodePath, self.avatarNodePath)
 
-    def setupWallSphere(self, bitmask, avatarRadius):
+    def setupWallSphere(self, bitmask):
         """
         Set up the collision sphere
         """
         assert self.notify.debugStateCall(self)
         # This is a sphere on the ground to detect collisions with
         # walls, but not the floor.
-        self.avatarRadius = avatarRadius
-        cSphere = CollisionSphere(0.0, 0.0, avatarRadius, avatarRadius)
-        cSphereNode = CollisionNode('GW.cWallSphereNode')
-        cSphereNode.addSolid(cSphere)
-        cSphereNodePath = self.avatarNodePath.attachNewNode(cSphereNode)
 
-        cSphereNode.setFromCollideMask(bitmask)
-        cSphereNode.setIntoCollideMask(BitMask32.allOff())
+        cSphereNode = CollisionNode('GW.cWallSphereNode')
+        cSphereNode.addSolid(CollisionSphere(0.0, 0.0, self.height, self.radius))
+        cSphereNode.addSolid(CollisionSphere(0.0, 0.0, self.height + 2 * self.radius, self.radius))
+        cSphereNode.setFromCollideMask(BitMask32.allOff())
+        cSphereNode.setIntoCollideMask(BitMask32.allOff() | AGENTMASK | WALLMASK)
+        cSphereNodePath = self.avatarNodePath.attachNewNode(cSphereNode)
+        cSphereNodePath.show()
+
+        # gets knocked
+        cSphereNode.setFromCollideMask(BitMask32.allOff()|AGENTMASK)
+        cSphereNode.setIntoCollideMask(BitMask32.allOff()|AGENTMASK|WALLMASK)
 
         # set up collision mechanism
-        if config.GetBool('want-fluid-pusher', 0):
-            self.pusher = CollisionHandlerFluidPusher()
-        else:
-            self.pusher = CollisionHandlerPusher()
+        self.pusher = CollisionHandlerFluidPusher()
         self.pusher.addCollider(cSphereNodePath, self.avatarNodePath)
         self.cWallSphereNodePath = cSphereNodePath
+        self.cWallSphereNodePath.show()
 
-    def setupEventSphere(self, bitmask, avatarRadius):
+    def setupEventSphere(self, bitmask):
         """
         Set up the collision sphere
         """
+
+        
+        
         assert self.notify.debugStateCall(self)
         # This is a sphere a little larger than the wall sphere to
         # trigger events.
-        self.avatarRadius = avatarRadius
-        cSphere = CollisionSphere(0.0, 0.0, avatarRadius-0.1, avatarRadius*1.04)
-        # Mark it intangible just to emphasize its non-physical purpose.
-        cSphere.setTangible(0)
-        cSphereNode = CollisionNode('GW.cEventSphereNode')
-        cSphereNode.addSolid(cSphere)
-        cSphereNodePath = self.avatarNodePath.attachNewNode(cSphereNode)
-
-        cSphereNode.setFromCollideMask(bitmask)
-        cSphereNode.setIntoCollideMask(BitMask32.allOff())
+        if False:
+            cSphere = CollisionSphere(0.0, 5.0, self.radius-0.1, self.radius*1.04)
+            # Mark it intangible just to emphasize its non-physical purpose.
+            cSphere.setTangible(0)
+            cSphereNode = CollisionNode('GW.cEventSphereNode')
+            cSphereNode.addSolid(cSphere)
+            cSphereNodePath = self.avatarNodePath.attachNewNode(cSphereNode)
+        
+        cSphere = CollisionNode('GW.cEventSphereNode')
+        cSphere.addSolid(CollisionSphere(0.0, 0.0, self.height, self.radius))
+        cSphere.addSolid(CollisionSphere(0.0, 0.0, self.height + 2 * self.radius, self.radius))
+        cSphere.setFromCollideMask(BitMask32.allOff())
+        cSphere.setIntoCollideMask(BitMask32.allOn())
+        cSphereNode = self.avatarNodePath.attachNewNode(cSphere)
+        cSphereNode.show()
+        
+        cSphere.setFromCollideMask(bitmask)
+        cSphere.setIntoCollideMask(BitMask32.allOff())
 
         # set up collision mechanism
         self.event = CollisionHandlerEvent()
         self.event.addInPattern("enter%in")
         self.event.addOutPattern("exit%in")
-        self.cEventSphereNodePath = cSphereNodePath
+        self.cEventSphereNodePath = cSphereNode
+        self.cEventSphereNodePath.show()
 
-    def setupFloorSphere(self, bitmask, avatarRadius):
+    def setupFloorSphere(self, bitmask):
         """
         Set up the collision sphere
         """
         assert self.notify.debugStateCall(self)
         # This is a tiny sphere concentric with the wallSphere to keep
         # us from slipping through floors.
-        self.avatarRadius = avatarRadius
-        cSphere = CollisionSphere(0.0, 0.0, avatarRadius, 0.01)
+        cSphere = CollisionSphere(0.0, 0.0, self.radius, 0.01)
         cSphereNode = CollisionNode('GW.cFloorSphereNode')
         cSphereNode.addSolid(cSphere)
         cSphereNodePath = self.avatarNodePath.attachNewNode(cSphereNode)
@@ -740,8 +745,7 @@ class Ralph(DirectObject.DirectObject):
     def getGravity(self, gravity):
         return self.__gravity
 
-    def initializeCollisions(self, collisionTraverser, avatarNodePath,
-            avatarRadius = 1.4, floorOffset = 1.0, reach = 1.0):
+    def initializeCollisions(self, collisionTraverser, avatarNodePath, floorOffset = 0.2, reach = 1.0):
         """
         floorOffset is how high the avatar can reach.  I.e. if the avatar
             walks under a ledge that is <= floorOffset above the ground (a
@@ -751,17 +755,17 @@ class Ralph(DirectObject.DirectObject):
         Set up the avatar collisions
         """
         assert self.notify.debugStateCall(self)
-
+        
         assert not avatarNodePath.isEmpty()
         self.avatarNodePath = avatarNodePath
 
         self.cTrav = collisionTraverser
 
         self.setupRay(self.floorBitmask, floorOffset, reach)
-        self.setupWallSphere(self.wallBitmask, avatarRadius)
-        self.setupEventSphere(self.wallBitmask, avatarRadius)
+        self.setupWallSphere(self.wallBitmask)
+        self.setupEventSphere(self.wallBitmask)
         if self.wantFloorSphere:
-            self.setupFloorSphere(self.floorBitmask, avatarRadius)
+            self.setupFloorSphere(self.floorBitmask, self.radius)
 
         self.setCollisionsActive(1)
 
@@ -917,7 +921,6 @@ class Ralph(DirectObject.DirectObject):
         
 
         run = 0#inputState.isSet("run")
-        forward = self.controlMap['move_forward']
         reverse = self.controlMap['move_backward']
         turnLeft =self.controlMap['turn_left']
         turnRight =self.controlMap['turn_right']
@@ -925,9 +928,18 @@ class Ralph(DirectObject.DirectObject):
         slideRight = self.controlMap['move_right']
         jump = self.controlMap['jump']
 
+        if (self.controlMap["look_left"]!=0):      
+            self.player_neck.setR(bound(self.player_neck.getR(),-60,60)+1*(stepSize*50))
+        if (self.controlMap["look_right"]!=0):
+            self.player_neck.setR(bound(self.player_neck.getR(),-60,60)-1*(stepSize*50))
+        if (self.controlMap["look_up"]!=0):
+            self.player_neck.setP(bound(self.player_neck.getP(),-60,80)+1*(stepSize*50))
+        if (self.controlMap["look_down"]!=0):
+            self.player_neck.setP(bound(self.player_neck.getP(),-60,80)-1*(stepSize*50))
+
         # Determine what the speeds are based on the buttons:
-        self.speed=(forward and self.avatarControlForwardSpeed or
-                    reverse and -self.avatarControlReverseSpeed)
+        self.speed=(self.controlMap['move_forward'] and -self.avatarControlForwardSpeed or
+                    reverse and self.avatarControlReverseSpeed)
         # Slide speed is a scaled down version of forward speed
         # Note: you can multiply a factor in here if you want slide to
         # be slower than normal walk/run. Let's try full speed.
@@ -971,16 +983,13 @@ class Ralph(DirectObject.DirectObject):
                 self.lifter.addVelocity(self.avatarControlJumpForce)
                 messenger.send("jumpStart")
                 self.isAirborne = 1
-                assert self.debugPrint("isAirborne 1 due to jump")
         else:
             if self.isAirborne == 0:
                 assert self.debugPrint("isAirborne 1 due to isOnGround() false")
             self.isAirborne = 1
 
         self.__oldPosDelta = self.avatarNodePath.getPosDelta(render)
-        # How far did we move based on the amount of time elapsed?
-        self.__oldDt = ClockObject.getGlobalClock().getDt()
-        dt=self.__oldDt
+        dt=stepSize
 
         # Check to see if we're moving at all:
         self.moving = self.speed or self.slideSpeed or self.rotationSpeed or (self.priorParent!=Vec3.zero())
@@ -1017,8 +1026,7 @@ class Ralph(DirectObject.DirectObject):
                     self.vel=Vec3(self.vel + (right * slideDistance))
                 self.vel=Vec3(rotMat.xform(self.vel))
                 step=self.vel + (self.priorParent * dt)
-                self.avatarNodePath.setFluidPos(Point3(
-                        self.avatarNodePath.getPos()+step))
+                self.avatarNodePath.setFluidPos(Point3(self.avatarNodePath.getPos()+step))
             self.avatarNodePath.setH(self.avatarNodePath.getH()+rotation)
         else:
             self.vel.set(0.0, 0.0, 0.0)
@@ -1083,6 +1091,7 @@ class Ralph(DirectObject.DirectObject):
 
     def debugPrint(self,msg):
         print "Ralph Debug: %s" % msg
+        return True
 
 class Picker(DirectObject.DirectObject):
     """Picker class derived from http://www.panda3d.org/phpbb2/viewtopic.php?p=4532&sid=d5ec617d578fbcc4c4db0fc68ee87ac0"""

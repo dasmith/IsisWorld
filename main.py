@@ -107,15 +107,15 @@ class IsisWorld(DirectObject.DirectObject):
         groundNP.setPos(0, 0, 0)
         groundNP.lookAt(0, 0, -1)
         groundNP.setTransparency(TransparencyAttrib.MAlpha)
-        groundNP.node().setIntoCollideMask(BitMask32.bit(1))
+        groundNP.node().setIntoCollideMask(BitMask32.bit(0))
 
-        return
         self.map = loader.loadModel(self.rootDirectory+"/media/models/kitchen")
         self.map.reparentTo(render)
         self.mapNode = self.map.find("-PandaNode")
         self.room = self.mapNode.find("Wall")
-        #self.worldManager.addItem(PhysicsTrimesh(name="Wall",world=self.worldManager.world, space=self.worldManager.space,pythonObject=self.room,density=800,surfaceFriction=10),False)
-        self.map.node().setIntoCollideMask(BitMask32.bit(2))
+        # FROM is only relevant when it is added to Collision Traverser
+        #self.map.node().setFromCollideMask(BitMask32.allOff() | WALLMASK)
+        self.map.setCollideMask(BitMask32.allOff() | AGENTMASK | WALLMASK)
 
 
         """
@@ -283,7 +283,7 @@ class IsisWorld(DirectObject.DirectObject):
 
             else:
                 self.agentNum += 1
-            self.setupCameras()
+            self._setupCameras()
         # Accept some keys to move the camera.
         self.accept("a-up", self.floatingCamera.setControl, ["right", 0])
         self.accept("a",    self.floatingCamera.setControl, ["right", 1])

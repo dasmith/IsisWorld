@@ -1,10 +1,10 @@
 from direct.showbase import DirectObject
 from pandac.PandaModules import * # TODO: specialize
-# initialize collision mask constants
-FLOORMASK = BitMask32.bit(0)        
-WALLMASK = BitMask32.bit(1)
-PICKMASK = BitMask32.bit(2)
-AGENTMASK = BitMask32.bit(3)
+# initialize collision mask constants  
+FLOORMASK = BitMask32.bit(0)      
+WALLMASK = BitMask32.bit(2)
+PICKMASK = BitMask32.bit(3)
+AGENTMASK = BitMask32.bit(4)
 
 def getOrientedBoundedBox(collObj):
     ''' get the Oriented Bounding Box '''
@@ -42,9 +42,9 @@ class PhysicsWorldManager(DirectObject.DirectObject):
         base.cTrav = CollisionTraverser()
         base.cTrav.showCollisions( render )
         # Initialize the handler.
-        self.collHandEvent = CollisionHandlerEvent()
-        self.collHandEvent.addInPattern('into-%in')
-        self.collHandEvent.addOutPattern('outof-%in')
+        base.cEvent = CollisionHandlerEvent()
+        base.cEvent.addInPattern('into-%in')
+        base.cEvent.addOutPattern('outof-%in')
         
         # enable the physics manager (and the particle manager...) and 
         # add base.updateManagers to the task manager in ShowBase. 
@@ -86,7 +86,8 @@ class PhysicsWorldManager(DirectObject.DirectObject):
         if self.paused: 
             self._GlobalClock.setRealTime(self._FrameTime) 
             self._GlobalClock.setMode(ClockObject.MNormal) 
-            base.enableParticles() 
+            base.enableParticles()
+            base.particleMgrEnabled = 0 
             self._GlobalClock=None 
             print "[IsisWorld] Restarting Simulator"
             self._startPhysics(stepTime)
@@ -121,7 +122,7 @@ class PhysicsWorldManager(DirectObject.DirectObject):
         if stopAt != None:
           assert stopAt > 0.0
           assert stopAt > self.stepSize # cannot step less than physical simulator
-          taskMgr.doMethodLater(stopAt, self.stopPhysics, "physics-SimulationStopper")
+          taskMgr.doMethodLater(stopAt, self._stopPhysics, "physics-SimulationStopper")
           # or can you 
           taskMgr.doMethodLater(min(self.stepSize,stopAt), self.simulationTask, "physics-SimulationTask")
         else:

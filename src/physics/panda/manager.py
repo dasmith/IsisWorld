@@ -40,6 +40,7 @@ class PhysicsWorldManager(DirectObject.DirectObject):
         self.agents = []
         # Initialize the collision traverser.
         base.cTrav = CollisionTraverser()
+        base.cTrav.setRespectPrevTransform(True)
         base.cTrav.showCollisions( render )
         # Initialize the handler.
         base.cEvent = CollisionHandlerEvent()

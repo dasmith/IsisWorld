@@ -62,7 +62,7 @@ class Ralph(DirectObject.DirectObject):
         x = random.randint(0,10)
         y = random.randint(0,10)
         z = random.randint(5,10)
-        self.actorNodePath.setPos(Vec3(x,y,z))
+        self.actorNodePath.setFluidPos(Vec3(x,y,z))
 
         self.__gravity=9.48
         self.__standableGround=0.0
@@ -162,7 +162,7 @@ class Ralph(DirectObject.DirectObject):
         """
         Object used for picking objects in the field of view
         """
-        self.picker =None# Picker(self.fov, worldObjectsDict)
+        self.picker =Picker(self.fov, worldObjectsDict)
 
         # Initialize the action queue, with a maximum length of queueSize
         self.queue = []
@@ -911,7 +911,6 @@ class Ralph(DirectObject.DirectObject):
         
 
         run = 0#inputState.isSet("run")
-        forward = self.controlMap['move_forward']
         reverse = self.controlMap['move_backward']
         turnLeft =self.controlMap['turn_left']
         turnRight =self.controlMap['turn_right']
@@ -919,8 +918,17 @@ class Ralph(DirectObject.DirectObject):
         slideRight = self.controlMap['move_right']
         jump = self.controlMap['jump']
 
+        if (self.controlMap["look_left"]!=0):      
+            self.player_neck.setR(bound(self.player_neck.getR(),-60,60)+1*(stepSize*50))
+        if (self.controlMap["look_right"]!=0):
+            self.player_neck.setR(bound(self.player_neck.getR(),-60,60)-1*(stepSize*50))
+        if (self.controlMap["look_up"]!=0):
+            self.player_neck.setP(bound(self.player_neck.getP(),-60,80)+1*(stepSize*50))
+        if (self.controlMap["look_down"]!=0):
+            self.player_neck.setP(bound(self.player_neck.getP(),-60,80)-1*(stepSize*50))
+
         # Determine what the speeds are based on the buttons:
-        self.speed=(forward and -self.avatarControlForwardSpeed or
+        self.speed=(self.controlMap['move_forward'] and -self.avatarControlForwardSpeed or
                     reverse and self.avatarControlReverseSpeed)
         # Slide speed is a scaled down version of forward speed
         # Note: you can multiply a factor in here if you want slide to
@@ -1008,8 +1016,7 @@ class Ralph(DirectObject.DirectObject):
                     self.vel=Vec3(self.vel + (right * slideDistance))
                 self.vel=Vec3(rotMat.xform(self.vel))
                 step=self.vel + (self.priorParent * dt)
-                self.avatarNodePath.setFluidPos(Point3(
-                        self.avatarNodePath.getPos()+step))
+                self.avatarNodePath.setFluidPos(Point3(self.avatarNodePath.getPos()+step))
             self.avatarNodePath.setH(self.avatarNodePath.getH()+rotation)
         else:
             self.vel.set(0.0, 0.0, 0.0)

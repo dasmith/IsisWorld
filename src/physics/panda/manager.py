@@ -10,6 +10,16 @@ class PhysicsWorldManager(DirectObject.DirectObject):
     
     def __init__(self):
         
+        self.paused = False
+        # Initialize the collision traverser.
+        base.cTrav = CollisionTraverser()
+        base.cTrav.showCollisions( render )
+        return
+        # Initialize the handler.
+        self.collHandEvent = CollisionHandlerEvent()
+        self.collHandEvent.addInPattern('into-%in')
+        self.collHandEvent.addOutPattern('outof-%in')
+        
         # enable the physics manager (and the particle manager...) and 
         # add base.updateManagers to the task manager in ShowBase. 
         # This causes base.physicsMgr.doPhysics(dt) to be called each frame 
@@ -24,10 +34,26 @@ class PhysicsWorldManager(DirectObject.DirectObject):
         gravityFN.addForce(gravityForce)
         base.physicsMgr.addLinearForce(gravityForce)
         
-        self.cHandler = CollisionHandlerQueue()
-        base.cTrav = CollisionTraverser( ) 
-        base.cTrav.showCollisions( render )
+
         #base.physicsMgr.doPhysics(dt)
+
+    def setupGround(self):
+        # First we create a floor collision plane.
+        floorNode = render.attachNewNode("Floor NodePath")
+        # Create a collision plane solid.
+        collPlane = CollisionPlane(Plane(Vec3(0, 0, 1), Point3(0, 0, 0)))
+        # Call our function that creates a nodepath with a collision node.
+        floorCollisionNP = self.makeCollisionNodePath(floorNode, collPlane)
+        # Get the collision node the Nodepath is referring to.
+        floorCollisionNode = floorCollisionNP.node()
+        # The floor is only an into object, so just need to set its into mask.
+        floorCollisionNode.setIntoCollideMask(FLOORMASK)
+        
+    def stepSimulation(self,time=1):
+        pass
+        
+    def togglePaused(self):
+        pass
 
     def startPhysics(self):
         # everything is done in the __init__ method
@@ -61,6 +87,8 @@ class PhysicsCharacterController(object):
         self.cNodePath = self.actor.attachNewNode(self.cNode)
         self.cNodePath.show()
         self.priorParent, self.actorNodePath, self.acForce = worldManager.addActorPhysics(self)
+        
+
 
 def getOrientedBoundedBox(collobj):
     ''' get the oriented bounding box '''

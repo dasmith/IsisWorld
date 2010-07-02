@@ -49,6 +49,7 @@ class ActionController():
         """ Given a command and an agent pointer, tell the agent to do that command"""
         result = eval("agent.%s(%s)" % (command,','.join(map(lambda a: '%s=args[%s]' % (a,a), args.keys()))))
         # None objects are not serializable by XML-RPC
+        print "Making agent do", result
         if result == None:
             return "success"
         else:

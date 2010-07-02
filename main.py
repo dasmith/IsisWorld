@@ -36,8 +36,7 @@ import sys, os, threading
 
 class IsisWorld(DirectObject.DirectObject):
 
-    rootDirectory = Filename.fromOsSpecific(os.path.abspath(sys.path[0])).getFullpath()
-    #ExecutionEnvironment.getEnvironmentVariable("MAIN_DIR")
+    rootDirectory = ExecutionEnvironment.getEnvironmentVariable("MAIN_DIR")
 
     def __init__(self):
         # load the main simulated environment
@@ -252,7 +251,7 @@ class IsisWorld(DirectObject.DirectObject):
         # initialze keybindings
         for keybinding, command in self.actionController.keyboardMap.items():
             print "adding command to ", keybinding, command
-            base.accept(keybinding, relayAgentControl, [command])
+            self.accept(keybinding, relayAgentControl, [command])
 
         # add on-screen documentation
         for helpString in self.actionController.helpStrings:

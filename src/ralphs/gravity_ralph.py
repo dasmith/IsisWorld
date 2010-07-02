@@ -1,6 +1,5 @@
 import direct.directbase.DirectStart 
 from direct.showbase.DirectObject import DirectObject 
-from direct.showbase.InputStateGlobal import inputState 
 from direct.actor.Actor import Actor 
 from direct.task import Task 
 
@@ -1012,11 +1011,6 @@ class Ralph(DirectObject.DirectObject):
             self.speed *= GravityWalker.DiagonalFactor
             self.slideSpeed *= GravityWalker.DiagonalFactor
 
-        debugRunning = inputState.isSet("debugRunning")
-        if(debugRunning):
-            self.speed*=base.debugRunningMultiplier
-            self.slideSpeed*=base.debugRunningMultiplier
-            self.rotationSpeed*=1.25
 
         if self.needToDeltaPos:
             self.setPriorParentVector()

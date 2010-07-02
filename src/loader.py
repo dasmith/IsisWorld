@@ -3,7 +3,7 @@ import sys, re, time
 from random import randint, random
 from direct.interval.IntervalGlobal import *
 from pandac.PandaModules import BitMask32, CardMaker, Vec4, Quat
-from isis_objects.generator import IsisObjectGenerator
+from isis_objects.generator import IsisObjectGenerator, DividableGenerator, SharpGenerator
 from isis_objects.isisobject import IsisObject
 
 def load_generators():
@@ -11,7 +11,7 @@ def load_generators():
            "knife":SharpGenerator("knife", "media/models/knife", .01, 1000),
            "toaster":IsisObjectGenerator("toaster", "media/models/kitchen_models/toaster", .7, 5000, (.5, 0, 0)),
            "bread":IsisObjectGenerator("bread", "media/models/kitchen_models/slice_of_bread", .5, 1000)}
-    gen["loaf"] = DividableGenerator("loaf", "media/models/kitchen_models/loaf_of_bread", gen["bread"], .3, 1000)}
+    gen["loaf"] = DividableGenerator("loaf", "media/models/kitchen_models/loaf_of_bread", gen["bread"], .3, 1000)
     return gen
 
 def load_objects_file(file):

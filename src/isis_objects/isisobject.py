@@ -142,12 +142,12 @@ class IsisObject(NodePath):
             return None
 
 class Dividable(IsisObject):
-    def __init__(self, self, name, model, density, pieceGenerator, physicsManager, initialPos, offsetVec=Vec3(0,0,0)):
+    def __init__(self, name, model, density, pieceGenerator, physicsManager, initialPos, offsetVec=Vec3(0,0,0)):
         IsisObject.__init__(self, name, model, density, physicsManager, initialPos, offsetVec=Vec3(0, 0, 0))
         self.piece = pieceGenerator
 
     def action_divide(self, agent, object):
-        if object != None && isinstance(object, SharpObject):
+        if object != None and isinstance(object, SharpObject):
             if agent.right_hand_holding_object:
                 agent.control__put_object_in_empty_right_hand(self.piece.generate_instance(self.physicsManager))
                 return true
@@ -156,6 +156,6 @@ class Dividable(IsisObject):
                 return true
         return false
 
-class SharpObject(IsisObject)
-    def __init__(self, self, name, model, density, physicsManager, initialPos, offsetVec=Vec3(0,0,0)):
+class SharpObject(IsisObject):
+    def __init__(self, name, model, density, physicsManager, initialPos, offsetVec=Vec3(0,0,0)):
         IsisObject.__init__(self, name, model, density, physicsManager, initialPos, offsetVec=Vec3(0, 0, 0))

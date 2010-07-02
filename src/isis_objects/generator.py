@@ -1,4 +1,4 @@
-from isisobject import IsisObject, Dividable, Sharp
+from isisobject import IsisObject, Dividable, SharpObject
 from pandac.PandaModules import Vec3
 # Object generators used to instantiate various objects
 
@@ -28,7 +28,7 @@ class IsisObjectGenerator():
         return obj
 
 class DividableGenerator(IsisObjectGenerator):
-    def __init__(self, name, model, piece, scale = 1, density = 200, offsets = Vec3(0, 0, 0):
+    def __init__(self, name, model, piece, scale = 1, density = 200, offsets = Vec3(0, 0, 0)):
         """ Defines dividable objects which return pieces of themselves """
         IsisObjectGenerator.__init__(self, name, model, scale, density, offsets)
         self.piece = piece

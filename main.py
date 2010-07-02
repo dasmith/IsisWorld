@@ -107,13 +107,15 @@ class IsisWorld(DirectObject.DirectObject):
         groundNP.setPos(0, 0, 0)
         groundNP.lookAt(0, 0, -1)
         groundNP.setTransparency(TransparencyAttrib.MAlpha)
+        groundNP.node().setIntoCollideMask(BitMask32.bit(1))
 
+        return
         self.map = loader.loadModel(self.rootDirectory+"/media/models/kitchen")
         self.map.reparentTo(render)
         self.mapNode = self.map.find("-PandaNode")
         self.room = self.mapNode.find("Wall")
         #self.worldManager.addItem(PhysicsTrimesh(name="Wall",world=self.worldManager.world, space=self.worldManager.space,pythonObject=self.room,density=800,surfaceFriction=10),False)
-        self.map.node().setIntoCollideMask(BitMask32.bit(1))
+        self.map.node().setIntoCollideMask(BitMask32.bit(2))
 
 
         """
@@ -160,8 +162,9 @@ class IsisWorld(DirectObject.DirectObject):
     def _setupCameras(self):
         # Set up the camera 
         ### Set up displays and cameras ###
-        self.floating_camera = FloatingCamera(self.agents[self.agentNum].actor)
+        self.floatingCamera = FloatingCamera(self.agents[self.agentNum].actor)
         base.camera.reparentTo(self.agents[self.agentNum].actor)
+        base.taskMgr.add(self.floatingCamera.update_camera, 'update_camera')
         # set up picture in picture
         dr = base.camNode.getDisplayRegion(0)
         aspect_ratio = 16.0 / 9.0
@@ -204,6 +207,7 @@ class IsisWorld(DirectObject.DirectObject):
             newAgent.control__say("Hi, I'm %s. Please build me." % name)
             self.agents.append(newAgent)
     
+    
     def _setupActions(self):
         """ Initializes commands that are related to the XML-Server and
         the keyboard bindings """
@@ -213,6 +217,7 @@ class IsisWorld(DirectObject.DirectObject):
             because "self.agentNum" need to be revaluated at the time the command
             is issued, necessitating this helper function"""
             if self.actionController.hasAction(command):
+                print "Agent", self.agents[self.agentNum], command
                 self.actionController.makeAgentDo(self.agents[self.agentNum], command)
             else:
                 print "relayAgentControl: %s command not found in action controller" % (command)
@@ -280,14 +285,14 @@ class IsisWorld(DirectObject.DirectObject):
                 self.agentNum += 1
             self.setupCameras()
         # Accept some keys to move the camera.
-        self.accept("a-up", self.floating_camera.setControl, ["right", 0])
-        self.accept("a",    self.floating_camera.setControl, ["right", 1])
-        self.accept("s-up", self.floating_camera.setControl, ["left",  0])
-        self.accept("s",    self.floating_camera.setControl, ["left",  1])
-        self.accept("d",    self.floating_camera.setControl, ["zoom-in",  1])
-        self.accept("d-up", self.floating_camera.setControl, ["zoom-in",  0])
-        self.accept("f",    self.floating_camera.setControl, ["zoom-out",  1])
-        self.accept("f-up", self.floating_camera.setControl, ["zoom-out",  0])
+        self.accept("a-up", self.floatingCamera.setControl, ["right", 0])
+        self.accept("a",    self.floatingCamera.setControl, ["right", 1])
+        self.accept("s-up", self.floatingCamera.setControl, ["left",  0])
+        self.accept("s",    self.floatingCamera.setControl, ["left",  1])
+        self.accept("d",    self.floatingCamera.setControl, ["zoom-in",  1])
+        self.accept("d-up", self.floatingCamera.setControl, ["zoom-in",  0])
+        self.accept("f",    self.floatingCamera.setControl, ["zoom-out",  1])
+        self.accept("f-up", self.floatingCamera.setControl, ["zoom-out",  0])
         #if self.is_ralph == True:
         # control keys to move the character
 
@@ -295,13 +300,13 @@ class IsisWorld(DirectObject.DirectObject):
         #base.accept("o", toggleInstructionsWindow)
 
         # key input
-        base.accept("1",               base.toggleWireframe, [])
-        base.accept("2",               base.toggleTexture, [])
-        base.accept("3",               changeAgent, [])
+        self.accept("1",               base.toggleWireframe, [])
+        self.accept("2",               base.toggleTexture, [])
+        self.accept("3",               changeAgent, [])
         self.accept("space",           self.step_simulation, [.1]) # argument is amount of second to advance
         self.accept("p",               self.physicsManager.togglePaused)
         #self.accept("r",              self.reset_simulation)
-        base.accept("escape",          self.safeShutdown)
+        self.accept("escape",          self.safeShutdown)
 
         self.teacher_utterances = [] # last message typed
         # main dialogue box

@@ -11,12 +11,13 @@ from direct.showbase import DirectObject
 from direct.interval.IntervalGlobal import *
 from direct.actor.Actor import Actor
 from direct.gui.DirectGui import DirectLabel
-from direct.controls.GravityWalker import GravityWalker
+#from direct.controls.GravityWalker import GravityWalker
 from pandac.PandaModules import *# PandaNode,NodePath,Camera
 #from panda3d.core import CollisionHandlerPusher, CollisionHandlerGravity, CollisionTraverser
 import math, random
 # project stuff
 from ..actions.actions import *
+from ..physics.panda.manager import *
 
 def frange(x,y,inc):
     """ Floating point xrange """
@@ -41,21 +42,24 @@ class Ralph(DirectObject.DirectObject):
         self.actor= Actor("media/models/boxman",{"walk":"media/models/boxman-walk", "idle": "media/models/boxman-idle"})
         self.actor.setScale(1.0)
         self.actor.setH(0)
+
         self.actor.setColorScale(random.random(), random.random(), random.random(), 1.0)
         self.actorNode = ActorNode('physicsControler-%s' % name)
         self.actorNodePath = render.attachNewNode(self.actorNode)
         self.actor.reparentTo(self.actorNodePath)
         self.name = name
-        DirectObject.DirectObject.__init__(self)
-        #self.walker.cWallSphereNodePath.setCollideMask(BitMask32().bit(3))      
-        self.agent_simulator = agentSimulator
-        self.worldManager = worldManager    
         
 
+        DirectObject.DirectObject.__init__(self) 
+        self.agent_simulator = agentSimulator
+        self.worldManager = worldManager    
+        x = random.randint(0,10)
+        y = random.randint(0,10)
+        z = random.randint(5,10)
+        self.actorNodePath.setPos(Vec3(x,y,z))
 
-
-        self.__gravity=64.34
-        self.__standableGround=3
+        self.__gravity=9.48
+        self.__standableGround=2.0
         self.__hardLandingForce=16
         self._legacyLifter = False
 
@@ -89,28 +93,36 @@ class Ralph(DirectObject.DirectObject):
         self.highMark = 0
     
         # walker methods
-        self.setAvatar( self.actor ) 
+        self.setAvatar( self.actorNodePath ) 
         self.setWalkSpeed( -10, 30, -6, 90 ) 
         self.setWallBitMask( BitMask32.bit(2) ) 
-        self.setFloorBitMask( BitMask32.bit(5) ) 
-        self.initializeCollisions( base.cTrav, self.actor ) 
+        self.setFloorBitMask( BitMask32.bit(1) ) 
+        self.initializeCollisions( base.cTrav, self.actorNodePath ) 
         self.placeOnFloor( )
+        
+        boundingBox, offset = getOrientedBoundedBox(self.actor)
+        self.radius = boundingBox[0]/2.0
+        low, high = self.actor.getTightBounds()
+        height = high[0]-low[0]
+        
+        self.cNode = CollisionNode('collisionNode')
+        self.cNode.addSolid(CollisionSphere(0.0, 0.0, height, self.radius))
+        self.cNode.addSolid(CollisionSphere(0.0, 0.0, height + 2 * self.radius, self.radius))
+        self.cNode.setFromCollideMask(BitMask32.allOn())
+        self.cNode.setIntoCollideMask(BitMask32.allOff() | AGENTMASK)
+        self.cNode.setTag('agent', 'agent')
+        self.cNodePath = self.actorNodePath.attachNewNode(self.cNode)
+        self.cNodePath.show()
         self.cWallSphereNodePath.setCollideMask(BitMask32().bit(3))
     
-    
         self.actor.makeSubpart("arms", ["LeftShoulder", "RightShoulder"])    
-
         
         # Expose agent's right hand joint to attach objects to
         self.player_right_hand = self.actor.exposeJoint(None, 'modelRoot', 'Hand.R')
         self.player_left_hand  = self.actor.exposeJoint(None, 'modelRoot', 'Hand.L')
         self.player_head  = self.actor.exposeJoint(None, 'modelRoot', 'Head')
         self.player_neck = self.actor.controlJoint(None, 'modelRoot', 'Head')
-        base.taskMgr.add( self.update, 'update' ) 
-             
 
-
-        
         self.controlMap = {"turn_left":0, "turn_right":0, "move_forward":0, "move_backward":0, "move_right":0, "move_left":0,\
                            "look_up":0, "look_down":0, "look_left":0, "look_right":0, "jump":0}
 
@@ -149,8 +161,6 @@ class Ralph(DirectObject.DirectObject):
         #self.fov.place()
  
         self.prevtime = 0
-        self.isMoving = False
-
         self.current_frame_count = 0
 
         #self.name = "Ralph"
@@ -165,6 +175,10 @@ class Ralph(DirectObject.DirectObject):
         # Initialize the action queue, with a maximum length of queueSize
         self.queue = []
         self.queueSize = queueSize
+        
+        # when you're done, register yourself with physical simulator
+        # so it can call update() at each step of the physics
+        self.worldManager.addAgent(self)
 
 
     def setControl(self, control, value):
@@ -319,7 +333,7 @@ class Ralph(DirectObject.DirectObject):
         self.setControl("look_down",  0)
 
     def control__jump(self):
-         PhysicsCharacterController.jump(self)
+        self.setControl("jump",  1)
 
     def control__view_objects(self):
         """ calls a raytrace to to all objects in view """
@@ -573,79 +587,7 @@ class Ralph(DirectObject.DirectObject):
             if ts >= timeStamp:
                 actions.append((ts, a, args))
         return actions
-        
-
-    def updateOld(self, stepSize):
-        if self.isSitting:
-            if inputState.isSet("forward"):
-                self.standUpFromChair()
-            return
-
-        elif self.isDisabled:
-            return
-
-        moveAtSpeed = 10.0
-        self.speed = [0.0, 0.0]
     
-        if (self.controlMap["turn_left"]!=0):
-                self.setH(self.actor.getH() + stepSize*220)
-        if (self.controlMap["turn_right"]!=0):
-            if 0:# useAngularForces:
-                fn = ForceNode("avf")
-                avfn = NodePath(fn)
-                avfn.reparentTo(self.geom)
-                avfn.reparentTo(render)
-                avf = AngularVectorForce(-1,0,0)
-                fn.addForce(avf)
-                actorNode.getPhysical(0).addAngularForce(avf)
-            else:
-                self.setH(self.actor.getH() - stepSize*220)
-        if (self.controlMap["move_forward"]!=0):     self.speed[1] = moveAtSpeed
-        if (self.controlMap["move_backward"]!=0):    self.speed[1] = -moveAtSpeed
-        if (self.controlMap["move_left"]!=0):        self.speed[0] = -moveAtSpeed
-        if (self.controlMap["move_right"]!=0):       self.speed[0] = moveAtSpeed
-        if (self.controlMap["look_left"]!=0):      
-            self.player_neck.setR(bound(self.player_neck.getR(),-60,60)+1*(stepSize*50))
-        if (self.controlMap["look_right"]!=0):
-            self.player_neck.setR(bound(self.player_neck.getR(),-60,60)-1*(stepSize*50))
-        if (self.controlMap["look_up"]!=0):
-            self.player_neck.setP(bound(self.player_neck.getP(),-60,80)+1*(stepSize*50))
-        if (self.controlMap["look_down"]!=0):
-            self.player_neck.setP(bound(self.player_neck.getP(),-60,80)-1*(stepSize*50))
-
-        if inputState.isSet("crouch") or self.crouchLock:
-            self.camH = self.crouchCamH
-            PhysicsCharacterController.crouch(self)
-        else:
-            PhysicsCharacterController.crouchStop(self)
-            self.camH = self.walkCamH
-
-        PhysicsCharacterController.update(self, stepSize)
-        # allow dialogue window to gradually decay (changing transparancy) and then disappear
-        self.last_spoke += stepSize
-        self.speech_bubble['text_bg']=(1,1,1,1/(2*self.last_spoke+0.01))
-        self.speech_bubble['frameColor']=(.6,.2,.1,.5/(2*self.last_spoke+0.01))
-        if self.last_spoke > 2:
-            self.speech_bubble['text'] = ""
-
-        # update animation
-        # If the character is moving, loop the run animation.
-        # If he is standing still, stop the animation.
-        if (self.controlMap["move_forward"]!=0) or (self.controlMap["move_backward"]!=0) or (self.controlMap["move_left"]!=0) or (self.controlMap["move_right"]!=0):
-            if self.isMoving is False:
-                self.isMoving = True
-        else:
-            if self.isMoving:
-                self.current_frame_count = 5.0
-                self.isMoving = False
-
-        total_frame_num = self.actor.getNumFrames('walk')
-        if self.isMoving:
-            self.current_frame_count = self.current_frame_count + (stepSize*10000.0)
-            while (self.current_frame_count >= total_frame_num + 1):
-                self.current_frame_count -= total_frame_num
-                self.actor.pose('walk', self.current_frame_count)
-
 
     def setWalkSpeed(self, forward, jump, reverse, rotate):
         assert self.notify.debugStateCall(self)
@@ -900,8 +842,6 @@ class Ralph(DirectObject.DirectObject):
                 base.shadowTrav.removeCollider(self.cRayNodePath)
 
     def getCollisionsActive(self):
-        assert self.debugPrint("getCollisionsActive() returning=%s"%(
-            self.collisionsActive,))
         return self.collisionsActive
 
     def placeOnFloor(self):
@@ -955,25 +895,9 @@ class Ralph(DirectObject.DirectObject):
     def addBlastForce(self, vector):
         self.lifter.addVelocity(vector.length())
 
-    def displayDebugInfo(self):
-        """
-        For debug use.
-        """
-        onScreenDebug.add("w controls", "GravityWalker")
 
-        onScreenDebug.add("w airborneHeight", self.lifter.getAirborneHeight())
-        onScreenDebug.add("w falling", self.falling)
-        onScreenDebug.add("w isOnGround", self.lifter.isOnGround())
-        #onScreenDebug.add("w gravity", self.lifter.getGravity())
-        #onScreenDebug.add("w jumpForce", self.avatarControlJumpForce)
-        onScreenDebug.add("w contact normal", self.lifter.getContactNormal().pPrintValues())
-        onScreenDebug.add("w mayJump", self.mayJump)
-        onScreenDebug.add("w impact", self.lifter.getImpactVelocity())
-        onScreenDebug.add("w velocity", self.lifter.getVelocity())
-        onScreenDebug.add("w isAirborne", self.isAirborne)
-        onScreenDebug.add("w hasContact", self.lifter.hasContact())
 
-    def update(self, task):
+    def update(self, stepSize=0.1):
         self.oneTimeCollide( ) 
         """
         Check on the arrow keys and update the avatar.
@@ -983,13 +907,13 @@ class Ralph(DirectObject.DirectObject):
         
 
         run = 0#inputState.isSet("run")
-        forward = self.controlMap['move_forward'] != 0
-        reverse = self.controlMap['move_backward'] != 0
-        turnLeft =self.controlMap['turn_left'] != 0
-        turnRight =self.controlMap['turn_right'] != 0
-        slideLeft = self.controlMap['move_left'] != 0
-        slideRight = self.controlMap['move_right'] != 0
-        jump = self.controlMap['jump'] != 0
+        forward = self.controlMap['move_forward']
+        reverse = self.controlMap['move_backward']
+        turnLeft =self.controlMap['turn_left']
+        turnRight =self.controlMap['turn_right']
+        slideLeft = self.controlMap['move_left']
+        slideRight = self.controlMap['move_right']
+        jump = self.controlMap['jump']
 
         # Determine what the speeds are based on the buttons:
         self.speed=(forward and self.avatarControlForwardSpeed or
@@ -1020,7 +944,6 @@ class Ralph(DirectObject.DirectObject):
         if self.lifter.isOnGround():
             if self.isAirborne:
                 self.isAirborne = 0
-                assert self.debugPrint("isAirborne 0 due to isOnGround() true")
                 impact = self.lifter.getImpactVelocity()
                 if impact < -30.0:
                     messenger.send("jumpHardLand")
@@ -1089,7 +1012,24 @@ class Ralph(DirectObject.DirectObject):
             self.avatarNodePath.setH(self.avatarNodePath.getH()+rotation)
         else:
             self.vel.set(0.0, 0.0, 0.0)
+
+        # allow dialogue window to gradually decay (changing transparancy) and then disappear
+        self.last_spoke += stepSize
+        self.speech_bubble['text_bg']=(1,1,1,1/(2*self.last_spoke+0.01))
+        self.speech_bubble['frameColor']=(.6,.2,.1,.5/(2*self.last_spoke+0.01))
+        if self.last_spoke > 2:
+            self.speech_bubble['text'] = ""
+
+        # update animation
+        # If the character is moving, loop the run animation.
+        # If he is standing still, stop the animation.
+        total_frame_num = self.actor.getNumFrames('walk')
+
         if self.moving or jump:
+            self.current_frame_count = self.current_frame_count + (stepSize*10000.0)
+            while (self.current_frame_count >= total_frame_num + 1):
+                self.current_frame_count -= total_frame_num
+                self.actor.pose('walk', self.current_frame_count)
             messenger.send("avatarMoving")
         return Task.cont
 
@@ -1130,6 +1070,9 @@ class Ralph(DirectObject.DirectObject):
             self.event.flush()
         self.lifter.flush() # not currently defined or needed
 
+
+    def debugPrint(self,msg):
+        print "Ralph Debug: %s" % msg
 
 class Picker(DirectObject.DirectObject):
     """Picker class derived from http://www.panda3d.org/phpbb2/viewtopic.php?p=4532&sid=d5ec617d578fbcc4c4db0fc68ee87ac0"""

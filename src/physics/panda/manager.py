@@ -46,6 +46,15 @@ class PhysicsWorldManager(DirectObject.DirectObject):
         base.cTrav = CollisionTraverser()
         base.cTrav.setRespectPrevTransform(True)
         base.cTrav.showCollisions( render )
+
+        # initialize 3 handlers: wall, gravity, and other events
+        base.cWall = CollisionHandlerPusher()
+        
+        # this tracks the velocity of moving objects, whereas CollisionHandlerFloor doesnt
+        base.cFloor = CollisionHandlerGravity()
+        base.cFloor.setGravity(9.81+25)
+        base.cFloor.setMaxVelocity(100)
+
         # Initialize the handler.
         base.cEvent = CollisionHandlerEvent()
         base.cEvent.addInPattern('%fn-into-%in')
@@ -94,12 +103,14 @@ class PhysicsWorldManager(DirectObject.DirectObject):
         self.agents.append(agent)
 
     def setupGround(self):
+        return # do nothing 
         # First we create a floor collision plane.
         # Create a collision plane solid.
         collPlane = CollisionPlane(Plane(Vec3(0, 0, 1), Point3(0, 0, 0)))
         floorCollisionNP = base.render.attachNewNode(CollisionNode('collisionNode'))
         floorCollisionNP.node().addSolid(collPlane) 
-        floorCollisionNP.node().setIntoCollideMask(BitMask32.allOff() | AGENTMASK | OBJMASK)
+        floorCollisionNP.node().setIntoCollideMask(FLOOR_MASK)
+
         
         
     def stepSimulation(self,stepTime=1):

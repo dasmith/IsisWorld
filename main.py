@@ -22,7 +22,7 @@ from pandac.PandaModules import * # TODO: specialize this import
 
 #from panda3d.core import CollisionHandlerPusher, CollisionHandlerGravity, CollisionTraverser
 # local source code
-from src.ralphs.gravity_ralph import *
+from src.ralphs.basic_ralph import *
 from src.physics.panda.manager import *
 from src.cameras.floating import *
 from src.xmlrpc.command_handler import IsisCommandHandler
@@ -95,28 +95,26 @@ class IsisWorld(DirectObject.DirectObject):
         groundTexture = loader.loadTexture(self.rootDirectory+"/media/textures/env_ground.jpg")
         cm.setFrame(-100, 100, -100, 100)
         groundNP = render.attachNewNode(cm.generate())
+        groundNP.setCollideMask(BitMask32.allOff())
         groundNP.setTexture(groundTexture)
         groundNP.setPos(0, 0, 0)
         groundNP.lookAt(0, 0, -1)
         groundNP.setTransparency(TransparencyAttrib.MAlpha)
-        groundNP.node().setIntoCollideMask(BitMask32.bit(1))
-        groundNP.setCollideMask(BitMask32.allOff() | FLOORMASK)
-        self.physicsManager.setupGround()
+        groundNP.node().setIntoCollideMask(FLOORMASK)
+        #self.physicsManager.setupGround()
 
         self.worldObjects.update(load_objects(self.rootDirectory+"/kitchen.isis", render, self.physicsManager))
         for name in self.worldObjects:
           self.worldObjects[name].flattenLight()
 
-        return
         self.map = loader.loadModel(self.rootDirectory+"/media/models/kitchen")
         self.map.reparentTo(render)
         self.mapNode = self.map.find("-PandaNode")
         self.room = self.mapNode.find("Wall")
-        # FROM is only relevant when it is added to Collision Traverser
-        #self.map.node().setFromCollideMask(BitMask32.allOff() | WALLMASK)
-        self.map.setCollideMask(BitMask32.allOff() | AGENTMASK | WALLMASK)
+        self.map.node().setIntoCollideMask(WALLMASK)
 
 
+        return
         """
         Steps is yet another part of the map.
         Meant, obviously, to demonstrate the ability to climb stairs.

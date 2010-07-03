@@ -1,9 +1,38 @@
-from pandac.PandaModules import NodePath, Vec3
+from pandac.PandaModules import *
+#from pandac.PandaModules import NodePath, Vec3
 from layout_manager import *
+from ..physics.panda.manager import *
 
 # Object class definitions defining methods inherent to each object type
 
 
+def setupPhysics(self, model, collisionGeom='sphere'):
+    # ensure all existing collision masks are off
+    model.setCollideMask(BitMask32.allOff())
+    
+    # possible optimization step?
+    # model.flattenLight()
+    # see if the collider geometry is defined in the model
+    try:
+        collideGeom = model.find("**/collider")
+    except:
+        return # TODO
+        # if it isn't, approximate the geometry as a sphere or a box
+        bounds, offset = getOrientedBoundingBox(model)
+        if collisionGeom == 'box':
+            pass
+            # TODO: use bounds to define an CollisionBox (?)
+        else: # sphere
+            radius = bounds[0]/2.0
+
+        # other objects and agents can collide INTO it
+        colliderGeom.node().setToCollideMask(AGENTMASK|OBJECTMASK)
+        # it can collide into other objects and the floor.
+        colliderGeom.node().setFromCollideMask(AGENTMASK|OBJECTMASK)
+
+   
+    # add this to the base collider, accessible through DirectStart
+    base.cTrav.addCollider(colliderGeom, collisionHandler)
 
 class IsisObject(NodePath):
     """ IsisObject is the base class for all visible objects in IsisWorld, other
@@ -50,8 +79,16 @@ class IsisObject(NodePath):
         # adds a pickable tag to allow an agent to view this object
         self.setTag('pickable', 'true')
 
-    
-        
+        # setup gravity pointer
+        raygeometry = CollisionRay(0, 0, 2, 0, 0, -1)
+        avatarRay = self.attachNewNode(CollisionNode('avatarRay'))
+        avatarRay.node().addSolid(raygeometry)
+# let's mask our floor FROM collider
+        avatarRay.node().setFromCollideMask(FLOORMASK|OBJMASK)
+        avatarRay.node().setIntoCollideMask(BitMask32.allOff())
+        base.cFloor.addCollider(avatarRay,self)
+        base.cTrav.addCollider(avatarRay,base.cFloor)
+
     def rescaleModel(self,scale):
         """ Changes the model's dimensions to a given scale"""
         self.model.setScale(scale)

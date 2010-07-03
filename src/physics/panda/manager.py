@@ -1,10 +1,11 @@
 from direct.showbase import DirectObject
 from pandac.PandaModules import * # TODO: specialize
 # initialize collision mask constants  
-FLOORMASK = BitMask32.bit(0)      
+FLOORMASK = BitMask32.bit(1)      
 WALLMASK = BitMask32.bit(2)
 PICKMASK = BitMask32.bit(3)
 AGENTMASK = BitMask32.bit(4)
+OBJMASK= BitMask32.bit(5)
 
 def getOrientedBoundedBox(collObj):
     ''' get the Oriented Bounding Box '''
@@ -30,30 +31,57 @@ def getOrientedBoundedBox(collObj):
 class PhysicsWorldManager(DirectObject.DirectObject):
     
     def __init__(self):
+        self._GlobalClock=ClockObject.getGlobalClock() 
+        self._FrameTime=self._GlobalClock.getFrameTime() 
+        self._GlobalClock.setRealTime(self._FrameTime) 
         
-        self.paused = True
-        self._stopPhysics()
-        # number of times per second to run the physical simulator
-        self.stepSize = 1.0/50
+        # run the physical simulator 1.0/X = X times per sec
+        self.stepSize = 1.0/50.0
+        self.deltaTimeAccumulator = 0.0
         
         # keep track of all agents
         self.agents = []
+        
         # Initialize the collision traverser.
         base.cTrav = CollisionTraverser()
         base.cTrav.setRespectPrevTransform(True)
         base.cTrav.showCollisions( render )
         # Initialize the handler.
         base.cEvent = CollisionHandlerEvent()
-        base.cEvent.addInPattern('into-%in')
-        base.cEvent.addOutPattern('outof-%in')
-        
-        # enable the physics manager (and the particle manager...) and 
-        # add base.updateManagers to the task manager in ShowBase. 
-        # This causes base.physicsMgr.doPhysics(dt) to be called each frame 
-        base.enableParticles() 
-        # we don't actually care about particles, so disable them again. 
-        base.particleMgrEnabled = 0
-        
+        base.cEvent.addInPattern('%fn-into-%in')
+        base.cEvent.addOutPattern('%fn-outof-%in')
+       
+        # initialize listeners
+        base.accept('object-into-object', self._objCollisionHandlerIn)
+        base.accept('object-outof-object', self._objCollisionHandlerOut)
+        base.accept('agent-into-object', self._agentCollisionHandlerIn)
+        base.accept('agent-into-agent', self._agentsCollisionIn)
+
+        # start it up 
+        self.paused = False 
+        self._startPhysics()
+    
+    def _objCollisionHandlerIn(self, entry):
+        cFrom = entry.getFromNodePath().getParent()
+        cInto = entry.getIntoNodePath().getParent()
+        print "Object In Collision: %s, %s" % (cFrom, cInto)
+
+    def _objCollisionHandlerOut(self, entry):
+        cFrom = entry.getFromNodePath().getParent()
+        cInto = entry.getIntoNodePath().getParent()
+        print "Object Out Collision: %s, %s" % (cFrom, cInto)
+
+    def _agentCollisionHandlerIn(self, entry):
+        agent = entry.getFromNodePath().getParent()
+        cInto = entry.getIntoNodePath().getParent()
+        print "Agent In Collision: %s, %s" % (agent, cInto)
+
+    def _agentsCollisionIn(self, entry):
+        agentFrom = entry.getFromNodePath().getParent()
+        agentInto = entry.getIntoNodePath().getParent()
+        print "Agents collided : %s, %s" % (agentFrom, agentInto) 
+
+    def _future__Physics(self):
         gravityFN = ForceNode('gravity')
         gravityNP = render.attachNewNode(gravityFN)
         gravityForce = LinearVectorForce(0, 0, -9.81)
@@ -67,15 +95,11 @@ class PhysicsWorldManager(DirectObject.DirectObject):
 
     def setupGround(self):
         # First we create a floor collision plane.
-        floorNode = render.attachNewNode("Floor NodePath")
         # Create a collision plane solid.
         collPlane = CollisionPlane(Plane(Vec3(0, 0, 1), Point3(0, 0, 0)))
-        # Call our function that creates a nodepath with a collision node.
-        floorCollisionNP = self.makeCollisionNodePath(floorNode, collPlane)
-        # Get the collision node the Nodepath is referring to.
-        floorCollisionNode = floorCollisionNP.node()
-        # The floor is only an into object, so just need to set its into mask.
-        floorCollisionNode.setIntoCollideMask(BitMask32.allOff() | AGENTMASK | FLOORMASK)
+        floorCollisionNP = base.render.attachNewNode(CollisionNode('collisionNode'))
+        floorCollisionNP.node().addSolid(collPlane) 
+        floorCollisionNP.node().setIntoCollideMask(BitMask32.allOff() | AGENTMASK | OBJMASK)
         
         
     def stepSimulation(self,stepTime=1):
@@ -86,31 +110,31 @@ class PhysicsWorldManager(DirectObject.DirectObject):
         
     def togglePaused(self,stepTime=None):
         if self.paused: 
-            self._GlobalClock.setRealTime(self._FrameTime) 
             self._GlobalClock.setMode(ClockObject.MNormal) 
-            base.enableParticles()
+            #base.enableParticles()
             base.particleMgrEnabled = 0 
-            self._GlobalClock=None 
             print "[IsisWorld] Restarting Simulator"
             self._startPhysics(stepTime)
         else:
             self._stopPhysics()
+            self._GlobalClock.setMode(ClockObject.MSlave)
         # only untoggle bit if pause is called, not step
         if stepTime == None:
             self.paused = not self.paused
 
+    def simulationTask(self, task):
+        self.deltaTimeAccumulator += self._GlobalClock.getDt()
+        while self.deltaTimeAccumulator > self.stepSize:
+            self.deltaTimeAccumulator -= self.stepSize
+            for agent in self.agents:
+                agent.update(self.stepSize) 
+        return task.cont 
+    
     def _stopPhysics(self,task=None):
         print "[IsisWorld] Stopping Physical Simulator"
         taskMgr.remove("physics-SimulationTask")
-        base.disableParticles() 
-        self._GlobalClock=ClockObject.getGlobalClock() 
-        self._FrameTime=self._GlobalClock.getFrameTime() 
-        self._GlobalClock.setMode(ClockObject.MSlave)
+        #base.disableParticles() 
 
-    def simulationTask(self, task):
-        for agent in self.agents:
-            agent.update(self.stepSize) 
-        return task.cont 
 
     def _startPhysics(self, stopAt=None):
         """

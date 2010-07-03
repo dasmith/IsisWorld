@@ -91,14 +91,6 @@ class IsisWorld(DirectObject.DirectObject):
         
         # parameters
         self.visualizeClouds = True 
-
-    	""" The map consists of a plane, the "ground" that stretches to infinity
-    	and a dome, the "sky" that sits concavely on the ground.
-
-    	For the ground component, a separate physics module must be created 
-    	so that the characters and objects do not fall through it.
-
-    	This is done by calling the physics module:  physicsModule.setupGround()"""
         cm = CardMaker("ground")
         groundTexture = loader.loadTexture(self.rootDirectory+"/media/textures/env_ground.jpg")
         cm.setFrame(-100, 100, -100, 100)
@@ -109,7 +101,7 @@ class IsisWorld(DirectObject.DirectObject):
         groundNP.setTransparency(TransparencyAttrib.MAlpha)
         groundNP.node().setIntoCollideMask(BitMask32.bit(1))
         groundNP.setCollideMask(BitMask32.allOff() | FLOORMASK)
-
+        self.physicsManager.setupGround()
 
         self.worldObjects.update(load_objects(self.rootDirectory+"/kitchen.isis", render, self.physicsManager))
         for name in self.worldObjects:

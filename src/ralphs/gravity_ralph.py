@@ -696,15 +696,8 @@ class Ralph(DirectObject.DirectObject):
         assert self.notify.debugStateCall(self)
         # This is a sphere a little larger than the wall sphere to
         # trigger events.
-        if False:
-            cSphere = CollisionSphere(0.0, 5.0, self.radius-0.1, self.radius*1.04)
-            # Mark it intangible just to emphasize its non-physical purpose.
-            cSphere.setTangible(0)
-            cSphereNode = CollisionNode('GW.cEventSphereNode')
-            cSphereNode.addSolid(cSphere)
-            cSphereNodePath = self.avatarNodePath.attachNewNode(cSphereNode)
         
-        cSphere = CollisionNode('GW.cEventSphereNode')
+        cSphere = CollisionNode('agent')
         cSphere.addSolid(CollisionSphere(0.0, 0.0, self.height, self.radius))
         cSphere.addSolid(CollisionSphere(0.0, 0.0, self.height + 2 * self.radius, self.radius))
         cSphere.setFromCollideMask(BitMask32.allOff())
@@ -716,9 +709,6 @@ class Ralph(DirectObject.DirectObject):
         cSphere.setIntoCollideMask(BitMask32.allOff())
 
         # set up collision mechanism
-        self.event = CollisionHandlerEvent()
-        self.event.addInPattern("enter%in")
-        self.event.addOutPattern("exit%in")
         self.cEventSphereNodePath = cSphereNode
         self.cEventSphereNodePath.show()
 
@@ -816,7 +806,6 @@ class Ralph(DirectObject.DirectObject):
 
         del self.pusher
         # del self.pusherFloor
-        del self.event
         del self.lifter
 
         del self.getAirborneHeight
@@ -855,13 +844,13 @@ class Ralph(DirectObject.DirectObject):
                     # sphere to the main traverser.  This allows us to
                     # hit door triggers that are just slightly behind
                     # the door itself.
-                    self.cTrav.addCollider(self.cEventSphereNodePath, self.event)
+                    self.cTrav.addCollider(self.cEventSphereNodePath, base.cEvent)
                 else:
                     # Normally, we'd rather trigger the events after
                     # the pusher has had a chance to fix up our
                     # position, so we never trigger things that are
                     # behind other polygons.
-                    base.shadowTrav.addCollider(self.cEventSphereNodePath, self.event)
+                    base.shadowTrav.addCollider(self.cEventSphereNodePath, base.cEvent)
 
             else:
                 if hasattr(self, 'cTrav'):
@@ -899,7 +888,7 @@ class Ralph(DirectObject.DirectObject):
         tempCTrav = CollisionTraverser("oneTimeCollide")
         tempCTrav.addCollider(self.cWallSphereNodePath, self.pusher)
         if self.wantFloorSphere:
-            tempCTrav.addCollider(self.cFloorSphereNodePath, self.event)
+            tempCTrav.addCollider(self.cFloorSphereNodePath, base.cEvent)
         tempCTrav.addCollider(self.cRayNodePath, self.lifter)
         tempCTrav.traverse(render)
 

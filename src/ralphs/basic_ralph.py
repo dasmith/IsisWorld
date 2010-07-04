@@ -576,28 +576,27 @@ class Picker(DirectObject.DirectObject):
         self.camera = camera
         self.tag = tag
         self.value = value
-        self.picker = CollisionTraverser()
+        #self.picker = CollisionTraverser()
         self.queue = CollisionHandlerQueue()
         self.pickerNode = CollisionNode('mouseRay')
         self.pickerNP = self.camera.attachNewNode(self.pickerNode)
 
-        self.pickerNode.setFromCollideMask(GeomNode.getDefaultCollideMask())
+        self.pickerNode.setFromCollideMask(OBJMASK|AGENTMASK)
 
         self.pickerRay = CollisionRay()
         self.pickerNode.addSolid(self.pickerRay)
 
-        self.picker.addCollider(self.pickerNP, self.queue)
+        base.cTrav.addCollider(self.pickerNP, self.queue)
         self.worldObjects = worldObjects
 
     def pick(self, pos):
         self.pickerRay.setFromLens(self.camera.node(), pos[0], pos[1])
-        self.picker.traverse(render)
+        base.cTrav.traverse(render)
         if self.queue.getNumEntries() > 1:
             self.queue.sortEntries()
             parent = self.queue.getEntry(1).getIntoNodePath().getParent()
             point = self.queue.getEntry(1).getSurfacePoint(self.camera)
             dist = math.sqrt(point.getX()**2+point.getY()**2+point.getZ()**2)
-
             while parent != render:
                 if(self.tag == None):
                     return (parent, dist)
@@ -617,18 +616,3 @@ class Picker(DirectObject.DirectObject):
                 if o and (o[0] not in objects or o[1] < objects[o[0]]):
                     objects[o[0]] = o[1]
         return objects
-        """
-        GravityWalker.py is for avatars.
-
-        A walker control such as this one provides:
-            - creation of the collision nodes
-            - handling the keyboard and mouse input for avatar movement
-            - moving the avatar
-
-        it does not:
-            - play sounds
-            - play animations
-
-        although it does send messeges that allow a listener to play sounds or
-        animations based on walker events.
-        """

@@ -104,7 +104,7 @@ class IsisWorld(DirectObject.DirectObject):
         self.worldObjects.update(load_objects(self.rootDirectory+"/kitchen.isis", render, self.physicsManager))
                 
                 
-        
+        return
         self.map = loader.loadModel(self.rootDirectory+"/media/models/kitchen")
         self.map.reparentTo(render)
         self.mapNode = self.map.find("-PandaNode")

@@ -104,17 +104,17 @@ class IsisObject(NodePath):
         # set so that is just considered a sensor.
         cGeom.setTangible(0)
         cNode.addSolid(cGeom)
-        # it cannot collide into other objects
-        cNode.setFromCollideMask(BitMask32.allOff())
-        # but other objects and agents can collide INTO it
+
+        # objects (ray) and agents can collide INTO it
         cNode.setIntoCollideMask(OBJMASK | AGENTMASK)
+        # but this surface/sphere cannot collide INTO other objects
+        cNode.setFromCollideMask(BitMask32.allOff())
         # attach to current node path
         cNodePath = self.attachNewNode(cNode)
-        cNodePath.setCollideMask(OBJMASK)
         cNodePath.show()
         
         # register RayNode in GravityHandler and Traverser
-        base.cFloor.addCollider(cRayNode,self)
+        base.cFloor.addCollider(cRayNode, self)
         base.cTrav.addCollider(cRayNode, base.cFloor)
 
         # add this to the base collider, accessible through DirectStart

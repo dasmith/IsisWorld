@@ -31,6 +31,11 @@ def getOrientedBoundedBox(collObj):
 class PhysicsWorldManager(DirectObject.DirectObject):
     
     def __init__(self):
+        """ Initialize the 3 Collision Handlers and the base Traverser, which looks
+        through the entire node path. 
+        
+        Future optimization: traversers that only look at certain branches of the render tree.
+        """
         self._GlobalClock=ClockObject.getGlobalClock() 
         self._FrameTime=self._GlobalClock.getFrameTime() 
         self._GlobalClock.setRealTime(self._FrameTime) 
@@ -45,16 +50,19 @@ class PhysicsWorldManager(DirectObject.DirectObject):
         # Initialize the collision traverser.
         base.cTrav = CollisionTraverser()
         base.cTrav.setRespectPrevTransform(True)
-        base.cTrav.showCollisions( render )
+        #base.cTrav.showCollisions( render )
 
         # initialize 3 handlers: wall, gravity, and other events
+        
+        # the CollisionHandlerPusher is good for keeping items from going through walls
         base.cWall = CollisionHandlerPusher()
         
         # this tracks the velocity of moving objects, whereas CollisionHandlerFloor doesnt
         base.cFloor = CollisionHandlerGravity()
         # gravity should be -9.81m/s, but that doesn't quite work
-        base.cFloor.setGravity(9.81+25)
+        base.cFloor.setGravity(9.81*10)
         base.cFloor.setMaxVelocity(100)
+        #base.cFloor.setLegacyMode(True)
 
         # Initialize the handler.
         base.cEvent = CollisionHandlerEvent()
@@ -91,14 +99,12 @@ class PhysicsWorldManager(DirectObject.DirectObject):
         agentInto = entry.getIntoNodePath().getParent()
         print "Agents collided : %s, %s" % (agentFrom, agentInto) 
 
-    def _future__Physics(self):
+    def ___future__Physics(self):
         gravityFN = ForceNode('gravity')
         gravityNP = render.attachNewNode(gravityFN)
         gravityForce = LinearVectorForce(0, 0, -9.81)
         gravityFN.addForce(gravityForce)
-        base.physicsMgr.addLinearForce(gravityForce)
-
-        
+        base.physicsMgr.addLinearForce(gravityForce)        
     
     def addAgent(self,agent):
         self.agents.append(agent)
@@ -111,8 +117,6 @@ class PhysicsWorldManager(DirectObject.DirectObject):
         floorCollisionNP = base.render.attachNewNode(CollisionNode('collisionNode'))
         floorCollisionNP.node().addSolid(collPlane) 
         floorCollisionNP.node().setIntoCollideMask(FLOOR_MASK)
-
-        
         
     def stepSimulation(self,stepTime=1):
         if self.paused:

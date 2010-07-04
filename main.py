@@ -85,9 +85,7 @@ class IsisWorld(DirectObject.DirectObject):
 
         This is done by calling the physics module:  physicsModule.setupGround()"""
         
-        self.worldObjects = {}
-        base.cTrav = CollisionTraverser( ) 
-        base.cTrav.showCollisions(render)        
+        self.worldObjects = {} 
         
         # parameters
         self.visualizeClouds = True 
@@ -95,44 +93,38 @@ class IsisWorld(DirectObject.DirectObject):
         groundTexture = loader.loadTexture(self.rootDirectory+"/media/textures/env_ground.jpg")
         cm.setFrame(-100, 100, -100, 100)
         groundNP = render.attachNewNode(cm.generate())
-        groundNP.setCollideMask(BitMask32.allOff())
+        groundNP.setCollideMask(FLOORMASK)
         groundNP.setTexture(groundTexture)
         groundNP.setPos(0, 0, 0)
         groundNP.lookAt(0, 0, -1)
         groundNP.setTransparency(TransparencyAttrib.MAlpha)
-        groundNP.node().setIntoCollideMask(FLOORMASK)
-        #self.physicsManager.setupGround()
-
-
+        # allow other items to collide INTO floormask
+        #groundNP.node().setIntoCollideMask(FLOORMASK)
+        
+        self.worldObjects.update(load_objects(self.rootDirectory+"/kitchen.isis", render, self.physicsManager))
+                
+                
+        
         self.map = loader.loadModel(self.rootDirectory+"/media/models/kitchen")
         self.map.reparentTo(render)
         self.mapNode = self.map.find("-PandaNode")
         self.room = self.mapNode.find("Wall")
-        self.map.setCollideMask(BitMask32.allOff())
-        self.map.node().setIntoCollideMask(WALLMASK)
+        self.room.flattenStrong()
+        self.room.setCollideMask(BitMask32.allOff())
+        # allow other items to collide INTO wallmask
+        self.room.node().setIntoCollideMask(WALLMASK)
 
-        self.worldObjects.update(load_objects(self.rootDirectory+"/kitchen.isis", render, self.physicsManager))
-
-        #for name in self.worldObjects:
-        #  self.worldObjects[name].flattenLight()
-        return
         """
         Steps is yet another part of the map.
         Meant, obviously, to demonstrate the ability to climb stairs.
         """
         self.steps = self.mapNode.find("Steps")
-        """
-        Door functionality is also provided here.
-        More on door in the appropriate file.
-        """
-        #self.doorNP = self.mapNode.find("Door")
-        #self.door = door(self.worldManager, self.doorNP)
-        #self.worldObjects['door'] = door
 
-        #self.map.flattenStrong()
-        #self.steps.flattenStrong()
-        #self.doorNP.flattenStrong()
-        """ 
+        self.steps.flattenStrong()
+        self.steps.setCollideMask(BitMask32.allOff())
+        # allow other items to collide INTO wallmask
+        self.steps.node().setIntoCollideMask(WALLMASK|FLOORMASK)
+        """
         Setup the skydome
         Moving clouds are pretty but computationally expensive 
         only visualize them if you have"""
@@ -147,7 +139,6 @@ class IsisWorld(DirectObject.DirectObject):
             taskMgr.add(timeUpdated, "timeUpdated")
         else:
             self.skydomeNP = SkyDome1(render,self.visualizeClouds)
-
 
 
     def _setupCameras(self):
@@ -208,7 +199,6 @@ class IsisWorld(DirectObject.DirectObject):
             because "self.agentNum" need to be revaluated at the time the command
             is issued, necessitating this helper function"""
             if self.actionController.hasAction(command):
-                print "Agent", self.agents[self.agentNum], command
                 self.actionController.makeAgentDo(self.agents[self.agentNum], command)
             else:
                 print "relayAgentControl: %s command not found in action controller" % (command)

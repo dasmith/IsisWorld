@@ -81,16 +81,16 @@ class FloatingCamera:
         #ZOOM IN
         if self.controlMap['zoom-in'] !=0:
             #Zoom in
-            base.camera.setY(base.camera, +(self.elapsed*1))
+            base.camera.setY(base.camera, +(self.elapsed*10))
             #Store the camera position
-            self.zoom -= self.elapsed*1
+            self.zoom -= self.elapsed*10
 
         #ZOOM OUT
         if self.controlMap['zoom-out'] !=0:
             #Zoom out
-            base.camera.setY(base.camera, -(self.elapsed*1))
+            base.camera.setY(base.camera, -(self.elapsed*10))
             #Store the camera position
-            self.zoom += self.elapsed*1
+            self.zoom += self.elapsed*10
 
         return Task.cont
 

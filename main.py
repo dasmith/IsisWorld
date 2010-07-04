@@ -103,17 +103,18 @@ class IsisWorld(DirectObject.DirectObject):
         groundNP.node().setIntoCollideMask(FLOORMASK)
         #self.physicsManager.setupGround()
 
-        self.worldObjects.update(load_objects(self.rootDirectory+"/kitchen.isis", render, self.physicsManager))
-        for name in self.worldObjects:
-          self.worldObjects[name].flattenLight()
 
         self.map = loader.loadModel(self.rootDirectory+"/media/models/kitchen")
         self.map.reparentTo(render)
         self.mapNode = self.map.find("-PandaNode")
         self.room = self.mapNode.find("Wall")
+        self.map.setCollideMask(BitMask32.allOff())
         self.map.node().setIntoCollideMask(WALLMASK)
 
+        self.worldObjects.update(load_objects(self.rootDirectory+"/kitchen.isis", render, self.physicsManager))
 
+        #for name in self.worldObjects:
+        #  self.worldObjects[name].flattenLight()
         return
         """
         Steps is yet another part of the map.

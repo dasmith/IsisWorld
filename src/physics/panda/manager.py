@@ -52,6 +52,7 @@ class PhysicsWorldManager(DirectObject.DirectObject):
         
         # this tracks the velocity of moving objects, whereas CollisionHandlerFloor doesnt
         base.cFloor = CollisionHandlerGravity()
+        # gravity should be -9.81m/s, but that doesn't quite work
         base.cFloor.setGravity(9.81+25)
         base.cFloor.setMaxVelocity(100)
 

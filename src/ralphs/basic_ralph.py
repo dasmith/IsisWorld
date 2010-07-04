@@ -44,7 +44,7 @@ class Ralph(DirectObject.DirectObject):
         self.actor.reparentTo(self.actorNodePath)
         self.actor.setCollideMask(BitMask32.allOff())
         self.name = name
-        
+        self.isMoving = False
         
         boundingBox, offset = getOrientedBoundedBox(self.actor)
         self.radius = boundingBox[0]/2.0
@@ -70,7 +70,7 @@ class Ralph(DirectObject.DirectObject):
         self.player_right_hand.setColorScaleOff()
         self.player_left_hand.setColorScaleOff()
         self.player_head  = self.actor.exposeJoint(None, 'modelRoot', 'Head')
-        self.player_neck = self.actor.controlJoint(None, 'modelRoot', 'Head')
+        self.neck = self.actor.controlJoint(None, 'modelRoot', 'Head')
 
         self.controlMap = {"turn_left":0, "turn_right":0, "move_forward":0, "move_backward":0, "move_right":0, "move_left":0,\
                            "look_up":0, "look_down":0, "look_left":0, "look_right":0, "jump":0}
@@ -211,7 +211,7 @@ class Ralph(DirectObject.DirectObject):
 #                    print o.getName(), object_dict
 #                    print o.getAncestor(1).getName()
 #                    print o.getAncestor(1).listTags()
-#                    print self.player_neck.getH()
+#                    print self.neck.getH()
 ##                    if (o.getAncestor(1).getName() == "Ralph"):
 ##                       for agent in self.agent_simulator.agents:
 ##                           if agent.
@@ -582,11 +582,16 @@ class Ralph(DirectObject.DirectObject):
         # get under vCalid floor:
 
     def setupCollisionSpheres(self, bitmask=AGENTMASK):
-
+        """ This function sets up three separate collision systems:
+          1- cSphereNode handled by cWall traverser, stops agents from
+           walking into other agents and walls 
+          2- cRay handled by cFloor keeps Ralph on the ground
+          3- cEvent is a general purpose collision handler that registers
+           and delegates collision callbacks, as defined in the physics/panda/manager.py file """
         cSphereNode = CollisionNode('agent')
         cSphereNode.addSolid(CollisionSphere(0.0, 0.0, self.height, self.radius))
-        #cSphereNode.addSolid(CollisionSphere(0.0, 0.0, self.height + 2 * self.radius, self.radius))
-        cSphereNode.setFromCollideMask(AGENTMASK)
+        cSphereNode.addSolid(CollisionSphere(0.0, 0.0, self.height + 2 * self.radius, self.radius))
+        cSphereNode.setFromCollideMask(WALLMASK | AGENTMASK)
         cSphereNode.setIntoCollideMask(WALLMASK | AGENTMASK)
         cSphereNodePath = self.actorNodePath.attachNewNode(cSphereNode)
         cSphereNodePath.show()
@@ -611,38 +616,36 @@ class Ralph(DirectObject.DirectObject):
 
 
     def update(self, stepSize=0.1):
-        """
-        Check on the arrow keys and update the avatar.
-        """
-        # get the button states:
-        self.speed = Vec3(0.0)
-        def bound(i, mn = -1, mx = 1): return min(max(i, mn), mx) # enforces bounds on a numeric value
-        # move the character if any of the move controls are activated.
+        moveAtSpeed = 10.0
 
-        if (self.controlMap["turn_left"]!=0):
-            self.actorNodePath.setH(self.actorNodePath.getH() + stepSize*30)
-        if (self.controlMap["turn_right"]!=0):
-            self.actorNodePath.setH(self.actorNodePath.getH() - stepSize*30)
-        if (self.controlMap["move_forward"]!=0):
-            self.actorNodePath.setX(self.actorNodePath.getX() + (stepSize*0.5))
-        if (self.controlMap["move_backward"]!=0):
-            self.actorNodePath.setX(self.actorNodePath.getX() - (stepSize*0.5))
-        #if (self.controlMap["move_left"]!=0):        self.speed[0] = -moveAtSpeed
-        #if (self.controlMap["move_right"]!=0):       self.speed[0] = moveAtSpeed
-        if (self.controlMap["look_left"]!=0):      
-            self.player_neck.setR(bound(self.player_neck.getR(),-60,60)+1*(stepSize*50))
-        if (self.controlMap["look_right"]!=0):
-            self.player_neck.setR(bound(self.player_neck.getR(),-60,60)-1*(stepSize*50))
-        if (self.controlMap["look_up"]!=0):
-            self.player_neck.setP(bound(self.player_neck.getP(),-60,80)+1*(stepSize*50))
-        if (self.controlMap["look_down"]!=0):
-            self.player_neck.setP(bound(self.player_neck.getP(),-60,80)-1*(stepSize*50))
+        self.speed = [0.0, 0.0]
 
-        return
-        distance = stepSize * self.speed
-        self.actorNodePath.setFluidPos(Point3(self.actorNodePath.getPos()+distance))
-        #    self.actorNodePath.setH(self.actorNodePath.getH()+rotation)
-        self.vel.set(0.0, 0.0, 0.0)
+        if (self.controlMap["turn_left"]!=0):        self.actor.setH(self.actor.getH() + stepSize*220)
+        if (self.controlMap["turn_right"]!=0):       self.actor.setH(self.actor.getH() - stepSize*220)
+        if (self.controlMap["move_forward"]!=0):     self.speed[1] =  moveAtSpeed
+        if (self.controlMap["move_backward"]!=0):    self.speed[1] = -moveAtSpeed
+        if (self.controlMap["move_left"]!=0):        self.speed[0] = -moveAtSpeed
+        if (self.controlMap["move_right"]!=0):       self.speed[0] =  moveAtSpeed
+        if (self.controlMap["look_left"]!=0):        self.neck.setR(bound(self.neck.getR(),-60,60)+1*(stepSize*50))
+        if (self.controlMap["look_right"]!=0):       self.neck.setR(bound(self.neck.getR(),-60,60)-1*(stepSize*50))
+        if (self.controlMap["look_up"]!=0):          self.neck.setP(bound(self.neck.getP(),-60,80)+1*(stepSize*50))
+        if (self.controlMap["look_down"]!=0):        self.neck.setP(bound(self.neck.getP(),-60,80)-1*(stepSize*50))
+
+        #if inputState.isSet("crouch") or self.crouchLock:
+        #    self.camH = self.crouchCamH
+        #    PhysicsCharacterController.crouch(self)
+        #else:
+        #    PhysicsCharacterController.crouchStop(self)
+        #    self.camH = self.walkCamH
+
+        speedVec = Vec3(self.speed[0]*stepSize, self.speed[1]*stepSize, 0)
+        quat = self.actor.getQuat(render)
+        # xform applies rotation to the speedVector
+        speedVec = quat.xform(speedVec)
+        # compute the new position
+        newPos = self.actorNodePath.getPos()+speedVec
+
+        self.actorNodePath.setFluidPos(newPos)
 
         # allow dialogue window to gradually decay (changing transparancy) and then disappear
         self.last_spoke += stepSize
@@ -654,14 +657,20 @@ class Ralph(DirectObject.DirectObject):
         # update animation
         # If the character is moving, loop the run animation.
         # If he is standing still, stop the animation.
-        total_frame_num = self.actor.getNumFrames('walk')
+        if (self.controlMap["move_forward"]!=0) or (self.controlMap["move_backward"]!=0) or (self.controlMap["move_left"]!=0) or (self.controlMap["move_right"]!=0):
+            if self.isMoving is False:
+                self.isMoving = True
+        else:
+            if self.isMoving:
+                self.current_frame_count = 5.0
+                self.isMoving = False
 
-        if self.moving or jump:
+        total_frame_num = self.actor.getNumFrames('walk')
+        if self.isMoving:
             self.current_frame_count = self.current_frame_count + (stepSize*10000.0)
             while (self.current_frame_count >= total_frame_num + 1):
                 self.current_frame_count -= total_frame_num
                 self.actor.pose('walk', self.current_frame_count)
-            messenger.send("avatarMoving")
         return Task.cont
 
 class Picker(DirectObject.DirectObject):

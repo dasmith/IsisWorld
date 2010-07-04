@@ -6,33 +6,7 @@ from ..physics.panda.manager import *
 # Object class definitions defining methods inherent to each object type
 
 
-def setupPhysics(self, model, collisionGeom='sphere'):
-    # ensure all existing collision masks are off
-    model.setCollideMask(BitMask32.allOff())
-    
-    # possible optimization step?
-    # model.flattenLight()
-    # see if the collider geometry is defined in the model
-    try:
-        collideGeom = model.find("**/collider")
-    except:
-        return # TODO
-        # if it isn't, approximate the geometry as a sphere or a box
-        bounds, offset = getOrientedBoundingBox(model)
-        if collisionGeom == 'box':
-            pass
-            # TODO: use bounds to define an CollisionBox (?)
-        else: # sphere
-            radius = bounds[0]/2.0
 
-        # other objects and agents can collide INTO it
-        colliderGeom.node().setToCollideMask(AGENTMASK|OBJECTMASK)
-        # it can collide into other objects and the floor.
-        colliderGeom.node().setFromCollideMask(AGENTMASK|OBJECTMASK)
-
-   
-    # add this to the base collider, accessible through DirectStart
-    base.cTrav.addCollider(colliderGeom, collisionHandler)
 
 class IsisObject(NodePath):
     """ IsisObject is the base class for all visible objects in IsisWorld, other
@@ -79,15 +53,57 @@ class IsisObject(NodePath):
         # adds a pickable tag to allow an agent to view this object
         self.setTag('pickable', 'true')
 
+        # setup up collision physics around the model passed as first arg
+        self._setupPhysics(self.model)
+        
+    def _setupPhysics(self, model, collisionGeom='sphere'):
+        
         # setup gravity pointer
-        raygeometry = CollisionRay(0, 0, 2, 0, 0, -1)
-        avatarRay = self.attachNewNode(CollisionNode('avatarRay'))
-        avatarRay.node().addSolid(raygeometry)
-# let's mask our floor FROM collider
-        avatarRay.node().setFromCollideMask(FLOORMASK)
-        avatarRay.node().setIntoCollideMask(BitMask32.allOff())
-        base.cFloor.addCollider(avatarRay,self)
-        base.cTrav.addCollider(avatarRay,base.cFloor)
+        cRay = CollisionRay()
+        # set origin slightly below obj
+        cRay.setOrigin(0,0,-.2)
+        # face downward
+        cRay.setDirection(0,0,-1)
+        
+        cRayNode = self.attachNewNode(CollisionNode('avatarRay'))
+        cRayNode.node().addSolid(cRay)
+        # nothing can collide INTO the ray
+        cRayNode.node().setIntoCollideMask(BitMask32.allOff())
+        # but the ray can colide INTO the FLOOR
+        cRayNode.node().setFromCollideMask(FLOORMASK|OBJMASK)
+        
+        # show this node
+        cRayNode.show()
+        
+        base.cFloor.addCollider(cRayNode,self)
+        base.cTrav.addCollider(cRayNode, base.cFloor)
+        
+        # ensure all existing collision masks are off
+        model.setCollideMask(BitMask32.allOff())
+
+        # possible optimization step?
+        #model.flattenLight()
+        # see if the collider geometry is defined in the model
+        
+        cNode = CollisionNode('object')
+        bounds, offset = getOrientedBoundedBox(model)
+        radius = bounds[0]/2.0
+        # set up a collision sphere
+        cNode.addSolid(CollisionSphere(0.0, 0.0, 0.0, radius))
+        # it can collide into other objects
+        cNode.setFromCollideMask(OBJMASK)
+        # other objects and agents can collide INTO it
+        cNode.setIntoCollideMask(OBJMASK | AGENTMASK)
+        # attach to current node path
+        cNodePath = self.attachNewNode(cNode)
+        cNodePath.show()
+        #try:
+        #    cNodePath = model.find("**/collider")
+
+
+
+        # add this to the base collider, accessible through DirectStart
+        base.cTrav.addCollider(cNodePath, base.cEvent)
 
     def rescaleModel(self,scale):
         """ Changes the model's dimensions to a given scale"""

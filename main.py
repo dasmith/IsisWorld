@@ -43,7 +43,7 @@ class IsisWorld(DirectObject.DirectObject):
         self.rootDirectory = "."#Filename.fromOsSpecific(ExecutionEnvironment.getCwd())
         config = loadPrcFile(Filename(self.rootDirectory, 'config.prc'))
         self._setupEnvironment(debug=False)
-        self._setupWorld(visualizeClouds=True, enableKitchen=True)
+        self._setupWorld(visualizeClouds=False, enableKitchen=True)
         self._setupAgents()
         self._setupLights()
         self._setupCameras()

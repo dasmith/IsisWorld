@@ -164,11 +164,11 @@ class PhysicsWorldManager(DirectObject.DirectObject):
         if stopAt != None:
           assert stopAt > 0.0
           assert stopAt > self.stepSize # cannot step less than physical simulator
-          taskMgr.doMethodLater(stopAt, self._stopPhysics, "physics-SimulationStopper")
+          taskMgr.doMethodLater(stopAt, self._stopPhysics, "physics-SimulationStopper", priority=10)
           # or can you 
-          taskMgr.doMethodLater(min(self.stepSize,stopAt), self.simulationTask, "physics-SimulationTask")
+          taskMgr.doMethodLater(min(self.stepSize,stopAt), self.simulationTask, "physics-SimulationTask", priority=10)
         else:
-          taskMgr.doMethodLater(self.stepSize, self.simulationTask, "physics-SimulationTask")
+          taskMgr.doMethodLater(self.stepSize, self.simulationTask, "physics-SimulationTask", priority=10)
 
 
 

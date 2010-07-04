@@ -20,9 +20,8 @@ from direct.gui.DirectGui import DirectEntry, DirectButton
 from pandac.PandaModules import * # TODO: specialize this import
 
 
-#from panda3d.core import CollisionHandlerPusher, CollisionHandlerGravity, CollisionTraverser
 # local source code
-from src.ralphs.basic_ralph import *
+from src.ralphs.ralph import *
 from src.physics.panda.manager import *
 from src.cameras.floating import *
 from src.xmlrpc.command_handler import IsisCommandHandler
@@ -44,7 +43,7 @@ class IsisWorld(DirectObject.DirectObject):
         self.rootDirectory = "."#Filename.fromOsSpecific(ExecutionEnvironment.getCwd())
         config = loadPrcFile(Filename(self.rootDirectory, 'config.prc'))
         self._setupEnvironment(debug=False)
-        self._setupWorld(visualizeClouds=False, enableKitchen=False)
+        self._setupWorld(visualizeClouds=True, enableKitchen=True)
         self._setupAgents()
         self._setupLights()
         self._setupCameras()
@@ -72,7 +71,7 @@ class IsisWorld(DirectObject.DirectObject):
         self.server_thread = threading.Thread(group=None, target=self.server.serve_forever, name='isisworld-xmlrpc')
         self.server_thread.start()
 
-    def _setupWorld(self, visualizeClouds=False, enableKitchen=True):
+    def _setupWorld(self, visualizeClouds=False, enableKitchen=False):
         # setup physics
         self.physicsManager = PhysicsWorldManager()
         
@@ -231,8 +230,8 @@ class IsisWorld(DirectObject.DirectObject):
         self.actionController.addAction(IsisAction(commandName="pick_up_with_right_hand",intervalAction=False,keyboardBinding="b"))
         self.actionController.addAction(IsisAction(commandName="drop_from_left_hand",intervalAction=False,keyboardBinding="n"))
         self.actionController.addAction(IsisAction(commandName="drop_from_right_hand",intervalAction=False,keyboardBinding="m"))
-        self.actionController.addAction(IsisAction(commandName="use_left_hand",intervalAction=False,keyboardBinding=","))
-        self.actionController.addAction(IsisAction(commandName="use_right_hand",intervalAction=False,keyboardBinding="."))
+        self.actionController.addAction(IsisAction(commandName="use_left_hand",intervalAction=False,argList=['target','action']))
+        self.actionController.addAction(IsisAction(commandName="use_right_hand",intervalAction=False,argList=['target','action']))
 
         # initialze keybindings
         for keybinding, command in self.actionController.keyboardMap.items():

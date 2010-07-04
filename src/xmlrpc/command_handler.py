@@ -52,7 +52,6 @@ class IsisCommandHandler(object):
             return self._relayAgentControl(agent_to_control,cmd,args)
         elif cmd == 'meta_step':
             seconds = 0.05
-            print "stepping simulator"
             if args.has_key('seconds'):
                 seconds = args['seconds']
             self.simulator.physicsManager.stepSimulation(seconds)
@@ -60,7 +59,6 @@ class IsisCommandHandler(object):
         elif cmd == 'step_simulation':
             print "WARNING, the step_simulation command will soon be deprecated. use 'meta_step' instead"
             seconds = 0.05
-            print "stepping simulator"
             if args.has_key('seconds'):
                 seconds = args['seconds']
             self.simulator.physicsManager.stepSimulation(seconds)

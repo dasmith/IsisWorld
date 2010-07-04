@@ -2,7 +2,7 @@
 
 class IsisAction():
     """ This class defines the actions that are available to the agent in IsisWorld """
-    def __init__(self, commandName, commandFunct=None, intervalAction=False, keyboardBinding=None):
+    def __init__(self, commandName, commandFunct=None, intervalAction=False, keyboardBinding=None, argList=[]):
         # commandName is what XML-PRC must call to execute the action
         self.commandName = commandName
         # if the command has a keymapping, define it here
@@ -15,6 +15,8 @@ class IsisAction():
         #  2) when there is a keyboardBinding, it adds the '_up' statement
         #     to stop the command when the key is released
         self.intervalAction=intervalAction
+        # define args
+        self.argList = argList
         # define the command function
         if commandFunct == None:
             commandFunct = "print 'The function %s is undefined'" % self.commandName
@@ -40,6 +42,7 @@ class ActionController():
         self.keyboardMap= {}
         self.helpStrings = []
         self.versionNumber = versionNumber
+        self.argMap = {}
 
     def hasAction(self,action):
         """ Tells whether the ActionController has this action defined"""
@@ -49,8 +52,18 @@ class ActionController():
         """ Given a command and an agent pointer, tell the agent to do that command"""
         print "ACTION", command
         print "AGENT", agent
-        #print eval("agent.%s()" % (command,','.join(map(lambda a: '%s=args[%s]' % (a,a), args.keys()))),args)
-        result = eval("agent.%s()" % (command))
+        commandArgs = self.argMap[command]
+        commandArgString = ','.join(map(lambda a: 'args[%s]' % (a), commandArgs))
+        if len(commandArgs) == 0:
+            result = eval("agent.%s()" % (command))
+        else:
+            # check to see if all keys are defined:
+            for cArg in commandArgs:
+                if cArg not in args:
+                    print "Argument %s missing in command %s" % (cArg,command)
+                    return 'failure'
+            # if so, evaluate the keys
+            result = eval("agent.%s(%s)" % (command,commandArgString),args)
         print "EVAL", result
         # None objects are not serializable by XML-RPC
         if result == None:
@@ -64,6 +77,9 @@ class ActionController():
             self.helpStrings.append("Press [%s] to %s" % (action.keyboardBinding, action.commandName.replace("_"," ")))
         # initialize actions
         if action.intervalAction:
+            # register the arguments of an action in a list (ordering important):
+            self.argMap["control__%s__start" %action.commandName] = action.argList
+            self.argMap["control__%s__stop" %action.commandName] = []
             # define start and stop commands
             self.actionMap["%s-start" % action.commandName]="control__%s__start" % action.commandName
             self.actionMap["%s-stop" % action.commandName]="control__%s__stop" % action.commandName
@@ -71,6 +87,10 @@ class ActionController():
                 self.keyboardMap["%s" % action.keyboardBinding]="control__%s__start" % action.commandName
                 self.keyboardMap["%s-up" % action.keyboardBinding]="control__%s__stop" % action.commandName
         else:
+            # register the arguments of an action in a list (ordering important):
+            self.argMap["control__%s" %action.commandName] = action.argList
+            # saver action in map
             self.actionMap["%s" % action.commandName]="control__%s" % action.commandName
             if action.keyboardBinding:
                 self.keyboardMap["%s" % action.keyboardBinding]="control__%s" % action.commandName
+

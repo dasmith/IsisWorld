@@ -44,7 +44,7 @@ class IsisWorld(DirectObject.DirectObject):
         self.rootDirectory = "."#Filename.fromOsSpecific(ExecutionEnvironment.getCwd())
         config = loadPrcFile(Filename(self.rootDirectory, 'config.prc'))
         self._setupEnvironment(debug=False)
-        self._setupWorld()
+        self._setupWorld(visualizeClouds=True, enableKitchen=True)
         self._setupAgents()
         self._setupLights()
         self._setupCameras()
@@ -72,23 +72,17 @@ class IsisWorld(DirectObject.DirectObject):
         self.server_thread = threading.Thread(group=None, target=self.server.serve_forever, name='isisworld-xmlrpc')
         self.server_thread.start()
 
-    def _setupWorld(self):
+    def _setupWorld(self, visualizeClouds=True, enableKitchen=True):
         # setup physics
         self.physicsManager = PhysicsWorldManager()
         
         
         """ The world consists of a plane, the "ground" that stretches to infinity
-        and a dome, the "sky" that sits concavely on the ground.
-
-        For the ground component, a separate physics module must be created 
-        so that the characters and objects do not fall through it.
-
-        This is done by calling the physics module:  physicsModule.setupGround()"""
+        and a dome, the "sky" that sits concavely on the ground. """
         
         self.worldObjects = {} 
         
-        # parameters
-        self.visualizeClouds = True 
+        
         cm = CardMaker("ground")
         groundTexture = loader.loadTexture(self.rootDirectory+"/media/textures/env_ground.jpg")
         cm.setFrame(-100, 100, -100, 100)
@@ -103,33 +97,32 @@ class IsisWorld(DirectObject.DirectObject):
         
         self.worldObjects.update(load_objects(self.rootDirectory+"/kitchen.isis", render, self.physicsManager))
                 
-                
-        return
-        self.map = loader.loadModel(self.rootDirectory+"/media/models/kitchen")
-        self.map.reparentTo(render)
-        self.mapNode = self.map.find("-PandaNode")
-        self.room = self.mapNode.find("Wall")
-        self.room.flattenStrong()
-        self.room.setCollideMask(BitMask32.allOff())
-        # allow other items to collide INTO wallmask
-        self.room.node().setIntoCollideMask(WALLMASK)
+        if enableKitchen:
+            self.map = loader.loadModel(self.rootDirectory+"/media/models/kitchen")
+            self.map.reparentTo(render)
+            self.mapNode = self.map.find("-PandaNode")
+            self.room = self.mapNode.find("Wall")
+            self.room.flattenStrong()
+            self.room.setCollideMask(BitMask32.allOff())
+            # allow other items to collide INTO wallmask
+            self.room.node().setIntoCollideMask(WALLMASK)
 
-        """
-        Steps is yet another part of the map.
-        Meant, obviously, to demonstrate the ability to climb stairs.
-        """
-        self.steps = self.mapNode.find("Steps")
+            """
+            Steps is yet another part of the map.
+            Meant, obviously, to demonstrate the ability to climb stairs.
+            """
+            self.steps = self.mapNode.find("Steps")
 
-        self.steps.flattenStrong()
-        self.steps.setCollideMask(BitMask32.allOff())
-        # allow other items to collide INTO wallmask
-        self.steps.node().setIntoCollideMask(WALLMASK|FLOORMASK)
+            self.steps.flattenStrong()
+            self.steps.setCollideMask(BitMask32.allOff())
+            # allow other items to collide INTO wallmask
+            self.steps.node().setIntoCollideMask(WALLMASK|FLOORMASK)
         """
         Setup the skydome
         Moving clouds are pretty but computationally expensive 
         only visualize them if you have"""
-        if self.visualizeClouds: 
-            self.skydomeNP = SkyDome2(render,self.visualizeClouds)
+        if visualizeClouds: 
+            self.skydomeNP = SkyDome2(render,visualizeClouds)
             self.skydomeNP.setPos(Vec3(0,0,-500))
             self.skydomeNP.setStandardControl()
             self.skydomeNP.att_skycolor.setColor(Vec4(0.3,0.3,0.3,1))
@@ -138,7 +131,7 @@ class IsisWorld(DirectObject.DirectObject):
                 return task.cont
             taskMgr.add(timeUpdated, "timeUpdated")
         else:
-            self.skydomeNP = SkyDome1(render,self.visualizeClouds)
+            self.skydomeNP = SkyDome1(render,visualizeClouds)
 
 
     def _setupCameras(self):

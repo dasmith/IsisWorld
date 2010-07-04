@@ -56,7 +56,7 @@ class Ralph(DirectObject.DirectObject):
         self.worldManager = worldManager    
         x = random.randint(0,10)
         y = random.randint(0,10)
-        z = random.randint(5,10)
+        z = random.randint(12,25)
         self.actorNodePath.setFluidPos(Vec3(x,y,z))
         
         self.setupCollisionSpheres()
@@ -488,7 +488,7 @@ class Ralph(DirectObject.DirectObject):
         cSphereNode.setFromCollideMask(WALLMASK | AGENTMASK)
         cSphereNode.setIntoCollideMask(WALLMASK | AGENTMASK | OBJMASK)
         cSphereNodePath = self.actorNodePath.attachNewNode(cSphereNode)
-        cSphereNodePath.show()
+        #cSphereNodePath.show()
         base.cWall.addCollider(cSphereNodePath, self.actorNodePath)
         base.cTrav.addCollider(cSphereNodePath, base.cWall)
         # add same colliders to cEvent
@@ -564,7 +564,7 @@ class Ralph(DirectObject.DirectObject):
 
         total_frame_num = self.actor.getNumFrames('walk')
         if self.isMoving:
-            self.current_frame_count = self.current_frame_count + (stepSize*10000.0)
+            self.current_frame_count = self.current_frame_count + (stepSize*4000.0)
             while (self.current_frame_count >= total_frame_num + 1):
                 self.current_frame_count -= total_frame_num
                 self.actor.pose('walk', self.current_frame_count)
@@ -608,7 +608,7 @@ class Picker(DirectObject.DirectObject):
         return None
 
 
-    def getObjectsInView(self, xpoints = 32, ypoints = 24):
+    def getObjectsInView(self, xpoints = 16, ypoints = 12):
         objects = {}
         for x in frange(-1, 1, 2.0/xpoints):
             for y in frange(-1, 1, 2.0/ypoints):

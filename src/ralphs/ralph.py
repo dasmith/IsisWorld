@@ -243,6 +243,7 @@ class Ralph(DirectObject.DirectObject):
         percepts['position'] = self.sense__get_position()
         # language: get last utterances that were typed
         percepts['language'] = self.sense__get_utterances()
+        print percepts
         return percepts
  
     def can_grasp(self, object_name):
@@ -430,8 +431,8 @@ class Ralph(DirectObject.DirectObject):
 
 
     def sense__get_position(self):
-        x,y,z = self.actor.getPos()
-        h,p,r = self.actor.getHpr()
+        x,y,z = self.actorNodePath.getPos()
+        h,p,r = self.actorNodePath.getHpr()
         #FIXME
         # neck is not positioned in Blockman nh,np,nr = self.agents[agent_id].actor_neck.getHpr()
         left_hand_obj = "" 
@@ -522,8 +523,8 @@ class Ralph(DirectObject.DirectObject):
 
         self.speed = [0.0, 0.0]
 
-        if (self.controlMap["turn_left"]!=0):        self.actor.setH(self.actor.getH() + stepSize*220)
-        if (self.controlMap["turn_right"]!=0):       self.actor.setH(self.actor.getH() - stepSize*220)
+        if (self.controlMap["turn_left"]!=0):        self.actorNodePath.setH(self.actorNodePath.getH() + stepSize*220)
+        if (self.controlMap["turn_right"]!=0):       self.actorNodePath.setH(self.actorNodePath.getH() - stepSize*220)
         if (self.controlMap["move_forward"]!=0):     self.speed[1] =  moveAtSpeed
         if (self.controlMap["move_backward"]!=0):    self.speed[1] = -moveAtSpeed
         if (self.controlMap["move_left"]!=0):        self.speed[0] = -moveAtSpeed

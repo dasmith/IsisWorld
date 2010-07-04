@@ -84,7 +84,7 @@ class IsisObject(NodePath):
         avatarRay = self.attachNewNode(CollisionNode('avatarRay'))
         avatarRay.node().addSolid(raygeometry)
 # let's mask our floor FROM collider
-        avatarRay.node().setFromCollideMask(FLOORMASK|OBJMASK)
+        avatarRay.node().setFromCollideMask(FLOORMASK)
         avatarRay.node().setIntoCollideMask(BitMask32.allOff())
         base.cFloor.addCollider(avatarRay,self)
         base.cTrav.addCollider(avatarRay,base.cFloor)

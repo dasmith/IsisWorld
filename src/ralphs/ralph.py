@@ -613,5 +613,5 @@ class Picker(DirectObject.DirectObject):
             for y in frange(-1, 1, 2.0/ypoints):
                 o = self.pick((x, y))
                 if o and (o[0] not in objects or o[1] < objects[o[0]]):
-                    objects[o[0]] = o[1]
+                    objects[o[0].getName()] = o[1]
         return objects

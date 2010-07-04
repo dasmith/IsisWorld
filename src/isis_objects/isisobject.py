@@ -56,6 +56,9 @@ class IsisObject(NodePath):
         # setup up collision physics around the model passed as first arg
         self._setupPhysics(self.model)
         
+    def getName(self):
+        return self.name
+
     def _setupPhysics(self, model, collisionGeom='surface'):
         # ensure all existing collision masks are off
         self.setCollideMask(BitMask32.allOff())

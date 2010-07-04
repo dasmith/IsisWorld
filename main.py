@@ -44,7 +44,7 @@ class IsisWorld(DirectObject.DirectObject):
         self.rootDirectory = "."#Filename.fromOsSpecific(ExecutionEnvironment.getCwd())
         config = loadPrcFile(Filename(self.rootDirectory, 'config.prc'))
         self._setupEnvironment(debug=False)
-        self._setupWorld(visualizeClouds=True, enableKitchen=True)
+        self._setupWorld(visualizeClouds=False, enableKitchen=False)
         self._setupAgents()
         self._setupLights()
         self._setupCameras()
@@ -72,7 +72,7 @@ class IsisWorld(DirectObject.DirectObject):
         self.server_thread = threading.Thread(group=None, target=self.server.serve_forever, name='isisworld-xmlrpc')
         self.server_thread.start()
 
-    def _setupWorld(self, visualizeClouds=True, enableKitchen=True):
+    def _setupWorld(self, visualizeClouds=False, enableKitchen=True):
         # setup physics
         self.physicsManager = PhysicsWorldManager()
         
@@ -126,13 +126,15 @@ class IsisWorld(DirectObject.DirectObject):
             self.skydomeNP.setPos(Vec3(0,0,-500))
             self.skydomeNP.setStandardControl()
             self.skydomeNP.att_skycolor.setColor(Vec4(0.3,0.3,0.3,1))
-            def timeUpdated(task):
-                self.skydomeNP.skybox.setShaderInput('time', task.time)
-                return task.cont
-            taskMgr.add(timeUpdated, "timeUpdated")
+    
+            taskMgr.add(self._timeUpdated, "skytimeUpdated")
         else:
-            self.skydomeNP = SkyDome1(render,visualizeClouds)
+            pass
+            #self.skydomeNP = SkyDome1(render,visualizeClouds)
 
+    def _timeUpdated(self,task):
+        self.skydomeNP.skybox.setShaderInput('time', task.time)
+        return task.cont
 
     def _setupCameras(self):
         # Set up the camera 
@@ -222,7 +224,7 @@ class IsisWorld(DirectObject.DirectObject):
         self.actionController.addAction(IsisAction(commandName="look_down",intervalAction=True,keyboardBinding="j"))
         self.actionController.addAction(IsisAction(commandName="jump",intervalAction=False,keyboardBinding="g"))
         self.actionController.addAction(IsisAction(commandName="say",intervalAction=False))
-        self.actionController.addAction(IsisAction(commandName="sense",intervalAction=False))
+        self.actionController.addAction(IsisAction(commandName="sense",intervalAction=False,keyboardBinding='y'))
         self.actionController.addAction(IsisAction(commandName="use_aimed",intervalAction=False,keyboardBinding="u"))
         self.actionController.addAction(IsisAction(commandName="view_objects",intervalAction=False,keyboardBinding="o"))
         self.actionController.addAction(IsisAction(commandName="pick_up_with_left_hand",intervalAction=False,keyboardBinding="v"))

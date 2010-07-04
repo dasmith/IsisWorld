@@ -33,7 +33,10 @@ class IsisCommandHandler(object):
             agent_to_control = self.simulator.agentsNamesToIDs[args['agent']]
         elif args.has_key('agent_id') and int(args['agent_id']) < len(self.simulator.agents):
             # if the agent id is defined and valid
+            print "trying to control agent with ID", args['agent_id']
             agent_to_control = int(args['agent_id'])
+            print agent_to_control
+
         elif cmd != "sense" and cmd not in self.meta_commands:
             # otherse, and if the commands require arguments (e.g., they are not meta-commands)
             print "Error: you must supply an agent either through 'agent'= name or 'agent_id' = id argument\n"
@@ -69,6 +72,8 @@ class IsisCommandHandler(object):
             return self.simulator.actionController.actionMap.keys()+self.meta_commands
         else:
             raise "Undefined meta command: %s" % cmd
+        
+        return "done"
 
     
     def _relayAgentControl(self, agentID, command, args):

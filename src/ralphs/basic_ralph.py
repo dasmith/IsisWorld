@@ -134,8 +134,8 @@ class Ralph(DirectObject.DirectObject):
         """Set the state of one of the character's movement controls.  """
         self.controlMap[control] = value
 
-    def getAllItemsInXRAYView(self):
-        """ This works in an x-ray vision style"""
+    def getObjectsInFieldOfVision(self):
+        """ This works in an x-ray vision style. Fast"""
         objects_inview=0
         objects = []
         objs=base.render.findAllMatches("**/IsisObject*")
@@ -149,7 +149,8 @@ class Ralph(DirectObject.DirectObject):
         self.control__say("If I were wearing x-ray glasses, I could see %i items"  % objects_inview) 
         return objects
 
-    def raytrace_getAllObjectsInView(self):
+    def getObjectsInView(self):
+        """ Gets objects through ray tracing.  Slow"""
         return self.picker.getObjectsInView()
             
     def control__turn_left__start(self):
@@ -227,7 +228,7 @@ class Ralph(DirectObject.DirectObject):
 
     def control__view_objects(self):
         """ calls a raytrace to to all objects in view """
-        objects = self.raytrace_getAllObjectsInView()
+        objects = self.getObjectsInView()
         print "Objects in view:", objects
         return objects
 
@@ -445,10 +446,10 @@ class Ralph(DirectObject.DirectObject):
 
     def sense__get_vision(self):
         # TODO: not yet implemented
-        pass
+        return []
 
     def sense__get_objects(self):
-        return self.get_objects()
+        return self.getObjectsInView()
 
     def sense__get_utterances(self):
         """ Clear out the buffer of things that the teacher has typed,
@@ -564,7 +565,7 @@ class Ralph(DirectObject.DirectObject):
 
         total_frame_num = self.actor.getNumFrames('walk')
         if self.isMoving:
-            self.current_frame_count = self.current_frame_count + (stepSize*4000.0)
+            self.current_frame_count = self.current_frame_count + (stepSize*8000.0)
             while (self.current_frame_count >= total_frame_num + 1):
                 self.current_frame_count -= total_frame_num
                 self.actor.pose('walk', self.current_frame_count)

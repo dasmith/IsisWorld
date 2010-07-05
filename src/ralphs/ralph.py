@@ -265,7 +265,7 @@ class Ralph(DirectObject.DirectObject):
 
     def control__pick_up_with_right_hand(self, pick_up_object=None):
         if not pick_up_object:
-            d = self.getObjectsInFieldOfVision()
+            d = self.getObjectsInView()
             if len(d) > 0:
                 pick_up_object = d.keys()[0]
             else:
@@ -294,7 +294,7 @@ class Ralph(DirectObject.DirectObject):
 
     def control__pick_up_with_left_hand(self, pick_up_object = None):
         if not pick_up_object:
-            d = self.getObjectsInFieldOfVision()
+            d = self.getObjectsInView()
             if len(d) > 0:
                 pick_up_object = d.keys()[0]
             else:
@@ -447,7 +447,7 @@ class Ralph(DirectObject.DirectObject):
         return []
 
     def sense__get_objects(self):
-        return self.getObjectsInView()
+        return dict([x.getName(),y] for (x,y) in self.getObjectsInView().items())
 
     def sense__get_utterances(self):
         """ Clear out the buffer of things that the teacher has typed,
@@ -613,5 +613,5 @@ class Picker(DirectObject.DirectObject):
             for y in frange(-1, 1, 2.0/ypoints):
                 o = self.pick((x, y))
                 if o and (o[0] not in objects or o[1] < objects[o[0]]):
-                    objects[o[0].getName()] = o[1]
+                    objects[o[0]] = o[1]
         return objects

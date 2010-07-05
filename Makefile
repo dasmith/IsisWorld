@@ -12,7 +12,7 @@ clean:
 	rm -rf **/*.pyc *.pyo; **/*.pyo
 
 package: main.py
-	ppackage -i build isisworld.pdef
+	packpanda -i build isisworld.pdef
 
 panda: *.p3d
 	rm *.p3d

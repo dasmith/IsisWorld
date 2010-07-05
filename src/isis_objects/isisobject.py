@@ -61,7 +61,7 @@ class IsisObject(NodePath):
 
     def _setupPhysics(self, model, collisionGeom='surface'):
         # ensure all existing collision masks are off
-        self.setCollideMask(BitMask32.allOff())
+        #self.setCollideMask(BitMask32.allOff())
         # allow the object iself to have a into collide mask
         # FIXME: is this slowing the show down a lot?
         self.setCollideMask(OBJMASK)

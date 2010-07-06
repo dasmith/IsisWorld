@@ -1,7 +1,7 @@
 from direct.showbase import DirectObject
 from pandac.PandaModules import * # TODO: specialize
 # initialize collision mask constants  
-FLOORMASK = BitMask32.bit(0)      
+FLOORMASK = BitMask32.bit(1)      
 WALLMASK = BitMask32.bit(2)
 PICKMASK = BitMask32.bit(3)
 AGENTMASK = BitMask32.bit(4)

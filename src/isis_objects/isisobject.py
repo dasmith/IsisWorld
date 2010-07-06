@@ -81,9 +81,9 @@ class IsisObject(NodePath):
         cRayNode = self.attachNewNode(CollisionNode('avatarRay'))
         cRayNode.node().addSolid(cRay)
         # nothing can collide INTO the ray
-        cRayNode.node().setIntoCollideMask(BitMask32.allOff())
+        cRayNode.node().setIntoCollideMask(BitMask32.bit(0) )
         # but the ray can colide INTO the FLOOR and other objects
-        cRayNode.node().setFromCollideMask(FLOORMASK | OBJMASK)
+        cRayNode.node().setFromCollideMask(BitMask32.allOn())
         # debug: show this node
         cRayNode.show()
         # TODO see if the collider geometry is defined in the model
@@ -98,7 +98,8 @@ class IsisObject(NodePath):
             right_front = Vec3(ucorner[0], lcorner[1], ucorner[2])
             right_back = ucorner
             # and make a Collision Polygon (ordering important)
-            cGeom = CollisionPolygon(right_back, left_back, left_front, right_front)
+            cGeom = CollisionPolygon(left_front, right_front, right_back, left_back)
+            cGeom2 = CollisionPolygon(left_front, right_front, right_back, left_back)
         elif collisionGeom == 'sphere':
             # set up a collision sphere       
             bounds, offset = getOrientedBoundedBox(model)
@@ -106,20 +107,22 @@ class IsisObject(NodePath):
             cGeom = CollisionSphere(0.0, 0.0, 0.0, radius)
         # set so that is just considered a sensor.
         cGeom.setTangible(0)
+        cGeom2.setRespectEffectiveNormal(1)
         cNode.addSolid(cGeom)
+        cNode.addSolid(cGeom2)
 
         # objects (ray) and agents can collide INTO it
-        cNode.setIntoCollideMask(OBJMASK | AGENTMASK)
+        cNode.setIntoCollideMask(OBJMASK | AGENTMASK |FLOORMASK)
         # but this surface/sphere cannot collide INTO other objects
-        cNode.setFromCollideMask(BitMask32.allOff())
+        cNode.setFromCollideMask(BitMask32.bit(0))
         # attach to current node path
         cNodePath = self.attachNewNode(cNode)
         cNodePath.show()
-        
+        #base.cFloor.addCollider(cNodePath, self)
+        base.cTrav.addCollider(cNodePath, base.cFloor)
         # register RayNode in GravityHandler and Traverser
         base.cFloor.addCollider(cRayNode, self)
         base.cTrav.addCollider(cRayNode, base.cFloor)
-
         # add this to the base collider, accessible through DirectStart
         base.cTrav.addCollider(cNodePath, base.cEvent)
 

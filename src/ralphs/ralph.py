@@ -506,7 +506,7 @@ class Ralph(DirectObject.DirectObject):
         cRayNode = CollisionNode('actor-raynode')
         cRayNode.addSolid(cRay)
         cRayNode.setFromCollideMask(FLOORMASK)
-        cRayNode.setIntoCollideMask(BitMask32.allOff()) 
+        cRayNode.setIntoCollideMask(BitMask32.bit(0)) 
         self.cRayNodePath = self.actorNodePath.attachNewNode(cRayNode)
         # add colliders
         base.cFloor.addCollider(self.cRayNodePath, self.actorNodePath)
@@ -581,6 +581,7 @@ class Picker(DirectObject.DirectObject):
         self.pickerNP = self.camera.attachNewNode(self.pickerNode)
 
         self.pickerNode.setFromCollideMask(OBJMASK|AGENTMASK)
+        self.pickerNode.setIntoCollideMask(BitMask32.bit(0))
 
         self.pickerRay = CollisionRay()
         self.pickerNode.addSolid(self.pickerRay)

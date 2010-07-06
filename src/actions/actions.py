@@ -50,26 +50,34 @@ class ActionController():
 
     def makeAgentDo(self,agent,command,args={}):
         """ Given a command and an agent pointer, tell the agent to do that command"""
-        #print "ACTION", command
-        #print "AGENT", agent
         commandArgs = self.argMap[command]
-        commandArgString = ','.join(map(lambda a: 'args[%s]' % (a), commandArgs))
-        if len(commandArgs) == 0:
-            result = eval("agent.%s()" % (command))
-        else:
-            # check to see if all keys are defined:
-            for cArg in commandArgs:
-                if cArg not in args:
-                    print "Argument %s missing in command %s" % (cArg,command)
-                    return 'failure'
-            # if so, evaluate the keys
-            result = eval("agent.%s(%s)" % (command,commandArgString),args)
-        #print "EVAL", result
-        # None objects are not serializable by XML-RPC
-        if result == None:
-            return "success"
-        else:
-            return result
+        kwargs = {}
+        for c in commandArgs:
+            if c in args:
+                kwargs[c] = args[c]
+
+        failed = False
+        try:
+            result = getattr(agent, command)(**kwargs)
+        except e:
+            result = e
+            failed = True
+
+        # Whether the action is recorded or not depends on the return type of the function.  A 'None'
+        # return type or a generated error results in the action not being recorded.  An action returning
+        # 'success' or a non-string argument (for functions like getObjectsInView) will be recorded with
+        # the 'result' portion of the action set to 0, indicating a successful action.  Any other string
+        # returned indicates a failed action that is recorded with the 'result' portion set to 1.
+
+        success = 0
+        if (not result) or failed:
+            if result: return result
+            else: return "failure"
+        elif not isinstance(result, str) or result == "success":
+            success = 1
+
+        agent.addAction(command, kwargs, success)
+        return result
 
     def addAction(self,action):
         """ Adds an action to the actionMap, containing commands that can be controlled through XMLRPC"""

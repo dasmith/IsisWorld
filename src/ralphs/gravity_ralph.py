@@ -15,6 +15,7 @@ from direct.gui.DirectGui import DirectLabel
 from pandac.PandaModules import *# PandaNode,NodePath,Camera
 #from panda3d.core import CollisionHandlerPusher, CollisionHandlerGravity, CollisionTraverser
 import math, random
+from time import time
 # project stuff
 from ..actions.actions import *
 from ..physics.panda.manager import *
@@ -259,75 +260,96 @@ class Ralph(DirectObject.DirectObject):
     def control__turn_left__start(self):
         self.setControl("turn_left",  1)
         self.setControl("turn_right", 0)
+        return "sucess"
 
     def control__turn_left__stop(self):
         self.setControl("turn_left",  0)
+        return "sucess"
 
     def control__turn_right__start(self):
         self.setControl("turn_left",  0)
         self.setControl("turn_right", 1)
+        return "sucess"
 
     def control__turn_right__stop(self):
         self.setControl("turn_right", 0)
+        return "sucess"
 
     def control__move_forward__start(self):
         self.setControl("move_forward",  1)
         self.setControl("move_backward", 0)
+        return "sucess"
 
     def control__move_forward__stop(self):
         self.setControl("move_forward",  0)
+        return "sucess"
 
     def control__move_backward__start(self):
         self.setControl("move_forward",  0)
         self.setControl("move_backward", 1)
+        return "sucess"
 
     def control__move_backward__stop(self):
         self.setControl("move_backward", 0)
+        return "sucess"
 
     def control__move_left__start(self):
         self.setControl("move_left",  1)
         self.setControl("move_right", 0)
+        return "sucess"
 
     def control__move_left__stop(self):
         self.setControl("move_left",  0)
+        return "sucess"
 
     def control__move_right__start(self):
         self.setControl("move_right",  1)
         self.setControl("move_left", 0)
+        return "sucess"
 
     def control__move_right__stop(self):
         self.setControl("move_right",  0)
+        return "sucess"
 
     def control__look_left__start(self):
         self.setControl("look_left",  1)
         self.setControl("look_right", 0)
+        return "sucess"
 
     def control__look_left__stop(self):
         self.setControl("look_left",  0)
+        return "sucess"
 
     def control__look_right__start(self):
         self.setControl("look_right",  1)
         self.setControl("look_left", 0)
+        return "sucess"
 
     def control__look_right__stop(self):
         self.setControl("look_right",  0)
+        return "sucess"
 
     def control__look_up__start(self):
         self.setControl("look_up",  1)
         self.setControl("look_down", 0)
+        return "sucess"
 
     def control__look_up__stop(self):
         self.setControl("look_up",  0)
+        return "sucess"
 
     def control__look_down__start(self):
         self.setControl("look_down",  1)
         self.setControl("look_up",  0)
+        return "sucess"
 
     def control__look_down__stop(self):
         self.setControl("look_down",  0)
+        return "sucess"
 
     def control__jump(self):
         self.setControl("jump",  1)
+        return "sucess"
 
     def control__view_objects(self):
         """ calls a raytrace to to all objects in view """
@@ -358,12 +380,13 @@ class Ralph(DirectObject.DirectObject):
             distance = object_view['distance']
             print distance
             if (distance < 5.0):
-                return True
-        return False
+                return "sucess"
+        return "failure"
 
     def control__say(self, message):
-       self.speech_bubble['text'] = message
-       self.last_spoke = 0
+        self.speech_bubble['text'] = message
+        self.last_spoke = 0
+        return "sucess"
 
     def talk_to_agent(self, agentName, message):
         self.agent_simulator.communicate(self.name, agentName, message)
@@ -374,8 +397,7 @@ class Ralph(DirectObject.DirectObject):
             if len(d) > 0:
                 pick_up_object = d.keys()[0]
             else:
-                print "no objects in view to pick up"
-                return
+                return "no objects in view to pick up"
         print "attempting to pick up " + pick_up_object.name + " with right hand.\n"
         if self.right_hand_holding_object:
             return 'right hand is already holding ' + self.right_hand_holding_object.getName() + '.'
@@ -386,15 +408,10 @@ class Ralph(DirectObject.DirectObject):
                 #pick_up_object.setHpr(0, 0, 0)
                 self.right_hand_holding_object = pick_up_object
                 pick_up_object.setTag('heldBy', self.name)
-                print "sucess!"
-                print self.player_right_hand.getPos()
-                print pick_up_object.getPos()
                 return 'success'
             else:
-                print "Object being held by " + str(pick_up_object.node().getTag('heldBy'))
                 return 'object (' + pick_up_object.name + ') is already held by something or someone.'
         else:
-            print "Object not graspable, dist=" + str(d[pick_up_object])
             return 'object (' + pick_up_object.name + ') is not graspable (i.e. in view and close enough).'
 
     def control__pick_up_with_left_hand(self, pick_up_object = None):
@@ -403,8 +420,7 @@ class Ralph(DirectObject.DirectObject):
             if len(d) > 0:
                 pick_up_object = d.keys()[0]
             else:
-                print "no objects in view to pick up"
-                return
+                return "no objects in view to pick up"
         print "attempting to pick up " + pick_up_object.name + " with left hand.\n"
         if self.left_hand_holding_object:
             return 'left hand is already holding ' + self.left_hand_holding_object.getName() + '.'
@@ -415,36 +431,31 @@ class Ralph(DirectObject.DirectObject):
                 #pick_up_object.setHpr(0, 0, 0)
                 self.left_hand_holding_object = pick_up_object
                 pick_up_object.setTag('heldBy', self.name)
-                print "sucess!"
-                print self.player_left_hand.getPos()
-                print pick_up_object.getPos()
                 return 'success'
             else:
-                print "Object being held by " + str(pick_up_object.node().getTag('heldBy'))
                 return 'object (' + pick_up_object.name + ') is already held by something or someone.'
         else:
-            print "Object not graspable, dist=" + str(d[pick_up_object])
             return 'object (' + pick_up_object.name + ') is not graspable (i.e. in view and close enough).'
 
     def control__put_object_in_empty_left_hand(self, object_name):
         if (self.left_hand_holding_object is not False):
-            return False
+            return "left hand is not empty"
         world_object = self.agent_simulator.world_objects[object_name]
         world_object.wrtReparentTo(self.player_left_hand)
         world_object.setPos(0, 0, 0)
         world_object.setHpr(0, 0, 0)
         self.left_hand_holding_object = world_object
-        return True
+        return "success"
 
     def control__put_object_in_empty_right_hand(self, object_name):
         if (self.right_hand_holding_object is not False):
-            return False
+            return "right hand is not empty"
         world_object = self.agent_simulator.world_objects[object_name]
         world_object.wrtReparentTo(self.player_right_hand)
         world_object.setPos(0, 0, 0)
         world_object.setHpr(0, 0, 0)
         self.right_hand_holding_object = world_object
-        return True
+        return "success"
 
     def control__drop_from_right_hand(self):
         print "attempting to drop object from right hand.\n"
@@ -476,25 +487,29 @@ class Ralph(DirectObject.DirectObject):
         if not target:
             target = self.picker.pick((0, 0))
             if not target:
-                return
+                return "no target available"
             else:
                 target = target[0]
         else:
             target = self.agent_simulator.world_objects[target]
         if self.can_grasp(target.name):
             target.call(self, action, self.right_hand_holding_object)
+            return "success"
+        return "target not in reach"
 
     def control__use_left_hand(self, target = None, action = "divide"):
         if not target:
             target = self.picker.pick((0, 0))
             if not target:
-                return
+                return "no target available"
             else:
                 target = target[0]
         else:
             target = self.agent_simulator.world_objects[target]
         if self.can_grasp(target.name):
             target.call(self, action, self.left_hand_holding_object)
+            return "success"
+        return "target not in reach"
 
     def is_holding(self, object_name):
         return ((self.left_hand_holding_object  and (self.left_hand_holding_object.getName()  == object_name)) \
@@ -595,16 +610,22 @@ class Ralph(DirectObject.DirectObject):
         text = "Objects in FOV: "+ ", ".join(self.sense__get_objects().keys())
         print text
 
-    def addAction(self, timeStamp, action, args):
-        self.queue.append((timeStamp, action, args))
+    def addAction(self, action, args, result = 0):
+        self.queue.append((time(), action, args, result))
         if len(self.queue) > self.queueSize:
             self.queue.pop(0)
+        print self.queue
 
-    def getActionsSince(self, timeStamp):
+    def getActions(self, start = 0, end = None):
+        if not end:
+            end = time()
         actions = []
-        for ts, a, args in self.queue:
-            if ts >= timeStamp:
-                actions.append((ts, a, args))
+        for act in self.queue:
+            if act[0] >= start:
+                if act[0] < end:
+                    actions.append(act)
+                else:
+                    break
         return actions
     
 

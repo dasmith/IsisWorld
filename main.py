@@ -213,7 +213,7 @@ class IsisWorld(DirectObject):
         text += "\nPress [1] to toggle wire frame"
         text += "\nPress [2] to toggle texture"
         text += "\nPress [3] to switch agent"
-        text += "\nPress [i] to hide/show this text"
+        text += "\nPress [4] to hide/show this text"
         text += "\n[o] lists objects in agent's f.o.v."
         text += "\n[Esc] to quit\n"
         # initialize actions
@@ -231,16 +231,16 @@ class IsisWorld(DirectObject):
         self.actionController.addAction(IsisAction(commandName="look_up",intervalAction=True,keyboardBinding="k"))
         self.actionController.addAction(IsisAction(commandName="look_down",intervalAction=True,keyboardBinding="j"))
         self.actionController.addAction(IsisAction(commandName="jump",intervalAction=False,keyboardBinding="g"))
-        self.actionController.addAction(IsisAction(commandName="say",intervalAction=False))
+        self.actionController.addAction(IsisAction(commandName="say",intervalAction=False,argList=['message'],keyboardBinding="t"))
         self.actionController.addAction(IsisAction(commandName="sense",intervalAction=False,keyboardBinding='y'))
         self.actionController.addAction(IsisAction(commandName="use_aimed",intervalAction=False,keyboardBinding="u"))
         self.actionController.addAction(IsisAction(commandName="view_objects",intervalAction=False,keyboardBinding="o"))
-        self.actionController.addAction(IsisAction(commandName="pick_up_with_left_hand",intervalAction=False,keyboardBinding="v"))
-        self.actionController.addAction(IsisAction(commandName="pick_up_with_right_hand",intervalAction=False,keyboardBinding="b"))
+        self.actionController.addAction(IsisAction(commandName="pick_up_with_left_hand",intervalAction=False,argList=['pick_up_object'],keyboardBinding="v"))
+        self.actionController.addAction(IsisAction(commandName="pick_up_with_right_hand",intervalAction=False,argList=['pick_up_object'],keyboardBinding="b"))
         self.actionController.addAction(IsisAction(commandName="drop_from_left_hand",intervalAction=False,keyboardBinding="n"))
         self.actionController.addAction(IsisAction(commandName="drop_from_right_hand",intervalAction=False,keyboardBinding="m"))
-        self.actionController.addAction(IsisAction(commandName="use_left_hand",intervalAction=False,argList=['target','action']))
-        self.actionController.addAction(IsisAction(commandName="use_right_hand",intervalAction=False,argList=['target','action']))
+        self.actionController.addAction(IsisAction(commandName="use_left_hand",intervalAction=False,argList=['target','action'],keyboardBinding=","))
+        self.actionController.addAction(IsisAction(commandName="use_right_hand",intervalAction=False,argList=['target','action'],keyboardBinding="."))
 
         # initialze keybindings
         for keybinding, command in self.actionController.keyboardMap.items():
@@ -248,6 +248,7 @@ class IsisWorld(DirectObject):
             self.accept(keybinding, relayAgentControl, [command])
 
         # add on-screen documentation
+        self.textObjectVisible = True
         for helpString in self.actionController.helpStrings:
             text += "\n%s" % (helpString)
 
@@ -291,6 +292,7 @@ class IsisWorld(DirectObject):
         self.accept("1",               base.toggleWireframe, [])
         self.accept("2",               base.toggleTexture, [])
         self.accept("3",               changeAgent, [])
+        self.accept("4",               self.toggleInstructionsWindow, [])
         self.accept("space",           self.step_simulation, [.1]) # argument is amount of second to advance
         self.accept("p",               self.physicsManager.togglePaused)
         #self.accept("r",              self.reset_simulation)

@@ -17,9 +17,13 @@ class IsisObject(NodePath):
         self.name = "IsisObject/"+name+"+"+str(id(self))
         NodePath.__init__(self, self.name)
         self.offsetVec = Vec3(0,0,0)#offsetVec
+        self.actorNode = PandaNode('object')
+        self.actorNodePath = render.attachNewNode(self.actorNode)
+        self.actorNodePath.reparentTo(self)
         self.model = model
         self.model.setPos(initialPos+offsetVec)
-        self.model.reparentTo(self)
+        self.model.reparentTo(self.actorNodePath)
+        self.model.setCollideMask(BitMask32.allOff())
         self.physicsManager = physicsManager
         self.density = density 
         """ Material	Density (kg/m^3)
@@ -69,32 +73,22 @@ class IsisObject(NodePath):
         # handling is buggy.  flattenLight()  circumvents this.
         model.flattenLight()
         # setup gravity pointer
-
-        # add collision ray to keep ralph on the ground
-        cRay = CollisionRay(0.0, 0.0, 1, 0.0, 0.0, -1.0)
-        cRayNode = CollisionNode('object-raynode-%s' %self.name)
-        cRayNode.addSolid(cRay)
-        cRayNode.setFromCollideMask(FLOORMASK)
-        cRayNode.setIntoCollideMask(BitMask32.bit(0)) 
-        self.cRayNodePath = self.model.attachNewNode(cRayNode)
-        # add colliders
-        base.cFloor.addCollider(self.cRayNodePath, self)
-        base.cTrav.addCollider(self.cRayNodePath, base.cFloor)
-
-        # set origin of ray slightly below obj
         lcorner, ucorner =model.getTightBounds()
-        center = Vec3(ucorner[0]-lcorner[0],ucorner[1]-lcorner[1],ucorner[2]-lcorner[2])
-        #center = model.getBounds().getCenter()
-        #cRay.setOrigin(center[0],center[1],lcorner[2])
-        # face downward
-        #cRay.setDirection(0,0,-1)
+        center = model.getBounds().getCenter()
+        cRay = CollisionRay(center[0],center[1],center[2]+((lcorner[2]-center[2])/1.5), 0.0, 0.0, -1.0)
+        cRayNode = CollisionNode('object')
+        cRayNode.addSolid(cRay)
+        cRayNode.setFromCollideMask(FLOORMASK|OBJMASK)
+        cRayNode.setIntoCollideMask(BitMask32.bit(0)) 
+        self.cRayNodePath = self.actorNodePath.attachNewNode(cRayNode)
+        # add colliders
+        self.physicsManager.cFloor.addCollider(self.cRayNodePath, self.actorNodePath)
+        base.cTrav.addCollider(self.cRayNodePath, self.physicsManager.cFloor)
         # TODO see if the collider geometry is defined in the model
         # ie. find it in the egg file:  cNodePath = model.find("**/collider")
         cNode = CollisionNode('object')
         if collisionGeom == 'surface': 
             # find the surface of the model                    
-            lcorner, ucorner =model.getTightBounds()
-            #center = model.getBounds().getCenter()
             left_front = Vec3(lcorner[0], lcorner[1], ucorner[2])
             left_back = Vec3(lcorner[0], ucorner[1], ucorner[2])
             right_front = Vec3(ucorner[0], lcorner[1], ucorner[2])
@@ -108,21 +102,38 @@ class IsisObject(NodePath):
             cGeom = CollisionSphere(0.0, 0.0, 0.0, radius)
         elif collisionGeom == 'box':
             cGeom = CollisionBox(lcorner, ucorner)
-
         # set so that is just considered a sensor.
         cGeom.setTangible(0)
         cNode.addSolid(cGeom)
 
         # objects (ray) and agents can collide INTO it
-        cNode.setIntoCollideMask(OBJMASK | AGENTMASK |FLOORMASK)
+        cNode.setIntoCollideMask(OBJMASK | AGENTMASK)
         # but this surface/sphere cannot collide INTO other objects
-        cNode.setFromCollideMask(BitMask32.allOff())
+        cNode.setFromCollideMask(OBJMASK)
         # attach to current node path
-        cNodePath = self.attachNewNode(cNode)
-        cNodePath.show()
-        # register RayNode in GravityHandler and Traverser
+        cNodePath = self.actorNodePath.attachNewNode(cNode)
+        #cNodePath.show()
         # add this to the base collider, accessible through DirectStart
         base.cTrav.addCollider(cNodePath, base.cEvent)
+        # wall traversing collision objects
+        bounds, offset = getOrientedBoundedBox(model)
+        radius = bounds[0]/2.0
+        cWallGeom = CollisionSphere(0.0, 0.0, 0.0, radius)
+        cWallGeom = CollisionBox(lcorner, ucorner)
+        left_front = Vec3(lcorner[0], lcorner[1], ucorner[2])
+        left_back = Vec3(lcorner[0], ucorner[1], ucorner[2])
+        right_front = Vec3(ucorner[0], lcorner[1], ucorner[2])
+        right_back = ucorner
+        # and make a Collision Polygon (ordering important)
+        cWallGeom = CollisionPolygon(left_front, right_front, right_back, left_back)
+        cWallNode = CollisionNode('object-wall')
+        cWallNode.addSolid(cWallGeom)
+        cWallNode.setFromCollideMask(FLOORMASK|OBJMASK)
+        cWallNode.setIntoCollideMask(OBJMASK|AGENTMASK|BitMask32.allOff())
+        cWallGeomNodePath = self.actorNodePath.attachNewNode(cWallNode)
+        cWallGeomNodePath.show()
+        self.physicsManager.cFloor.addCollider(cWallGeomNodePath, self.actorNodePath)
+        base.cTrav.addCollider(cWallGeomNodePath, self.physicsManager.cFloor)
 
     def rescaleModel(self,scale):
         """ Changes the model's dimensions to a given scale"""

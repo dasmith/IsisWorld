@@ -32,7 +32,7 @@ def frange(x,y,inc):
 
 class Ralph(DirectObject.DirectObject):
     
-    def __init__(self, worldManager, agentSimulator, name, worldObjectsDict, queueSize = 100):
+    def __init__(self, physicsManager, agentSimulator, name, worldObjectsDict, queueSize = 100):
 
         # setup the visual aspects of ralph
         self.actor= Actor("media/models/boxman",{"walk":"media/models/boxman-walk", "idle": "media/models/boxman-idle"})
@@ -41,6 +41,7 @@ class Ralph(DirectObject.DirectObject):
 
         self.actor.setColorScale(random.random(), random.random(), random.random(), 1.0)
         self.actorNode = ActorNode('physicsControler-%s' % name)
+        self.actor.setPos(0,0,0)
         self.actorNodePath = render.attachNewNode(self.actorNode)
         self.actor.reparentTo(self.actorNodePath)
         self.actor.setCollideMask(BitMask32.allOff())
@@ -54,7 +55,7 @@ class Ralph(DirectObject.DirectObject):
 
         DirectObject.DirectObject.__init__(self) 
         self.agent_simulator = agentSimulator
-        self.worldManager = worldManager    
+        self.physicsManager = physicsManager    
         x = random.randint(0,10)
         y = random.randint(0,10)
         z = random.randint(12,25)
@@ -128,7 +129,7 @@ class Ralph(DirectObject.DirectObject):
         
         # when you're done, register yourself with physical simulator
         # so it can call update() at each step of the physics
-        self.worldManager.addAgent(self)
+        self.physicsManager.addAgent(self)
 
 
     def setControl(self, control, value):
@@ -439,11 +440,11 @@ class Ralph(DirectObject.DirectObject):
         #self.aimRay.set(pos, dir)
 
         # raycast
-        closestEntry, closestGeom = self.worldManager.doRaycast(self.aimRay, [self.capsuleGeom])
+        closestEntry, closestGeom = self.physicsManager.doRaycast(self.aimRay, [self.capsuleGeom])
         if not closestGeom:
             return
         print "Closest geom", closestEntry
-        data = self.worldManager.getGeomData(closestGeom)
+        data = self.physicsManager.getGeomData(closestGeom)
         print data.name
         if data.selectionCallback:
             data.selectionCallback(self, dir)
@@ -504,26 +505,26 @@ class Ralph(DirectObject.DirectObject):
           2- cRay handled by cFloor keeps Ralph on the ground
           3- cEvent is a general purpose collision handler that registers
            and delegates collision callbacks, as defined in the physics/panda/manager.py file """
-        if False: 
-            cSphereNode = CollisionNode('agent')
-            cSphereNode.addSolid(CollisionSphere(0.0, 0.0, self.height, self.radius))
-            cSphereNode.addSolid(CollisionSphere(0.0, 0.0, self.height + 2.2 * self.radius, self.radius))
-            cSphereNode.setFromCollideMask(WALLMASK | AGENTMASK)
-            cSphereNode.setIntoCollideMask(WALLMASK | AGENTMASK | OBJMASK)
-            cSphereNodePath = self.actorNodePath.attachNewNode(cSphereNode)
-            #cSphereNodePath.show()
-            base.cWall.addCollider(cSphereNodePath, self.actorNodePath)
-            base.cTrav.addCollider(cSphereNodePath, base.cWall)
-            # add same colliders to cEvent
-            cEventSphereNode = CollisionNode('agent')
-            cEventSphere = CollisionSphere(0.0, 0.0, self.height, self.radius)
-            cEventSphere.setTangible(0)
-            cEventSphereNode.addSolid(cEventSphere)
-            cEventSphereNode.setFromCollideMask(AGENTMASK | OBJMASK)
-            cEventSphereNode.setIntoCollideMask(AGENTMASK)
-            cEventSphereNodePath = self.actorNodePath.attachNewNode(cEventSphereNode)
-            
-            base.cTrav.addCollider(cEventSphereNodePath, base.cEvent)
+           
+        cSphereNode = CollisionNode('agent')
+        cSphereNode.addSolid(CollisionSphere(0.0, 0.0, self.height, self.radius))
+        cSphereNode.addSolid(CollisionSphere(0.0, 0.0, self.height + 2.2 * self.radius, self.radius))
+        cSphereNode.setFromCollideMask(WALLMASK | AGENTMASK)
+        cSphereNode.setIntoCollideMask(WALLMASK | AGENTMASK | OBJMASK)
+        cSphereNodePath = self.actorNodePath.attachNewNode(cSphereNode)
+        #cSphereNodePath.show()
+        self.physicsManager.cWall.addCollider(cSphereNodePath, self.actorNodePath)
+        base.cTrav.addCollider(cSphereNodePath, self.physicsManager.cWall)
+        # add same colliders to cEvent
+        cEventSphereNode = CollisionNode('agent')
+        cEventSphere = CollisionSphere(0.0, 0.0, self.height, self.radius)
+        cEventSphere.setTangible(0)
+        cEventSphereNode.addSolid(cEventSphere)
+        cEventSphereNode.setFromCollideMask(AGENTMASK | OBJMASK)
+        cEventSphereNode.setIntoCollideMask(AGENTMASK)
+        cEventSphereNodePath = self.actorNodePath.attachNewNode(cEventSphereNode)
+        
+        base.cTrav.addCollider(cEventSphereNodePath, base.cEvent)
 
         # add collision ray to keep ralph on the ground
         cRay = CollisionRay(0.0, 0.0, CollisionHandlerRayStart, 0.0, 0.0, -1.0)
@@ -533,8 +534,8 @@ class Ralph(DirectObject.DirectObject):
         cRayNode.setIntoCollideMask(BitMask32.bit(0)) 
         self.cRayNodePath = self.actorNodePath.attachNewNode(cRayNode)
         # add colliders
-        base.cFloor.addCollider(self.cRayNodePath, self.actorNodePath)
-        base.cTrav.addCollider(self.cRayNodePath, base.cFloor)
+        self.physicsManager.cFloor.addCollider(self.cRayNodePath, self.actorNodePath)
+        base.cTrav.addCollider(self.cRayNodePath, self.physicsManager.cFloor)
 
 
     def addBlastForce(self, vector):

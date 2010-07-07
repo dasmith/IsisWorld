@@ -95,6 +95,11 @@ class IsisWorld(DirectObject):
         groundNP.setPos(0, 0, 0)
         groundNP.lookAt(0, 0, -1)
         groundNP.setTransparency(TransparencyAttrib.MAlpha)
+        collPlane = CollisionPlane(Plane(Vec3(0, 0, 1), Point3(0, 0, 0)))
+        floorCollisionNP = base.render.attachNewNode(CollisionNode('collisionNode'))
+        floorCollisionNP.node().addSolid(collPlane) 
+        floorCollisionNP.node().setIntoCollideMask(FLOORMASK|OBJMASK)
+        floorCollisionNP.show()
         # allow other items to collide INTO floormask
         #groundNP.node().setIntoCollideMask(FLOORMASK)
         

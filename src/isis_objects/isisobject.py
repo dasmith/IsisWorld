@@ -17,9 +17,12 @@ class IsisObject(NodePath):
         self.name = "IsisObject/"+name+"+"+str(id(self))
         NodePath.__init__(self, self.name)
         self.offsetVec = Vec3(0,0,0)#offsetVec
+        self.actorNode = ActorNode('object')
+        self.actorNodePath = render.attachNewNode(self.actorNode)
         self.model = model
         self.model.setPos(initialPos+offsetVec)
-        self.model.reparentTo(self)
+        self.model.reparentTo(self.actorNodePath)
+        self.model.setCollideMask(BitMask32.allOff())
         self.physicsManager = physicsManager
         self.density = density 
         """ Material	Density (kg/m^3)
@@ -59,12 +62,12 @@ class IsisObject(NodePath):
     def getName(self):
         return self.name
 
-    def _setupPhysics(self, model, collisionGeom='surface'):
+    def _setupPhysics(self, model, collisionGeom='box'):
         # ensure all existing collision masks are off
         #self.setCollideMask(BitMask32.allOff())
         # allow the object iself to have a into collide mask
         # FIXME: is this slowing the show down a lot?
-        self.setCollideMask(OBJMASK)
+        #self.setCollideMask(OBJMASK)
         # when models are scaled down dramatically (e.g < 1% of original size), Panda3D represents
         # the geometry non-uniformly, which means scaling occurs every render step and collision
         # handling is buggy.  flattenLight()  circumvents this.
@@ -78,7 +81,7 @@ class IsisObject(NodePath):
         # face downward
         cRay.setDirection(0,0,-1)
         
-        cRayNode = self.attachNewNode(CollisionNode('avatarRay'))
+        cRayNode = self.actorNodePath.attachNewNode(CollisionNode('avatarRay'))
         cRayNode.node().addSolid(cRay)
         # nothing can collide INTO the ray
         cRayNode.node().setIntoCollideMask(BitMask32.bit(0) )
@@ -105,23 +108,22 @@ class IsisObject(NodePath):
             bounds, offset = getOrientedBoundedBox(model)
             radius = bounds[0]/2.0
             cGeom = CollisionSphere(0.0, 0.0, 0.0, radius)
+        elif collisionGeom == 'box':
+            cGeom = CollisionBox(lcorner, ucorner)
         # set so that is just considered a sensor.
         cGeom.setTangible(0)
-        cGeom2.setRespectEffectiveNormal(1)
         cNode.addSolid(cGeom)
-        cNode.addSolid(cGeom2)
 
         # objects (ray) and agents can collide INTO it
         cNode.setIntoCollideMask(OBJMASK | AGENTMASK |FLOORMASK)
         # but this surface/sphere cannot collide INTO other objects
         cNode.setFromCollideMask(BitMask32.bit(0))
         # attach to current node path
-        cNodePath = self.attachNewNode(cNode)
+        cNodePath = self.actorNodePath.attachNewNode(cNode)
         cNodePath.show()
-        #base.cFloor.addCollider(cNodePath, self)
-        base.cTrav.addCollider(cNodePath, base.cFloor)
+        base.cFloor.addCollider(cNodePath, self.actorNodePath)
         # register RayNode in GravityHandler and Traverser
-        base.cFloor.addCollider(cRayNode, self)
+        base.cFloor.addCollider(cRayNode, self.actorNodePath)
         base.cTrav.addCollider(cRayNode, base.cFloor)
         # add this to the base collider, accessible through DirectStart
         base.cTrav.addCollider(cNodePath, base.cEvent)

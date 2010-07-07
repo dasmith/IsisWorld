@@ -46,7 +46,15 @@ class PhysicsWorldManager(DirectObject.DirectObject):
         
         # keep track of all agents
         self.agents = []
-        
+      
+        base.enableParticles()
+        base.cHandler = PhysicsCollisionHandler()
+        gravityFN = ForceNode('gravity')
+        gravityNP = render.attachNewNode(gravityFN)
+        gravityForce = LinearVectorForce(0, 0, -9.81)
+        gravityFN.addForce(gravityForce)
+        base.physicsMgr.addLinearForce(gravityForce)  
+
         # Initialize the collision traverser.
         base.cTrav = CollisionTraverser()
         base.cTrav.setRespectPrevTransform(True)
@@ -63,6 +71,7 @@ class PhysicsWorldManager(DirectObject.DirectObject):
         base.cFloor.setGravity(9.81*10)
         base.cFloor.setMaxVelocity(100)
         #base.cFloor.setLegacyMode(True)
+        base.cFloor.addInPattern('into')
 
         # Initialize the handler.
         base.cEvent = CollisionHandlerEvent()
@@ -70,6 +79,7 @@ class PhysicsWorldManager(DirectObject.DirectObject):
         base.cEvent.addOutPattern('%fn-outof-%in')
        
         # initialize listeners
+        base.accept('into', self._floor)
         base.accept('object-into-object', self._objCollisionHandlerIn)
         base.accept('object-outof-object', self._objCollisionHandlerOut)
         base.accept('agent-into-object', self._agentCollisionHandlerIn)
@@ -78,6 +88,11 @@ class PhysicsWorldManager(DirectObject.DirectObject):
         # start it up 
         self.paused = False 
         self._startPhysics()
+    
+    def _floor(self, entry):
+        cFrom = entry.getFromNodePath().getParent()
+        cInto = entry.getIntoNodePath().getParent()
+        print "Floor Collision: %s, %s" % (cFrom, cInto)
     
     def _objCollisionHandlerIn(self, entry):
         cFrom = entry.getFromNodePath().getParent()
@@ -99,12 +114,6 @@ class PhysicsWorldManager(DirectObject.DirectObject):
         agentInto = entry.getIntoNodePath().getParent()
         print "Agents collided : %s, %s" % (agentFrom, agentInto) 
 
-    def ___future__Physics(self):
-        gravityFN = ForceNode('gravity')
-        gravityNP = render.attachNewNode(gravityFN)
-        gravityForce = LinearVectorForce(0, 0, -9.81)
-        gravityFN.addForce(gravityForce)
-        base.physicsMgr.addLinearForce(gravityForce)        
     
     def addAgent(self,agent):
         self.agents.append(agent)

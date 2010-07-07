@@ -59,70 +59,68 @@ class IsisObject(NodePath):
     def getName(self):
         return self.name
 
-    def _setupPhysics(self, model, collisionGeom='surface'):
+    def _setupPhysics(self, model, collisionGeom='box'):
         # ensure all existing collision masks are off
-        #self.setCollideMask(BitMask32.allOff())
+        self.setCollideMask(BitMask32.allOff())
         # allow the object iself to have a into collide mask
         # FIXME: is this slowing the show down a lot?
-        self.setCollideMask(OBJMASK)
         # when models are scaled down dramatically (e.g < 1% of original size), Panda3D represents
         # the geometry non-uniformly, which means scaling occurs every render step and collision
         # handling is buggy.  flattenLight()  circumvents this.
         model.flattenLight()
         # setup gravity pointer
-        cRay = CollisionRay()
+
+        # add collision ray to keep ralph on the ground
+        cRay = CollisionRay(0.0, 0.0, 1, 0.0, 0.0, -1.0)
+        cRayNode = CollisionNode('object-raynode-%s' %self.name)
+        cRayNode.addSolid(cRay)
+        cRayNode.setFromCollideMask(FLOORMASK)
+        cRayNode.setIntoCollideMask(BitMask32.bit(0)) 
+        self.cRayNodePath = self.model.attachNewNode(cRayNode)
+        # add colliders
+        base.cFloor.addCollider(self.cRayNodePath, self)
+        base.cTrav.addCollider(self.cRayNodePath, base.cFloor)
+
         # set origin of ray slightly below obj
         lcorner, ucorner =model.getTightBounds()
-        center = model.getBounds().getCenter()
-        cRay.setOrigin(center[0],center[1],lcorner[2])
+        center = Vec3(ucorner[0]-lcorner[0],ucorner[1]-lcorner[1],ucorner[2]-lcorner[2])
+        #center = model.getBounds().getCenter()
+        #cRay.setOrigin(center[0],center[1],lcorner[2])
         # face downward
-        cRay.setDirection(0,0,-1)
-        
-        cRayNode = self.attachNewNode(CollisionNode('avatarRay'))
-        cRayNode.node().addSolid(cRay)
-        # nothing can collide INTO the ray
-        cRayNode.node().setIntoCollideMask(BitMask32.bit(0) )
-        # but the ray can colide INTO the FLOOR and other objects
-        cRayNode.node().setFromCollideMask(BitMask32.allOn())
-        # debug: show this node
-        cRayNode.show()
+        #cRay.setDirection(0,0,-1)
         # TODO see if the collider geometry is defined in the model
         # ie. find it in the egg file:  cNodePath = model.find("**/collider")
         cNode = CollisionNode('object')
         if collisionGeom == 'surface': 
             # find the surface of the model                    
             lcorner, ucorner =model.getTightBounds()
-            center = model.getBounds().getCenter()
+            #center = model.getBounds().getCenter()
             left_front = Vec3(lcorner[0], lcorner[1], ucorner[2])
             left_back = Vec3(lcorner[0], ucorner[1], ucorner[2])
             right_front = Vec3(ucorner[0], lcorner[1], ucorner[2])
             right_back = ucorner
             # and make a Collision Polygon (ordering important)
             cGeom = CollisionPolygon(left_front, right_front, right_back, left_back)
-            cGeom2 = CollisionPolygon(left_front, right_front, right_back, left_back)
         elif collisionGeom == 'sphere':
             # set up a collision sphere       
             bounds, offset = getOrientedBoundedBox(model)
             radius = bounds[0]/2.0
             cGeom = CollisionSphere(0.0, 0.0, 0.0, radius)
+        elif collisionGeom == 'box':
+            cGeom = CollisionBox(lcorner, ucorner)
+
         # set so that is just considered a sensor.
         cGeom.setTangible(0)
-        cGeom2.setRespectEffectiveNormal(1)
         cNode.addSolid(cGeom)
-        cNode.addSolid(cGeom2)
 
         # objects (ray) and agents can collide INTO it
         cNode.setIntoCollideMask(OBJMASK | AGENTMASK |FLOORMASK)
         # but this surface/sphere cannot collide INTO other objects
-        cNode.setFromCollideMask(BitMask32.bit(0))
+        cNode.setFromCollideMask(BitMask32.allOff())
         # attach to current node path
         cNodePath = self.attachNewNode(cNode)
         cNodePath.show()
-        #base.cFloor.addCollider(cNodePath, self)
-        base.cTrav.addCollider(cNodePath, base.cFloor)
         # register RayNode in GravityHandler and Traverser
-        base.cFloor.addCollider(cRayNode, self)
-        base.cTrav.addCollider(cRayNode, base.cFloor)
         # add this to the base collider, accessible through DirectStart
         base.cTrav.addCollider(cNodePath, base.cEvent)
 

@@ -504,26 +504,26 @@ class Ralph(DirectObject.DirectObject):
           2- cRay handled by cFloor keeps Ralph on the ground
           3- cEvent is a general purpose collision handler that registers
            and delegates collision callbacks, as defined in the physics/panda/manager.py file """
-           
-        cSphereNode = CollisionNode('agent')
-        cSphereNode.addSolid(CollisionSphere(0.0, 0.0, self.height, self.radius))
-        cSphereNode.addSolid(CollisionSphere(0.0, 0.0, self.height + 2.2 * self.radius, self.radius))
-        cSphereNode.setFromCollideMask(WALLMASK | AGENTMASK)
-        cSphereNode.setIntoCollideMask(WALLMASK | AGENTMASK | OBJMASK)
-        cSphereNodePath = self.actorNodePath.attachNewNode(cSphereNode)
-        #cSphereNodePath.show()
-        base.cWall.addCollider(cSphereNodePath, self.actorNodePath)
-        base.cTrav.addCollider(cSphereNodePath, base.cWall)
-        # add same colliders to cEvent
-        cEventSphereNode = CollisionNode('agent')
-        cEventSphere = CollisionSphere(0.0, 0.0, self.height, self.radius)
-        cEventSphere.setTangible(0)
-        cEventSphereNode.addSolid(cEventSphere)
-        cEventSphereNode.setFromCollideMask(AGENTMASK | OBJMASK)
-        cEventSphereNode.setIntoCollideMask(AGENTMASK)
-        cEventSphereNodePath = self.actorNodePath.attachNewNode(cEventSphereNode)
-        
-        base.cTrav.addCollider(cEventSphereNodePath, base.cEvent)
+        if False: 
+            cSphereNode = CollisionNode('agent')
+            cSphereNode.addSolid(CollisionSphere(0.0, 0.0, self.height, self.radius))
+            cSphereNode.addSolid(CollisionSphere(0.0, 0.0, self.height + 2.2 * self.radius, self.radius))
+            cSphereNode.setFromCollideMask(WALLMASK | AGENTMASK)
+            cSphereNode.setIntoCollideMask(WALLMASK | AGENTMASK | OBJMASK)
+            cSphereNodePath = self.actorNodePath.attachNewNode(cSphereNode)
+            #cSphereNodePath.show()
+            base.cWall.addCollider(cSphereNodePath, self.actorNodePath)
+            base.cTrav.addCollider(cSphereNodePath, base.cWall)
+            # add same colliders to cEvent
+            cEventSphereNode = CollisionNode('agent')
+            cEventSphere = CollisionSphere(0.0, 0.0, self.height, self.radius)
+            cEventSphere.setTangible(0)
+            cEventSphereNode.addSolid(cEventSphere)
+            cEventSphereNode.setFromCollideMask(AGENTMASK | OBJMASK)
+            cEventSphereNode.setIntoCollideMask(AGENTMASK)
+            cEventSphereNodePath = self.actorNodePath.attachNewNode(cEventSphereNode)
+            
+            base.cTrav.addCollider(cEventSphereNodePath, base.cEvent)
 
         # add collision ray to keep ralph on the ground
         cRay = CollisionRay(0.0, 0.0, CollisionHandlerRayStart, 0.0, 0.0, -1.0)

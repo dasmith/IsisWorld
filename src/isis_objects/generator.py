@@ -2,6 +2,26 @@ from isisobject import IsisObject, Dividable, SharpObject
 from pandac.PandaModules import Vec3
 # Object generators used to instantiate various objects
 
+class ContainerGenerator():
+
+    def __init__(self):
+        self.containerItems = []
+
+    def enterContainer(self,fromObj,toObject):
+        assert toObject == self, "Error: cannot put into self"
+        if fromObj not in self.containerItems:
+            self.containerItems.append(fromObj)
+
+    def leaveContainer(self,fromObj,toObject):
+        assert toObject == self, "Error: cannot remove from another container"
+        if fromObj in self.containerItems:
+            self.containerItems.remove(toObject)
+
+    def isEmpty(self):
+        return len(self.containerItems) == 0
+
+
+
 class IsisObjectGenerator():
     def __init__(self, name, model, scale = 1, density = 200, offsets = Vec3(0, 0, 0)):
         """ This defines a generator object from which instances are derived."""

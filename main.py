@@ -26,6 +26,7 @@ from src.physics.panda.manager import *
 from src.cameras.floating import *
 from src.xmlrpc.command_handler import IsisCommandHandler
 from src.xmlrpc.server import XMLRPCServer
+from src.developerconsole import *
 from src.loader import *
 from src.lights.skydome2 import *
 from src.actions.actions import *
@@ -33,7 +34,7 @@ from time import ctime
 import sys, os, threading
 
 
-class IsisWorld(DirectObject.DirectObject):
+class IsisWorld(DirectObject):
 
    
 
@@ -48,6 +49,9 @@ class IsisWorld(DirectObject.DirectObject):
         self._setupLights()
         self._setupCameras()
         self._setupActions()
+        self.devConsole = DeveloperConsole()            
+        self._textObjectVisible = True
+        self._inspectState = False
         
     def _setupEnvironment(self,debug=False):
         """  Stuff that's too ugly to put anywhere else. """
@@ -91,6 +95,11 @@ class IsisWorld(DirectObject.DirectObject):
         groundNP.setPos(0, 0, 0)
         groundNP.lookAt(0, 0, -1)
         groundNP.setTransparency(TransparencyAttrib.MAlpha)
+        collPlane = CollisionPlane(Plane(Vec3(0, 0, 1), Point3(0, 0, 0)))
+        floorCollisionNP = base.render.attachNewNode(CollisionNode('collisionNode'))
+        floorCollisionNP.node().addSolid(collPlane) 
+        floorCollisionNP.node().setIntoCollideMask(FLOORMASK|OBJMASK)
+        floorCollisionNP.show()
         # allow other items to collide INTO floormask
         #groundNP.node().setIntoCollideMask(FLOORMASK)
         
@@ -281,7 +290,7 @@ class IsisWorld(DirectObject.DirectObject):
         #if self.is_ralph == True:
         # control keys to move the character
 
-        #b = DirectButton(pos=(-1.3,0.0,-0.95),text = ("Inspect", "click!", "rolling over", "disabled"), scale=0.05, command = self.toggleInspect)
+        b = DirectButton(pos=(-1.3,0.0,-0.95),text = ("Inspect", "click!", "rolling over", "disabled"), scale=0.05, command = self.toggleInspect)
         #base.accept("o", toggleInstructionsWindow)
 
         # key input
@@ -322,42 +331,42 @@ class IsisWorld(DirectObject.DirectObject):
 
     def toggleInstructionsWindow(self):
         """ Hides the instruction window """
-        if self.textObjectVisible:
+        if self._textObjectVisible:
             self.textObject.detachNode()
-            self.textObjectVisible = False
+            self._textObjectVisible = False
         else:
             self.textObject.reparentTo(aspect2d)
-            self.textObjectVisible = True
+            self._textObjectVisible = True
 
-    ""
     def toggleInspect(self):
-        self.inspectState = not self.inspectState
-        print "Inspect State", self.inspectState
-        if self.inspectState:
-            if (self._globalClock == None): # pause it
+        self._inspectState = not self._inspectState
+        if self._inspectState:
+            self.devConsole.show()
+            if (not self.physicsManager.paused): # pause it
                 self.physicsManager.togglePaused()
             self.agentCamera.setActive(0)
             active_agent = self.agents[self.agentNum].actor
             base.camera.reparentTo(active_agent)
             base.camera.lookAt(active_agent)
             for child in render.getChildren():
-                if child != active_agent and child.getName()[-5:] != "Light" and child.getName() != "Armature":
+                if child != active_agent and child.getName()[-5:] != "Light" and child.getName()[0:16] != "physicsControler":
                     child.hide()
-                    print "hiding", child.getName()
+                    print "hiding", child.getName()[0:16]
             for i, other_agent in enumerate(self.agents):
                 if i != self.agentNum: other_agent.actor.hide()
             # turn off directobject widgets
             self.command_box.hide()
             # turn off text object if visible
-            if self.textObjectVisible:
+            if self._textObjectVisible:
                 self.toggleInstructionsWindow()
 
         else:
             for child in render.getChildren(): child.show()
             self.agentCamera.setActive(1)
             self.command_box.show()
+            self.devConsole.hide()
             # turn it back on if visible
-            if self.textObjectVisible:
+            if self._textObjectVisible:
                 self.toggleInstructionsWindow()
         
     def isisMessage(self,message):

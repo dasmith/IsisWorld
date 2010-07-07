@@ -68,16 +68,15 @@ class IsisObject(NodePath):
         self.setCollideMask(BitMask32.allOff())
         # allow the object iself to have a into collide mask
         # FIXME: is this slowing the show down a lot?
-        #self.setCollideMask(OBJMASK)
         # when models are scaled down dramatically (e.g < 1% of original size), Panda3D represents
         # the geometry non-uniformly, which means scaling occurs every render step and collision
         # handling is buggy.  flattenLight()  circumvents this.
-        #model.flattenLight()
+        model.flattenLight()
         # setup gravity pointer
         lcorner, ucorner =model.getTightBounds()
         center = model.getBounds().getCenter()
         cRay = CollisionRay(center[0],center[1],center[2]+((lcorner[2]-center[2])/1.5), 0.0, 0.0, -1.0)
-        cRayNode = CollisionNode('actor-raynode')
+        cRayNode = CollisionNode('object')
         cRayNode.addSolid(cRay)
         cRayNode.setFromCollideMask(FLOORMASK|OBJMASK)
         cRayNode.setIntoCollideMask(BitMask32.bit(0)) 
@@ -85,8 +84,6 @@ class IsisObject(NodePath):
         # add colliders
         self.physicsManager.cFloor.addCollider(self.cRayNodePath, self.actorNodePath)
         base.cTrav.addCollider(self.cRayNodePath, self.physicsManager.cFloor)
-
-
         # TODO see if the collider geometry is defined in the model
         # ie. find it in the egg file:  cNodePath = model.find("**/collider")
         cNode = CollisionNode('object')
@@ -98,7 +95,6 @@ class IsisObject(NodePath):
             right_back = ucorner
             # and make a Collision Polygon (ordering important)
             cGeom = CollisionPolygon(left_front, right_front, right_back, left_back)
-            cGeom2 = CollisionPolygon(left_front, right_front, right_back, left_back)
         elif collisionGeom == 'sphere':
             # set up a collision sphere       
             bounds, offset = getOrientedBoundedBox(model)

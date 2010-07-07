@@ -139,13 +139,13 @@ class IsisWorld(DirectObject):
         else:
             self.skydomeNP = loader.loadModel("media/models/dome2")
             self.skydomeNP.setCollideMask(BitMask32().allOff())
-            self.skydomeNP.setScale(40, 40, 10);
-            #self.skydomeNP.setLightOff()
+            self.skydomeNP.setScale(4000, 4000, 1000);
+            self.skydomeNP.setLightOff()
             texture = loader.loadTexture("media/textures/test.png")
             textureStage = TextureStage("stage0")
             textureStage.setMode(TextureStage.MReplace)
             self.skydomeNP.setTexture(textureStage, texture, 1)
-            self.skydomeNP.setTexScale(textureStage, 100, 100)
+            self.skydomeNP.setTexScale(textureStage, 2, 2)
             self.skydomeNP.reparentTo(render)
 
     def _timeUpdated(self,task):

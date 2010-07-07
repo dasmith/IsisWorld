@@ -46,14 +46,15 @@ class PhysicsWorldManager(DirectObject.DirectObject):
         
         # keep track of all agents
         self.agents = []
-      
-        base.enableParticles()
-        base.cHandler = PhysicsCollisionHandler()
-        gravityFN = ForceNode('gravity')
-        gravityNP = render.attachNewNode(gravityFN)
-        gravityForce = LinearVectorForce(0, 0, -9.81)
-        gravityFN.addForce(gravityForce)
-        base.physicsMgr.addLinearForce(gravityForce)  
+     
+        if False:
+            base.enableParticles()
+            self.cHandler = PhysicsCollisionHandler()
+            gravityFN = ForceNode('gravity')
+            gravityNP = render.attachNewNode(gravityFN)
+            gravityForce = LinearVectorForce(0, 0, -9.81)
+            gravityFN.addForce(gravityForce)
+            base.physicsMgr.addLinearForce(gravityForce)  
 
         # Initialize the collision traverser.
         base.cTrav = CollisionTraverser()
@@ -63,15 +64,16 @@ class PhysicsWorldManager(DirectObject.DirectObject):
         # initialize 3 handlers: wall, gravity, and other events
         
         # the CollisionHandlerPusher is good for keeping items from going through walls
-        base.cWall = CollisionHandlerPusher()
+        self.cWall = CollisionHandlerPusher()
         
         # this tracks the velocity of moving objects, whereas CollisionHandlerFloor doesnt
-        base.cFloor = CollisionHandlerGravity()
+        self.cFloor = CollisionHandlerGravity()
         # gravity should be -9.81m/s, but that doesn't quite work
-        base.cFloor.setGravity(9.81*10)
-        base.cFloor.setMaxVelocity(100)
-        #base.cFloor.setLegacyMode(True)
-        base.cFloor.addInPattern('into')
+        self.cFloor.setGravity(9.81*10)
+        self.cFloor.setOffset(.9)
+        self.cFloor.setMaxVelocity(100)
+        #self.cFloor.setLegacyMode(True)
+        self.cFloor.addInPattern('into')
 
         # Initialize the handler.
         base.cEvent = CollisionHandlerEvent()

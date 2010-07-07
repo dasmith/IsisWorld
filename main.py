@@ -86,13 +86,18 @@ class IsisWorld(DirectObject.DirectObject):
         groundTexture = loader.loadTexture(self.rootDirectory+"/media/textures/env_ground.jpg")
         cm.setFrame(-100, 100, -100, 100)
         groundNP = render.attachNewNode(cm.generate())
-        groundNP.setCollideMask(FLOORMASK)
+        groundNP.setCollideMask(BitMask32.allOff())
         groundNP.setTexture(groundTexture)
         groundNP.setPos(0, 0, 0)
         groundNP.lookAt(0, 0, -1)
         groundNP.setTransparency(TransparencyAttrib.MAlpha)
         # allow other items to collide INTO floormask
         #groundNP.node().setIntoCollideMask(FLOORMASK)
+        
+        collPlane = CollisionPlane(Plane(Vec3(0, 0, 1), Point3(0, 0, 0)))
+        floorCollisionNP = base.render.attachNewNode(CollisionNode('collisionNode'))
+        floorCollisionNP.node().addSolid(collPlane) 
+        floorCollisionNP.node().setIntoCollideMask(FLOORMASK)
         
         self.worldObjects.update(load_objects(self.rootDirectory+"/kitchen.isis", render, self.physicsManager))
                 

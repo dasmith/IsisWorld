@@ -128,8 +128,16 @@ class IsisWorld(DirectObject.DirectObject):
     
             taskMgr.add(self._timeUpdated, "skytimeUpdated")
         else:
-            pass
-            #self.skydomeNP = SkyDome1(render,visualizeClouds)
+            self.skydomeNP = loader.loadModel("media/models/dome2")
+            self.skydomeNP.setCollideMask(BitMask32().allOff())
+            self.skydomeNP.setScale(40, 40, 10);
+            #self.skydomeNP.setLightOff()
+            texture = loader.loadTexture("media/textures/test.png")
+            textureStage = TextureStage("stage0")
+            textureStage.setMode(TextureStage.MReplace)
+            self.skydomeNP.setTexture(textureStage, texture, 1)
+            self.skydomeNP.setTexScale(textureStage, 100, 100)
+            self.skydomeNP.reparentTo(render)
 
     def _timeUpdated(self,task):
         self.skydomeNP.skybox.setShaderInput('time', task.time)
@@ -279,7 +287,7 @@ class IsisWorld(DirectObject.DirectObject):
         #b = DirectButton(pos=(-1.3,0.0,-0.95),text = ("Inspect", "click!", "rolling over", "disabled"), scale=0.05, command = self.toggleInspect)
         #base.accept("o", toggleInstructionsWindow)
 
-        # key input
+        # key input\\\
         self.accept("1",               base.toggleWireframe, [])
         self.accept("2",               base.toggleTexture, [])
         self.accept("3",               changeAgent, [])

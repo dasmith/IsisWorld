@@ -44,7 +44,7 @@ class IsisWorld(DirectObject):
         self.rootDirectory = "."#Filename.fromOsSpecific(ExecutionEnvironment.getCwd())
         config = loadPrcFile(Filename(self.rootDirectory, 'config.prc'))
         self._setupEnvironment(debug=False)
-        self._setupWorld(visualizeClouds=False, enableKitchen=False)
+        self._setupWorld(visualizeClouds=True, enableKitchen=False)
         self._setupAgents()
         self._setupLights()
         self._setupCameras()
@@ -143,15 +143,15 @@ class IsisWorld(DirectObject):
             taskMgr.add(self._timeUpdated, "skytimeUpdated")
         else:
             self.skydomeNP = loader.loadModel("media/models/dome2")
+            self.skydomeNP.reparentTo(render)
             self.skydomeNP.setCollideMask(BitMask32().allOff())
-            self.skydomeNP.setScale(4000, 4000, 1000);
-            self.skydomeNP.setLightOff()
+            self.skydomeNP.setScale(400, 400, 100);
+            #self.skydomeNP.setLightOff()
             texture = loader.loadTexture("media/textures/test.png")
             textureStage = TextureStage("stage0")
             textureStage.setMode(TextureStage.MReplace)
-            self.skydomeNP.setTexture(textureStage, texture, 1)
-            self.skydomeNP.setTexScale(textureStage, 2, 2)
-            self.skydomeNP.reparentTo(render)
+            self.skydomeNP.setTexture(textureStage, texture)
+            #self.skydomeNP.setTexScale(textureStage, 10, 5)
 
     def _timeUpdated(self,task):
         self.skydomeNP.skybox.setShaderInput('time', task.time)

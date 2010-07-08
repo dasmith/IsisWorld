@@ -157,7 +157,7 @@ class Surface(IsisSpatial):
         # and make a Collision Polygon (ordering important)
         cGeom = CollisionPolygon(left_front, right_front, right_back, left_back)
         cGeom.setTangible(0)
-        self.surfaceNP.addSolid(cGeom)
+        self.topSurfaceNP.addSolid(cGeom)
         # attach to current node path
         self.surfaceCollisionNP = self.nodePath.attachNewNode(self.SurfaceNP)
         #cNodePath.show()
@@ -172,15 +172,15 @@ class Surface(IsisSpatial):
 
     def enableCollisions(self):
         # but this surface/sphere cannot collide INTO other objects
-        self.surfaceNP.setIntoCollideMask(OBJMASK | AGENTMASK)
+        self.topSurfaceNP.setIntoCollideMask(OBJMASK | AGENTMASK)
         # objects (ray) and agents can collide INTO it
-        self.surfaceNP.setFromCollideMask(OBJMASK | AGENTMASK)
+        self.topSurfaceNP.setFromCollideMask(OBJMASK | AGENTMASK)
 
     def disableCollisions(self):
         # but this surface/sphere cannot collide INTO other objects
-        self.surfaceNP.setIntoCollideMask(BitMask32.allOff())
+        self.topSurfaceNP.setIntoCollideMask(BitMask32.allOff())
         # objects (ray) and agents can collide INTO it
-        self.surfaceNP.setFromCollideMask(BitMask32.allOff())
+        self.topSurfaceNP.setFromCollideMask(BitMask32.allOff())
         print "Removing Collision - Surface"
         super(Surface,self).disableCollisions()
 

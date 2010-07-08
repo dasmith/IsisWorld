@@ -77,13 +77,17 @@ class PhysicsWorldManager(DirectObject.DirectObject):
         # Initialize the handler.
         base.cEvent = CollisionHandlerEvent()
         base.cEvent.addInPattern("%fn-into-%(container)it")
-        base.cEvent.addInPattern("%fn-outof-%(container)it")
+        base.cEvent.addInPattern("%fn-into-%(surface)it")
         base.cEvent.addInPattern('%fn-into-%in')
+        base.cEvent.addOutPattern("%fn-outof-%(container)it")
+        base.cEvent.addOutPattern("%fn-outof-%(surface)it")
         base.cEvent.addOutPattern('%fn-outof-%in')
        
         # initialize listeners
         base.accept('object-into-acontainer', self._enterContainer)
         base.accept('object-outof-acontainer', self._exitContainer)
+        base.accept('object-into-asurface', self._exitSurface)
+        base.accept('object-outof-asurface', self._exitSurface)
         base.accept('object-into-object', self._objCollisionHandlerIn)
         base.accept('object-outof-object', self._objCollisionHandlerOut)
         base.accept('agent-into-object', self._agentCollisionHandlerIn)
@@ -93,17 +97,7 @@ class PhysicsWorldManager(DirectObject.DirectObject):
         self.paused = False 
         self._startPhysics()
     
-    def _floor(self, entry):
-        cFrom = entry.getFromNodePath().getParent()
-        cInto = entry.getIntoNodePath().getParent()
-        print "Floor Collision: %s, %s" % (cFrom, cInto)
     
-    def _objCollisionHandlerIn(self, entry):
-        cFrom = entry.getFromNodePath().getParent()
-        cInto = entry.getIntoNodePath().getParent()
-        if hasattr(cInto,'enterContainer'):
-            cInto.enterContainer(cFrom,cInto)
-        print "Object In Collision: %s, %s" % (cFrom, cInto)
 
     def _enterContainer(self, entry):
         cFrom = entry.getFromNodePath().getParent()
@@ -117,6 +111,25 @@ class PhysicsWorldManager(DirectObject.DirectObject):
         cInto.enterContainer(cFrom,cInto)
         print "Exiting container %s, %s" % (cFrom, cInto)
 
+    def _enterSurface(self, entry):
+        cFrom = entry.getFromNodePath().getParent()
+        cInto = entry.getIntoNodePath().getParent()
+        cInto.enterSurface(cFrom,cInto)
+        print "Entering surface %s, %s" % (cFrom, cInto)
+
+    def _exitSurface(self, entry):
+        cFrom = entry.getFromNodePath().getParent()
+        cInto = entry.getIntoNodePath().getParent()
+        cInto.enterSurface(cFrom,cInto)
+        print "Exiting surface %s, %s" % (cFrom, cInto)
+
+    def _objCollisionHandlerIn(self, entry):
+        cFrom = entry.getFromNodePath().getParent()
+        cInto = entry.getIntoNodePath().getParent()
+        if hasattr(cInto,'enterContainer'):
+            cInto.enterContainer(cFrom,cInto)
+        print "Object In Collision: %s, %s" % (cFrom, cInto)
+    
     def _objCollisionHandlerOut(self, entry):
         cFrom = entry.getFromNodePath().getParent()
         cInto = entry.getIntoNodePath().getParent()

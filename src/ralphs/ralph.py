@@ -41,8 +41,8 @@ class Ralph(DirectObject.DirectObject):
 
         self.actor.setColorScale(random.random(), random.random(), random.random(), 1.0)
         self.actorNode = ActorNode('physicsControler-%s' % name)
-        self.actor.setPos(0,0,0)
         self.actorNodePath = render.attachNewNode(self.actorNode)
+        self.actor.setPos(self.actorNodePath,0,0,-.6)
         self.actor.reparentTo(self.actorNodePath)
         self.actor.setCollideMask(BitMask32.allOff())
         self.name = name
@@ -151,6 +151,8 @@ class Ralph(DirectObject.DirectObject):
         self.control__say("If I were wearing x-ray glasses, I could see %i items"  % objects_inview) 
         return objects
 
+    def setPosition(self,position):
+        self.actorNodePath.setPos(position)
     def getObjectsInView(self):
         """ Gets objects through ray tracing.  Slow"""
         return self.picker.getObjectsInView()
@@ -300,8 +302,8 @@ class Ralph(DirectObject.DirectObject):
             return 'right hand is already holding ' + self.right_hand_holding_object.getName() + '.'
         if d[pick_up_object] < 5.0:
             if pick_up_object.getNetTag('heldBy') == '':
-                pick_up_object.wrtReparentTo(self.player_right_hand)
-                # pick_up_object.setPos(0, 0, 0)
+                pick_up_object.reparentTo(self.player_right_hand)
+                pick_up_object.setPos(self.player_right_hand, 0, 0, 0)
                 #pick_up_object.setHpr(0, 0, 0)
                 self.right_hand_holding_object = pick_up_object
                 pick_up_object.setTag('heldBy', self.name)

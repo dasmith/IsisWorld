@@ -34,8 +34,7 @@ from time import ctime
 import sys, os, threading
 
 
-class IsisWorld(DirectObject):
-
+class IsisWorld(DirectObject.DirectObject):
    
 
     def __init__(self):
@@ -76,15 +75,10 @@ class IsisWorld(DirectObject):
         self.server_thread.start()
 
     def _setupWorld(self, visualizeClouds=False, enableKitchen=False):
-        # setup physics
-        self.physicsManager = PhysicsWorldManager()
-        
-        
         """ The world consists of a plane, the "ground" that stretches to infinity
         and a dome, the "sky" that sits concavely on the ground. """
-        
-        self.worldObjects = {} 
-        
+         # setup physics
+        self.physicsManager = PhysicsWorldManager()
         
         cm = CardMaker("ground")
         groundTexture = loader.loadTexture(self.rootDirectory+"/media/textures/env_ground.jpg")
@@ -97,17 +91,12 @@ class IsisWorld(DirectObject):
         groundNP.setTransparency(TransparencyAttrib.MAlpha)
         collPlane = CollisionPlane(Plane(Vec3(0, 0, 1), Point3(0, 0, 0)))
         floorCollisionNP = base.render.attachNewNode(CollisionNode('collisionNode'))
-        floorCollisionNP.node().addSolid(collPlane) 
-        floorCollisionNP.node().setIntoCollideMask(FLOORMASK|OBJMASK)
-        floorCollisionNP.show()
-        # allow other items to collide INTO floormask
-        #groundNP.node().setIntoCollideMask(FLOORMASK)
-        
-        collPlane = CollisionPlane(Plane(Vec3(0, 0, 1), Point3(0, 0, 0)))
-        floorCollisionNP = base.render.attachNewNode(CollisionNode('collisionNode'))
-        floorCollisionNP.node().addSolid(collPlane) 
+        floorCollisionNP.node().addSolid(collPlane)
+        # set the bits which items can collide into
         floorCollisionNP.node().setIntoCollideMask(FLOORMASK)
+        floorCollisionNP.node().setFromCollideMask(FLOORMASK)
         
+        self.worldObjects = {} 
         self.worldObjects.update(load_objects(self.rootDirectory+"/kitchen.isis", render, self.physicsManager))
                 
         if enableKitchen:

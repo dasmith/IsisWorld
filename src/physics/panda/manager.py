@@ -69,10 +69,9 @@ class PhysicsWorldManager(DirectObject.DirectObject):
         # this tracks the velocity of moving objects, whereas CollisionHandlerFloor doesnt
         self.cFloor = CollisionHandlerGravity()
         # gravity should be -9.81m/s, but that doesn't quite work
-        self.cFloor.setGravity(9.81*10)
-        self.cFloor.setOffset(.9)
+        self.cFloor.setGravity(9.81*20)
+        self.cFloor.setOffset(.5)
         self.cFloor.setMaxVelocity(100)
-        #self.cFloor.setLegacyMode(True)
         self.cFloor.addInPattern('into')
 
         # Initialize the handler.
@@ -81,7 +80,8 @@ class PhysicsWorldManager(DirectObject.DirectObject):
         base.cEvent.addOutPattern('%fn-outof-%in')
        
         # initialize listeners
-        base.accept('into', self._floor)
+        base.accept('object-into-container', self._enterContainer)
+        base.accept('object-outof-container', self._exitContainer)
         base.accept('object-into-object', self._objCollisionHandlerIn)
         base.accept('object-outof-object', self._objCollisionHandlerOut)
         base.accept('agent-into-object', self._agentCollisionHandlerIn)
@@ -99,16 +99,34 @@ class PhysicsWorldManager(DirectObject.DirectObject):
     def _objCollisionHandlerIn(self, entry):
         cFrom = entry.getFromNodePath().getParent()
         cInto = entry.getIntoNodePath().getParent()
+        if hasattr(cInto,'enterContainer'):
+            cInto.enterContainer(cFrom,cInto)
         print "Object In Collision: %s, %s" % (cFrom, cInto)
+
+    def _enterContainer(self, entry):
+        cFrom = entry.getFromNodePath().getParent()
+        cInto = entry.getIntoNodePath().getParent()
+        cInto.enterContainer(cFrom,cInto)
+        print "Entering container %s, %s" % (cFrom, cInto)
+
+    def _exitContainer(self, entry):
+        cFrom = entry.getFromNodePath().getParent()
+        cInto = entry.getIntoNodePath().getParent()
+        cInto.enterContainer(cFrom,cInto)
+        print "Exiting container %s, %s" % (cFrom, cInto)
 
     def _objCollisionHandlerOut(self, entry):
         cFrom = entry.getFromNodePath().getParent()
         cInto = entry.getIntoNodePath().getParent()
+        if hasattr(cInto,'exitContainer'):
+            cInto.exitContainer(cFrom,cInto)
         print "Object Out Collision: %s, %s" % (cFrom, cInto)
 
     def _agentCollisionHandlerIn(self, entry):
         agent = entry.getFromNodePath().getParent()
         cInto = entry.getIntoNodePath().getParent()
+        if hasattr(cInto,'enterContainer'):
+            cInto.enterContainer(cFrom,cInto)
         print "Agent In Collision: %s, %s" % (agent, cInto)
 
     def _agentsCollisionIn(self, entry):
@@ -119,15 +137,6 @@ class PhysicsWorldManager(DirectObject.DirectObject):
     
     def addAgent(self,agent):
         self.agents.append(agent)
-
-    def setupGround(self):
-        return # do nothing 
-        # First we create a floor collision plane.
-        # Create a collision plane solid.
-        collPlane = CollisionPlane(Plane(Vec3(0, 0, 1), Point3(0, 0, 0)))
-        floorCollisionNP = base.render.attachNewNode(CollisionNode('collisionNode'))
-        floorCollisionNP.node().addSolid(collPlane) 
-        floorCollisionNP.node().setIntoCollideMask(FLOOR_MASK)
         
     def stepSimulation(self,stepTime=1):
         if self.paused:
@@ -182,37 +191,3 @@ class PhysicsWorldManager(DirectObject.DirectObject):
           taskMgr.doMethodLater(self.stepSize, self.simulationTask, "physics-SimulationTask", priority=10)
 
 
-
-class PhysicsCharacterController(object):
-    
-    def __init__(self, worldManager):
-        # make sure parent node is off
-        import random
-        self.rootNode.setCollideMask(BitMask32.allOff())
-        x = random.randint(0, 10)
-        y = random.randint(0, 10)
-        z = random.randint(0, 10)
-        self.actor.setPos(x, y, z)
-        self.avatarRadius = 0.8        
-        offsetNodeOne = [x, 0 + y, 0.5 + z, 0.5]
-        offsetNodeTwo = [x, 0 + y, 1.6 + z, 0.5]
-        # collision tubes have not been written as good FROM collidemasks
-        # to make the person tall, but not wide we use three collisionspheres
-        centerHeight = 0.8
-        self.avatarViscosity = 0
-        self.cNode = CollisionNode('collisionNode')
-        self.cNode.addSolid(CollisionSphere(0.0, 0.0, centerHeight, self.avatarRadius))
-        self.cNode.addSolid(CollisionSphere(0.0, 0.0, centerHeight + 2 * self.avatarRadius, self.avatarRadius))
-        self.cNode.setFromCollideMask(BitMask32.allOn())
-        self.cNode.setIntoCollideMask(BitMask32.allOff() | AGENTMASK)
-        self.cNode.setTag('agent', 'agent')
-        self.cNodePath = self.actor.attachNewNode(self.cNode)
-        self.cNodePath.show()
-        self.priorParent, self.actorNodePath, self.acForce = worldManager.addActorPhysics(self)
-
-
-
-def getCapsuleSize(collobj, radius=1):
-    bounds = collobj.getTightBounds()
-    # (max - min) bounds
-    return [bounds[0][0], bounds[0][1], bounds[0][2], bounds[1][0], bounds[1][1], bounds[1][2], radius]

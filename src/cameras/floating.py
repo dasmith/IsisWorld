@@ -50,7 +50,7 @@ class FloatingCamera:
         if self.controlMap['left'] != 0:
             """Rotate the camera to the left"""
             #increment the camera timer, determines speed of camera rotation
-            self.timer += .01
+            self.timer += .1
             angledegrees = self.timer * 50
             angleradians = angledegrees * (math.pi / 180.0)
 

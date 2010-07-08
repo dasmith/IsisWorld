@@ -26,8 +26,7 @@ class IsisFunctional():
             self.disableCollisions()
             print "ATTACHING TO", object 
             self.setHpr(0, 0, 0)
-            self.reparentTo(object)
-            self.setPos(0, 0, 0)
+            self.wrtReparentTo(object)
             self.setTag('heldBy', agent.name)
             return 'success'
         else:

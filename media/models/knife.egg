@@ -1,6 +1,6 @@
 <CoordinateSystem> { y-up-left }
 
-<Texture> knife1_Material_#1_CL { "textures/knife_material.tif"
+<Texture> knife1_Material_#1_CL { "../textures/knife_material.tif"
 	<Scalar> format { rgb }
 	<Scalar> wrap { repeat }
 }

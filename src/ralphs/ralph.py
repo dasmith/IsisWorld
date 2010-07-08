@@ -301,13 +301,12 @@ class Ralph(DirectObject.DirectObject):
         if self.right_hand_holding_object:
             return 'right hand is already holding ' + self.right_hand_holding_object.getName() + '.'
         if d[pick_up_object] < 5.0:
-            if pick_up_object.getNetTag('heldBy') == '':
-                pick_up_object.reparentTo(self.player_right_hand)
-                pick_up_object.setPos(self.player_right_hand, 0, 0, 0)
-                #pick_up_object.setHpr(0, 0, 0)
-                self.right_hand_holding_object = pick_up_object
-                pick_up_object.setTag('heldBy', self.name)
-                return 'success'
+            if hasattr(pick_up_object,'action__pick_up'):
+                # try to pick it up  
+                result = pick_up_object.call("pick_up",self.player_right_hand)
+                print "Result of trying to pick up %s:" % pick_up_object.name, result
+                if result == 'success': self.right_hand_holding_object = pick_up_object 
+                return result
             else:
                 return 'object (' + pick_up_object.name + ') is already held by something or someone.'
         else:
@@ -325,13 +324,12 @@ class Ralph(DirectObject.DirectObject):
         if self.left_hand_holding_object:
             return 'left hand is already holding ' + self.left_hand_holding_object.getName() + '.'
         if d[pick_up_object] < 5.0:
-            if pick_up_object.getNetTag('heldBy') == '':
-                pick_up_object.wrtReparentTo(self.player_left_hand)
-                # pick_up_object.setPos(0, 0, 0)
-                #pick_up_object.setHpr(0, 0, 0)
-                self.left_hand_holding_object = pick_up_object
-                pick_up_object.setTag('heldBy', self.name)
-                return 'success'
+            if hasattr(pick_up_object,'action__pick_up'):
+                # try to pick it up 
+                result = pick_up_object.call("pick_up",self.player_left_hand)
+                if result == 'success': self.left_hand_holding_object = pick_up_object 
+                print "Result of trying to pick up %s:" % pick_up_object.name, result
+                return result
             else:
                 return 'object (' + pick_up_object.name + ') is already held by something or someone.'
         else:

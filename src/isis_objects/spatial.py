@@ -2,40 +2,52 @@ from pandac.PandaModules import *
 #from pandac.PandaModules import Vec3, BitMask32 
 from ..physics.panda.manager import *
 
+from layout_manager import *
+
+""" Material	Density (kg/m^3)
+    Balsa wood	120
+    Brick	2000
+    Copper	8900
+    Cork	250
+    Diamond	3300
+    Glass	2500
+    Gold	19300
+    Iron	7900
+    Lead	11300
+    Styrofoam 100
+"""
+
 OBJFLOOR = BitMask32.bit(21)
+
 class IsisSpatial(object):
     """ This class is called _after_ IsisVisual is called and it, and its children classes
     are responsible for maintaining the spatial, geometric and physical properties of the 
     objects in IsisWorld."""
 
     def __init__(self,*args,**kwargs):
+        # Flag to limit setup to once per object
+        self.__setup = False
+
         # First, make sure IsisVisual was called
         if not hasattr(self,'models'):
             raise "Error: IsisVisual needs to be instantiated before IsisSpatial for %s" % self.name
 
+        self.weight = None
         self.containerItems = []
         self.isOpen = False
         if 'density' in kwargs:
             self.density = kwargs['density']
         else:
             self.density = 1
-        """ Material	Density (kg/m^3)
-            Balsa wood	120
-            Brick	2000
-            Copper	8900
-            Cork	250
-            Diamond	3300
-            Glass	2500
-            Gold	19300
-            Iron	7900
-            Lead	11300
-            Styrofoam 100
-        """
+
+        self._neetToRecalculateSpatialProperties = True
 
     def _destroyPhysics(self):
         pass
     
-    def _setupPhysics(self,collisionGeom='box'):
+    def setup(self,collisionGeom='box'):
+        if self.__setup:
+            return
         # ensure all existing collision masks are off
         self.setCollideMask(OBJMASK)
         # allow the object iself to have a into collide mask
@@ -65,16 +77,16 @@ class IsisSpatial(object):
         print "Setup colliders for ", self.name
 
         # setup wall collider 
-        self.wallNP = CollisionNode('object')
+        self.fullBoxNP = CollisionNode('object')
         bounds, offset = getOrientedBoundedBox(self.activeModel)
         radius = bounds[0]/2.0
         cGeom = CollisionSphere(0.0, 0.0, 0.0, radius)
         #cGeom = CollisionBox(lcorner, ucorner)
         cGeom.setTangible(0)
-        self.wallNP.addSolid(cGeom)
+        self.fullBoxNP.addSolid(cGeom)
         # objects (ray) and agents can collide INTO it
         # attach to current node path
-        self.wallGeomNP = self.nodePath.attachNewNode(self.wallNP)
+        self.wallGeomNP = self.nodePath.attachNewNode(self.fullBoxNP)
         IsisSpatial.enableCollisions(self)
 
         self.physicsManager.cFloor.addCollider(self.floorRayGeomNP, self.nodePath)
@@ -90,8 +102,8 @@ class IsisSpatial(object):
         self.floorRayNP.setIntoCollideMask(BitMask32.bit(0))
         self.topSurfaceNP.setFromCollideMask(FLOORMASK)
         self.topSurfaceNP.setIntoCollideMask(OBJFLOOR|FLOORMASK)
-        self.wallNP.setIntoCollideMask(OBJMASK | AGENTMASK)
-        self.wallNP.setFromCollideMask(OBJMASK | AGENTMASK)
+        self.fullBoxNP.setIntoCollideMask(OBJMASK | AGENTMASK)
+        self.fullBoxNP.setFromCollideMask(OBJMASK | AGENTMASK)
 
     def disableCollisions(self):
         print "Removing Collisions - Base"
@@ -99,18 +111,45 @@ class IsisSpatial(object):
         self.floorRayNP.setIntoCollideMask(BitMask32.allOff())
         self.topSurfaceNP.setFromCollideMask(BitMask32.allOff())
         self.topSurfaceNP.setIntoCollideMask(BitMask32.allOff())
-        self.wallNP.setIntoCollideMask(BitMask32.allOff())
-        self.wallNP.setFromCollideMask(BitMask32.allOff())
+        self.fullBoxNP.setIntoCollideMask(BitMask32.allOff())
+        self.fullBoxNP.setFromCollideMask(BitMask32.allOff())
+
+    def getWeight(self):
+        """ Returns the weight of an object, based on its bounding box dimensions
+        and its density """
+        if self._needToRecalculateSpatialProperties: self._recalculateSpatialProperties()
+        return self.weight
+
+    def getDensity(self):
+        """ Returns the density of the object"""
+        return self.density
+
+    def setDensity(self, density):
+        """ Sets the density of the object """
+        self.density = density
+        self._needToRecalculateSpatialProperties = True
+
+    def _recalculateSpatialProperties(self):
+        """ Internal method for recomputing properties, lazily issued"""
+        self.weight = self.density*self.width*self.length*self.height
+        self._needToRecalculateSpatialProperties = False
+
 
 class Surface(IsisSpatial):
     def __init__(self, *args, **kwargs):
         self.surfaceContacts = []
         super(Surface,self).__init__(args,kwargs)
+        self.__setup = True
+        self.on_layout = HorizontalGridLayout((self.getWidth(), self.getLength()), self.getHeight())
 
-    def _setupPhysics(self):
+    def setup(self):
+        if self.__setup:
+            return
+
+        #self.topSurfaceNP.setTag('surface','asurface')
         """ Creates a surface collision geometry on the top of the object"""
         # find the surface of the model                    
-        self.surfaceNP = CollisionNode('surface')
+        self.topSurfaceNP = CollisionNode('surface')
         left_front = Vec3(lcorner[0], lcorner[1], ucorner[2])
         left_back = Vec3(lcorner[0], ucorner[1], ucorner[2])
         right_front = Vec3(ucorner[0], lcorner[1], ucorner[2])
@@ -126,8 +165,10 @@ class Surface(IsisSpatial):
         print "Setup surface", self.name
         self.enableCollisions()
         base.cTrav.addCollider(self.surfaceCollisionNP, base.cEvent)
-        super(Surface,self)._setupPhysics()
-        # wall traversing collision objects
+        super(Surface,self).setup()
+
+        self.__setup = True
+
 
     def enableCollisions(self):
         # but this surface/sphere cannot collide INTO other objects
@@ -149,14 +190,28 @@ class Surface(IsisSpatial):
     def exitSurface(self,fromObj,toObject):
         print "Removed item from surface contacts", toObject
 
+    def putOn(self, obj):
+        # TODO: requires that object has an exposed surface
+        obj.reparentTo(self)
+        obj.setPos(self.on_layout.add(obj))
+
 
 class Container(IsisSpatial):
-
     def __init__(self, *args, **kwargs):
+        # Flag to limit setup to once per object
+        self.__setup = False
         self.surfaceContacts = []
         super(Container,self).__init__(args,kwargs)
+        #TO-DO: Change this to something more fitting for a container
+        self.in_layout = HorizontalGridLayout((self.getWidth(), self.getLength()), self.getHeight())
 
-    def _setupPhysics(self,collisionGeom='box'):
+    def setup(self,collisionGeom='box'):
+        if self.__setup:
+            return
+        # call base class
+        IsisSpatial.setup(self)
+        self.fullBoxNP.setTag('container','acontainer')
+
         self.containerNP = CollisionNode('container')
         lcorner, ucorner =self.activeModel.getTightBounds()
         center = self.activeModel.getBounds().getCenter()
@@ -179,8 +234,8 @@ class Container(IsisSpatial):
         base.cTrav.addCollider(self.containerCollisionNP, base.cEvent)
         self.enableCollisions()
         print "Setup container", self.name
-        super(Container,self)._setupPhysics()
-        # wall traversing collision objects
+        self.__setup = True
+
     
     def enableCollisions(self):
         # but this surface/sphere cannot collide INTO other objects
@@ -214,4 +269,10 @@ class Container(IsisSpatial):
         if self.isOpen:
             # container already open 
             return True
+
+    def putIn(self, obj):
+        # TODO: ensure that object can fit in other object
+        #  1) internal volume is big enough, 2) vol - vol of other things in there
+        obj.reparentTo(self)
+        obj.setPos(self.in_layout.add(obj))
 

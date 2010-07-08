@@ -1,5 +1,5 @@
 
-from pandac.PandaModules import NodePath,Vec3,Vec4,TextureStage,TexGenAttrib
+from pandac.PandaModules import NodePath,Vec3,Vec4,TextureStage,TexGenAttrib,BitMask32
 import inspect
 
 class Att_base():
@@ -141,15 +141,16 @@ class Att_color(Att_base):
 
 class SkyDome1(Att_base):
     def __init__(self, scene, dynamic=True, rate=(0.005,0.05),
-        texturescale=(100,100),
-        scale=(4000,4000,1000), texturefile=None):
+        texturescale=(1000,1000),
+        scale=(40,40,10), texturefile=None):
         Att_base.__init__(self,False, "Sky Dome 1")
-        self.skybox = loader.loadModel("/media/models/dome2")
+        self.skybox = loader.loadModel("../media/models/dome2")
+        self.skybox.setCollideMask(BitMask32().allOff())
         self.skybox.setTwoSided(False)
         self.skybox.setScale(scale[0],scale[1],scale[2])
         self.skybox.setLightOff()
         if texturefile == None:
-            texturefile = "/media/textures/SkyBox-Clouds-Med-Dawn.png"
+            texturefile = "../media/textures/concrete.jpg"
         texture = loader.loadTexture(texturefile)
         self.textureStage0 = TextureStage("stage0")
         self.textureStage0.setMode(TextureStage.MReplace)

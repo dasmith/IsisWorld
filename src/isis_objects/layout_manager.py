@@ -18,8 +18,8 @@ class HorizontalGridLayout(LayoutManager):
         self.padw = padw
         self.padh = padh
     def add(self, obj):
-        ow = obj.width+self.padw
-        oh = obj.length+self.padh
+        ow = obj.getWidth()+self.padw
+        oh = obj.getLength()+self.padh
         if self.px+ow > self.w:
             self.py += self.maxh
             self.px = 0
@@ -30,6 +30,6 @@ class HorizontalGridLayout(LayoutManager):
         self.px += ow
         if oh > self.maxh:
             self.maxh = oh
-        return (x-(self.w-obj.width)/2.0, self.py-(self.h-obj.height)/2.0, self.z)
+        return (x-(self.w-obj.getWidth())/2.0, self.py-(self.h-obj.getHeight())/2.0, self.z)
 
 

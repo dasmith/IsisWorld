@@ -33,8 +33,19 @@ class IsisFunctional():
         else:
             return "Error: already held by someone"
 
+    def take(self, parent):
+        """ Allows Ralph to pick up a given object """
+        if self.weight < 5000:
+            self.reparentTo(parent)
+            self.heldBy = parent
+
+    def drop(self):
+        """ Clears the heldBy variable """
+        self.heldBy = None
+
 class Dividable(IsisFunctional):
     def __init__(self,piece=None):
+        IsisFunctional.__init__(self)
         if piece == None:
             print "Warning: no piece object defined for Dividable object", self.name
             self.piece = self.models['default']
@@ -53,7 +64,7 @@ class Dividable(IsisFunctional):
 
 class Sharp(IsisFunctional):
     def __init__(self):
-        pass
+        IsisFunctional.__init__(self)
 
     def cut(self,other):
         print "ouch"

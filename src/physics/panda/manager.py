@@ -76,12 +76,14 @@ class PhysicsWorldManager(DirectObject.DirectObject):
 
         # Initialize the handler.
         base.cEvent = CollisionHandlerEvent()
+        base.cEvent.addInPattern("%fn-into-%(container)it")
+        base.cEvent.addInPattern("%fn-outof-%(container)it")
         base.cEvent.addInPattern('%fn-into-%in')
         base.cEvent.addOutPattern('%fn-outof-%in')
        
         # initialize listeners
-        base.accept('object-into-container', self._enterContainer)
-        base.accept('object-outof-container', self._exitContainer)
+        base.accept('object-into-acontainer', self._enterContainer)
+        base.accept('object-outof-acontainer', self._exitContainer)
         base.accept('object-into-object', self._objCollisionHandlerIn)
         base.accept('object-outof-object', self._objCollisionHandlerOut)
         base.accept('agent-into-object', self._agentCollisionHandlerIn)

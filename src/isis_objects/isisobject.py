@@ -8,7 +8,7 @@ class IsisObject(NodePath):
     """ IsisObject is the base class for all visible objects in IsisWorld, other
     than sky, house, ground and agents """
 
-    def  __init__(self, name, physics, initialPos=Vec3(0,0,0), offsetVec=Vec3(0,0,-.4)): 
+    def  __init__(self, name, physics, initialPos=Vec3(0,0,0), offsetVec=Vec3(0,0,-0.1)): 
         # setup the name of the object
         self.name = "IsisObject/"+name+"+"+str(id(self))
         # construct parent NodePath class

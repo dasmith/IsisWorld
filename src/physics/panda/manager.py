@@ -69,8 +69,8 @@ class PhysicsWorldManager(DirectObject.DirectObject):
         # this tracks the velocity of moving objects, whereas CollisionHandlerFloor doesnt
         self.cFloor = CollisionHandlerGravity()
         # gravity should be -9.81m/s, but that doesn't quite work
-        self.cFloor.setGravity(9.81*10)
-        self.cFloor.setOffset(.9)
+        self.cFloor.setGravity(9.81*20)
+        self.cFloor.setOffset(.5)
         self.cFloor.setMaxVelocity(100)
         self.cFloor.addInPattern('into')
 
@@ -80,6 +80,8 @@ class PhysicsWorldManager(DirectObject.DirectObject):
         base.cEvent.addOutPattern('%fn-outof-%in')
        
         # initialize listeners
+        base.accept('object-into-container', self._enterContainer)
+        base.accept('object-outof-container', self._exitContainer)
         base.accept('object-into-object', self._objCollisionHandlerIn)
         base.accept('object-outof-object', self._objCollisionHandlerOut)
         base.accept('agent-into-object', self._agentCollisionHandlerIn)
@@ -100,6 +102,18 @@ class PhysicsWorldManager(DirectObject.DirectObject):
         if hasattr(cInto,'enterContainer'):
             cInto.enterContainer(cFrom,cInto)
         print "Object In Collision: %s, %s" % (cFrom, cInto)
+
+    def _enterContainer(self, entry):
+        cFrom = entry.getFromNodePath().getParent()
+        cInto = entry.getIntoNodePath().getParent()
+        cInto.enterContainer(cFrom,cInto)
+        print "Entering container %s, %s" % (cFrom, cInto)
+
+    def _exitContainer(self, entry):
+        cFrom = entry.getFromNodePath().getParent()
+        cInto = entry.getIntoNodePath().getParent()
+        cInto.enterContainer(cFrom,cInto)
+        print "Exiting container %s, %s" % (cFrom, cInto)
 
     def _objCollisionHandlerOut(self, entry):
         cFrom = entry.getFromNodePath().getParent()

@@ -94,6 +94,7 @@ class IsisWorld(DirectObject.DirectObject):
         floorCollisionNP.node().addSolid(collPlane)
         # set the bits which items can collide into
         floorCollisionNP.node().setIntoCollideMask(FLOORMASK)
+        floorCollisionNP.node().setFromCollideMask(FLOORMASK)
         
         self.worldObjects = {} 
         self.worldObjects.update(load_objects(self.rootDirectory+"/kitchen.isis", render, self.physicsManager))

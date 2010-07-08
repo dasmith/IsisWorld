@@ -48,14 +48,24 @@ def load_objects(file, renderParent, physicsManager):
                     parent = context[val]
                     prep = key
             print item
-            obj = instantiate_isisobject(item, physicsManager) 
-            obj.create()
+            obj = instantiate_isisobject(item, physicsManager)
             print "Creating object %s" % (obj.name)
             obj.setHpr(rot)
             if prep == "on":
-                parent.putOn(obj)
+                if hasattr(parent, "putOn"):
+                    parent.putOn(obj)
+                else:
+                    print parent
+                    obj.reparentTo(renderParent)
+                    x, y, z = parent.activeModel.getPos(renderParent)
+                    obj.setPos(x, y, z+1)
             elif prep == "in":
-                parent.putIn(obj)
+                if hasattr(parent, "putIn"):
+                    parent.putIn(obj)
+                else:
+                    obj.reparentTo(renderParent)
+                    x, y, z = parent.activeModel.getPos(renderParent)
+                    obj.setPos(x, y, z+1)
             else:
                 obj.reparentTo(renderParent)
             if loc:

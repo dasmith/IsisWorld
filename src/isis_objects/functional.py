@@ -20,16 +20,18 @@ class IsisFunctional():
         #    return None
 
     ## register actions that are enabled by default in all objects
-    def action__pick_up(self, agent, action, object):
+    def action__pick_up(self, agent, object):
         if self.getNetTag('heldBy') == '':
             # this the thing is not current held, OK to pick up
-            self.reparentTo(object)
-            self.setPos(object, 0, 0, 0)
+            self.disableCollisions()
+            print "ATTACHING TO", object 
             self.setHpr(0, 0, 0)
+            self.reparentTo(object)
+            self.setPos(0, 0, 0)
             self.setTag('heldBy', agent.name)
             return 'success'
         else:
-            raise "Error: already held by someone"
+            return "Error: already held by someone"
 
 class Dividable(IsisFunctional):
     def __init__(self,piece=None):

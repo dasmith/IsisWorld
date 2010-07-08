@@ -8,14 +8,17 @@ class IsisSpatial(object):
     are responsible for maintaining the spatial, geometric and physical properties of the 
     objects in IsisWorld."""
 
-    def __init__(self,density=1):
+    def __init__(self,*args,**kwargs):
         # First, make sure IsisVisual was called
         if not hasattr(self,'models'):
             raise "Error: IsisVisual needs to be instantiated before IsisSpatial for %s" % self.name
 
         self.containerItems = []
         self.isOpen = False
-        self.density = 1
+        if 'density' in kwargs:
+            self.density = kwargs['density']
+        else:
+            self.density = 1
         """ Material	Density (kg/m^3)
             Balsa wood	120
             Brick	2000
@@ -41,60 +44,73 @@ class IsisSpatial(object):
         lcorner, ucorner =self.activeModel.getTightBounds()
         center = self.activeModel.getBounds().getCenter()
         cRay = CollisionRay(center[0],center[1],center[2]-((lcorner[2]-center[2])/2.5), 0.0, 0.0, -1.0)
-        cRayNode = CollisionNode('object')
-        cRayNode.addSolid(cRay)
-        cRayNode.setFromCollideMask(FLOORMASK|OBJFLOOR)
-        cRayNode.setIntoCollideMask(BitMask32.bit(0))
-        self.cRayNodePath = self.nodePath.attachNewNode(cRayNode)
+        self.floorRayNP = CollisionNode('object')
+        self.floorRayNP.addSolid(cRay)
+        self.floorRayGeomNP = self.nodePath.attachNewNode(self.floorRayNP)
         # add colliders
-        #self.cRayNodePath.show()
-        self.physicsManager.cFloor.addCollider(self.cRayNodePath, self.nodePath)
-        base.cTrav.addCollider(self.cRayNodePath, self.physicsManager.cFloor)
+        #self.self.floorRayNPPath.show()
         print "Adding Ray to %s" % self.name
         # TODO see if the collider geometry is defined in the model
         # ie. find it in the egg file:  cNodePath = model.find("**/collider")
         lcorner, ucorner =self.activeModel.getTightBounds()
-        cFloorNode = CollisionNode('object')
+        self.topSurfaceNP = CollisionNode('object')
         left_front = Vec3(lcorner[0], lcorner[1], ucorner[2])
         left_back = Vec3(lcorner[0], ucorner[1], ucorner[2])
         right_front = Vec3(ucorner[0], lcorner[1], ucorner[2])
         right_back = ucorner
         cFloorGeom = CollisionPolygon(left_front, right_front, right_back, left_back)
-        cFloorNode.addSolid(cFloorGeom)
-        cFloorNode.setFromCollideMask(FLOORMASK)
-        cFloorNode.setIntoCollideMask(OBJFLOOR|FLOORMASK)
+        self.topSurfaceNP.addSolid(cFloorGeom)
         # setup up collider for floor
-        cFloorGeomNodePath = self.nodePath.attachNewNode(cFloorNode)
-        self.physicsManager.cFloor.addCollider(cFloorGeomNodePath, self.nodePath)
-        base.cTrav.addCollider(cFloorGeomNodePath, self.physicsManager.cFloor)
+        self.floorGeomNP = self.nodePath.attachNewNode(self.topSurfaceNP)
         print "Setup colliders for ", self.name
-        return
 
         # setup wall collider 
-        cWallNode = CollisionNode('object')
+        self.wallNP = CollisionNode('object')
         bounds, offset = getOrientedBoundedBox(self.activeModel)
         radius = bounds[0]/2.0
         cGeom = CollisionSphere(0.0, 0.0, 0.0, radius)
         #cGeom = CollisionBox(lcorner, ucorner)
         cGeom.setTangible(0)
-        cWallNode.addSolid(cGeom)
+        self.wallNP.addSolid(cGeom)
         # objects (ray) and agents can collide INTO it
-        cWallNode.setIntoCollideMask(OBJMASK | AGENTMASK)
-        cWallNode.setFromCollideMask(OBJMASK | AGENTMASK)
         # attach to current node path
-        cWallNodePath = self.nodePath.attachNewNode(cWallNode)
-        self.physicsManager.cWall.addCollider(cWallNodePath, self.nodePath)
-        base.cTrav.addCollider(cWallNodePath, self.physicsManager.cWall)
+        self.wallGeomNP = self.nodePath.attachNewNode(self.wallNP)
+        IsisSpatial.enableCollisions(self)
 
+        self.physicsManager.cFloor.addCollider(self.floorRayGeomNP, self.nodePath)
+        base.cTrav.addCollider(self.floorRayGeomNP, self.physicsManager.cFloor)
+        self.physicsManager.cFloor.addCollider(self.floorGeomNP, self.nodePath)
+        base.cTrav.addCollider(self.floorGeomNP, self.physicsManager.cFloor)
+        self.physicsManager.cWall.addCollider(self.wallGeomNP, self.nodePath)
+        base.cTrav.addCollider(self.wallGeomNP, self.physicsManager.cWall)
+
+
+    def enableCollisions(self):
+        self.floorRayNP.setFromCollideMask(FLOORMASK|OBJFLOOR)
+        self.floorRayNP.setIntoCollideMask(BitMask32.bit(0))
+        self.topSurfaceNP.setFromCollideMask(FLOORMASK)
+        self.topSurfaceNP.setIntoCollideMask(OBJFLOOR|FLOORMASK)
+        self.wallNP.setIntoCollideMask(OBJMASK | AGENTMASK)
+        self.wallNP.setFromCollideMask(OBJMASK | AGENTMASK)
+
+    def disableCollisions(self):
+        print "Removing Collisions - Base"
+        self.floorRayNP.setFromCollideMask(BitMask32.allOff())
+        self.floorRayNP.setIntoCollideMask(BitMask32.allOff())
+        self.topSurfaceNP.setFromCollideMask(BitMask32.allOff())
+        self.topSurfaceNP.setIntoCollideMask(BitMask32.allOff())
+        self.wallNP.setIntoCollideMask(BitMask32.allOff())
+        self.wallNP.setFromCollideMask(BitMask32.allOff())
 
 class Surface(IsisSpatial):
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         self.surfaceContacts = []
+        super(Surface,self).__init__(args,kwargs)
 
     def _setupPhysics(self):
         """ Creates a surface collision geometry on the top of the object"""
         # find the surface of the model                    
-        cNode = CollisionNode('object')
+        self.surfaceNP = CollisionNode('surface')
         left_front = Vec3(lcorner[0], lcorner[1], ucorner[2])
         left_back = Vec3(lcorner[0], ucorner[1], ucorner[2])
         right_front = Vec3(ucorner[0], lcorner[1], ucorner[2])
@@ -102,19 +118,30 @@ class Surface(IsisSpatial):
         # and make a Collision Polygon (ordering important)
         cGeom = CollisionPolygon(left_front, right_front, right_back, left_back)
         cGeom.setTangible(0)
-        cNode.addSolid(cGeom)
-        # but this surface/sphere cannot collide INTO other objects
-        cNode.setIntoCollideMask(OBJMASK | AGENTMASK)
-        # objects (ray) and agents can collide INTO it
-        cNode.setFromCollideMask(OBJMASK | AGENTMASK)
+        self.surfaceNP.addSolid(cGeom)
         # attach to current node path
-        cNodePath = self.nodePath.attachNewNode(cNode)
+        self.surfaceCollisionNP = self.nodePath.attachNewNode(self.SurfaceNP)
         #cNodePath.show()
         # add this to the base collider, accessible through DirectStart
-        base.cTrav.addCollider(cNodePath, base.cEvent)
         print "Setup surface", self.name
+        self.enableCollisions()
+        base.cTrav.addCollider(self.surfaceCollisionNP, base.cEvent)
         super(Surface,self)._setupPhysics()
         # wall traversing collision objects
+
+    def enableCollisions(self):
+        # but this surface/sphere cannot collide INTO other objects
+        self.surfaceNP.setIntoCollideMask(OBJMASK | AGENTMASK)
+        # objects (ray) and agents can collide INTO it
+        self.surfaceNP.setFromCollideMask(OBJMASK | AGENTMASK)
+
+    def disableCollisions(self):
+        # but this surface/sphere cannot collide INTO other objects
+        self.surfaceNP.setIntoCollideMask(BitMask32.allOff())
+        # objects (ray) and agents can collide INTO it
+        self.surfaceNP.setFromCollideMask(BitMask32.allOff())
+        print "Removing Collision - Surface"
+        super(Surface,self).disableCollisions()
 
     def enterSurface(self,fromObj,toObject):
         print "Added to surface contacts", toObject
@@ -125,8 +152,12 @@ class Surface(IsisSpatial):
 
 class Container(IsisSpatial):
 
+    def __init__(self, *args, **kwargs):
+        self.surfaceContacts = []
+        super(Container,self).__init__(args,kwargs)
+
     def _setupPhysics(self,collisionGeom='box'):
-        cNode = CollisionNode('container')
+        self.containerNP = CollisionNode('container')
         lcorner, ucorner =self.activeModel.getTightBounds()
         center = self.activeModel.getBounds().getCenter()
         if collisionGeom == 'sphere':
@@ -138,21 +169,32 @@ class Container(IsisSpatial):
             cGeom = CollisionBox(lcorner, ucorner)
         # set so that is just considered a sensor.
         cGeom.setTangible(0)
-        cNode.addSolid(cGeom)
+        self.containerNP.addSolid(cGeom)
 
         #cFloorGeom = CollisionBox(lcorner,ucorner)
-        # but this surface/sphere cannot collide INTO other objects
-        cNode.setIntoCollideMask(OBJMASK | AGENTMASK)
-        # objects (ray) and agents can collide INTO it
-        cNode.setFromCollideMask(OBJMASK | AGENTMASK)
         # attach to current node path
-        cNodePath = self.nodePath.attachNewNode(cNode)
+        self.containerCollisionNP = self.nodePath.attachNewNode(self.containerNP)
         #cNodePath.show()
         # add this to the base collider, accessible through DirectStart
-        base.cTrav.addCollider(cNodePath, base.cEvent)
+        base.cTrav.addCollider(self.containerCollisionNP, base.cEvent)
+        self.enableCollisions()
         print "Setup container", self.name
         super(Container,self)._setupPhysics()
         # wall traversing collision objects
+    
+    def enableCollisions(self):
+        # but this surface/sphere cannot collide INTO other objects
+        self.containerNP.setIntoCollideMask(OBJMASK | AGENTMASK)
+        # objects (ray) and agents can collide INTO it
+        self.containerNP.setFromCollideMask(OBJMASK | AGENTMASK)
+
+    def disableCollisions(self):
+        # but this surface/sphere cannot collide INTO other objects
+        self.containerNP.setIntoCollideMask(BitMask32.allOff())
+        # objects (ray) and agents can collide INTO it
+        self.containerNP.setFromCollideMask(BitMask32.allOff())
+        print "Removing Collisions - Container"
+        super(Container,self).disableCollisions()
 
     def enterContainer(self,fromObj,toObject):
         print "Entering container", toObject

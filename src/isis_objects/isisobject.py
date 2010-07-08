@@ -26,11 +26,3 @@ class IsisObject(NodePath):
     def getName(self):
         return self.name
 
-
-    def call(self, agent, action, object = None):
-        try:
-            return getattr(self, "action_"+action)(agent, object)
-        except AttributeError:
-            return None
-        except:
-            return None

@@ -303,7 +303,7 @@ class Ralph(DirectObject.DirectObject):
         if d[pick_up_object] < 5.0:
             if hasattr(pick_up_object,'action__pick_up'):
                 # try to pick it up  
-                result = pick_up_object.call("pick_up",self.player_right_hand)
+                result = pick_up_object.call(self, "pick_up",self.player_right_hand)
                 print "Result of trying to pick up %s:" % pick_up_object.name, result
                 if result == 'success': self.right_hand_holding_object = pick_up_object 
                 return result
@@ -326,7 +326,7 @@ class Ralph(DirectObject.DirectObject):
         if d[pick_up_object] < 5.0:
             if hasattr(pick_up_object,'action__pick_up'):
                 # try to pick it up 
-                result = pick_up_object.call("pick_up",self.player_left_hand)
+                result = pick_up_object.call(self, "pick_up",self.player_left_hand)
                 if result == 'success': self.left_hand_holding_object = pick_up_object 
                 print "Result of trying to pick up %s:" % pick_up_object.name, result
                 return result

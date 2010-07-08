@@ -1,4 +1,4 @@
-
+import sys
 
 class IsisAction():
     """ This class defines the actions that are available to the agent in IsisWorld """
@@ -56,12 +56,15 @@ class ActionController():
             if c in args:
                 kwargs[c] = args[c]
 
+        result = None 
         failed = False
-        try:
-            result = getattr(agent, command)(**kwargs)
-        except e:
-            result = e
-            failed = True
+        result = getattr(agent, command)(**kwargs)
+        if False:
+            try:
+                result = getattr(agent, command)(**kwargs)
+            except:
+                print "Unexpected error:", sys.exc_info()[0]
+                failed = True
 
         # Whether the action is recorded or not depends on the return type of the function.  A 'None'
         # return type or a generated error results in the action not being recorded.  An action returning

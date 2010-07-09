@@ -605,6 +605,7 @@ class Picker(DirectObject.DirectObject):
         self.pickerNode.addSolid(self.pickerRay)
 
         base.cTrav.addCollider(self.pickerNP, self.queue)
+        self.picker.addCollider(self.pickerNP, self.queue)
         self.worldObjects = worldObjects
 
     def pick(self, pos):
@@ -620,6 +621,7 @@ class Picker(DirectObject.DirectObject):
                     return (parent, dist)
                 elif parent.getTag(self.tag) == self.value:
                     name = str(parent)
+                    print name
                     return (self.worldObjects[name[name.rfind("IsisObject"):]], dist)
                 else:
                     parent = parent.getParent()

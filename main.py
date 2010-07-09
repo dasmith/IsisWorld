@@ -150,8 +150,10 @@ class IsisWorld(DirectObject.DirectObject):
         # Set up the camera 
         ### Set up displays and cameras ###
         self.floatingCamera = FloatingCamera(self.agents[self.agentNum].actorNodePath)
-        base.camera.reparentTo(self.agents[self.agentNum].actorNodePath)
-        base.taskMgr.add(self.floatingCamera.update_camera, 'update_camera')
+        base.camera.setCollideMask(BitMask32.allOff())
+        base.camera.reparentTo(render)
+        base.taskMgr.remove('update_camera')
+        base.taskMgr.add(self.floatingCamera.update_camera, 'update_camera', priority=35)
         # set up picture in picture
         dr = base.camNode.getDisplayRegion(0)
         aspect_ratio = 16.0 / 9.0
@@ -212,10 +214,10 @@ class IsisWorld(DirectObject.DirectObject):
         text = "\n"
         text += "IsisWorld v%s\n" % (ISIS_VERSION)
         text += "\n\n"
-        text += "\nPress [1] to toggle wire frame"
-        text += "\nPress [2] to toggle texture"
-        text += "\nPress [3] to switch agent"
-        text += "\nPress [4] to hide/show this text"
+        text += "\n[1] to toggle wire frame"
+        text += "\n[2] to toggle texture"
+        text += "\n[3] to switch agent"
+        text += "\n[4] to hide/show this text"
         text += "\n[o] lists objects in agent's f.o.v."
         text += "\n[Esc] to quit\n"
         # initialize actions
@@ -342,8 +344,8 @@ class IsisWorld(DirectObject.DirectObject):
             if (not self.physicsManager.paused): # pause it
                 self.physicsManager.togglePaused()
             self.agentCamera.setActive(0)
-            active_agent = self.agents[self.agentNum].actor
-            base.camera.reparentTo(active_agent)
+            active_agent = self.agents[self.agentNum].actorNodePath
+            base.camera.reparentTo(render)
             base.camera.lookAt(active_agent)
             for child in render.getChildren():
                 if child != active_agent and child.getName()[-5:] != "Light" and child.getName()[0:16] != "physicsControler":

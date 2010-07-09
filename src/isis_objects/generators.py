@@ -23,7 +23,7 @@ class table(IsisObject,IsisVisual,Container,Surface,IsisFunctional):
 class knife(IsisObject, IsisVisual, IsisSpatial, Sharp):
 
     def __init__(self,name,physics):
-        IsisObject.__init__(self,name=name,physics=physics)
+        IsisObject.__init__(self,name=name,physics=physics, offsetVec=(.00,.30,-0.5))
         IsisVisual.__init__(self,model="knife", scale=0.01)
         IsisSpatial.__init__(self, density=25)
         Sharp.__init__(self)
@@ -35,7 +35,7 @@ class knife(IsisObject, IsisVisual, IsisSpatial, Sharp):
 class toaster(IsisObject, IsisVisual, Container, IsisFunctional):
     
     def __init__(self,name,physics):
-        IsisObject.__init__(self,name=name,physics=physics,offsetVec=(1,0.4,0))
+        IsisObject.__init__(self,name=name,physics=physics,offsetVec=Vec3(.2,0,.6))
         IsisVisual.__init__(self,model="toaster", scale=0.7)
         IsisFunctional.__init__(self)
         Container.__init__(self, density=100)
@@ -50,7 +50,7 @@ class bread(IsisObject, IsisVisual, Container, IsisFunctional):
 
     def __init__(self,name,physics):
         IsisObject.__init__(self,name=name,physics=physics)
-        IsisVisual.__init__(self,model="slice_of_bread", scale=0.5)
+        IsisVisual.__init__(self,model="slice_of_bread", scale=0.10)
         IsisFunctional.__init__(self)
         Container.__init__(self, density=100)
 
@@ -61,7 +61,7 @@ class loaf(IsisObject, IsisVisual, IsisSpatial, Dividable):
 
     def __init__(self,name,physics):
         IsisObject.__init__(self,name=name,physics=physics)
-        IsisVisual.__init__(self,model="loaf_of_bread", scale=0.3)
+        IsisVisual.__init__(self,model="loaf_of_bread", scale=0.2)
         IsisSpatial.__init__(self, density=1000)
         Dividable.__init__(self, bread)
 

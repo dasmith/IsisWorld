@@ -9,23 +9,24 @@ class IsisFunctional():
     def registerState(self,stateName,valueDomain):
         self.states[stateName] = valueDomain
 
-    def call(self, agent, action, object = None):
+    def call(self, agent, action, dobject = None):
         """ This is the dispatcher for the action methods """
-        return getattr(self, "action__"+action)(agent, object)
+        return getattr(self, "action__"+action)(agent, dobject)
         try:
-            return getattr(self, "action__"+action)(agent, object)
+            return getattr(self, "action__"+action)(agent, dobject)
         except AttributeError:
             return None
         #except:
         #    return None
 
     ## register actions that are enabled by default in all objects
-    def action__pick_up(self, agent, object):
+    def action__pick_up(self, agent, directobject):
         if self.getNetTag('heldBy') == '':
             # this the thing is not current held, OK to pick up
             self.disableCollisions()
-            print "ATTACHING TO", object 
-            self.reparentTo(object)
+            print "ATTACHING TO", directobject
+            self.setPos(0,0,0) 
+            self.reparentTo(directobject)
             self.setHpr(0, 0, 0)
             self.setPos(self.offsetVec)
             self.setTag('heldBy', agent.name)
@@ -52,8 +53,8 @@ class Dividable(IsisFunctional):
         else:
             self.piece = piece
 
-    def action__divide(self, agent, object):
-        if object != None and isinstance(object, SharpObject):
+    def action__divide(self, agent, directobject):
+        if directobject != None and isinstance(object, SharpObject):
             if agent.right_hand_holding_object:
                 agent.control__put_object_in_empty_right_hand(self.piece.generate_instance(self.physicsManager))
                 return true

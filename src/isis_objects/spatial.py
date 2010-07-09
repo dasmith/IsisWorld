@@ -53,10 +53,11 @@ class IsisSpatial(object):
         lcorner, ucorner =self.activeModel.getTightBounds()
         center = self.activeModel.getBounds().getCenter()
         # setup ray for staying on the ground 
-        cRay = CollisionRay(center[0],center[1],center[2]-((lcorner[2]-center[2])/2.5), 0.0, 0.0, -1.0)
+        cRay = CollisionRay(center[0],center[1],center[2]-((lcorner[2]-center[2])/2), 0.0, 0.0, -1.0)
         self.floorRayNP = CollisionNode('object')
         self.floorRayNP.addSolid(cRay)
         self.floorRayGeomNP = self.nodePath.attachNewNode(self.floorRayNP)
+        self.floorRayGeomNP.setPos(render,center)
         print "Adding Ray to %s" % self.name
         self.topSurfaceNP = CollisionNode('object')
         left_front = Vec3(lcorner[0], lcorner[1], ucorner[2])
@@ -71,11 +72,12 @@ class IsisSpatial(object):
         # setup wall collider 
         self.fullBoxNP = CollisionNode('object')
         bounds, offset = getOrientedBoundedBox(self.activeModel)
-        radius = bounds[0]/2.0
-        #cGeom = CollisionSphere(0.0, 0.0, 0.0, radius)
+        radius = min(ucorner[0]-lcorner[0],ucorner[1]-lcorner[1])/2.0
+        cGeomSphere = CollisionSphere(0.0, 0.0, 0.0, radius)
         cGeom = CollisionBox(lcorner, ucorner)
         cGeom.setTangible(0)
         self.fullBoxNP.addSolid(cGeom)
+        self.fullBoxNP.addSolid(cGeomSphere)
         self.wallGeomNP = self.nodePath.attachNewNode(self.fullBoxNP)
         IsisSpatial.enableCollisions(self)
         self.wallGeomNP.show()

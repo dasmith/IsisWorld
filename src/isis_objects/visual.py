@@ -85,7 +85,7 @@ class IsisVisual():
     def create(self):
         print "Called for IsisVisual ", self.name
         self.activeModel = loader.loadModel("media/models/"+self.models['default'])
-        self.activeModel.setPos(self.initialPos+self.offsetVec)
+        self.activeModel.setPos(self.initialPos)
         self.activeModel.setScale(self.scale)
         self.activeModel.reparentTo(self.nodePath)
         self.activeModel.setCollideMask(BitMask32.allOff())

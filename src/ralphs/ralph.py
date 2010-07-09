@@ -69,9 +69,14 @@ class Ralph(DirectObject.DirectObject):
         # Expose agent's right hand joint to attach objects to
         self.player_right_hand = self.actor.exposeJoint(None, 'modelRoot', 'Hand.R')
         self.player_left_hand  = self.actor.exposeJoint(None, 'modelRoot', 'Hand.L')
-        toaster = loader.loadModel("media/models/toaster")
-        #toaster.reparentTo(self.player_right_hand)
-        #toaster.place()
+        if 0: #name == "Lauren":
+            toaster = loader.loadModel("media/models/toaster")
+            toaster.setScale(0.7)
+            toaster.setPos(0,0,0)
+            toaster.reparentTo(self.player_right_hand)
+            toaster.setPos(Vec3(.2,0,.6))
+            toaster.place()
+
         #toaster.setPos(1,0.4,0)
 
 

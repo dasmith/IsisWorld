@@ -71,7 +71,7 @@ class FloatingCamera:
         if self.controlMap['right'] !=0:
             """Rotate the camera to the right"""
             #increment the camera timer
-            self.timer -= .01
+            self.timer -= .1
             angledegrees = self.timer * 50
             angleradians = angledegrees * (math.pi / 180.0)
             base.camera.setPos(self.zoom* math.sin(angleradians), -self.zoom * math.cos(angleradians), base.camera.getZ())

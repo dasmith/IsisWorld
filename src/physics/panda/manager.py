@@ -37,6 +37,8 @@ class PhysicsWorldManager(DirectObject.DirectObject):
         Future optimization: traversers that only look at certain branches of the render tree.
         """
         self._GlobalClock=ClockObject.getGlobalClock() 
+        globalClock.setMode(ClockObject.MLimited) 
+        globalClock.setFrameRate(30)
         #self._FrameTime=self._GlobalClock.getFrameTime() 
         #self._GlobalClock.setRealTime(self._FrameTime) 
         

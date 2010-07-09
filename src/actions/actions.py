@@ -85,7 +85,7 @@ class ActionController():
     def addAction(self,action):
         """ Adds an action to the actionMap, containing commands that can be controlled through XMLRPC"""
         if action.keyboardBinding:
-            self.helpStrings.append("Press [%s] to %s" % (action.keyboardBinding, action.commandName.replace("_"," ")))
+            self.helpStrings.append("[%s] to %s" % (action.keyboardBinding, action.commandName.replace("_"," ")))
         # initialize actions
         if action.intervalAction:
             # register the arguments of an action in a list (ordering important):

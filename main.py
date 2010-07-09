@@ -96,8 +96,7 @@ class IsisWorld(DirectObject.DirectObject):
         floorCollisionNP.node().setIntoCollideMask(FLOORMASK)
         floorCollisionNP.node().setFromCollideMask(FLOORMASK)
         
-        self.worldObjects = {} 
-        self.worldObjects.update(load_objects(self.rootDirectory+"/kitchen.isis", render, self.physicsManager))
+        self.worldObjects = load_objects(self.rootDirectory+"/kitchen.isis", render, self.physicsManager)
                 
         if enableKitchen:
             self.map = loader.loadModel(self.rootDirectory+"/media/models/kitchen")

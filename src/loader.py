@@ -19,7 +19,6 @@ def load_objects_file(file):
 
 def load_objects(file, renderParent, physicsManager):
     # add each object to the world
-    world_objects = {}
     context = {}
 
     for instruction in load_objects_file(file):
@@ -70,7 +69,6 @@ def load_objects(file, renderParent, physicsManager):
                 obj.reparentTo(renderParent)
             if loc:
                 obj.setPos(obj, loc)
-            world_objects[obj.name] = obj
             if name:
                context[name] = obj
             context[item] = obj

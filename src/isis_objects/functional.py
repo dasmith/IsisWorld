@@ -11,13 +11,10 @@ class IsisFunctional():
 
     def call(self, agent, action, object = None):
         """ This is the dispatcher for the action methods """
-        return getattr(self, "action__"+action)(agent, object)
         try:
             return getattr(self, "action__"+action)(agent, object)
         except AttributeError:
             return None
-        #except:
-        #    return None
 
     ## register actions that are enabled by default in all objects
     def action__pick_up(self, agent, object):
@@ -51,14 +48,14 @@ class Dividable(IsisFunctional):
         self.piece = piece
 
     def action__divide(self, agent, object):
-        if self.piece and object != None and isinstance(object, SharpObject):
+        if self.piece and object != None and isinstance(object, Sharp):
             if not agent.right_hand_holding_object:
-                agent.control__put_object_in_empty_right_hand(self.piece("bread", self.physicsManager))
-                return true
+                print agent.control__put_object_in_empty_right_hand(self.piece("bread", self.physicsManager).name)
+                return True
             elif not agent.left_hand_holding_object:
-                agent.control__put_object_in_empty_right_hand(self.piece.generate_instance(self.physicsManager))
-                return true
-        return false
+                print agent.control__put_object_in_empty_left_hand(self.piece("bread", self.physicsManager).name)
+                return True
+        return False
 
 class Sharp(IsisFunctional):
     def __init__(self):

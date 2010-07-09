@@ -149,8 +149,8 @@ class IsisWorld(DirectObject.DirectObject):
     def _setupCameras(self):
         # Set up the camera 
         ### Set up displays and cameras ###
-        self.floatingCamera = FloatingCamera(self.agents[self.agentNum].actor)
-        base.camera.reparentTo(self.agents[self.agentNum].actor)
+        self.floatingCamera = FloatingCamera(self.agents[self.agentNum].actorNodePath)
+        base.camera.reparentTo(self.agents[self.agentNum].actorNodePath)
         base.taskMgr.add(self.floatingCamera.update_camera, 'update_camera')
         # set up picture in picture
         dr = base.camNode.getDisplayRegion(0)

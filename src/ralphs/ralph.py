@@ -69,6 +69,12 @@ class Ralph(DirectObject.DirectObject):
         # Expose agent's right hand joint to attach objects to
         self.player_right_hand = self.actor.exposeJoint(None, 'modelRoot', 'Hand.R')
         self.player_left_hand  = self.actor.exposeJoint(None, 'modelRoot', 'Hand.L')
+        toaster = loader.loadModel("media/models/toaster")
+        #toaster.reparentTo(self.player_right_hand)
+        #toaster.place()
+        #toaster.setPos(1,0.4,0)
+
+
         self.player_right_hand.setColorScaleOff()
         self.player_left_hand.setColorScaleOff()
         self.player_head  = self.actor.exposeJoint(None, 'modelRoot', 'Head')
@@ -153,6 +159,7 @@ class Ralph(DirectObject.DirectObject):
 
     def setPosition(self,position):
         self.actorNodePath.setPos(position)
+
     def getObjectsInView(self):
         """ Gets objects through ray tracing.  Slow"""
         return self.picker.getObjectsInView()

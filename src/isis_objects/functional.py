@@ -25,8 +25,9 @@ class IsisFunctional():
             # this the thing is not current held, OK to pick up
             self.disableCollisions()
             print "ATTACHING TO", object 
+            self.reparentTo(object)
             self.setHpr(0, 0, 0)
-            self.wrtReparentTo(object)
+            self.setPos(self.offsetVec)
             self.setTag('heldBy', agent.name)
             return 'success'
         else:

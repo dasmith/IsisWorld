@@ -49,8 +49,7 @@ class IsisSpatial(object):
         if self.__setup:
             return
         # ensure all existing collision masks are off
-        self.setCollideMask(OBJMASK)
-        
+        self.setCollideMask(BitMask32.allOff())
         lcorner, ucorner =self.activeModel.getTightBounds()
         center = self.activeModel.getBounds().getCenter()
         # setup ray for staying on the ground 
@@ -79,7 +78,7 @@ class IsisSpatial(object):
         self.fullBoxNP.addSolid(cGeom)
         self.wallGeomNP = self.nodePath.attachNewNode(self.fullBoxNP)
         IsisSpatial.enableCollisions(self)
-
+        self.wallGeomNP.show()
         self.physicsManager.cFloor.addCollider(self.floorRayGeomNP, self.nodePath)
         base.cTrav.addCollider(self.floorRayGeomNP, self.physicsManager.cFloor)
         self.physicsManager.cFloor.addCollider(self.floorGeomNP, self.nodePath)

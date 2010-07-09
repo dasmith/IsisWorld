@@ -271,19 +271,6 @@ class Ralph(DirectObject.DirectObject):
         print percepts
         return percepts
  
-    def can_grasp(self, object_name):
-        objects = self.get_objects()
-        print object_name
-        print objects
-        if objects.has_key(object_name):
-            print "found object"
-            object_view = objects[object_name]
-            distance = object_view['distance']
-            print distance
-            if (distance < 5.0):
-                return "success"
-            return "object not close enough"
-
     def control__say(self, message = "Hello!"):
        self.speech_bubble['text'] = message
        self.last_spoke = 0
@@ -391,7 +378,7 @@ class Ralph(DirectObject.DirectObject):
                 target = target[0]
         else:
             target = self.agent_simulator.world_objects[target]
-        if self.can_grasp(target.name):
+        if self.can_grasp(target):
             target.call(self, action, self.right_hand_holding_object)
             return "success"
         return "target not within reach"
@@ -406,10 +393,13 @@ class Ralph(DirectObject.DirectObject):
                 target = target[0]
         else:
             target = self.agent_simulator.world_objects[target]
-        if self.can_grasp(target.name):
+        if self.can_grasp(target):
             target.call(self, action, self.left_hand_holding_object)
             return "success"
         return "target not within reach"
+
+    def can_grasp(self, object):
+        return object.getDistance(self.FOV)
 
     def is_holding(self, object_name):
         return ((self.left_hand_holding_object  and (self.left_hand_holding_object.getName()  == object_name)) \
@@ -588,10 +578,13 @@ class Ralph(DirectObject.DirectObject):
 
         total_frame_num = self.actor.getNumFrames('walk')
         if self.isMoving:
-            self.current_frame_count = self.current_frame_count + (stepSize*8000.0)
-            while (self.current_frame_count >= total_frame_num + 1):
-                self.current_frame_count -= total_frame_num
-                self.actor.pose('walk', self.current_frame_count)
+            self.current_frame_count = self.current_frame_count + (stepSize*250.0)
+            if self.current_frame_count > total_frame_num:
+                self.current_frame_count = self.current_frame_count%total_frame_num
+            self.actor.pose('walk', self.current_frame_count)
+        elif self.current_frame_count != 0:
+            self.current_frame_count = 0
+            self.actor.pose('idle', 0)
         return Task.cont
 
 class Picker(DirectObject.DirectObject):

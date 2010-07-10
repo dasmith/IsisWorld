@@ -53,11 +53,15 @@ class IsisSpatial(object):
         lcorner, ucorner =self.activeModel.getTightBounds()
         center = self.activeModel.getBounds().getCenter()
         # setup ray for staying on the ground 
-        cRay = CollisionRay(center[0],center[1],center[2]-((lcorner[2]-center[2])/2), 0.0, 0.0, -1.0)
+        print "NAME:", self.name[11:16]
+        if self.name[11:16] == "table":
+            cRay = CollisionRay(center[0],center[1],center[2]-((lcorner[2]-center[2])/2.5), 0.0, 0.0, -1.0)
+        else:
+            cRay = CollisionRay(center[0],center[1],lcorner[2]+0.4, 0.0, 0.0, -1.0)
         self.floorRayNP = CollisionNode('object')
         self.floorRayNP.addSolid(cRay)
         self.floorRayGeomNP = self.nodePath.attachNewNode(self.floorRayNP)
-        self.floorRayGeomNP.setPos(render,center)
+        
         print "Adding Ray to %s" % self.name
         self.topSurfaceNP = CollisionNode('object')
         left_front = Vec3(lcorner[0], lcorner[1], ucorner[2])
@@ -73,11 +77,22 @@ class IsisSpatial(object):
         self.fullBoxNP = CollisionNode('object')
         bounds, offset = getOrientedBoundedBox(self.activeModel)
         radius = min(ucorner[0]-lcorner[0],ucorner[1]-lcorner[1])/2.0
-        cGeomSphere = CollisionSphere(0.0, 0.0, 0.0, radius)
-        cGeom = CollisionBox(lcorner, ucorner)
-        cGeom.setTangible(0)
-        self.fullBoxNP.addSolid(cGeom)
-        self.fullBoxNP.addSolid(cGeomSphere)
+        if self.name[11:16] == "table":
+            cGeomSphere1 = CollisionSphere(0-radius, 0.0, 0.0, radius)
+            cGeomSphere2 = CollisionSphere(radius, 0.0, 0.0, radius)
+            self.fullBoxNP.addSolid(cGeomSphere1)
+            self.fullBoxNP.addSolid(cGeomSphere2)
+            cGeom = CollisionBox(lcorner, ucorner)
+            cGeom.setTangible(1)
+            self.fullBoxNP.addSolid(cGeom)            
+        else:
+            cGeomSphere = CollisionSphere(0.0, 0.0, 0.0, radius)
+            self.fullBoxNP.addSolid(cGeomSphere)
+            cGeom = CollisionBox(lcorner, ucorner)
+            cGeom.setTangible(1)
+            self.fullBoxNP.addSolid(cGeom)
+            
+        
         self.wallGeomNP = self.nodePath.attachNewNode(self.fullBoxNP)
         IsisSpatial.enableCollisions(self)
         self.wallGeomNP.show()
@@ -94,8 +109,8 @@ class IsisSpatial(object):
         self.floorRayNP.setIntoCollideMask(BitMask32.bit(0))
         self.topSurfaceNP.setFromCollideMask(FLOORMASK)
         self.topSurfaceNP.setIntoCollideMask(OBJFLOOR|FLOORMASK)
-        self.fullBoxNP.setIntoCollideMask(OBJMASK | AGENTMASK)
-        self.fullBoxNP.setFromCollideMask(OBJMASK | AGENTMASK)
+        self.fullBoxNP.setIntoCollideMask(OBJMASK|AGENTMASK)
+        self.fullBoxNP.setFromCollideMask(OBJMASK)
 
     def disableCollisions(self):
         print "Removing Collisions - Base"

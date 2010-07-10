@@ -25,10 +25,11 @@ class IsisFunctional():
             # this the thing is not current held, OK to pick up
             self.disableCollisions()
             print "ATTACHING TO", directobject
-            self.setPos(0,0,0) 
+            #self.setPosHpr(0, 0, 0,0,0,0)
             self.reparentTo(directobject)
-            self.setHpr(0, 0, 0)
-            self.setPos(self.offsetVec)
+            self.setPosHpr(*self.offsetVec)
+            print "OFFSET", self.offsetVec
+            #self.place()
             self.setTag('heldBy', agent.name)
             return 'success'
         else:

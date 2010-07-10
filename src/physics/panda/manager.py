@@ -6,6 +6,7 @@ WALLMASK = BitMask32.bit(2)
 PICKMASK = BitMask32.bit(3)
 AGENTMASK = BitMask32.bit(4)
 OBJMASK= BitMask32.bit(5)
+OBJFLOOR = BitMask32.bit(21)
 
 def getOrientedBoundedBox(collObj):
     ''' get the Oriented Bounding Box '''
@@ -72,7 +73,7 @@ class PhysicsWorldManager(DirectObject.DirectObject):
         self.cFloor = CollisionHandlerGravity()
         # gravity should be -9.81m/s, but that doesn't quite work
         self.cFloor.setGravity(9.81*20)
-        self.cFloor.setOffset(.5)
+        self.cFloor.setOffset(.2)
         self.cFloor.setMaxVelocity(100)
         self.cFloor.addInPattern('into')
 

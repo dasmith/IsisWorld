@@ -9,7 +9,7 @@ from isisobject import IsisObject
 class table(IsisObject,IsisVisual,Container,Surface,IsisFunctional):
 
     def __init__(self,name,physics):
-        IsisObject.__init__(self,name=name,physics=physics)
+        IsisObject.__init__(self,name=name,physics=physics, offsetVec=(0,0,2,0,60,0))
         IsisVisual.__init__(self,model="table/table",scale=0.006)
         IsisFunctional.__init__(self)
         Container.__init__(self,density=4000)
@@ -23,7 +23,7 @@ class table(IsisObject,IsisVisual,Container,Surface,IsisFunctional):
 class knife(IsisObject, IsisVisual, IsisSpatial, Sharp):
 
     def __init__(self,name,physics):
-        IsisObject.__init__(self,name=name,physics=physics, offsetVec=(.00,.30,-0.5))
+        IsisObject.__init__(self,name=name,physics=physics, offsetVec=(.00,.30,-0.5,0,0,0))
         IsisVisual.__init__(self,model="knife", scale=0.01)
         IsisSpatial.__init__(self, density=25)
         Sharp.__init__(self)
@@ -35,7 +35,7 @@ class knife(IsisObject, IsisVisual, IsisSpatial, Sharp):
 class toaster(IsisObject, IsisVisual, Container, IsisFunctional):
     
     def __init__(self,name,physics):
-        IsisObject.__init__(self,name=name,physics=physics,offsetVec=Vec3(.2,0,.6))
+        IsisObject.__init__(self,name=name,physics=physics,offsetVec=(.2,0,.6,0,0,0))
         IsisVisual.__init__(self,model="toaster", scale=0.7)
         IsisFunctional.__init__(self)
         Container.__init__(self, density=100)

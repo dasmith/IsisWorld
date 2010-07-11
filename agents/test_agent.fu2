@@ -11,6 +11,12 @@
 [defmetro test_event [time subject action :rest prep_frame_slots]
   `[new test_event ,time ,subject ,action [frame @prep_frame_slots]]]
 
+[deftypefunk test_event execute execute_on_agent [agent]
+  [let [[subject_name [get this subject]]
+	[action_name  [get this action]]
+	[prep_frame   [get this prep_frame]]]
+    [cond [[eq action `move_left-start] [agent-call agent 
+
 
 [deframe      test_story [frame] [event_redblacktree]]
 [deftypeconstruct test_story []
@@ -42,7 +48,7 @@
 	nil
       [get step time]]]]
 
-[deftypefunk test_story get last_step-time []
+[deftypefunk test_story get last_step []
   [get [get this event_redblacktree] maximum]]
 
 [deftypefunk test_story get last_step-time []
@@ -96,18 +102,32 @@
       [set this execute_story_time nil]
     [set this execute_story_time 0]]]
 
+[deftypefunk test_agent execute execute_event [event]
+  [have event execute_on_agent this]]
+
 [deftypefunk test_agent execute step_execute_story []
   [let [[execute_story [get this execute_story]]]
-    [get execute_story step_event [get this execute_story_time]]
+    [let [[current_event [get execute_story step_event [get this execute_story_time]]]]
+      [have this execute_event current_event]]
     [set this execute_story_time [+ 1 [get this execute_story_time]]]
     [if [> [get this execute_story_time] [get execute_story last_step-time]]
 	[prog [set this execute_story      nil]
 	      [set this execute_story_time nil]]]]]
 
+[deftypefunk test_agent execute handle_execute_story []
+  [let [[execute_story [get this execute_story]]]
+    [if execute_story
+	[have this step_execute_story]]]]
+
 [deftypefunk test_agent execute step []
   [have this sense]
   [have this think_to_self 'I sense ' [get this sense]]
+  [have this handle_execute_story]
   ]
+
+[deftypefunk test_agent execute call [action :rest frame_args]
+  [
+
 
 [deframe test_agent_simulation [frame] [isis_world agent_name_frame format_mutex]]
 
@@ -125,7 +145,7 @@
   [get [get this agent_name_frame] values]]
 
 [deftypefunk test_agent_simulation execute step []
-  [isis-call [get this isis_world] meta_step seconds 0.1]
+  [isis-call [get this isis_world] meta_step seconds 1.0]
   [mapc [funk [agent]
 	      [have agent step]]
 	[get this agents]]]

@@ -89,13 +89,13 @@
   [have-apply [get this simulation] format `['\nAgent ' ,[get this name] ' thinks: ' @args]]]
 
 
-[deftypefunk test_event execute execute_event [event]
+[deftypefunk test_agent execute execute_event [event]
+  [have this think_to_self 'I am executing event, ' event '.']
   [let [[subject_name [get event subject]]
 	[action_name  [get event action]]
 	[prep_frame   [get event prep_frame]]]
-    [cond [[eq action `move_left-start] nil]
+    [cond [[eq action_name `move_left-start] nil]
 	  ]]]
-
 
 [deftypefunk test_agent execute execute [story]
   [set this execute_story story]
@@ -175,7 +175,7 @@
 						      [I move_forward-stop]]]
     [have [get isis agent `Lauren] execute [test_story [I move_forward-start]
 						       [I move_forward-stop]]]
-    [dotimes [i 10]
+    [dotimes [i 4]
       [print i]
       [have isis step]]
     ]]

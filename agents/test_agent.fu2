@@ -11,8 +11,8 @@
   `[new test_event ,time ,subject [quote ,action] @[if prep_frame_slots
 						       `[frame direct_object @prep_frame_slots]]]]
 
-[deframe test_story [frame] [event_redblacktree]]
-[defconstruct test_story []
+[deframe      test_story [frame] [event_redblacktree]]
+[deftypeconstruct test_story []
   [set this event_redblacktree [new redblacktree [funk [x y] [< [get x time] [get y time]]]]]
   this]
 

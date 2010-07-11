@@ -1,0 +1,3 @@
+[defpackage test_agent
+  :packages [isis_world]
+   :sources ['test_agent.fu2']]

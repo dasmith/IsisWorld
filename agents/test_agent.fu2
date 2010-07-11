@@ -1,0 +1,52 @@
+[require isis_world]
+
+
+[deframe test_agent_simulation [frame] [isis_world agent_name_hash]]
+
+[deftypeconstruct test_agent_simulation [hostname]
+  [set this isis_world      [new isis_world_client hostname]]
+  [set this agent_name_hash [new ptypehash]]
+  
+  [have this pause]
+  this]
+
+[deftypefunk test_agent_simulation execute pause []
+  [isis-call [get this isis_world] meta_pause]]
+
+[deftypefunk test_agent_simulation execute step []
+  [isis-call [get this isis_world] meta_step seconds 0.1]]
+
+[deftypefunk test_agent_simulation execute add_agent [agent]
+  [have [get this agent_name_hash] add [get agent name] agent]
+  [set agent simulation this]]
+
+
+[deframe test_agent [frame] [name simulation]]
+
+[deftypeconstruct test_agent [name]
+  [set this name       name]
+  [set this simulation nil]
+  this]
+
+[deftypefunk test_agent get isis_world []
+  [get [get this simulation] isis_world]]
+
+[deftypefunk test_agent execute turn_left-start []
+  [isis-call [get this isis_world] turn_left-start agent [get this name]]]
+
+
+[defunk test-agent []
+  [let [[isis [new test_agent_simulation '24.98.77.7']]]
+    [let [[ralph [new test_agent `Ralph]]]
+      [have isis add_agent ralph]
+      [have ralph turn_left-start]
+      [dotimes [i 100]
+	[print i]
+	[have isis step]]
+      ]]]
+
+
+  
+  
+
+

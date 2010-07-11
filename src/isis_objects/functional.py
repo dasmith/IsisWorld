@@ -24,7 +24,7 @@ class IsisFunctional():
             print "ATTACHING TO", directobject
             #self.setPosHpr(0, 0, 0,0,0,0)
             self.reparentTo(directobject)
-            self.setPosHpr(*self.offsetVec)
+            self.activeModel.setPosHpr(*self.offsetVec)
             print "OFFSET", self.offsetVec
             #self.place()
             self.setTag('heldBy', agent.name)

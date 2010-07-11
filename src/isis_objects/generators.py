@@ -30,14 +30,12 @@ class fridge(IsisObject, IsisVisual, Container, NoPickup):
     
     def __init__(self,name,physics):
         IsisObject.__init__(self,name=name,physics=physics, offsetVec=(0,0,0,0,60,0))
-        IsisVisual.__init__(self,model="Fridge/Fridge", scale=3)
+        IsisVisual.__init__(self,scale=1)
         NoPickup.__init__(self)
         Container.__init__(self,density=4000)
-        Surface.__init__(self, density=4000)
 
         self.create()
         Container.setup(self)
-        Surface.setup(self)
         addToWorld(self)
         self.activeModel.place()
 

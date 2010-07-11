@@ -198,10 +198,12 @@ class IsisWorld(DirectObject.DirectObject):
         # that the camera and fov follow
         self.agentNum = 0
         self.agents = []
-        self.agentsNamesToIDs = {'Ralph':0, 'Lauren':1, 'David':2}
+        defaultPos = { 'Ralph':Vec3(2,0,3), 'Lauren': Vec3(0,0,4)}
+        self.agentsNamesToIDs = {'Ralph':0, 'Lauren':1}
         # add and initialize new agents
         for name in self.agentsNamesToIDs.keys():
             newAgent = Ralph(self.physicsManager, self, name, self.worldObjects)
+            newAgent.setPosition(defaultPos[name])
             newAgent.control__say("Hi, I'm %s. Please build me." % name)
             self.agents.append(newAgent)
     

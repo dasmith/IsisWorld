@@ -59,7 +59,7 @@ class Ralph(DirectObject.DirectObject):
         x = random.randint(0,10)
         y = random.randint(0,10)
         z = random.randint(12,25)
-        self.actorNodePath.setFluidPos(Vec3(x,y,z))
+        #self.actorNodePath.setFluidPos(Vec3(x,y,z))
         
         self.setupCollisionSpheres()
 
@@ -571,9 +571,9 @@ class Ralph(DirectObject.DirectObject):
         self.actorNodePath.setFluidPos(newPos)
 
         # allow dialogue window to gradually decay (changing transparancy) and then disappear
-        self.last_spoke += stepSize
-        self.speech_bubble['text_bg']=(1,1,1,1/(2*self.last_spoke+0.01))
-        self.speech_bubble['frameColor']=(.6,.2,.1,.5/(2*self.last_spoke+0.01))
+        self.last_spoke += stepSize/2
+        self.speech_bubble['text_bg']=(1,1,1,1/(self.last_spoke+0.01))
+        self.speech_bubble['frameColor']=(.6,.2,.1,.5/(self.last_spoke+0.01))
         if self.last_spoke > 2:
             self.speech_bubble['text'] = ""
 

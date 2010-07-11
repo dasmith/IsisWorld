@@ -126,7 +126,7 @@
   ]
 
 [deftypefunk test_agent execute call [action :rest frame_args]
-  [have [get this simulation] agent_call [get this name] action frame_args]]
+  [have-apply [get this simulation] agent_call `[,[get this name] ,action @frame_args]]]
 
 
 [deframe test_agent_simulation [frame] [isis_world agent_name_frame format_mutex]]
@@ -166,7 +166,7 @@
   [have [get this agent_name_frame] lookup agent_name]]
 
 [deftypefunk test_agent_simulation execute agent_call [agent_name action :rest frame_args]
-  [have [get this isis_world] call action [new-apply frame `[agent ,agent_name @frame_args]]]]
+  [have [get this isis_world] call `do action [new-apply frame [print `[agent ,agent_name @frame_args]]]]]
 
 
 [defunk test-agent []

@@ -206,21 +206,13 @@ class PhysicsWorldManager(DirectObject.DirectObject):
 
 
     def _startPhysics(self, stopAt=None):
-        """
-        Here's another thing that's different than in the Panda Manual.
-        I don't use the time accumulator to make the simulation run
-        with a fixed time step, but instead I use the doMethodLater with
-        task.again as the return value in self.simulationTask.
-
-        This gave me better results than using the time accumulator method.
-        """
         if stopAt != None:
           assert stopAt > 0.0
           assert stopAt > self.stepSize # cannot step less than physical simulator
           taskMgr.doMethodLater(stopAt, self._stopPhysics, "physics-SimulationStopper", priority=10)
           # or can you 
-          taskMgr.doMethodLater(min(self.stepSize,stopAt), self.simulationTask, "physics-SimulationTask", priority=10)
+          taskMgr.add(self.simulationTask, "physics-SimulationTask", priority=10)
         else:
-          taskMgr.doMethodLater(self.stepSize, self.simulationTask, "physics-SimulationTask", priority=10)
+          taskMgr.add(self.simulationTask, "physics-SimulationTask", priority=10)
 
 

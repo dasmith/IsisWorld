@@ -89,7 +89,7 @@ class IsisSpatial(object):
             cGeomSphere = CollisionSphere(0.0, 0.0, 0.0, radius)
             self.fullBoxNP.addSolid(cGeomSphere)
             cGeom = CollisionBox(lcorner, ucorner)
-            cGeom.setTangible(1)
+            cGeom.setTangible(0)
             self.fullBoxNP.addSolid(cGeom)
             
         

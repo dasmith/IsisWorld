@@ -1,4 +1,4 @@
-fridge	at 4,3,2
+fridge	at 6,0,2
 table	at 0,2.8,3
 toaster	on table	at -0.2,0.0,4
 loaf	on table	at 1,-.6,5

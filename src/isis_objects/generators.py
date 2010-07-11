@@ -30,14 +30,17 @@ class fridge(IsisObject, IsisVisual, Container, NoPickup):
     
     def __init__(self,name,physics):
         IsisObject.__init__(self,name=name,physics=physics, offsetVec=(0,0,0,0,60,0))
-        IsisVisual.__init__(self,scale=1)
+        IsisVisual.__init__(self,model="Fridge/Fridge", scale=0.17)
         NoPickup.__init__(self)
         Container.__init__(self,density=4000)
-
         self.create()
+        self.activeModel.setH(90)
         Container.setup(self)
+        self.fullBoxNP.setIntoCollideMask(OBJMASK)
+        self.fullBoxNP.setFromCollideMask(OBJMASK)
+        
+        #freezerDoor
         addToWorld(self)
-        self.activeModel.place()
 
 class knife(IsisObject, IsisVisual, IsisSpatial, Sharp):
 
@@ -63,7 +66,6 @@ class toaster(IsisObject, IsisVisual, Container, IsisFunctional):
 
         # register functional states
         self.registerState("containsToast", [0,1,2])
-
         self.create()
         Container.setup(self)
 

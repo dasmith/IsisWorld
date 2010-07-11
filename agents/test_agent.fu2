@@ -8,8 +8,8 @@
   this]
 
 [defmetro test_event [time subject action :rest prep_frame_slots]
-  `[new test_event ,time ,subject [quote ,action] @[if prep_frame_slots
-						       `[frame direct_object @prep_frame_slots]]]]
+  `[new test_event ,time ,subject ,action [frame @prep_frame_slots]]]
+
 
 [deframe      test_story [frame] [event_redblacktree]]
 [deftypeconstruct test_story []
@@ -21,6 +21,18 @@
 
 [deftypefunk test_story get events []
   [get [get this event_redblacktree] leaves]]
+
+[defmetro test_story [:rest event_codes]
+  [let [[test_story-this      [new test_story]]
+	[test_story-time_step 0]]
+    [prog @[mapcar [funk [event_code]
+			 [let [[subject_name [first event_code]]
+			       [action_name  [second event_code]]
+			       [prep_args    [cddr event_code]]]
+			   `[prog [have test_story-this add_event [test_event test_story-step_time [quote ,subject_name] [quote ,action_name] @prep_args]]
+				  [= test_story-step_time [+ test_story-step_time 1]]]]]
+		   event_codes]]
+    test_story-this]]
 
 
 [deframe test_agent [frame] [name simulation sense plan]]

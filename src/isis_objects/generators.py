@@ -59,7 +59,7 @@ class knife(IsisObject, IsisVisual, IsisSpatial, Sharp):
 class toaster(IsisObject, IsisVisual, Container, IsisFunctional):
     
     def __init__(self,name,physics):
-        IsisObject.__init__(self,name=name,physics=physics,offsetVec=(.2,0,.6,0,0,0))
+        IsisObject.__init__(self,name=name,physics=physics,offsetVec=(.4,0,.6,0,0,0))
         IsisVisual.__init__(self,model="toaster", scale=0.7)
         IsisFunctional.__init__(self)
         Container.__init__(self, density=100)

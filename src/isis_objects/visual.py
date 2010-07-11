@@ -73,6 +73,9 @@ class IsisVisual():
         """ Returns a list of the labeled sub-node paths that are parts of the model"""
         pass
 
+    def getModelNode(self):
+        return self.activeModel
+
     def addModel(name,path):
         """ Adds another model state or part to the model path """
         self.models[name]=path

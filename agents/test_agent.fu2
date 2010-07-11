@@ -1,11 +1,48 @@
 [require isis_world]
 
-[deframe test_agent [frame] [name simulation sense]]
+[deframe          test_event [frame] [time subject action prep_frame]]
+[deftypeconstruct test_event [time subject action prep_frame]
+  [set this time       time]
+  [set this subject    subject]
+  [set this action     action]
+  [set this prep_frame prep_frame]
+  this]
+
+[defmetro test_event [time subject action :rest prep_frame_slots]
+  `[new test_event ,time ,subject ,action [frame @prep_frame_slots]]]
+
+
+[deframe      test_story [frame] [event_redblacktree]]
+[deftypeconstruct test_story []
+  [set this event_redblacktree [new redblacktree [funk [x y] [< [get x time] [get y time]]]]]
+  this]
+
+[deftypefunk test_story execute add_event [event]
+  [have [get this event_redblacktree] insert event]]
+
+[deftypefunk test_story get events []
+  [get [get this event_redblacktree] leaves]]
+
+[defmetro test_story [:rest event_codes]
+  `[let [[test_story-this      [new test_story]]
+	 [test_story-time_step 0]]
+     [prog @[mapcar [funk [event_code]
+			  [let [[subject_name [first event_code]]
+				[action_name  [second event_code]]
+				[prep_args    [cddr event_code]]]
+			    `[prog [have test_story-this add_event [test_event test_story-time_step ,subject_name ,action_name @prep_args]]
+				   [= test_story-time_step [+ test_story-time_step 1]]]]]
+		    event_codes]]
+     test_story-this]]
+
+
+[deframe test_agent [frame] [name simulation sense story]]
 
 [deftypeconstruct test_agent [name]
   [set this name       name]
   [set this simulation nil]
   [set this sense      nil]
+  [set this story      nil]
   this]
 
 [deftypefunk test_agent get isis_world []
@@ -26,13 +63,14 @@
 
 [deftypefunk test_agent execute step []
   [have this sense]
-  [have this think_to_self 'I sense ' [get this sense]]]]
+  [have this think_to_self 'I sense ' [get this sense]]
+  ]
 
 [deframe test_agent_simulation [frame] [isis_world agent_name_frame format_mutex]]
 
 [deftypeconstruct test_agent_simulation [hostname]
   [set this isis_world       [new isis_world_client hostname]]
-  [set this agent_name_frame [new frame]]
+  [set this agent_name_frame [frame]]
   [set this format_mutex     [new mutex]]
   [have this pause]
   this]

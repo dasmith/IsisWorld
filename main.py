@@ -51,6 +51,7 @@ class IsisWorld(DirectObject.DirectObject):
         self.devConsole = DeveloperConsole()            
         self._textObjectVisible = True
         self._inspectState = False
+        base.camera.place()
         
     def _setupEnvironment(self,debug=False):
         """  Stuff that's too ugly to put anywhere else. """
@@ -150,7 +151,7 @@ class IsisWorld(DirectObject.DirectObject):
         ### Set up displays and cameras ###
         #base.disableMouse()
         base.camera.reparentTo(self.room)
-        base.camera.place()
+        
         base.camera.lookAt(0,0,0)
         #base.camera.setPos(20*math.sin(angleradians),-20.0*math.cos(angleradians),3)
         #base.camera.setHpr(angledegrees, 0, 0)
@@ -283,14 +284,15 @@ class IsisWorld(DirectObject.DirectObject):
                 self.agentNum += 1
             self._setupCameras()
         # Accept some keys to move the camera.
-        self.accept("a-up", self.floatingCamera.setControl, ["right", 0])
-        self.accept("a",    self.floatingCamera.setControl, ["right", 1])
-        self.accept("s-up", self.floatingCamera.setControl, ["left",  0])
-        self.accept("s",    self.floatingCamera.setControl, ["left",  1])
-        self.accept("d",    self.floatingCamera.setControl, ["zoom-in",  1])
-        self.accept("d-up", self.floatingCamera.setControl, ["zoom-in",  0])
-        self.accept("f",    self.floatingCamera.setControl, ["zoom-out",  1])
-        self.accept("f-up", self.floatingCamera.setControl, ["zoom-out",  0])
+        
+        #self.accept("a-up", self.floatingCamera.setControl, ["right", 0])
+        #self.accept("a",    self.floatingCamera.setControl, ["right", 1])
+        #self.accept("s-up", self.floatingCamera.setControl, ["left",  0])
+        #self.accept("s",    self.floatingCamera.setControl, ["left",  1])
+        #self.accept("d",    self.floatingCamera.setControl, ["zoom-in",  1])
+        #self.accept("d-up", self.floatingCamera.setControl, ["zoom-in",  0])
+        #self.accept("f",    self.floatingCamera.setControl, ["zoom-out",  1])
+        #self.accept("f-up", self.floatingCamera.setControl, ["zoom-out",  0])
         #if self.is_ralph == True:
         # control keys to move the character
 

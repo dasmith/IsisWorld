@@ -1,3 +1,12 @@
+`| Add the directory containing this file to your .funk2rc file to like this: |
+`|                                                                            |
+`|  [= packages_search_path                                                   |
+`|     [append `['/home/neptune/Desktop/IsisWorld/agents/']                   |
+`|               packages_search_path]]                                       |
+`|                                                                            |
+`|  [reload_all_package_definitions]                                          |
+`|                                                                            |
+
 [defpackage test_agent
   :packages [isis_world]
    :sources ['test_agent.fu2']]

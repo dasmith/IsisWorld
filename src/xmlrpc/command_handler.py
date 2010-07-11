@@ -5,6 +5,7 @@ Created Jan 23, 2010
 By Gleb Kuznetsov (glebk@mit.edu)
 '''
 from pandac.PandaModules import VBase3
+import time
 
 class IsisCommandHandler(object):
 
@@ -55,6 +56,8 @@ class IsisCommandHandler(object):
             if args.has_key('seconds'):
                 seconds = args['seconds']
             self.simulator.physicsManager.stepSimulation(seconds)
+            # dont accept new commands until this has stepped
+            while self.simulator.physicsManager.stepping:   time.sleep(0.00001)
             return 'success'            
         elif cmd == 'step_simulation':
             print "WARNING, the step_simulation command will soon be deprecated. use 'meta_step' instead"
@@ -62,6 +65,8 @@ class IsisCommandHandler(object):
             if args.has_key('seconds'):
                 seconds = args['seconds']
             self.simulator.physicsManager.stepSimulation(seconds)
+            # dont accept new commands until this has stepped
+            while self.simulator.physicsManager.stepping:   time.sleep(0.00001)
             return 'success'
         elif cmd == 'meta_pause':
             self.simulator.physicsManager.pause()

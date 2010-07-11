@@ -47,6 +47,7 @@ class PhysicsWorldManager(DirectObject.DirectObject):
         self.stepSize = 1.0/50.0
         self.deltaTimeAccumulator = 0.0
         
+        self.stepping = False
         # keep track of all agents
         self.agents = []
      
@@ -202,6 +203,7 @@ class PhysicsWorldManager(DirectObject.DirectObject):
     def _stopPhysics(self,task=None):
         print "[IsisWorld] Stopping Physical Simulator"
         taskMgr.remove("physics-SimulationTask")
+        self.stepping = False
         #base.disableParticles() 
 
 
@@ -210,7 +212,8 @@ class PhysicsWorldManager(DirectObject.DirectObject):
           assert stopAt > 0.0
           assert stopAt > self.stepSize # cannot step less than physical simulator
           taskMgr.doMethodLater(stopAt, self._stopPhysics, "physics-SimulationStopper", priority=10)
-          # or can you 
+          # or can you
+          self.stepping = True 
           taskMgr.add(self.simulationTask, "physics-SimulationTask", priority=10)
         else:
           taskMgr.add(self.simulationTask, "physics-SimulationTask", priority=10)

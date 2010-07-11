@@ -57,7 +57,7 @@
 
 [deftypeconstruct test_agent_simulation [hostname]
   [set this isis_world       [new isis_world_client hostname]]
-  [set this agent_name_frame [new frame]]
+  [set this agent_name_frame [frame]]
   [set this format_mutex     [new mutex]]
   [have this pause]
   this]

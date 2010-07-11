@@ -1,11 +1,35 @@
 [require isis_world]
 
-[deframe test_agent [frame] [name simulation sense]]
+[deframe          test_event [frame] [time subject action prep_frame]]
+[deftypeconstruct test_event [time subject prep_frame]
+  [set this time       time]
+  [set this subject    subject]
+  [set this prep_frame prep_frame]
+  this]
+
+[defmetro test_event [time subject action :rest prep_frame_slots]
+  `[new test_event ,time ,subject [quote ,action] @[if prep_frame_slots
+						       `[frame direct_object @prep_frame_slots]]]]
+
+[deframe test_story [frame] [event_redblacktree]]
+[defconstruct test_story []
+  [set this event_redblacktree [new redblacktree [funk [x y] [< [get x time] [get y time]]]]]
+  this]
+
+[deftypefunk test_story execute add_event [event]
+  [have [get this event_redblacktree] insert event]]
+
+[deftypefunk test_story get events []
+  [get [get this event_redblacktree] leaves]]
+
+
+[deframe test_agent [frame] [name simulation sense plan]]
 
 [deftypeconstruct test_agent [name]
   [set this name       name]
   [set this simulation nil]
   [set this sense      nil]
+  [set this story      nil]
   this]
 
 [deftypefunk test_agent get isis_world []
@@ -26,7 +50,8 @@
 
 [deftypefunk test_agent execute step []
   [have this sense]
-  [have this think_to_self 'I sense ' [get this sense]]]]
+  [have this think_to_self 'I sense ' [get this sense]]
+  ]
 
 [deframe test_agent_simulation [frame] [isis_world agent_name_frame format_mutex]]
 

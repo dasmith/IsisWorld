@@ -78,10 +78,10 @@ class IsisWorld(DirectObject.DirectObject):
         self.server_thread.start()
         
         def delay_sleep_task(task):
-            Thread.sleep(0.001)
+            Thread.sleep(0.01)
             return task.again
         
-        myTask = taskMgr.doMethodLater(0.1, delay_sleep_task, 'tickTask')
+        myTask = taskMgr.doMethodLater(0.02, delay_sleep_task, 'tickTask')
 
     def _setupWorld(self, visualizeClouds=False, enableKitchen=False):
         """ The world consists of a plane, the "ground" that stretches to infinity

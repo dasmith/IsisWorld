@@ -148,11 +148,17 @@ class IsisWorld(DirectObject.DirectObject):
     def _setupCameras(self):
         # Set up the camera 
         ### Set up displays and cameras ###
-        self.floatingCamera = FloatingCamera(self.agents[self.agentNum].actorNodePath)
-        base.camera.setCollideMask(BitMask32.allOff())
-        base.camera.reparentTo(render)
+        #base.disableMouse()
+        base.camera.reparentTo(self.room)
+        base.camera.place()
+        base.camera.lookAt(0,0,0)
+        #base.camera.setPos(20*math.sin(angleradians),-20.0*math.cos(angleradians),3)
+        #base.camera.setHpr(angledegrees, 0, 0)
+        #self.floatingCamera = FloatingCamera(self.agents[self.agentNum].actorNodePath)
+        #base.camera.setCollideMask(BitMask32.allOff())
+        #base.camera.reparentTo(render)
         #base.taskMgr.remove('update_camera')
-        base.taskMgr.add(self.floatingCamera.update_camera, 'update_camera', priority=35)
+        #base.taskMgr.add(self.floatingCamera.update_camera, 'update_camera', priority=35)
         # set up picture in picture
         dr = base.camNode.getDisplayRegion(0)
         aspect_ratio = 16.0 / 9.0

@@ -166,7 +166,7 @@
   [have [get this agent_name_frame] lookup agent_name]]
 
 [deftypefunk test_agent_simulation execute agent_call [agent_name action :rest frame_args]
-  [have [get this isis_world] call `do action [new-apply frame [print `[agent ,agent_name @frame_args]]]]]
+  [have [get this isis_world] call action [new-apply frame [print `[agent ,agent_name @frame_args]]]]]
 
 
 [defunk test-agent []

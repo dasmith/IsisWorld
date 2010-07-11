@@ -1,9 +1,10 @@
 [require isis_world]
 
 [deframe          test_event [frame] [time subject action prep_frame]]
-[deftypeconstruct test_event [time subject prep_frame]
+[deftypeconstruct test_event [time subject action prep_frame]
   [set this time       time]
   [set this subject    subject]
+  [set this action     action]
   [set this prep_frame prep_frame]
   this]
 
@@ -23,16 +24,16 @@
   [get [get this event_redblacktree] leaves]]
 
 [defmetro test_story [:rest event_codes]
-  [let [[test_story-this      [new test_story]]
-	[test_story-time_step 0]]
-    [prog @[mapcar [funk [event_code]
-			 [let [[subject_name [first event_code]]
-			       [action_name  [second event_code]]
-			       [prep_args    [cddr event_code]]]
-			   `[prog [have test_story-this add_event [test_event test_story-step_time [quote ,subject_name] [quote ,action_name] @prep_args]]
-				  [= test_story-step_time [+ test_story-step_time 1]]]]]
-		   event_codes]]
-    test_story-this]]
+  `[let [[test_story-this      [new test_story]]
+	 [test_story-time_step 0]]
+     [prog @[mapcar [funk [event_code]
+			  [let [[subject_name [first event_code]]
+				[action_name  [second event_code]]
+				[prep_args    [cddr event_code]]]
+			    `[prog [have test_story-this add_event [test_event test_story-time_step ,subject_name ,action_name @prep_args]]
+				   [= test_story-time_step [+ test_story-time_step 1]]]]]
+		    event_codes]]
+     test_story-this]]
 
 
 [deframe test_agent [frame] [name simulation sense plan]]

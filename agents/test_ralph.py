@@ -1,18 +1,18 @@
-#!/usr/bin/env python
+import xmlrpclib as xml
+# connect to environment via XML-RPC
+e = xml.ServerProxy('http://localhost:8001')
+# sense world
+perceptions = e.do('sense', {'agent':'Ralph'})
+# do something
+e.do('say',{'message':"Hello world!",'agent':'Ralph'})
+e.do('say',{'message':"Hello Lauren!",'agent':'Lauren'})
+# simulator is paused by default
+# run for X=0.02 seconds
 
 
-from som.arch import *
-import som.frame_utils as frame_utils
-import som.concept_learning as concept_learning
+e.do('meta_pause',{'seconds':0.1, 'agent': 'Ralph'})
+e.do('meta_step',{'seconds':0.1, 'agent': 'Ralph'})
+e.do('meta_resume',{'seconds':0.1, 'agent': 'Ralph'})
 
-class TestRalph(CriticSelectorArchitecture):
-
-    def __init__(self,*args,**kwargs):
-        CriticSelectorArchitecture.__init__(self)
-
-
-
-# initialize the cog arch
-ralph = Test(debug=False,name='Ralph')
-ralph.resource.mind.env.do('turn_right-start')
-#ralph.run(0,seconds=0.3)
+e.do('say',{'message':"Hello worldsdfa!",'agent':'Lauren'})
+e.do('meta_pause',{'seconds':0.02, 'agent': 'Ralph'})

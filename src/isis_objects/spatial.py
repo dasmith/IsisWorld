@@ -54,7 +54,7 @@ class IsisSpatial(object):
         center = self.activeModel.getBounds().getCenter()
         # setup ray for staying on the ground 
         print "NAME:", self.name[11:16]
-        if self.name[11:16] == "table" or self.name[11:16] == "knife":
+        if self.name[11:16] == "table"  or self.name[11:16] == "knife":
             cRay = CollisionRay(center[0],center[1],center[2]-((lcorner[2]-center[2])/2.5), 0.0, 0.0, -1.0)
         else:
             cRay = CollisionRay(center[0],center[1],lcorner[2]+0.4, 0.0, 0.0, -1.0)
@@ -80,8 +80,8 @@ class IsisSpatial(object):
         if self.name[11:16] == "table":
             cGeomSphere1 = CollisionSphere(0-radius, 0.0, 0.0, radius)
             cGeomSphere2 = CollisionSphere(radius, 0.0, 0.0, radius)
-            #self.fullBoxNP.addSolid(cGeomSphere1)
-            #self.fullBoxNP.addSolid(cGeomSphere2)
+            self.fullBoxNP.addSolid(cGeomSphere1)
+            self.fullBoxNP.addSolid(cGeomSphere2)
             cGeom = CollisionBox(lcorner, ucorner)
             cGeom.setTangible(1)
             self.fullBoxNP.addSolid(cGeom)            

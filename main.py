@@ -226,7 +226,7 @@ class IsisWorld(DirectObject.DirectObject):
         text += "\n[1] to toggle wire frame"
         text += "\n[2] to toggle texture"
         text += "\n[3] to switch agent"
-        text += "\n[?] to hide/show this text"
+        text += "\n[4] to hide/show this text"
         text += "\n[o] lists objects in agent's f.o.v."
         text += "\n[Esc] to quit\n"
         # initialize actions
@@ -306,7 +306,7 @@ class IsisWorld(DirectObject.DirectObject):
         self.accept("1",               base.toggleWireframe, [])
         self.accept("2",               base.toggleTexture, [])
         self.accept("3",               changeAgent, [])
-        self.accept("?",               self.toggleInstructionsWindow, [])
+        self.accept("4",               self.toggleInstructionsWindow, [])
         self.accept("space",           self.step_simulation, [.1]) # argument is amount of second to advance
         self.accept("p",               self.physicsManager.togglePaused)
         #self.accept("r",              self.reset_simulation)

@@ -10,12 +10,12 @@ world_objects = {}
 def addToWorld(object):
     world_objects[object.name] = object
 
-class table(IsisObject,IsisVisual,Container,Surface,IsisFunctional):
+class table(IsisObject,IsisVisual,Container,Surface,NoPickup):
 
     def __init__(self,name,physics):
         IsisObject.__init__(self,name=name,physics=physics, offsetVec=(0,0,2,0,60,0))
         IsisVisual.__init__(self,model="table/table",scale=0.006)
-        IsisFunctional.__init__(self)
+        NoPickup.__init__(self)
         Container.__init__(self,density=4000)
         Surface.__init__(self, density=4000)
 
@@ -25,6 +25,21 @@ class table(IsisObject,IsisVisual,Container,Surface,IsisFunctional):
 
         addToWorld(self)
 
+
+class fridge(IsisObject, IsisVisual, Container, NoPickup):
+    
+    def __init__(self,name,physics):
+        IsisObject.__init__(self,name=name,physics=physics, offsetVec=(0,0,0,0,60,0))
+        IsisVisual.__init__(self,model="Fridge/Fridge", scale=3)
+        NoPickup.__init__(self)
+        Container.__init__(self,density=4000)
+        Surface.__init__(self, density=4000)
+
+        self.create()
+        Container.setup(self)
+        Surface.setup(self)
+        addToWorld(self)
+        self.activeModel.place()
 
 class knife(IsisObject, IsisVisual, IsisSpatial, Sharp):
 

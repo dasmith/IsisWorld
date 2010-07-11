@@ -10,7 +10,7 @@ class IsisCommandHandler(object):
 
     def __init__(self, simulator):
         self.simulator = simulator
-        self.meta_commands  = ['meta_step','meta_pause','meta_list_actions','step_simulation']
+        self.meta_commands  = ['meta_step','meta_pause','meta_resume','meta_list_actions','step_simulation']
 
     def handler(self,cmd,args={}):
         '''
@@ -64,7 +64,10 @@ class IsisCommandHandler(object):
             self.simulator.physicsManager.stepSimulation(seconds)
             return 'success'
         elif cmd == 'meta_pause':
-            self.simulator.physicsManager.togglePaused()
+            self.simulator.physicsManager.pause()
+            return 'success'
+        elif cmd == 'meta_resume':
+            self.simulator.physicsManager.resume()
             return 'success'
         elif cmd == 'meta_list_actions':
             return self.simulator.actionController.actionMap.keys()+self.meta_commands

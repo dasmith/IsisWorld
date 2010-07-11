@@ -42,6 +42,14 @@ class IsisFunctional():
         """ Clears the heldBy variable """
         self.heldBy = None
 
+
+class NoPickup(IsisFunctional):
+    def __init__(self):
+        IsisFunctional.__init__(self)
+  
+    def action__pick_up(self, x,y):
+        return 'failed: cannot pick up this object'
+
 class Dividable(IsisFunctional):
     def __init__(self,piece=None):
         IsisFunctional.__init__(self)

@@ -161,7 +161,22 @@ class PhysicsWorldManager(DirectObject.DirectObject):
             self.togglePaused(stepTime)
         else:
             print "Error, cannot step while simulator is running"
-        
+ 
+    def pause(self):
+         if not self.paused: 
+             self._stopPhysics()
+             #self._GlobalClock.setMode(ClockObject.MSlave)
+             self.paused = True
+
+    def resume(self):
+        if self.paused: 
+            #self._GlobalClock.setMode(ClockObject.MNormal) 
+            #base.enableParticles()
+            #base.particleMgrEnabled = 0 
+            print "[IsisWorld] Resuming Simulator"
+            self._startPhysics(None)
+            self.paused = False
+
     def togglePaused(self,stepTime=None):
         if self.paused: 
             #self._GlobalClock.setMode(ClockObject.MNormal) 

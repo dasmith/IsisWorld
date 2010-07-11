@@ -1,31 +1,11 @@
 [require isis_world]
 
-
-[deframe test_agent_simulation [frame] [isis_world agent_name_hash]]
-
-[deftypeconstruct test_agent_simulation [hostname]
-  [set this isis_world      [new isis_world_client hostname]]
-  [set this agent_name_hash [new ptypehash]]
-  
-  [have this pause]
-  this]
-
-[deftypefunk test_agent_simulation execute pause []
-  [isis-call [get this isis_world] meta_pause]]
-
-[deftypefunk test_agent_simulation execute step []
-  [isis-call [get this isis_world] meta_step seconds 0.1]]
-
-[deftypefunk test_agent_simulation execute add_agent [agent]
-  [have [get this agent_name_hash] add [get agent name] agent]
-  [set agent simulation this]]
-
-
-[deframe test_agent [frame] [name simulation]]
+[deframe test_agent [frame] [name simulation sense]]
 
 [deftypeconstruct test_agent [name]
   [set this name       name]
   [set this simulation nil]
+  [set this sense      nil]
   this]
 
 [deftypefunk test_agent get isis_world []
@@ -34,16 +14,63 @@
 [deftypefunk test_agent execute turn_left-start []
   [isis-call [get this isis_world] turn_left-start agent [get this name]]]
 
+[deftypefunk test_agent execute sense []
+  [let [[sense [isis-call [get this isis_world] sense agent [get this name]]]]
+    [set this sense sense]
+    sense]]
+
+[deftypefunk test_agent execute think_to_self [:rest args]
+  [have-apply [get this simulation] format `['\nAgent ' ,[get this name] ' thinks: ' @args]]]
+
+
+[deftypefunk test_agent execute step []
+  [have this sense]
+  [have this think_to_self 'I sense ' [get this sense]]]]
+
+[deframe test_agent_simulation [frame] [isis_world agent_name_hash format_mutex]]
+
+[deftypeconstruct test_agent_simulation [hostname]
+  [set this isis_world      [new isis_world_client hostname]]
+  [set this agent_name_hash [new frame]]
+  [set this format_mutex    [new mutex]]
+  [have this pause]
+  this]
+
+[deftypefunk test_agent_simulation execute pause []
+  [isis-call [get this isis_world] meta_pause]]
+
+[deftypefunk test_agent_simulation get agents []
+  [get [get this agent_name_hash] values]]
+
+[deftypefunk test_agent_simulation execute step []
+  [isis-call [get this isis_world] meta_step seconds 0.1]
+  [mapc [funk [agent]
+	      [have agent step]]
+	[get this agents]]]
+
+[deftypefunk test_agent_simulation execute add_agent [agent]
+  [have [get this agent_name_hash] add [get agent name] agent]
+  [set agent simulation this]]
+
+[deftypefunk test_agent_simulation execute add_new_agent [agent_name]
+  [have this add_agent [new test_agent agent_name]]]
+
+[deftypefunk test_agent_simulation execute format [:rest args]
+  [have [get this format_mutex] lock]
+  [apply &format [cons stdout args]]
+  [have [get this format_mutex] unlock]]
+
+
 
 [defunk test-agent []
   [let [[isis [new test_agent_simulation '24.98.77.7']]]
-    [let [[ralph [new test_agent `Ralph]]]
-      [have isis add_agent ralph]
-      [have ralph turn_left-start]
-      [dotimes [i 100]
-	[print i]
-	[have isis step]]
-      ]]]
+    [have isis add_new_agent `Ralph]
+    [have isis add_new_agent `Lauren]
+    [have ralph turn_left-start]
+    [dotimes [i 10]
+      [print i]
+      [have isis step]]
+    ]]
 
 
   

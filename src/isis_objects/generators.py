@@ -41,8 +41,8 @@ class fridge(IsisObject, IsisVisual, Container, NoPickup):
  
         
         Container.setup(self)
-        #self.fullBoxNP.setIntoCollideMask(OBJMASK)
-        #self.fullBoxNP.setFromCollideMask(OBJMASK)
+        self.fullBoxNP.setIntoCollideMask(OBJMASK)
+        self.fullBoxNP.setFromCollideMask(OBJMASK)
         self.state = "closed"
         #freezerDoor
         addToWorld(self)

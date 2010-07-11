@@ -36,7 +36,7 @@
      test_story-this]]
 
 
-[deframe test_agent [frame] [name simulation sense plan]]
+[deframe test_agent [frame] [name simulation sense story]]
 
 [deftypeconstruct test_agent [name]
   [set this name       name]

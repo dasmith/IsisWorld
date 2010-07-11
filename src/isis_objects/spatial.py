@@ -54,7 +54,7 @@ class IsisSpatial(object):
         center = self.activeModel.getBounds().getCenter()
         # setup ray for staying on the ground 
         print "NAME:", self.name[11:16]
-        if self.name[11:16] == "table":
+        if self.name[11:16] == "table" or self.name[11:16] == "knife":
             cRay = CollisionRay(center[0],center[1],center[2]-((lcorner[2]-center[2])/2.5), 0.0, 0.0, -1.0)
         else:
             cRay = CollisionRay(center[0],center[1],lcorner[2]+0.4, 0.0, 0.0, -1.0)
@@ -95,7 +95,7 @@ class IsisSpatial(object):
         
         self.wallGeomNP = self.nodePath.attachNewNode(self.fullBoxNP)
         IsisSpatial.enableCollisions(self)
-        self.wallGeomNP.show()
+        #self.wallGeomNP.show()
         self.physicsManager.cFloor.addCollider(self.floorRayGeomNP, self.nodePath)
         base.cTrav.addCollider(self.floorRayGeomNP, self.physicsManager.cFloor)
         self.physicsManager.cFloor.addCollider(self.floorGeomNP, self.nodePath)

@@ -1,4 +1,4 @@
 table	at 0,2.8,3
 toaster	on table	at -0.2,0.5,4
-loaf	on table	at 0,0,5
+loaf	on table	at 1,0.5,5
 knife	on table	at 0.4,-0.2,3

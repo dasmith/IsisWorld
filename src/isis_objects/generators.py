@@ -50,7 +50,7 @@ class bread(IsisObject, IsisVisual, Container, IsisFunctional):
 
     def __init__(self,name,physics):
         IsisObject.__init__(self,name=name,physics=physics)
-        IsisVisual.__init__(self,model="slice_of_bread", scale=0.10)
+        IsisVisual.__init__(self,model="slice_of_bread", scale=0.08)
         IsisFunctional.__init__(self)
         Container.__init__(self, density=100)
 

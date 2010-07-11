@@ -42,7 +42,7 @@ class Ralph(DirectObject.DirectObject):
         self.actor.setColorScale(random.random(), random.random(), random.random(), 1.0)
         self.actorNode = ActorNode('physicsControler-%s' % name)
         self.actorNodePath = render.attachNewNode(self.actorNode)
-        self.actor.setPos(self.actorNodePath,0,0,-.6)
+        self.actor.setPos(self.actorNodePath,0,0,-.2)
         self.actor.reparentTo(self.actorNodePath)
         self.actor.setCollideMask(BitMask32.allOff())
         self.name = name

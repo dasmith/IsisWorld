@@ -14,6 +14,7 @@
 [deftypefunk test_agent execute turn_left-start []
   [isis-call [get this isis_world] turn_left-start agent [get this name]]]
 
+
 [deftypefunk test_agent execute sense []
   [let [[sense [isis-call [get this isis_world] sense agent [get this name]]]]
     [set this sense sense]
@@ -27,12 +28,12 @@
   [have this sense]
   [have this think_to_self 'I sense ' [get this sense]]]]
 
-[deframe test_agent_simulation [frame] [isis_world agent_name_hash format_mutex]]
+[deframe test_agent_simulation [frame] [isis_world agent_name_frame format_mutex]]
 
 [deftypeconstruct test_agent_simulation [hostname]
-  [set this isis_world      [new isis_world_client hostname]]
-  [set this agent_name_hash [new frame]]
-  [set this format_mutex    [new mutex]]
+  [set this isis_world       [new isis_world_client hostname]]
+  [set this agent_name_frame [new frame]]
+  [set this format_mutex     [new mutex]]
   [have this pause]
   this]
 
@@ -40,7 +41,7 @@
   [isis-call [get this isis_world] meta_pause]]
 
 [deftypefunk test_agent_simulation get agents []
-  [get [get this agent_name_hash] values]]
+  [get [get this agent_name_frame] values]]
 
 [deftypefunk test_agent_simulation execute step []
   [isis-call [get this isis_world] meta_step seconds 0.1]
@@ -49,7 +50,7 @@
 	[get this agents]]]
 
 [deftypefunk test_agent_simulation execute add_agent [agent]
-  [have [get this agent_name_hash] add [get agent name] agent]
+  [have [get this agent_name_frame] add [get agent name] agent]
   [set agent simulation this]]
 
 [deftypefunk test_agent_simulation execute add_new_agent [agent_name]
@@ -60,13 +61,15 @@
   [apply &format [cons stdout args]]
   [have [get this format_mutex] unlock]]
 
+[deftypefunk test_agent_simulation get agent [agent_name]
+  [have [get this agent_name_frame] agent_name]]
 
 
 [defunk test-agent []
   [let [[isis [new test_agent_simulation '24.98.77.7']]]
     [have isis add_new_agent `Ralph]
     [have isis add_new_agent `Lauren]
-    [have ralph turn_left-start]
+    [have [get isis agent `Ralph] turn_left-start]
     [dotimes [i 10]
       [print i]
       [have isis step]]

@@ -80,8 +80,8 @@ class IsisSpatial(object):
         if self.name[11:16] == "table":
             cGeomSphere1 = CollisionSphere(0-radius, 0.0, 0.0, radius)
             cGeomSphere2 = CollisionSphere(radius, 0.0, 0.0, radius)
-            self.fullBoxNP.addSolid(cGeomSphere1)
-            self.fullBoxNP.addSolid(cGeomSphere2)
+            #self.fullBoxNP.addSolid(cGeomSphere1)
+            #self.fullBoxNP.addSolid(cGeomSphere2)
             cGeom = CollisionBox(lcorner, ucorner)
             cGeom.setTangible(1)
             self.fullBoxNP.addSolid(cGeom)            

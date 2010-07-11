@@ -39,7 +39,7 @@ class PhysicsWorldManager(DirectObject.DirectObject):
         """
         self._GlobalClock=ClockObject.getGlobalClock() 
         globalClock.setMode(ClockObject.MLimited) 
-        globalClock.setFrameRate(30)
+        globalClock.setFrameRate(20)
         #self._FrameTime=self._GlobalClock.getFrameTime() 
         #self._GlobalClock.setRealTime(self._FrameTime) 
         
@@ -74,7 +74,7 @@ class PhysicsWorldManager(DirectObject.DirectObject):
         # gravity should be -9.81m/s, but that doesn't quite work
         self.cFloor.setGravity(9.81*20)
         self.cFloor.setOffset(.2)
-        self.cFloor.setMaxVelocity(100)
+        self.cFloor.setMaxVelocity(1)
         self.cFloor.addInPattern('into')
 
         # Initialize the handler.

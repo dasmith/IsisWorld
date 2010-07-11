@@ -51,6 +51,8 @@ class IsisWorld(DirectObject.DirectObject):
         self.devConsole = DeveloperConsole()            
         self._textObjectVisible = True
         self._inspectState = False
+        # turn off main help menu by default
+        self.toggleInstructionsWindow()
         
     def _setupEnvironment(self,debug=False):
         """  Stuff that's too ugly to put anywhere else. """
@@ -72,6 +74,7 @@ class IsisWorld(DirectObject.DirectObject):
         self.server = self.server_object.server
         self.server.register_function(commandHandler.handler,'do')
         self.server_thread = threading.Thread(group=None, target=self.server.serve_forever, name='isisworld-xmlrpc')
+        self.server_thread.setDaemon(True)
         self.server_thread.start()
 
     def _setupWorld(self, visualizeClouds=False, enableKitchen=False):
@@ -223,7 +226,7 @@ class IsisWorld(DirectObject.DirectObject):
         text += "\n[1] to toggle wire frame"
         text += "\n[2] to toggle texture"
         text += "\n[3] to switch agent"
-        text += "\n[4] to hide/show this text"
+        text += "\n[?] to hide/show this text"
         text += "\n[o] lists objects in agent's f.o.v."
         text += "\n[Esc] to quit\n"
         # initialize actions
@@ -303,7 +306,7 @@ class IsisWorld(DirectObject.DirectObject):
         self.accept("1",               base.toggleWireframe, [])
         self.accept("2",               base.toggleTexture, [])
         self.accept("3",               changeAgent, [])
-        self.accept("4",               self.toggleInstructionsWindow, [])
+        self.accept("?",               self.toggleInstructionsWindow, [])
         self.accept("space",           self.step_simulation, [.1]) # argument is amount of second to advance
         self.accept("p",               self.physicsManager.togglePaused)
         #self.accept("r",              self.reset_simulation)

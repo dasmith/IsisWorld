@@ -1,14 +1,14 @@
 # Isis World Simulator
 
-The IsisWorld simulator is available to researchers for building and evaluating problem solving and language learning systems with everyday problems that take place in a kitchen.  We aim to use IsisWorld to simulate everyday commonsense reasoning problems that span many realms, such as the social, visiual, kinesthetic, physical, spatial and mental. 
+The IsisWorld simulator is available to researchers for building and evaluating problem solving and language learning systems with everyday problems that take place in a kitchen.  We aim to use IsisWorld to simulate everyday commonsense reasoning problems that span many realms, such as the social, visual, kinesthetic, physical, spatial and mental. 
 
 What is a problem "realm"?  Consider the problem of *hailing a taxi*.  You could represent and reason about this problem in several different ways.
 
  1. **Temporally**: Wait for a taxi. Maybe if you stay put, a taxi will drive by
  2. **Spatially**:  Find a taxi. You must eliminate the distance between yourself and a taxi.
- 2. **Socially**: Call a taxi.  Communicate your position to a distpatching agent and an available taxi will come to you. 
+ 2. **Socially**: Call a taxi.  Communicate your position to a dispatching agent and an available taxi will come to you. 
 
-It is this resourcefulness---having many ways to solve a problem---that allows human problem solvers to flexibily adapt to many problem solving situations.  A system that lacks these abilities is *brittle*.
+It is this resourcefulness---having many ways to solve a problem---that allows human problem solvers to flexibly adapt to many problem solving situations.  A system that lacks these abilities is *brittle*.
 
 Further, we are looking for test-bed to study the problems of meta-reasoning: where a super-level planning system reasons about the world of a sub-planning system.  Returning to a taxi example, we could consider the failure mode which causes a meta-level reasoner to step in and change the state of the planner.  For example, it could ask the system to *elevate* the problem description to pursue the parent goal:  *instead of "searching for a taxi" reconsider the problem as "traveling to your destination" and pursue other options: e.g., walking, train, asking a friend etc*.
 
@@ -54,7 +54,7 @@ Sue is communicating a new sequence of actions.  Ralph must identify Sue's plan 
 
 ### 4. Imprimer learning
 
-Sue is teaching Ralph how *not* to use a kitchen.  He must learn that the faucet must be turned off after being used, doors closed after they are opened, not to leave the refrigerator open for more time than necessary, etc.  He must learn these how to represent and pursue these imagined goals and antigoals of his imprimer.   This must cover the problem of **shared attention**, where the teacher deliberatly acts a certain way to encourage the learner to focus on a relevant aspect of the shared situation.
+Sue is teaching Ralph how *not* to use a kitchen.  He must learn that the faucet must be turned off after being used, doors closed after they are opened, not to leave the refrigerator open for more time than necessary, etc.  He must learn these how to represent and pursue these imagined goals and antigoals of his imprimer.   This must cover the problem of **shared attention**, where the teacher deliberately acts a certain way to encourage the learner to focus on a relevant aspect of the shared situation.
 
   * Shared attention and shared models of inference:  "What will Sue think if she sees the mess on the floor?"
 

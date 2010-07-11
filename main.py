@@ -53,6 +53,7 @@ class IsisWorld(DirectObject.DirectObject):
         self._inspectState = False
         # turn off main help menu by default
         self.toggleInstructionsWindow()
+
         
     def _setupEnvironment(self,debug=False):
         """  Stuff that's too ugly to put anywhere else. """

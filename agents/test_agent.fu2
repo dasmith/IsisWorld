@@ -62,7 +62,7 @@
   [have [get this format_mutex] unlock]]
 
 [deftypefunk test_agent_simulation get agent [agent_name]
-  [have [get this agent_name_frame] agent_name]]
+  [have [get this agent_name_frame] lookup agent_name]]
 
 
 [defunk test-agent []

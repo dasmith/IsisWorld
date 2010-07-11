@@ -283,19 +283,6 @@ class Ralph(DirectObject.DirectObject):
         print percepts
         return percepts
  
-    def can_grasp(self, object_name):
-        objects = self.get_objects()
-        print object_name
-        print objects
-        if objects.has_key(object_name):
-            print "found object"
-            object_view = objects[object_name]
-            distance = object_view['distance']
-            print distance
-            if (distance < 5.0):
-                return "success"
-            return "object not close enough"
-
     def control__say(self, message = "Hello!"):
        self.speech_bubble['text'] = message
        self.last_spoke = 0
@@ -350,17 +337,17 @@ class Ralph(DirectObject.DirectObject):
     def control__put_object_in_empty_left_hand(self, object_name):
         if (self.left_hand_holding_object is not False):
             return "left hand not empty"
-        world_object = self.agent_simulator.world_objects[object_name]
+        world_object = self.agent_simulator.worldObjects[object_name]
         world_object.wrtReparentTo(self.player_left_hand)
         world_object.setPos(0, 0, 0)
         world_object.setHpr(0, 0, 0)
         self.left_hand_holding_object = world_object
         return "success"
 
-    def control__put_object_in_empty_right_hand(self, object_name):
+    def control__put_object_in_empty_right_hand(self, name):
         if (self.right_hand_holding_object is not False):
             return "right hand not empty"
-        world_object = self.agent_simulator.world_objects[object_name]
+        world_object = self.agent_simulator.worldObjects[object_name]
         world_object.wrtReparentTo(self.player_right_hand)
         world_object.setPos(0, 0, 0)
         world_object.setHpr(0, 0, 0)
@@ -403,7 +390,7 @@ class Ralph(DirectObject.DirectObject):
                 target = target[0]
         else:
             target = self.agent_simulator.world_objects[target]
-        if self.can_grasp(target.name):
+        if self.can_grasp(target):
             target.call(self, action, self.right_hand_holding_object)
             return "success"
         return "target not within reach"
@@ -418,10 +405,13 @@ class Ralph(DirectObject.DirectObject):
                 target = target[0]
         else:
             target = self.agent_simulator.world_objects[target]
-        if self.can_grasp(target.name):
+        if self.can_grasp(target):
             target.call(self, action, self.left_hand_holding_object)
             return "success"
         return "target not within reach"
+
+    def can_grasp(self, object):
+        return object.getDistance(self.fov)
 
     def is_holding(self, object_name):
         return ((self.left_hand_holding_object  and (self.left_hand_holding_object.getName()  == object_name)) \
@@ -600,10 +590,13 @@ class Ralph(DirectObject.DirectObject):
 
         total_frame_num = self.actor.getNumFrames('walk')
         if self.isMoving:
-            self.current_frame_count = self.current_frame_count + (stepSize*8000.0)
-            while (self.current_frame_count >= total_frame_num + 1):
-                self.current_frame_count -= total_frame_num
-                self.actor.pose('walk', self.current_frame_count)
+            self.current_frame_count = self.current_frame_count + (stepSize*250.0)
+            if self.current_frame_count > total_frame_num:
+                self.current_frame_count = self.current_frame_count%total_frame_num
+            self.actor.pose('walk', self.current_frame_count)
+        elif self.current_frame_count != 0:
+            self.current_frame_count = 0
+            self.actor.pose('idle', 0)
         return Task.cont
 
 class Picker(DirectObject.DirectObject):
@@ -612,7 +605,6 @@ class Picker(DirectObject.DirectObject):
         self.camera = camera
         self.tag = tag
         self.value = value
-        #self.picker = CollisionTraverser()
         self.queue = CollisionHandlerQueue()
         self.pickerNode = CollisionNode('mouseRay')
         self.pickerNP = self.camera.attachNewNode(self.pickerNode)
@@ -645,7 +637,7 @@ class Picker(DirectObject.DirectObject):
         return None
 
 
-    def getObjectsInView(self, xpoints = 16, ypoints = 12):
+    def getObjectsInView(self, xpoints = 20, ypoints = 15):
         objects = {}
         for x in frange(-1, 1, 2.0/xpoints):
             for y in frange(-1, 1, 2.0/ypoints):

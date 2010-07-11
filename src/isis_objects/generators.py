@@ -5,6 +5,10 @@ from spatial import *
 from functional import *
 from isisobject import IsisObject
 
+world_objects = {}
+
+def addToWorld(object):
+    world_objects[object.name] = object
 
 class table(IsisObject,IsisVisual,Container,Surface,IsisFunctional):
 
@@ -19,6 +23,8 @@ class table(IsisObject,IsisVisual,Container,Surface,IsisFunctional):
         Container.setup(self)
         Surface.setup(self)
 
+        addToWorld(self)
+
 
 class knife(IsisObject, IsisVisual, IsisSpatial, Sharp):
 
@@ -30,6 +36,8 @@ class knife(IsisObject, IsisVisual, IsisSpatial, Sharp):
 
         self.create()
         IsisSpatial.setup(self)
+
+        addToWorld(self)
 
 
 class toaster(IsisObject, IsisVisual, Container, IsisFunctional):
@@ -46,6 +54,8 @@ class toaster(IsisObject, IsisVisual, Container, IsisFunctional):
         self.create()
         Container.setup(self)
 
+        addToWorld(self)
+
 class bread(IsisObject, IsisVisual, Container, IsisFunctional):
 
     def __init__(self,name,physics):
@@ -57,6 +67,8 @@ class bread(IsisObject, IsisVisual, Container, IsisFunctional):
         self.create()
         Container.setup(self)
 
+        addToWorld(self)
+
 class loaf(IsisObject, IsisVisual, IsisSpatial, Dividable):
 
     def __init__(self,name,physics):
@@ -67,3 +79,5 @@ class loaf(IsisObject, IsisVisual, IsisSpatial, Dividable):
 
         self.create()
         IsisSpatial.setup(self)
+
+        addToWorld(self)

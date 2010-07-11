@@ -43,7 +43,7 @@ class IsisWorld(DirectObject.DirectObject):
         self.rootDirectory = "."#Filename.fromOsSpecific(ExecutionEnvironment.getCwd())
         config = loadPrcFile(Filename(self.rootDirectory, 'config.prc'))
         self._setupEnvironment(debug=False)
-        self._setupWorld(visualizeClouds=True, enableKitchen=False)
+        self._setupWorld(visualizeClouds=True, enableKitchen=True)
         self._setupAgents()
         self._setupLights()
         self._setupCameras()
@@ -96,8 +96,7 @@ class IsisWorld(DirectObject.DirectObject):
         floorCollisionNP.node().setIntoCollideMask(FLOORMASK)
         floorCollisionNP.node().setFromCollideMask(FLOORMASK)
         
-        self.worldObjects = {} 
-        self.worldObjects.update(load_objects(self.rootDirectory+"/kitchen.isis", render, self.physicsManager))
+        self.worldObjects = load_objects(self.rootDirectory+"/kitchen.isis", render, self.physicsManager)
                 
         if enableKitchen:
             self.map = loader.loadModel(self.rootDirectory+"/media/models/kitchen")
@@ -152,7 +151,7 @@ class IsisWorld(DirectObject.DirectObject):
         self.floatingCamera = FloatingCamera(self.agents[self.agentNum].actorNodePath)
         base.camera.setCollideMask(BitMask32.allOff())
         base.camera.reparentTo(render)
-        base.taskMgr.remove('update_camera')
+        #base.taskMgr.remove('update_camera')
         base.taskMgr.add(self.floatingCamera.update_camera, 'update_camera', priority=35)
         # set up picture in picture
         dr = base.camNode.getDisplayRegion(0)

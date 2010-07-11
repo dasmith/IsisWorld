@@ -11,13 +11,10 @@ class IsisFunctional():
 
     def call(self, agent, action, dobject = None):
         """ This is the dispatcher for the action methods """
-        return getattr(self, "action__"+action)(agent, dobject)
         try:
             return getattr(self, "action__"+action)(agent, dobject)
         except AttributeError:
             return None
-        #except:
-        #    return None
 
     ## register actions that are enabled by default in all objects
     def action__pick_up(self, agent, directobject):
@@ -50,25 +47,23 @@ class Dividable(IsisFunctional):
         IsisFunctional.__init__(self)
         if piece == None:
             print "Warning: no piece object defined for Dividable object", self.name
-            self.piece = self.models['default']
-        else:
-            self.piece = piece
+        self.piece = piece
 
-    def action__divide(self, agent, directobject):
-        if directobject != None and isinstance(object, SharpObject):
-            if agent.right_hand_holding_object:
-                agent.control__put_object_in_empty_right_hand(self.piece.generate_instance(self.physicsManager))
-                return true
-            elif agent.left_hand_holding_object:
-                agent.control__put_object_in_empty_right_hand(self.piece.generate_instance(self.physicsManager))
-                return true
-        return false
+    def action__divide(self, agent, object):
+        if self.piece and object != None and isinstance(object, Sharp):
+            if not agent.right_hand_holding_object:
+                print agent.control__put_object_in_empty_right_hand(self.piece("bread", self.physicsManager).name)
+                return True
+            elif not agent.left_hand_holding_object:
+                print agent.control__put_object_in_empty_left_hand(self.piece("bread", self.physicsManager).name)
+                return True
+        return False
 
 class Sharp(IsisFunctional):
     def __init__(self):
         IsisFunctional.__init__(self)
 
-    def cut(self,other):
+    def action__cut(self,other):
         print "ouch"
 
 

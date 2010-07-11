@@ -51,7 +51,6 @@ class IsisWorld(DirectObject.DirectObject):
         self.devConsole = DeveloperConsole()            
         self._textObjectVisible = True
         self._inspectState = False
-        base.camera.place()
         
     def _setupEnvironment(self,debug=False):
         """  Stuff that's too ugly to put anywhere else. """
@@ -59,7 +58,7 @@ class IsisWorld(DirectObject.DirectObject):
         base.setFrameRateMeter(True)
         base.setBackgroundColor(.2, .2, .2)
         base.camLens.setFov(75)
-        base.camLens.setNear(0.2)
+        base.camLens.setNear(0.1)
         base.disableMouse()
         # debugging stuff
         if debug:
@@ -152,7 +151,8 @@ class IsisWorld(DirectObject.DirectObject):
         #base.disableMouse()
         base.camera.reparentTo(self.room)
         
-        base.camera.lookAt(0,0,0)
+        base.camera.setPos(-5,3,4.5)
+        base.camera.setHpr(250,323,0)
         #base.camera.setPos(20*math.sin(angleradians),-20.0*math.cos(angleradians),3)
         #base.camera.setHpr(angledegrees, 0, 0)
         #self.floatingCamera = FloatingCamera(self.agents[self.agentNum].actorNodePath)

@@ -94,10 +94,11 @@
   [let [[subject_name [get event subject]]
 	[action_name  [get event action]]
 	[prep_frame   [get event prep_frame]]]
-    [cond [[eq action_name `move_forward-start] [have this call `move_forward-start]]
-	  [[eq action_name `move_forward-stop]  [have this call `move_forward-stop]]
-	  [t                                    [error bug_type error_executing_event 'Agent ']]
-	  ]]]
+    [if [eq subject_name [get this name]]
+	[cond [[eq action_name `move_forward-start] [have this call `move_forward-start]]
+	      [[eq action_name `move_forward-stop]  [have this call `move_forward-stop]]
+	      [t                                    [error bug_type error_executing_event 'Agent ']]
+	      ]]]]
 
 [deftypefunk test_agent execute execute [story]
   [set this execute_story story]
@@ -166,7 +167,7 @@
   [have [get this agent_name_frame] lookup agent_name]]
 
 [deftypefunk test_agent_simulation execute agent_call [agent_name action :rest frame_args]
-  [have [get this isis_world] call action [new-apply frame [print `[agent ,agent_name @frame_args]]]]]
+  [have [get this isis_world] call action [new-apply frame `[agent ,agent_name @frame_args]]]]
 
 
 [defunk test-agent []

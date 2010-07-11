@@ -23,6 +23,34 @@
 [deftypefunk test_story get events []
   [get [get this event_redblacktree] leaves]]
 
+[deftypefunk test_story get step_event [time]
+  [let [[step_event nil]]
+    [let [[iter [get this events]]]
+      [while [null step_event]
+	[let [[iter-step_event [car iter]]]
+	  [if [eq time [get iter-step_event time]]
+	      [= step_event iter-step_event]]]
+	[= iter [cdr iter]]]]
+    step_event]]
+
+[deftypefunk test_story get first_step []
+  [get [get this event_redblacktree] minimum]]
+
+[deftypefunk test_story get first_step-time []
+  [let [[step [get this first_step]]]
+    [if [null step]
+	nil
+      [get step time]]]]
+
+[deftypefunk test_story get last_step-time []
+  [get [get this event_redblacktree] maximum]]
+
+[deftypefunk test_story get last_step-time []
+  [let [[step [get this last_step]]]
+    [if [null step]
+	nil
+      [get step time]]]]
+
 [defmetro test_story [:rest event_codes]
   `[let [[test_story-this      [new test_story]]
 	 [test_story-time_step 0]]
@@ -36,13 +64,14 @@
      test_story-this]]
 
 
-[deframe test_agent [frame] [name simulation sense story]]
+[deframe test_agent [frame] [name simulation sense execute_story execute_story_time]]
 
 [deftypeconstruct test_agent [name]
-  [set this name       name]
-  [set this simulation nil]
-  [set this sense      nil]
-  [set this story      nil]
+  [set this name               name]
+  [set this simulation         nil]
+  [set this sense              nil]
+  [set this execute_story      nil]
+  [set this execute_story_time nil]
   this]
 
 [deftypefunk test_agent get isis_world []
@@ -60,6 +89,20 @@
 [deftypefunk test_agent execute think_to_self [:rest args]
   [have-apply [get this simulation] format `['\nAgent ' ,[get this name] ' thinks: ' @args]]]
 
+
+[deftypefunk test_agent execute execute [story]
+  [set this execute_story story]
+  [if [null story]
+      [set this execute_story_time nil]
+    [set this execute_story_time 0]]]
+
+[deftypefunk test_agent execute step_execute_story []
+  [let [[execute_story [get this execute_story]]]
+    [get execute_story step_event [get this execute_story_time]]
+    [set this execute_story_time [+ 1 [get this execute_story_time]]]
+    [if [> [get this execute_story_time] [get execute_story last_step-time]]
+	[prog [set this execute_story      nil]
+	      [set this execute_story_time nil]]]]]
 
 [deftypefunk test_agent execute step []
   [have this sense]

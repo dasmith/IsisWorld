@@ -310,7 +310,22 @@ class Ralph(DirectObject.DirectObject):
         percepts['language'] = self.sense__get_utterances()
         print percepts
         return percepts
+        
+    def control__open_fridge(self):
+        print "Opening fridge"
+        print self.control__use_right_hand(target='fridge',action="open")
+
+    def control__say_meta(self, message = "Hello!"):
+       self.speech_bubble['text'] = "META: "+message
+       self.last_spoke = 0
+       return "success"
+
  
+    def control__say_goal(self, message = "Hello!"):
+       self.speech_bubble['text'] = "GOAL: "+message
+       self.last_spoke = 0
+       return "success"
+
     def control__say(self, message = "Hello!"):
        self.speech_bubble['text'] = message
        self.last_spoke = 0
@@ -421,7 +436,7 @@ class Ralph(DirectObject.DirectObject):
             else:
                 target = target[0]
         else:
-            target = self.agent_simulator.world_objects[target]
+            target = self.agent_simulator.worldObjects[target]
         if self.can_grasp(target):
             target.call(self, action, self.right_hand_holding_object)
             return "success"
@@ -436,7 +451,7 @@ class Ralph(DirectObject.DirectObject):
             else:
                 target = target[0]
         else:
-            target = self.agent_simulator.world_objects[target]
+            target = self.agent_simulator.worldObjects[target]
         if self.can_grasp(target):
             target.call(self, action, self.left_hand_holding_object)
             return "success"

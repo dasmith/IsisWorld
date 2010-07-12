@@ -2,7 +2,7 @@ import xmlrpclib as xml
 # connect to environment via XML-RPC
 e = xml.ServerProxy('http://localhost:8001')
 # sense world
-perceptions = e.do('sense', {'agent':'Ralph'})
+#perceptions = e.do('sense', {'agent':'Ralph'})
 # do something
 e.do('meta_pause')
 e.do('turn_right-start', {'agent':'Ralph'})

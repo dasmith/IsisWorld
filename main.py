@@ -244,6 +244,8 @@ class IsisWorld(DirectObject.DirectObject):
         #self.actionController.addAction(IsisAction(commandName="move_right",intervalAction=True,keyboardBinding="arrow_right"))
         #self.actionController.addAction(IsisAction(commandName="turn_left",intervalAction=True))
         #self.actionController.addAction(IsisAction(commandName="turn_right",intervalAction=True))
+
+        self.actionController.addAction(IsisAction(commandName="open_fridge",intervalAction=False,keyboardBinding="p"))
         self.actionController.addAction(IsisAction(commandName="turn_left",intervalAction=True,keyboardBinding="arrow_left"))
         self.actionController.addAction(IsisAction(commandName="turn_right",intervalAction=True,keyboardBinding="arrow_right"))
         self.actionController.addAction(IsisAction(commandName="move_forward",intervalAction=True,keyboardBinding="arrow_up"))
@@ -334,11 +336,17 @@ class IsisWorld(DirectObject.DirectObject):
 
         def accept_message(message,x):
             if message.strip() == "open":
-                self.door.select()
+                node = base.render.find("**/fridge*")
+                node.open()
                 #self.door.open()
+            elif message.strip().split()[0] == "goal":
+                self.agents[self.agentNum].control__say_goal(' '.join(message.strip().split()[1:]))
+            elif message.strip().split()[0] == "meta":
+                self.agents[self.agentNum].control__say_meta(' '.join(message.strip().split()[1:]))
+            elif message.strip().split()[0] == "say":
+                self.agents[self.agentNum].control__say(' '.join(message.strip().split()[1:]))
             x.teacher_utterances.append(message)
             x.command_box.enterText("")
-
 
         self.command_box = DirectEntry(pos=(-1.2,-0.95,-0.95), text_fg=(0.282, 0.725, 0.850,1), frameColor=(0.631, 0.219, 0.247,0.25), suppressKeys=1, initialText="enter text and hit return", enableEdit=0,scale=0.07, focus=0, focusInCommand=disable_keys, focusOutCommand=enable_keys, focusInExtraArgs=[self], focusOutExtraArgs=[self], command=accept_message, extraArgs=[self],  width=15, numLines=1)
         base.win.setClearColor(Vec4(0,0,0,1))

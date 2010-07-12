@@ -29,7 +29,7 @@ class IsisVisual():
         self.scale = scale
 
         # private flag to lazily recompute properties when necessary
-        self._needToRecalculateScalingProperties = True
+        self._needToRecalculateScalingProperties = False
         
         # initialize dummy variables
         self.width = None
@@ -83,11 +83,10 @@ class IsisVisual():
             # TODO: blend or play animation depending on kind of transition
 
     def create(self):
-        print "Called for IsisVisual ", self.name
         self.activeModel = loader.loadModel("media/models/"+self.models['default'])
         self.activeModel.setPos(self.initialPos+self.offsetVec)
         self.activeModel.setScale(self.scale)
-        self.activeModel.reparentTo(self.nodePath)
+        self.activeModel.reparentTo(self)
         self.activeModel.setCollideMask(BitMask32.allOff())
         # when models are scaled down dramatically (e.g < 1% of original size), Panda3D represents
         # the geometry non-uniformly, which means scaling occurs every render step and collision

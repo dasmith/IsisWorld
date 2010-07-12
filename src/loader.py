@@ -51,17 +51,12 @@ def load_objects(file, renderParent, physicsManager):
             print "Creating object %s" % (obj.name)
             obj.setHpr(rot)
             if prep == "on":
-                if hasattr(parent, "putOn"):
-                    parent.putOn(obj)
-                else:
-                    print parent
+                if parent.call(None, "put_on", obj) != "success":
                     obj.reparentTo(renderParent)
                     x, y, z = parent.activeModel.getPos(renderParent)
                     obj.setPos(x, y, z+1)
             elif prep == "in":
-                if hasattr(parent, "putIn"):
-                    parent.putIn(obj)
-                else:
+                if parent.call(None, "put_in", obj) != "success":
                     obj.reparentTo(renderParent)
                     x, y, z = parent.activeModel.getPos(renderParent)
                     obj.setPos(x, y, z+1)

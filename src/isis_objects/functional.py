@@ -50,10 +50,10 @@ class Dividable(IsisFunctional):
     def action__divide(self, agent, object):
         if self.piece and object != None and isinstance(object, Sharp):
             if not agent.right_hand_holding_object:
-                print agent.control__put_object_in_empty_right_hand(self.piece("bread", self.physicsManager).name)
+                print agent.control__put_object_in_empty_right_hand(self.piece("piece", self.physicsManager).name)
                 return True
             elif not agent.left_hand_holding_object:
-                print agent.control__put_object_in_empty_left_hand(self.piece("bread", self.physicsManager).name)
+                print agent.control__put_object_in_empty_left_hand(self.piece("piece", self.physicsManager).name)
                 return True
         return False
 
@@ -61,11 +61,6 @@ class Sharp(IsisFunctional):
     def __init__(self):
         IsisFunctional.__init__(self)
 
-    def action__cut(self,other):
+    def action__cut(self, agent, object):
         print "ouch"
-
-
-
-
-
-
+        return "success"

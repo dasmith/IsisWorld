@@ -25,7 +25,7 @@ class HorizontalGridLayout(LayoutManager):
             self.px = 0
             self.maxh = 0
             if self.py+oh > self.h:
-                return (0, 0, self.z)
+                return None
         x = self.px
         self.px += ow
         if oh > self.maxh:

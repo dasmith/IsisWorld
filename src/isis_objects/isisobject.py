@@ -17,9 +17,7 @@ class IsisObject(NodePath):
         self.offsetVec = offsetVec
         self.initialPos = initialPos 
         # this is the head node that everything is attached to
-        self.node = PandaNode('object-%s' % self.name)
-        self.nodePath = render.attachNewNode(self.node)
-        self.nodePath.reparentTo(self)
+        self.node = self.node()
         # store a pointer to the world manager
         self.physicsManager = physics        
    

@@ -123,6 +123,7 @@ class Ralph(DirectObject.DirectObject):
         #self.name = "Ralph"
         self.isSitting = False
         self.isDisabled = False
+        self.msg = None
 
         """
         Object used for picking objects in the field of view
@@ -375,7 +376,12 @@ class Ralph(DirectObject.DirectObject):
         world_object.setZ(world_object.getZ() + 1.0)
         return 'success'
 
-    def control__use_right_hand(self, target = None, action = "divide"):
+    def control__use_right_hand(self, target = None, action = None):
+        if not action:
+            if self.msg:
+                action = self.msg
+            else:
+                action = "divide"
         if not target:
             target = self.picker.pick((0, 0))
             if not target:
@@ -386,11 +392,18 @@ class Ralph(DirectObject.DirectObject):
         else:
             target = self.agent_simulator.world_objects[target]
         if self.can_grasp(target):
-            target.call(self, action, self.right_hand_holding_object)
-            return "success"
+            if(target.call(self, action, self.right_hand_holding_object) or
+              (self.right_hand_holding_object and self.right_hand_holding_object.call(self, action, target))):
+                return "success"
+            return str(action) + " not associated with either target or object"
         return "target not within reach"
 
-    def control__use_left_hand(self, target = None, action = "divide"):
+    def control__use_left_hand(self, target = None, action = None):
+        if not action:
+            if self.msg:
+                action = self.msg
+            else:
+                action = "divide"
         if not target:
             target = self.picker.pick((0, 0))
             if not target:

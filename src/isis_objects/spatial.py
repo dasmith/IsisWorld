@@ -56,7 +56,7 @@ class IsisSpatial(object):
         cRay = CollisionRay(center[0],center[1],center[2]-((lcorner[2]-center[2])/2.5), 0.0, 0.0, -1.0)
         self.floorRayNP = CollisionNode('object')
         self.floorRayNP.addSolid(cRay)
-        self.floorRayGeomNP = self.nodePath.attachNewNode(self.floorRayNP)
+        self.floorRayGeomNP = self.attachNewNode(self.floorRayNP)
         print "Adding Ray to %s" % self.name
         self.topSurfaceNP = CollisionNode('object')
         left_front = Vec3(lcorner[0], lcorner[1], ucorner[2])
@@ -65,7 +65,7 @@ class IsisSpatial(object):
         right_back = ucorner
         cFloorGeom = CollisionPolygon(left_front, right_front, right_back, left_back)
         self.topSurfaceNP.addSolid(cFloorGeom)
-        self.floorGeomNP = self.nodePath.attachNewNode(self.topSurfaceNP)
+        self.floorGeomNP = self.attachNewNode(self.topSurfaceNP)
         print "Setup colliders for ", self.name
 
         # setup wall collider 
@@ -76,14 +76,14 @@ class IsisSpatial(object):
         cGeom = CollisionBox(lcorner, ucorner)
         cGeom.setTangible(0)
         self.fullBoxNP.addSolid(cGeom)
-        self.wallGeomNP = self.nodePath.attachNewNode(self.fullBoxNP)
+        self.wallGeomNP = self.attachNewNode(self.fullBoxNP)
         IsisSpatial.enableCollisions(self)
         self.wallGeomNP.show()
-        self.physicsManager.cFloor.addCollider(self.floorRayGeomNP, self.nodePath)
+        self.physicsManager.cFloor.addCollider(self.floorRayGeomNP, self)
         base.cTrav.addCollider(self.floorRayGeomNP, self.physicsManager.cFloor)
-        self.physicsManager.cFloor.addCollider(self.floorGeomNP, self.nodePath)
+        self.physicsManager.cFloor.addCollider(self.floorGeomNP, self)
         base.cTrav.addCollider(self.floorGeomNP, self.physicsManager.cFloor)
-        self.physicsManager.cWall.addCollider(self.wallGeomNP, self.nodePath)
+        self.physicsManager.cWall.addCollider(self.wallGeomNP, self)
         base.cTrav.addCollider(self.wallGeomNP, self.physicsManager.cWall)
 
 
@@ -154,10 +154,21 @@ class Surface(IsisSpatial):
     def exitSurface(self,fromObj,toObject):
         print "Removed item from surface contacts", toObject
 
-    def putOn(self, obj):
+    def action__put_on(self, agent, obj):
         # TODO: requires that object has an exposed surface
-        obj.reparentTo(self)
-        obj.setPos(self.on_layout.add(obj))
+        pos = self.on_layout.add(obj)
+        if pos:
+            if agent and agent.is_holding(obj.name):
+                if agent.left_hand_holding_object == obj:
+                    agent.control__drop_from_left_hand()
+                elif agent.right_hand_holding_object == obj:
+                    agent.control__drop_from_right_hand()
+            else:
+                print "This should not be happening!"
+            obj.reparentTo(self)
+            obj.setPos(self.on_layout.add(obj))
+            return "success"
+        return "Surface is full"
 
 
 class Container(IsisSpatial):
@@ -204,9 +215,13 @@ class Container(IsisSpatial):
             # container already open 
             return True
 
-    def putIn(self, obj):
+    def action_put_in(self, agent, obj):
         # TODO: ensure that object can fit in other object
         #  1) internal volume is big enough, 2) vol - vol of other things in there
-        obj.reparentTo(self)
-        obj.setPos(self.in_layout.add(obj))
+        pos = self.in_layout.add(obj)
+        if pos:
+            obj.reparentTo(self)
+            obj.setPos(self.in_layout.add(obj))
+            return "success"
+        return "container is full"
 

@@ -311,7 +311,13 @@ class IsisWorld(DirectObject.DirectObject):
             x.command_box.suppressKeys=False
 
         def accept_message(message,x):
-            if message.strip() == "open":
+            message = message.strip()
+            if message:
+                self.agents[self.agentNum].msg = message
+                self.agents[self.agentNum].control__say("Action: " + message)
+            else:
+                self.agents[self.agentNum].msg = None
+            if message == "open":
                 self.door.select()
                 #self.door.open()
             x.teacher_utterances.append(message)

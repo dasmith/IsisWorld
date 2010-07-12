@@ -73,6 +73,9 @@ class IsisVisual():
         """ Returns a list of the labeled sub-node paths that are parts of the model"""
         pass
 
+    def getModelNode(self):
+        return self.activeModel
+
     def addModel(name,path):
         """ Adds another model state or part to the model path """
         self.models[name]=path
@@ -84,7 +87,7 @@ class IsisVisual():
 
     def create(self):
         self.activeModel = loader.loadModel("media/models/"+self.models['default'])
-        self.activeModel.setPos(self.initialPos+self.offsetVec)
+        self.activeModel.setPos(self.initialPos)
         self.activeModel.setScale(self.scale)
         self.activeModel.reparentTo(self)
         self.activeModel.setCollideMask(BitMask32.allOff())

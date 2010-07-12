@@ -42,7 +42,7 @@ class Ralph(DirectObject.DirectObject):
         self.actor.setColorScale(random.random(), random.random(), random.random(), 1.0)
         self.actorNode = ActorNode('physicsControler-%s' % name)
         self.actorNodePath = render.attachNewNode(self.actorNode)
-        self.actor.setPos(self.actorNodePath,0,0,-.6)
+        self.actor.setPos(self.actorNodePath,0,0,-.2)
         self.actor.reparentTo(self.actorNodePath)
         self.actor.setCollideMask(BitMask32.allOff())
         self.name = name
@@ -59,7 +59,7 @@ class Ralph(DirectObject.DirectObject):
         x = random.randint(0,10)
         y = random.randint(0,10)
         z = random.randint(12,25)
-        self.actorNodePath.setFluidPos(Vec3(x,y,z))
+        #self.actorNodePath.setFluidPos(Vec3(x,y,z))
         
         self.setupCollisionSpheres()
 
@@ -69,9 +69,14 @@ class Ralph(DirectObject.DirectObject):
         # Expose agent's right hand joint to attach objects to
         self.player_right_hand = self.actor.exposeJoint(None, 'modelRoot', 'Hand.R')
         self.player_left_hand  = self.actor.exposeJoint(None, 'modelRoot', 'Hand.L')
-        toaster = loader.loadModel("media/models/toaster")
-        #toaster.reparentTo(self.player_right_hand)
-        #toaster.place()
+        if 0: #name == "Lauren":
+            toaster = loader.loadModel("media/models/toaster")
+            toaster.setScale(0.7)
+            toaster.setPos(0,0,0)
+            toaster.reparentTo(self.player_right_hand)
+            toaster.setPos(Vec3(.2,0,.6))
+            toaster.place()
+
         #toaster.setPos(1,0.4,0)
 
 
@@ -128,7 +133,7 @@ class Ralph(DirectObject.DirectObject):
         """
         Object used for picking objects in the field of view
         """
-        self.picker =Picker(self.fov, worldObjectsDict)
+        self.picker =Picker(self.fov, worldObjectsDict, self)
 
         # Initialize the action queue, with a maximum length of queueSize
         self.queue = []
@@ -145,16 +150,44 @@ class Ralph(DirectObject.DirectObject):
 
     def getObjectsInFieldOfVision(self):
         """ This works in an x-ray vision style. Fast"""
+        def map3dToAspect2d(node, point):
+            """Maps the indicated 3-d point (a Point3), which is relative to 
+            the indicated NodePath, to the corresponding point in the aspect2d 
+            scene graph. Returns the corresponding Point3 in aspect2d. 
+            Returns None if the point is not onscreen. """ 
+            # Convert the point to the 3-d space of the camera 
+            p3 = self.fov.getRelativePoint(node, point) 
+
+            # Convert it through the lens to render2d coordinates 
+            p2 = Point2()
+            if not self.fov.node().getLens().project(p3, p2):
+                return None 
+            r2d = Point3(p2[0], 0, p2[1])
+            # And then convert it to aspect2d coordinates 
+            a2d = aspect2d.getRelativePoint(render2d, r2d)
+            return a2d
         objects_inview=0
         objects = []
         objs=base.render.findAllMatches("**/IsisObject*")
         for o in objs:
+            print "object:   ", o
             if self.fov.node().isInView(o.getPos(self.fov)):
-                o.setColor((1,0,0,1))
                 objects_inview+=1
-                objects.append(o)
-            else: 
-                o.setColor((1,1,1,1))
+                print "in view", o
+                b_min, b_max =  o.getTightBounds()
+                a_min = map3dToAspect2d(render, b_min)
+                a_max = map3dToAspect2d(render, b_max)
+                if a_min == None or a_max == None:
+                    continue
+                x_diff = math.fabs(a_max[0]-a_min[0])
+                y_diff = math.fabs(a_max[2]-a_min[2])
+                area = 100*x_diff*y_diff  # percentage of screen
+                object_dict = {'x_pos': (a_min[2]+a_max[2])/2.0,\
+                               'y_pos': (a_min[0]+a_max[0])/2.0,\
+                               'distance':o.getDistance(self.fov), \
+                               'area':area,\
+                               'orientation': o.getH(self.fov)}
+                objects[o] = object_dict
         self.control__say("If I were wearing x-ray glasses, I could see %i items"  % objects_inview) 
         return objects
 
@@ -278,7 +311,22 @@ class Ralph(DirectObject.DirectObject):
         percepts['language'] = self.sense__get_utterances()
         print percepts
         return percepts
+        
+    def control__open_fridge(self):
+        print "Opening fridge"
+        print self.control__use_right_hand(target='fridge',action="open")
+
+    def control__say_meta(self, message = "Hello!"):
+       self.speech_bubble['text'] = "META: "+message
+       self.last_spoke = 0
+       return "success"
+
  
+    def control__say_goal(self, message = "Hello!"):
+       self.speech_bubble['text'] = "GOAL: "+message
+       self.last_spoke = 0
+       return "success"
+
     def control__say(self, message = "Hello!"):
        self.speech_bubble['text'] = message
        self.last_spoke = 0
@@ -295,7 +343,7 @@ class Ralph(DirectObject.DirectObject):
         print "attempting to pick up " + pick_up_object.name + " with right hand.\n"
         if self.right_hand_holding_object:
             return 'right hand is already holding ' + self.right_hand_holding_object.getName() + '.'
-        if d[pick_up_object] < 5.0:
+        if d[pick_up_object]['distance'] < 5.0:
             if hasattr(pick_up_object,'action__pick_up'):
                 # try to pick it up  
                 result = pick_up_object.call(self, "pick_up",self.player_right_hand)
@@ -303,8 +351,10 @@ class Ralph(DirectObject.DirectObject):
                 if result == 'success': self.right_hand_holding_object = pick_up_object 
                 return result
             else:
+                print "you cannot pick that item up"
                 return 'object (' + pick_up_object.name + ') is already held by something or someone.'
         else:
+            print "that item is not graspable"
             return 'object (' + pick_up_object.name + ') is not graspable (i.e. in view and close enough).'
 
     def control__pick_up_with_left_hand(self, pick_up_object = None):
@@ -318,7 +368,7 @@ class Ralph(DirectObject.DirectObject):
         print "attempting to pick up " + pick_up_object.name + " with left hand.\n"
         if self.left_hand_holding_object:
             return 'left hand is already holding ' + self.left_hand_holding_object.getName() + '.'
-        if d[pick_up_object] < 5.0:
+        if d[pick_up_object]['distance'] < 5.0:
             if hasattr(pick_up_object,'action__pick_up'):
                 # try to pick it up 
                 result = pick_up_object.call(self, "pick_up",self.player_left_hand)
@@ -326,8 +376,10 @@ class Ralph(DirectObject.DirectObject):
                 print "Result of trying to pick up %s:" % pick_up_object.name, result
                 return result
             else:
+                print "you cannot pick that item up"
                 return 'object (' + pick_up_object.name + ') is already held by something or someone.'
         else:
+            print "that item is not graspable"
             return 'object (' + pick_up_object.name + ') is not graspable (i.e. in view and close enough).'
 
     def control__put_object_in_empty_left_hand(self, object_name):
@@ -390,7 +442,7 @@ class Ralph(DirectObject.DirectObject):
             else:
                 target = target[0]
         else:
-            target = self.agent_simulator.world_objects[target]
+            target = self.agent_simulator.worldObjects[target]
         if self.can_grasp(target):
             if(target.call(self, action, self.right_hand_holding_object) or
               (self.right_hand_holding_object and self.right_hand_holding_object.call(self, action, target))):
@@ -412,7 +464,7 @@ class Ralph(DirectObject.DirectObject):
             else:
                 target = target[0]
         else:
-            target = self.agent_simulator.world_objects[target]
+            target = self.agent_simulator.worldObjects[target]
         if self.can_grasp(target):
             target.call(self, action, self.left_hand_holding_object)
             return "success"
@@ -519,8 +571,8 @@ class Ralph(DirectObject.DirectObject):
         cSphereNode = CollisionNode('agent')
         cSphereNode.addSolid(CollisionSphere(0.0, 0.0, self.height, self.radius))
         cSphereNode.addSolid(CollisionSphere(0.0, 0.0, self.height + 2.2 * self.radius, self.radius))
-        cSphereNode.setFromCollideMask(WALLMASK | AGENTMASK)
-        cSphereNode.setIntoCollideMask(WALLMASK | AGENTMASK | OBJMASK)
+        cSphereNode.setFromCollideMask(WALLMASK | AGENTMASK | OBJMASK)
+        cSphereNode.setIntoCollideMask(AGENTMASK )
         cSphereNodePath = self.actorNodePath.attachNewNode(cSphereNode)
         #cSphereNodePath.show()
         self.physicsManager.cWall.addCollider(cSphereNodePath, self.actorNodePath)
@@ -530,8 +582,8 @@ class Ralph(DirectObject.DirectObject):
         cEventSphere = CollisionSphere(0.0, 0.0, self.height, self.radius)
         cEventSphere.setTangible(0)
         cEventSphereNode.addSolid(cEventSphere)
-        cEventSphereNode.setFromCollideMask(AGENTMASK | OBJMASK)
-        cEventSphereNode.setIntoCollideMask(AGENTMASK)
+        cEventSphereNode.setFromCollideMask(AGENTMASK )
+        cEventSphereNode.setIntoCollideMask(AGENTMASK | OBJMASK)
         cEventSphereNodePath = self.actorNodePath.attachNewNode(cEventSphereNode)
         
         base.cTrav.addCollider(cEventSphereNodePath, base.cEvent)
@@ -579,9 +631,9 @@ class Ralph(DirectObject.DirectObject):
         self.actorNodePath.setFluidPos(newPos)
 
         # allow dialogue window to gradually decay (changing transparancy) and then disappear
-        self.last_spoke += stepSize
-        self.speech_bubble['text_bg']=(1,1,1,1/(2*self.last_spoke+0.01))
-        self.speech_bubble['frameColor']=(.6,.2,.1,.5/(2*self.last_spoke+0.01))
+        self.last_spoke += stepSize/2
+        self.speech_bubble['text_bg']=(1,1,1,1/(self.last_spoke+0.01))
+        self.speech_bubble['frameColor']=(.6,.2,.1,.5/(self.last_spoke+0.01))
         if self.last_spoke > 2:
             self.speech_bubble['text'] = ""
 
@@ -606,13 +658,32 @@ class Ralph(DirectObject.DirectObject):
             self.current_frame_count = 0
             self.actor.pose('idle', 0)
         return Task.cont
+        
+def map3dToAspect2d(node, point):
+    """Maps the indicated 3-d point (a Point3), which is relative to 
+    the indicated NodePath, to the corresponding point in the aspect2d 
+    scene graph. Returns the corresponding Point3 in aspect2d. 
+    Returns None if the point is not onscreen. """ 
+    # Convert the point to the 3-d space of the camera 
+    p3 = self.fov.getRelativePoint(node, point) 
+
+    # Convert it through the lens to render2d coordinates 
+    p2 = Point2()
+    if not self.fov.node().getLens().project(p3, p2):
+        return None 
+    r2d = Point3(p2[0], 0, p2[1])
+    # And then convert it to aspect2d coordinates 
+    a2d = aspect2d.getRelativePoint(render2d, r2d)
+    return a2d
+
 
 class Picker(DirectObject.DirectObject):
     """Picker class derived from http://www.panda3d.org/phpbb2/viewtopic.php?p=4532&sid=d5ec617d578fbcc4c4db0fc68ee87ac0"""
-    def __init__(self, camera, worldObjects, tag = 'pickable', value = 'true'):
+    def __init__(self, camera, worldObjects, agent, tag = 'pickable', value = 'true'):
         self.camera = camera
         self.tag = tag
         self.value = value
+        self.agent = agent
         self.queue = CollisionHandlerQueue()
         self.pickerNode = CollisionNode('mouseRay')
         self.pickerNP = self.camera.attachNewNode(self.pickerNode)
@@ -632,14 +703,16 @@ class Picker(DirectObject.DirectObject):
         if self.queue.getNumEntries() > 1:
             self.queue.sortEntries()
             parent = self.queue.getEntry(1).getIntoNodePath().getParent()
-            point = self.queue.getEntry(1).getSurfacePoint(self.camera)
-            dist = math.sqrt(point.getX()**2+point.getY()**2+point.getZ()**2)
+            point = self.queue.getEntry(1).getSurfacePoint(self.agent.fov)    
+            object_dict = {'x_pos': point.getY(),\
+                           'y_pos': point.getY(),\
+                           'distance':self.queue.getEntry(1).getIntoNodePath().getDistance(self.agent.fov)}
             while parent != render:
                 if(self.tag == None):
-                    return (parent, dist)
+                    return (parent, object_dict)
                 elif parent.getTag(self.tag) == self.value:
                     name = str(parent)
-                    return (self.worldObjects[name[name.rfind("IsisObject"):]], dist)
+                    return (self.worldObjects[name[name.rfind("IsisObject"):]], object_dict)
                 else:
                     parent = parent.getParent()
         return None

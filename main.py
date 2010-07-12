@@ -43,7 +43,7 @@ class IsisWorld(DirectObject.DirectObject):
         self.rootDirectory = "."#Filename.fromOsSpecific(ExecutionEnvironment.getCwd())
         config = loadPrcFile(Filename(self.rootDirectory, 'config.prc'))
         self._setupEnvironment(debug=False)
-        self._setupWorld(visualizeClouds=True, enableKitchen=False)
+        self._setupWorld(visualizeClouds=True, enableKitchen=True)
         self._setupAgents()
         self._setupLights()
         self._setupCameras()
@@ -51,6 +51,9 @@ class IsisWorld(DirectObject.DirectObject):
         self.devConsole = DeveloperConsole()            
         self._textObjectVisible = True
         self._inspectState = False
+        # turn off main help menu by default
+        self.toggleInstructionsWindow()
+
         
     def _setupEnvironment(self,debug=False):
         """  Stuff that's too ugly to put anywhere else. """
@@ -58,7 +61,7 @@ class IsisWorld(DirectObject.DirectObject):
         base.setFrameRateMeter(True)
         base.setBackgroundColor(.2, .2, .2)
         base.camLens.setFov(75)
-        base.camLens.setNear(0.2)
+        base.camLens.setNear(0.1)
         base.disableMouse()
         # debugging stuff
         if debug:
@@ -72,7 +75,14 @@ class IsisWorld(DirectObject.DirectObject):
         self.server = self.server_object.server
         self.server.register_function(commandHandler.handler,'do')
         self.server_thread = threading.Thread(group=None, target=self.server.serve_forever, name='isisworld-xmlrpc')
+        self.server_thread.setDaemon(True)
         self.server_thread.start()
+        
+        def delay_sleep_task(task):
+            time.sleep(0.00001)
+            return task.again
+        
+        myTask = taskMgr.doMethodLater(0.01, delay_sleep_task, 'tickTask')
 
     def _setupWorld(self, visualizeClouds=False, enableKitchen=False):
         """ The world consists of a plane, the "ground" that stretches to infinity
@@ -148,9 +158,18 @@ class IsisWorld(DirectObject.DirectObject):
     def _setupCameras(self):
         # Set up the camera 
         ### Set up displays and cameras ###
-        self.floatingCamera = FloatingCamera(self.agents[self.agentNum].actorNodePath)
-        base.camera.reparentTo(self.agents[self.agentNum].actorNodePath)
-        base.taskMgr.add(self.floatingCamera.update_camera, 'update_camera')
+        #base.disableMouse()
+        base.camera.reparentTo(self.room)
+        
+        base.camera.setPos(-5,3,4.5)
+        base.camera.setHpr(250,323,0)
+        #base.camera.setPos(20*math.sin(angleradians),-20.0*math.cos(angleradians),3)
+        #base.camera.setHpr(angledegrees, 0, 0)
+        #self.floatingCamera = FloatingCamera(self.agents[self.agentNum].actorNodePath)
+        #base.camera.setCollideMask(BitMask32.allOff())
+        #base.camera.reparentTo(render)
+        #base.taskMgr.remove('update_camera')
+        #base.taskMgr.add(self.floatingCamera.update_camera, 'update_camera', priority=35)
         # set up picture in picture
         dr = base.camNode.getDisplayRegion(0)
         aspect_ratio = 16.0 / 9.0
@@ -186,10 +205,12 @@ class IsisWorld(DirectObject.DirectObject):
         # that the camera and fov follow
         self.agentNum = 0
         self.agents = []
-        self.agentsNamesToIDs = {'Ralph':0, 'Lauren':1, 'David':2}
+        defaultPos = { 'Ralph':Vec3(2,0,3), 'Lauren': Vec3(0,0,4)}
+        self.agentsNamesToIDs = {'Ralph':0, 'Lauren':1}
         # add and initialize new agents
         for name in self.agentsNamesToIDs.keys():
             newAgent = Ralph(self.physicsManager, self, name, self.worldObjects)
+            newAgent.setPosition(defaultPos[name])
             newAgent.control__say("Hi, I'm %s. Please build me." % name)
             self.agents.append(newAgent)
     
@@ -211,10 +232,10 @@ class IsisWorld(DirectObject.DirectObject):
         text = "\n"
         text += "IsisWorld v%s\n" % (ISIS_VERSION)
         text += "\n\n"
-        text += "\nPress [1] to toggle wire frame"
-        text += "\nPress [2] to toggle texture"
-        text += "\nPress [3] to switch agent"
-        text += "\nPress [4] to hide/show this text"
+        text += "\n[1] to toggle wire frame"
+        text += "\n[2] to toggle texture"
+        text += "\n[3] to switch agent"
+        text += "\n[4] to hide/show this text"
         text += "\n[o] lists objects in agent's f.o.v."
         text += "\n[Esc] to quit\n"
         # initialize actions
@@ -223,6 +244,8 @@ class IsisWorld(DirectObject.DirectObject):
         #self.actionController.addAction(IsisAction(commandName="move_right",intervalAction=True,keyboardBinding="arrow_right"))
         #self.actionController.addAction(IsisAction(commandName="turn_left",intervalAction=True))
         #self.actionController.addAction(IsisAction(commandName="turn_right",intervalAction=True))
+
+        self.actionController.addAction(IsisAction(commandName="open_fridge",intervalAction=False,keyboardBinding="p"))
         self.actionController.addAction(IsisAction(commandName="turn_left",intervalAction=True,keyboardBinding="arrow_left"))
         self.actionController.addAction(IsisAction(commandName="turn_right",intervalAction=True,keyboardBinding="arrow_right"))
         self.actionController.addAction(IsisAction(commandName="move_forward",intervalAction=True,keyboardBinding="arrow_up"))
@@ -275,14 +298,15 @@ class IsisWorld(DirectObject.DirectObject):
                 self.agentNum += 1
             self._setupCameras()
         # Accept some keys to move the camera.
-        self.accept("a-up", self.floatingCamera.setControl, ["right", 0])
-        self.accept("a",    self.floatingCamera.setControl, ["right", 1])
-        self.accept("s-up", self.floatingCamera.setControl, ["left",  0])
-        self.accept("s",    self.floatingCamera.setControl, ["left",  1])
-        self.accept("d",    self.floatingCamera.setControl, ["zoom-in",  1])
-        self.accept("d-up", self.floatingCamera.setControl, ["zoom-in",  0])
-        self.accept("f",    self.floatingCamera.setControl, ["zoom-out",  1])
-        self.accept("f-up", self.floatingCamera.setControl, ["zoom-out",  0])
+        
+        #self.accept("a-up", self.floatingCamera.setControl, ["right", 0])
+        #self.accept("a",    self.floatingCamera.setControl, ["right", 1])
+        #self.accept("s-up", self.floatingCamera.setControl, ["left",  0])
+        #self.accept("s",    self.floatingCamera.setControl, ["left",  1])
+        #self.accept("d",    self.floatingCamera.setControl, ["zoom-in",  1])
+        #self.accept("d-up", self.floatingCamera.setControl, ["zoom-in",  0])
+        #self.accept("f",    self.floatingCamera.setControl, ["zoom-out",  1])
+        #self.accept("f-up", self.floatingCamera.setControl, ["zoom-out",  0])
         #if self.is_ralph == True:
         # control keys to move the character
 
@@ -317,12 +341,14 @@ class IsisWorld(DirectObject.DirectObject):
                 self.agents[self.agentNum].control__say("Action: " + message)
             else:
                 self.agents[self.agentNum].msg = None
-            if message == "open":
-                self.door.select()
-                #self.door.open()
+            if message.split()[0] == "goal":
+                self.agents[self.agentNum].control__say_goal(' '.join(message.split()[1:]))
+            elif message.split()[0] == "meta":
+                self.agents[self.agentNum].control__say_meta(' '.join(message.split()[1:]))
+            elif message.split()[0] == "say":
+                self.agents[self.agentNum].control__say(' '.join(message.split()[1:]))
             x.teacher_utterances.append(message)
             x.command_box.enterText("")
-
 
         self.command_box = DirectEntry(pos=(-1.2,-0.95,-0.95), text_fg=(0.282, 0.725, 0.850,1), frameColor=(0.631, 0.219, 0.247,0.25), suppressKeys=1, initialText="enter text and hit return", enableEdit=0,scale=0.07, focus=0, focusInCommand=disable_keys, focusOutCommand=enable_keys, focusInExtraArgs=[self], focusOutExtraArgs=[self], command=accept_message, extraArgs=[self],  width=15, numLines=1)
         base.win.setClearColor(Vec4(0,0,0,1))
@@ -347,8 +373,8 @@ class IsisWorld(DirectObject.DirectObject):
             if (not self.physicsManager.paused): # pause it
                 self.physicsManager.togglePaused()
             self.agentCamera.setActive(0)
-            active_agent = self.agents[self.agentNum].actor
-            base.camera.reparentTo(active_agent)
+            active_agent = self.agents[self.agentNum].actorNodePath
+            base.camera.reparentTo(render)
             base.camera.lookAt(active_agent)
             for child in render.getChildren():
                 if child != active_agent and child.getName()[-5:] != "Light" and child.getName()[0:16] != "physicsControler":

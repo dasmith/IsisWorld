@@ -5,12 +5,13 @@ Created Jan 23, 2010
 By Gleb Kuznetsov (glebk@mit.edu)
 '''
 from pandac.PandaModules import VBase3
+import time
 
 class IsisCommandHandler(object):
 
     def __init__(self, simulator):
         self.simulator = simulator
-        self.meta_commands  = ['meta_step','meta_pause','meta_list_actions','step_simulation']
+        self.meta_commands  = ['meta_step','meta_pause','meta_resume','meta_list_actions','step_simulation']
 
     def handler(self,cmd,args={}):
         '''
@@ -55,6 +56,8 @@ class IsisCommandHandler(object):
             if args.has_key('seconds'):
                 seconds = args['seconds']
             self.simulator.physicsManager.stepSimulation(seconds)
+            # dont accept new commands until this has stepped
+            while self.simulator.physicsManager.stepping:   time.sleep(0.00001)
             return 'success'            
         elif cmd == 'step_simulation':
             print "WARNING, the step_simulation command will soon be deprecated. use 'meta_step' instead"
@@ -62,9 +65,14 @@ class IsisCommandHandler(object):
             if args.has_key('seconds'):
                 seconds = args['seconds']
             self.simulator.physicsManager.stepSimulation(seconds)
+            # dont accept new commands until this has stepped
+            while self.simulator.physicsManager.stepping:   time.sleep(0.00001)
             return 'success'
         elif cmd == 'meta_pause':
-            self.simulator.physicsManager.togglePaused()
+            self.simulator.physicsManager.pause()
+            return 'success'
+        elif cmd == 'meta_resume':
+            self.simulator.physicsManager.resume()
             return 'success'
         elif cmd == 'meta_list_actions':
             return self.simulator.actionController.actionMap.keys()+self.meta_commands

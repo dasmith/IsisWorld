@@ -9,22 +9,24 @@ class IsisFunctional():
     def registerState(self,stateName,valueDomain):
         self.states[stateName] = valueDomain
 
-    def call(self, agent, action, object = None):
+    def call(self, agent, action, dobject = None):
         """ This is the dispatcher for the action methods """
         try:
-            return getattr(self, "action__"+action)(agent, object)
+            return getattr(self, "action__"+action)(agent, dobject)
         except AttributeError:
             return None
 
     ## register actions that are enabled by default in all objects
-    def action__pick_up(self, agent, object):
+    def action__pick_up(self, agent, directobject):
         if self.getNetTag('heldBy') == '':
             # this the thing is not current held, OK to pick up
             self.disableCollisions()
-            print "ATTACHING TO", object 
-            self.reparentTo(object)
-            self.setHpr(0, 0, 0)
-            self.setPos(self.offsetVec)
+            print "ATTACHING TO", directobject
+            #self.setPosHpr(0, 0, 0,0,0,0)
+            self.reparentTo(directobject)
+            self.activeModel.setPosHpr(*self.offsetVec)
+            print "OFFSET", self.offsetVec
+            #self.place()
             self.setTag('heldBy', agent.name)
             return 'success'
         else:
@@ -39,6 +41,14 @@ class IsisFunctional():
     def drop(self):
         """ Clears the heldBy variable """
         self.heldBy = None
+
+
+class NoPickup(IsisFunctional):
+    def __init__(self):
+        IsisFunctional.__init__(self)
+  
+    def action__pick_up(self, x,y):
+        return 'failed: cannot pick up this object'
 
 class Dividable(IsisFunctional):
     def __init__(self,piece=None):

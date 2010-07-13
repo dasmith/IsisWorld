@@ -18,6 +18,7 @@ class IsisObject(NodePath):
         self.initialPos = initialPos 
         # this is the head node that everything is attached to
         self.node = self.node()
+        print "VALUE OF NODE", self.node
         # store a pointer to the world manager
         self.physicsManager = physics        
    

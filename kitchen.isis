@@ -1,11 +1,5 @@
 fridge	at 6,0,2
 table	at 0,2.8,3
-#loaf	on table	at 0,0,1
-toaster	on table
-#knife	on table
-
-#fridge	at 6,0,2
-#table	at 0,2.8,3
-#loaf	on table	at .9,.1,2
-#toaster	on table	at .5,.1,3
-#knife	on table	at .1,.1,4
+toaster	on table	at 0,0.4,4
+loaf	on table	at -0.2,0.5,5
+knife	on table	at 0.4,-0.2,3

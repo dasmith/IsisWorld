@@ -24,23 +24,22 @@ class IsisFunctional():
             print "ATTACHING TO", directobject
             #self.setPosHpr(0, 0, 0,0,0,0)
             self.reparentTo(directobject)
-            self.activeModel.setPosHpr(*self.offsetVec)
             print "OFFSET", self.offsetVec
+            self.activeModel.setPosHpr(*self.offsetVec)
             #self.place()
             self.setTag('heldBy', agent.name)
             return 'success'
         else:
             return "Error: already held by someone"
 
-    def take(self, parent):
-        """ Allows Ralph to pick up a given object """
-        if self.weight < 5000:
-            self.reparentTo(parent)
-            self.heldBy = parent
-
-    def drop(self):
-        """ Clears the heldBy variable """
-        self.heldBy = None
+    def action__drop(self, agent, directobject):
+        if self.getNetTag('heldBy') == agent.name:
+            self.enableCollisions()
+            self.wrtReparentTo(directobject)
+            self.setTag('heldBy', '')
+            return 'success'
+        else:
+            return "Error: not being held by given agent"
 
 
 class NoPickup(IsisFunctional):

@@ -182,12 +182,12 @@ class Surface(IsisSpatial):
                     agent.control__drop_from_left_hand()
                 elif agent.right_hand_holding_object == obj:
                     agent.control__drop_from_right_hand()
-            else:
-                print "This should not be happening!"
             obj.reparentTo(self)
-            obj.setPos(self.on_layout.add(obj))
+            obj.setPos(pos)
             return "success"
         return "Surface is full"
+    def action__take_off(self, agent, obj):
+        self.on_layout.remove(obj)
 
 
 class Container(IsisSpatial):
@@ -234,13 +234,20 @@ class Container(IsisSpatial):
             # container already open 
             return True
 
-    def action_put_in(self, agent, obj):
+    def action__put_in(self, agent, obj):
         # TODO: ensure that object can fit in other object
         #  1) internal volume is big enough, 2) vol - vol of other things in there
         pos = self.in_layout.add(obj)
         if pos:
+            if agent and agent.is_holding(obj.name):
+                if agent.left_hand_holding_object == obj:
+                    agent.control__drop_from_left_hand()
+                elif agent.right_hand_holding_object == obj:
+                    agent.control__drop_from_right_hand()
             obj.reparentTo(self)
-            obj.setPos(self.in_layout.add(obj))
+            obj.setPos(pos)
             return "success"
         return "container is full"
 
+    def action__take_out(self, agent, obj):
+        self.in_layout.remove(obj)

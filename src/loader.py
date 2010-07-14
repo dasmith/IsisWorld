@@ -1,9 +1,6 @@
 """  Object Loader for IsisWorld Simulator """
-import sys, re, time
-from random import randint, random
-from direct.interval.IntervalGlobal import *
-from pandac.PandaModules import BitMask32, CardMaker, Vec4, Quat
-from isis_objects.generators import * 
+import sys
+from isis_objects.generators import world_objects
 
 def instantiate_isisobject(classname, physics):
     """ Instantiates an IsisObject as defined in a class in the "generators.py" file.
@@ -49,6 +46,7 @@ def load_objects(file, renderParent, physicsManager):
             print item
             obj = instantiate_isisobject(item, physicsManager)
             print "Creating object %s" % (obj.name)
+            print "Dimensions: w=%f, l=%f, h=%f" % (obj.getWidth(), obj.getLength(), obj.getHeight())
             obj.setHpr(rot)
             if prep == "on":
                 if parent.call(None, "put_on", obj) != "success":

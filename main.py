@@ -30,13 +30,12 @@ from src.developerconsole import *
 from src.loader import *
 from src.lights.skydome2 import *
 from src.actions.actions import *
+import time
 from time import ctime
 import sys, os, threading
 
 
-class IsisWorld(DirectObject.DirectObject):
-   
-
+class IsisWorld(DirectObject):
     def __init__(self):
         # load the main simulated environment
         self.isisMessage("Starting Up")
@@ -53,7 +52,6 @@ class IsisWorld(DirectObject.DirectObject):
         self._inspectState = False
         # turn off main help menu by default
         self.toggleInstructionsWindow()
-
         
     def _setupEnvironment(self,debug=False):
         """  Stuff that's too ugly to put anywhere else. """
@@ -408,4 +406,6 @@ class IsisWorld(DirectObject.DirectObject):
         sys.exit()
 
 iw = IsisWorld()
+render.ls()
+iw.physicsManager.togglePaused()
 run()

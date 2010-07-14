@@ -334,50 +334,42 @@ class Ralph(DirectObject.DirectObject):
 
     def control__pick_up_with_right_hand(self, pick_up_object=None):
         if not pick_up_object:
-            d = self.getObjectsInView()
-            if len(d) > 0:
-                pick_up_object = d.keys()[0]
+            d = self.picker.pick((0, 0))
+            if d:
+                pick_up_object = d[0]
             else:
-                print "no objects in view to pick up"
+                print "no target in reach"
                 return
         print "attempting to pick up " + pick_up_object.name + " with right hand.\n"
         if self.right_hand_holding_object:
             return 'right hand is already holding ' + self.right_hand_holding_object.getName() + '.'
-        if d[pick_up_object]['distance'] < 5.0:
-            if hasattr(pick_up_object,'action__pick_up'):
-                # try to pick it up  
-                result = pick_up_object.call(self, "pick_up",self.player_right_hand)
-                print "Result of trying to pick up %s:" % pick_up_object.name, result
-                if result == 'success': self.right_hand_holding_object = pick_up_object 
-                return result
-            else:
-                print "you cannot pick that item up"
-                return 'object (' + pick_up_object.name + ') is already held by something or someone.'
+        if self.can_grasp(pick_up_object):
+            result = pick_up_object.call(self, "pick_up",self.player_right_hand)
+            print "Result of trying to pick up %s:" % pick_up_object.name, result
+            if result == 'success':
+                self.right_hand_holding_object = pick_up_object 
+            return result
         else:
             print "that item is not graspable"
             return 'object (' + pick_up_object.name + ') is not graspable (i.e. in view and close enough).'
 
     def control__pick_up_with_left_hand(self, pick_up_object = None):
         if not pick_up_object:
-            d = self.getObjectsInView()
-            if len(d) > 0:
-                pick_up_object = d.keys()[0]
+            d = self.picker.pick((0, 0))
+            if d:
+                pick_up_object = d[0]
             else:
-                print "no objects in view to pick up"
+                print "no target in reach"
                 return
         print "attempting to pick up " + pick_up_object.name + " with left hand.\n"
         if self.left_hand_holding_object:
             return 'left hand is already holding ' + self.left_hand_holding_object.getName() + '.'
-        if d[pick_up_object]['distance'] < 5.0:
-            if hasattr(pick_up_object,'action__pick_up'):
-                # try to pick it up 
-                result = pick_up_object.call(self, "pick_up",self.player_left_hand)
-                if result == 'success': self.left_hand_holding_object = pick_up_object 
-                print "Result of trying to pick up %s:" % pick_up_object.name, result
-                return result
-            else:
-                print "you cannot pick that item up"
-                return 'object (' + pick_up_object.name + ') is already held by something or someone.'
+        if self.can_grasp(pick_up_object):
+            result = pick_up_object.call(self, "pick_up",self.player_left_hand)
+            print "Result of trying to pick up %s:" % pick_up_object.name, result
+            if result == 'success':
+                self.left_hand_holding_object = pick_up_object
+            return result
         else:
             print "that item is not graspable"
             return 'object (' + pick_up_object.name + ') is not graspable (i.e. in view and close enough).'
@@ -406,27 +398,19 @@ class Ralph(DirectObject.DirectObject):
         print "attempting to drop object from right hand.\n"
         if self.right_hand_holding_object is False:
             return 'right hand is not holding an object.'
-        world_object = self.right_hand_holding_object
-        world_object.clearTag('heldBy')
-        self.right_hand_holding_object = False
-        world_object.wrtReparentTo(render)
-        world_object.setHpr(0, 0, 0)
-        #world_object.setPos(self.position() + self.forward_normal_vector() * 0.5)
-        world_object.setZ(world_object.getZ() + 1.0)
-        return 'success'
+        result = self.right_hand_holding_object.call(self, 'drop', render)
+        if result == 'success':
+            self.right_hand_holding_object = False
+        return result
 
     def control__drop_from_left_hand(self):
         print "attempting to drop object from left hand.\n"
         if self.left_hand_holding_object is False:
             return 'left hand is not holding an object.'
-        world_object = self.left_hand_holding_object
-        world_object.clearTag('heldBy')
-        self.left_hand_holding_object = False
-        world_object.wrtReparentTo(render)
-        world_object.setHpr(0, 0, 0)
-        #world_object.setPos(self.position() + self.forward_normal_vector() * 0.5)
-        world_object.setZ(world_object.getZ() + 1.0)
-        return 'success'
+        result = self.left_hand_holding_object.call(self, 'drop', render)
+        if result == 'success':
+            self.left_hand_holding_object = False
+        return result
 
     def control__use_right_hand(self, target = None, action = None):
         if not action:
@@ -471,7 +455,7 @@ class Ralph(DirectObject.DirectObject):
         return "target not within reach"
 
     def can_grasp(self, object):
-        return object.getDistance(self.fov)
+        return object.getDistance(self.fov) < 5.0
 
     def is_holding(self, object_name):
         return ((self.left_hand_holding_object  and (self.left_hand_holding_object.getName()  == object_name)) \

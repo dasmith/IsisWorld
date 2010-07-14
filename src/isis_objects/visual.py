@@ -38,7 +38,8 @@ class IsisVisual():
 
     def rescaleModel(self,scale):
         """ Changes the model's dimensions to a given scale"""
-        self.activeModel.setScale(scale)
+        self.activeModel.setScale(scale, scale, scale)
+        self.scale = scale
         self._needToRecalculateScalingProperties = True
 
     def getLength(self):
@@ -58,7 +59,7 @@ class IsisVisual():
 
     def _recalculateScalingProperties(self):
         """ Internal method for recomputing properties, lazily issued"""
-        p1, p2 = self.getTightBounds()
+        p1, p2 = self.activeModel.getTightBounds()
         self.width = abs(p2.getX()-p1.getX())
         self.length = abs(p2.getY()-p1.getY())
         self.height = abs(p2.getZ()-p1.getZ())
@@ -87,8 +88,8 @@ class IsisVisual():
 
     def create(self):
         self.activeModel = loader.loadModel("media/models/"+self.models['default'])
-        self.activeModel.setPos(self.initialPos)
-        self.activeModel.setScale(self.scale)
+        self.activeModel.setPosHpr(*self.offsetVec)
+        self.activeModel.setScale(self.scale, self.scale, self.scale)
         self.activeModel.reparentTo(self)
         self.activeModel.setCollideMask(BitMask32.allOff())
         # when models are scaled down dramatically (e.g < 1% of original size), Panda3D represents

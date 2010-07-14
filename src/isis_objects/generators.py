@@ -4,6 +4,7 @@ from visual import *
 from spatial import *
 from functional import *
 from isisobject import IsisObject
+from layout_manager import SlotLayout
 
 from direct.interval.IntervalGlobal import *
 
@@ -15,7 +16,7 @@ def addToWorld(object):
 class table(IsisObject,IsisVisual,Container,Surface,NoPickup):
 
     def __init__(self,name,physics):
-        IsisObject.__init__(self,name=name,physics=physics, offsetVec=(0,0,2,0,60,0))
+        IsisObject.__init__(self,name=name,physics=physics, offsetVec=(0,0,0,0,0,0))
         IsisVisual.__init__(self,model="table/table",scale=0.006)
         self.create()
 
@@ -32,13 +33,14 @@ class table(IsisObject,IsisVisual,Container,Surface,NoPickup):
 class fridge(IsisObject, IsisVisual, Container, NoPickup):
     
     def __init__(self,name,physics):
-        IsisObject.__init__(self,name=name,physics=physics, offsetVec=(0,0,0,0,60,0))
+        IsisObject.__init__(self,name=name,physics=physics, offsetVec=(0,0,0,0,0,0))
         IsisVisual.__init__(self,model="Fridge/Fridge", scale=0.17)
         self.create()
         self.activeModel.setH(90)
 
         Container.__init__(self,density=4000)
         Container.setup(self)
+        self.in_layout = SlotLayout([(0, 0, 1), (0, 0, 0)])
 
         self.fullBoxNP.setIntoCollideMask(OBJMASK)
         self.fullBoxNP.setFromCollideMask(OBJMASK)
@@ -75,7 +77,7 @@ class fridge(IsisObject, IsisVisual, Container, NoPickup):
 class knife(IsisObject, IsisVisual, IsisSpatial, Sharp):
 
     def __init__(self,name,physics):
-        IsisObject.__init__(self,name=name,physics=physics, offsetVec=(.00,.30,-0.5,0,0,0))
+        IsisObject.__init__(self,name=name,physics=physics, offsetVec=(.0,0,0,0,0,0))
         IsisVisual.__init__(self,model="knife", scale=0.01)
         self.create()
 
@@ -90,7 +92,7 @@ class knife(IsisObject, IsisVisual, IsisSpatial, Sharp):
 class toaster(IsisObject, IsisVisual, Container, IsisFunctional):
     
     def __init__(self,name,physics):
-        IsisObject.__init__(self,name=name,physics=physics,offsetVec=(.4,0,.6,0,0,0))
+        IsisObject.__init__(self,name=name,physics=physics,offsetVec=(0.442,0.245,0.25,0,0,0))
         IsisVisual.__init__(self,model="toaster", scale=0.7)
         self.create()
 
@@ -99,7 +101,7 @@ class toaster(IsisObject, IsisVisual, Container, IsisFunctional):
 
         IsisFunctional.__init__(self)
         # register functional states
-        self.registerState("containsToast", [0,1,2])
+        #self.registerState("containsToast", [0,1,2])
 
         addToWorld(self)
 

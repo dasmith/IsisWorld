@@ -22,10 +22,10 @@ class IsisFunctional():
             # this the thing is not current held, OK to pick up
             self.disableCollisions()
             print "ATTACHING TO", directobject
-            #self.setPosHpr(0, 0, 0,0,0,0)
+            self.setPosHpr(0,0,0,0,0,0)
             self.reparentTo(directobject)
             print "OFFSET", self.offsetVec
-            self.activeModel.setPosHpr(*self.offsetVec)
+            self.activeModel.setPosHpr(*self.pickupVec)
             #self.place()
             self.setTag('heldBy', agent.name)
             return 'success'
@@ -36,6 +36,9 @@ class IsisFunctional():
         if self.getNetTag('heldBy') == agent.name:
             self.enableCollisions()
             self.wrtReparentTo(directobject)
+            self.activeModel.setPosHpr(*self.offsetVec)
+            self.setHpr(self.getH(), 0, 0)
+            self.setPos(self, (0, 1.3, 1.5))
             self.setTag('heldBy', '')
             return 'success'
         else:

@@ -407,5 +407,5 @@ class IsisWorld(DirectObject):
 
 iw = IsisWorld()
 render.ls()
-iw.physicsManager.togglePaused()
+#iw.physicsManager.togglePaused()
 run()

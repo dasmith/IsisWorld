@@ -378,17 +378,17 @@ class Ralph(DirectObject.DirectObject):
         if (self.left_hand_holding_object is not False):
             return "left hand not empty"
         world_object = self.agent_simulator.worldObjects[object_name]
-        world_object.wrtReparentTo(self.player_left_hand)
+        world_object.reparentTo(self.player_left_hand)
         world_object.setPos(0, 0, 0)
         world_object.setHpr(0, 0, 0)
         self.left_hand_holding_object = world_object
         return "success"
 
-    def control__put_object_in_empty_right_hand(self, name):
+    def control__put_object_in_empty_right_hand(self, object_name):
         if (self.right_hand_holding_object is not False):
             return "right hand not empty"
         world_object = self.agent_simulator.worldObjects[object_name]
-        world_object.wrtReparentTo(self.player_right_hand)
+        world_object.reparentTo(self.player_right_hand)
         world_object.setPos(0, 0, 0)
         world_object.setHpr(0, 0, 0)
         self.right_hand_holding_object = world_object

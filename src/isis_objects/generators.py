@@ -16,7 +16,7 @@ def addToWorld(object):
 class table(IsisObject,IsisVisual,Container,Surface,NoPickup):
 
     def __init__(self,name,physics):
-        IsisObject.__init__(self,name=name,physics=physics, offsetVec=(0,0,0,0,0,0))
+        IsisObject.__init__(self,name=name,physics=physics)
         IsisVisual.__init__(self,model="table/table",scale=0.006)
         self.create()
 
@@ -33,7 +33,7 @@ class table(IsisObject,IsisVisual,Container,Surface,NoPickup):
 class fridge(IsisObject, IsisVisual, Container, NoPickup):
     
     def __init__(self,name,physics):
-        IsisObject.__init__(self,name=name,physics=physics, offsetVec=(0,0,0,0,0,0))
+        IsisObject.__init__(self,name=name,physics=physics)
         IsisVisual.__init__(self,model="Fridge/Fridge", scale=0.17)
         self.create()
         self.activeModel.setH(90)
@@ -77,7 +77,7 @@ class fridge(IsisObject, IsisVisual, Container, NoPickup):
 class knife(IsisObject, IsisVisual, IsisSpatial, Sharp):
 
     def __init__(self,name,physics):
-        IsisObject.__init__(self,name=name,physics=physics, offsetVec=(.0,0,0,0,0,0))
+        IsisObject.__init__(self,name=name,physics=physics,pickupVec=(0,.15,0,0,75,0))
         IsisVisual.__init__(self,model="knife", scale=0.01)
         self.create()
 
@@ -100,8 +100,8 @@ class toaster(IsisObject, IsisVisual, Container, IsisFunctional):
         Container.setup(self)
 
         IsisFunctional.__init__(self)
-        # register functional states
-        #self.registerState("containsToast", [0,1,2])
+        #register functional states
+        self.registerState("containsToast", [0,1,2])
 
         addToWorld(self)
 

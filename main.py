@@ -406,6 +406,5 @@ class IsisWorld(DirectObject):
         sys.exit()
 
 iw = IsisWorld()
-render.ls()
-#iw.physicsManager.togglePaused()
+print render.ls()
 run()

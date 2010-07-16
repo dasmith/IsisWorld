@@ -52,9 +52,10 @@ class IsisSpatial(object):
         self.setCollideMask(BitMask32.allOff())
         lcorner, ucorner =self.activeModel.getTightBounds()
         center = self.activeModel.getBounds().getCenter()
+        print lcorner, ucorner, center
         # setup ray for staying on the ground 
         if 1:#self.name[11:16] == "table"  or self.name[11:16] == "knife" or  self.name[11:17] == "fridge":
-            cRay = CollisionRay(center[0],center[1],center[2]-((lcorner[2]-center[2])/2.5), 0.0, 0.0, -1.0)
+            cRay = CollisionRay(center[0],center[1], 0, 0, 0, -1)#center[2]-((lcorner[2]-center[2])/2.5), 0.0, 0.0, -1.0)
         else:
             cRay = CollisionRay(center[0],center[1],lcorner[2]+0.4, 0.0, 0.0, -1.0)
         self.floorRayNP = CollisionNode('object')
@@ -148,7 +149,8 @@ class Surface(IsisSpatial):
         self.surfaceContacts = []
         super(Surface,self).__init__(args,kwargs)
         self.__setup = True
-        self.on_layout = HorizontalGridLayout((self.getWidth(), self.getLength()), self.getHeight())
+        area = (self.getWidth(), self.getHeight())
+        self.on_layout = HorizontalGridSlotLayout(area, self.getHeight(), int(self.getWidth()), int(self.getLength()))
 
     def setup(self):
         if self.__setup:
@@ -183,6 +185,7 @@ class Surface(IsisSpatial):
                     agent.control__drop_from_right_hand()
             obj.reparentTo(self)
             obj.setPos(pos)
+            obj.setLayout(self.on_layout)
             return "success"
         return "Surface is full"
     def action__take_off(self, agent, obj):
@@ -245,6 +248,7 @@ class Container(IsisSpatial):
                     agent.control__drop_from_right_hand()
             obj.reparentTo(self)
             obj.setPos(pos)
+            obj.setLayout(self.in_layout)
             return "success"
         return "container is full"
 

@@ -89,7 +89,7 @@ class IsisVisual():
     def create(self):
         self.activeModel = loader.loadModel("media/models/"+self.models['default'])
         self.activeModel.setPosHpr(*self.offsetVec)
-        self.activeModel.setScale(self.scale, self.scale, self.scale)
+        self.activeModel.setScale(self.scale)
         self.activeModel.reparentTo(self)
         self.activeModel.setCollideMask(BitMask32.allOff())
         # when models are scaled down dramatically (e.g < 1% of original size), Panda3D represents

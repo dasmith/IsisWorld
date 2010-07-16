@@ -5,9 +5,13 @@ class IsisFunctional():
             self.states = {}
         else:
             self.states = states
+        self.layout = None;
 
     def registerState(self,stateName,valueDomain):
         self.states[stateName] = valueDomain
+
+    def setLayout(self, l):
+        self.layout = l
 
     def call(self, agent, action, dobject = None):
         """ This is the dispatcher for the action methods """
@@ -20,11 +24,13 @@ class IsisFunctional():
     def action__pick_up(self, agent, directobject):
         if self.getNetTag('heldBy') == '':
             # this the thing is not current held, OK to pick up
+            if self.layout:
+                self.layout.remove(self)
+                self.layout = None
             self.disableCollisions()
             print "ATTACHING TO", directobject
             self.setPosHpr(0,0,0,0,0,0)
             self.reparentTo(directobject)
-            print "OFFSET", self.offsetVec
             self.activeModel.setPosHpr(*self.pickupVec)
             #self.place()
             self.setTag('heldBy', agent.name)

@@ -45,8 +45,7 @@ class PhysicsWorldManager(DirectObject.DirectObject):
         
         # run the physical simulator 1.0/X = X times per sec
         self.stepSize = 1.0/50.0
-        self.deltaTimeAccumulator = 0.0
-        
+                
         self.stepping = False
         # keep track of all agents
         self.agents = []
@@ -193,11 +192,9 @@ class PhysicsWorldManager(DirectObject.DirectObject):
             self.paused = not self.paused
 
     def simulationTask(self, task):
-        self.deltaTimeAccumulator += self._GlobalClock.getDt()
-        while self.deltaTimeAccumulator > self.stepSize:
-            self.deltaTimeAccumulator -= self.stepSize
-            for agent in self.agents:
-                agent.update(self.stepSize) 
+        dt = self._GlobalClock.getDt()
+        for agent in self.agents:
+            agent.update(dt) 
         return task.cont 
     
     def _stopPhysics(self,task=None):

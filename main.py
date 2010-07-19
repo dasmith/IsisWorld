@@ -11,7 +11,7 @@ IsisWorld Developers:  Dustin Smith, Chris M. Jones, Bo Morgan, Gleb Kuznetsov
 ISIS_VERSION = 0.4
 
 # Panda3D libraries:  available from http://panda3d.org
-from direct.showbase.ShowBase import ShowBase
+from direct.showbase.DirectObject import DirectObject
 from panda3d.core import loadPrcFile, loadPrcFileData, ExecutionEnvironment, Filename
 from direct.gui.OnscreenText import OnscreenText
 from direct.task import Task, TaskManagerGlobal
@@ -40,10 +40,10 @@ from direct.stdpy import threading
 from pandac.PandaModules import Thread
 print "Threads supported?", Thread.isThreadingSupported()
 
-class IsisWorld(ShowBase):
+class IsisWorld(DirectObject):
     def __init__(self):
         # load the main simulated environment
-        ShowBase.__init__(self)
+        DirectObject.__init__(self)
         self.isisMessage("Starting Up")
         self.rootDirectory = "."#Filename.fromOsSpecific(ExecutionEnvironment.getCwd())
         config = loadPrcFile(Filename(self.rootDirectory, 'config.prc'))
@@ -103,8 +103,43 @@ class IsisWorld(ShowBase):
         floorCollisionNP.node().setFromCollideMask(FLOORMASK)
         
         self.worldObjects = load_objects(self.rootDirectory+"/kitchen.isis", render, self.physicsManager)
-                
-        if enableKitchen:
+        #if enableKitchen:
+
+        #self.room.setCollideMask(BitMask32.allOff())
+        roomScale=35 
+        wallHeight=7
+        CM=CardMaker('')
+        import random
+        xmax = random.randint(-15,-8)
+        ymax = random.randint(8,15)
+        CM.setFrame(xmax,ymax,0,wallHeight) 
+        self.room=render.attachNewNode('') 
+        # walls 
+        self.room.attachNewNode(CM.generate()) 
+        self.room.attachNewNode(CM.generate()).setH(180) 
+        self.room.attachNewNode(CM.generate()).setH(90) 
+        self.room.attachNewNode(CM.generate()).setH(-90) 
+        self.room.setCollideMask(WALLMASK)
+        floorTex=loader.loadTexture('maps/grid.rgb') 
+        floorTex.setMinfilter(Texture.FTLinearMipmapLinear) 
+        floorTex.setMagfilter(Texture.FTLinearMipmapLinear) 
+        wallTex=loader.loadTexture('media/textures/concrete.jpg') 
+        wallTex.setMinfilter(Texture.FTLinearMipmapLinear) 
+        for wall in self.room.getChildrenAsList(): 
+            wall.setY(wall,5) 
+            wall.setTexture(wallTex) 
+            wall.setTexScale(TextureStage.getDefault(),0.5,wallHeight*roomScale*10)
+        CM.setFrame(xmax,ymax,xmax,ymax) 
+        floor=render.attachNewNode(CM.generate()) 
+        floor.setTexture(floorTex)
+        floor.setTexScale(TextureStage.getDefault(),10,10,10)
+        floor.setP(-90)
+        floor.setZ(0.01)
+        self.room.setTransparency(TransparencyAttrib.MAlpha) 
+        self.room.setTwoSided(1) 
+        self.room.flattenLight() 
+            
+        if False:
             self.map = loader.loadModel(self.rootDirectory+"/media/models/kitchen")
             self.map.reparentTo(render)
             self.mapNode = self.map.find("-PandaNode")
@@ -113,7 +148,6 @@ class IsisWorld(ShowBase):
             self.room.setCollideMask(BitMask32.allOff())
             # allow other items to collide INTO wallmask
             self.room.node().setIntoCollideMask(WALLMASK)
-
             """
             Steps is yet another part of the map.
             Meant, obviously, to demonstrate the ability to climb stairs.
@@ -159,6 +193,7 @@ class IsisWorld(ShowBase):
         
         base.camera.setPos(-5,3,4.5)
         base.camera.setHpr(250,323,0)
+        base.camLens.setFov(83.3,76.51)
         #base.camera.setPos(20*math.sin(angleradians),-20.0*math.cos(angleradians),3)
         #base.camera.setHpr(angledegrees, 0, 0)
         #self.floatingCamera = FloatingCamera(self.agents[self.agentNum].actorNodePath)
@@ -402,8 +437,8 @@ class IsisWorld(ShowBase):
         self.__del__()
     
     def __del__(self):
-        if not self.physicsManager.paused:
-            self.physicsManager.togglePaused()
+        #if not self.physicsManager.paused:
+        #    self.physicsManager.togglePaused()
         self.server.stop()
         self.server_thread.join()
         sys.exit()
@@ -411,4 +446,4 @@ class IsisWorld(ShowBase):
 iw = IsisWorld()
 #render.ls()
 #iw.physicsManager.togglePaused()
-iw.run()
+run()

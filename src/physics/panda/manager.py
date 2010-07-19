@@ -69,7 +69,7 @@ class PhysicsWorldManager(DirectObject.DirectObject):
         
         # the CollisionHandlerPusher is good for keeping items from going through walls
         self.cWall = CollisionHandlerFluidPusher()
-        
+        self.cWall.setHorizontal(True)
         # this tracks the velocity of moving objects, whereas CollisionHandlerFloor doesnt
         self.cFloor = CollisionHandlerGravity()
         # gravity should be -9.81m/s, but that doesn't quite work

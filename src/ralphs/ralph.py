@@ -103,6 +103,8 @@ class Ralph(DirectObject.DirectObject):
         self.speech_bubble=DirectLabel(parent=self.actor, text="", text_wordwrap=10, pad=(3,3),\
                        relief=None, text_scale=(.3,.3), pos = (0,0,3.6), frameColor=(.6,.2,.1,.5),\
                        textMayChange=1, text_frame=(0,0,0,1), text_bg=(1,1,1,1))
+        # stop the speech bubble from being colored like the agent
+        self.speech_bubble.setColorScaleOff()
         self.speech_bubble.component('text0').textNode.setCardDecal(1)
         self.speech_bubble.setBillboardAxis()
         
@@ -598,7 +600,7 @@ class Ralph(DirectObject.DirectObject):
         cSphereNode = CollisionNode('agent')
         cSphereNode.addSolid(CollisionSphere(0.0, 0.0, self.height, self.radius))
         cSphereNode.addSolid(CollisionSphere(0.0, 0.0, self.height + 2.2 * self.radius, self.radius))
-        cSphereNode.setFromCollideMask(WALLMASK | AGENTMASK | OBJMASK )
+        cSphereNode.setFromCollideMask(AGENTMASK|WALLMASK)
         cSphereNode.setIntoCollideMask(AGENTMASK)
         cSphereNodePath = self.actorNodePath.attachNewNode(cSphereNode)
         #cSphereNodePath.show()

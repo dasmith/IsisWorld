@@ -53,10 +53,8 @@ class IsisSpatial(object):
         lcorner, ucorner =self.activeModel.getTightBounds()
         center = self.activeModel.getBounds().getCenter()
         # setup ray for staying on the ground 
-        if 1:#self.name[11:16] == "table"  or self.name[11:16] == "knife" or  self.name[11:17] == "fridge":
-            cRay = CollisionRay(center[0],center[1],center[2]-((lcorner[2]-center[2])/2.5), 0.0, 0.0, -1.0)
-        else:
-            cRay = CollisionRay(center[0],center[1],lcorner[2]+0.4, 0.0, 0.0, -1.0)
+        cRay = CollisionRay(center[0],center[1],center[2]-((lcorner[2]-center[2])/2.5), 0.0, 0.0, -1.0)
+        #cRay = CollisionRay(center[0],center[1],lcorner[2]+0.4, 0.0, 0.0, -1.0)
         self.floorRayNP = CollisionNode('object')
         self.floorRayNP.addSolid(cRay)
         self.floorRayGeomNP = self.attachNewNode(self.floorRayNP)
@@ -83,13 +81,17 @@ class IsisSpatial(object):
             cGeom = CollisionBox(lcorner, ucorner)
             cGeom.setTangible(1)
             self.fullBoxNP.addSolid(cGeom)            
-        else:
+        elif collisionGeom == 'sphere':
             cGeomSphere = CollisionSphere(0.0, 0.0, 0.0, radius)
             self.fullBoxNP.addSolid(cGeomSphere)
             cGeom = CollisionBox(lcorner, ucorner)
             cGeom.setTangible(1)
             self.fullBoxNP.addSolid(cGeom)
+        else:
+            raise "Geom %s unknown" % collisionGeom
 
+
+        
         self.wallGeomNP = self.attachNewNode(self.fullBoxNP)
         IsisSpatial.enableCollisions(self)
         # add ray tracer to gravity manager
@@ -98,7 +100,8 @@ class IsisSpatial(object):
         # add surface geometry to gravity collider
         self.physicsManager.cFloor.addCollider(self.floorGeomNP, self)
         base.cTrav.addCollider(self.floorGeomNP, self.physicsManager.cFloor)
-        
+
+        base.cTrav.addCollider(self.wallGeomNP, base.cEvent)        
         #self.physicsManager.cWall.addCollider(self.floorGeomNP, self)
         #base.cTrav.addCollider(self.floorGeomNP, self.physicsManager.cWall)
 

@@ -193,7 +193,7 @@ class CriticSelectorArchitecture():
             # connect to environment via XML-RPC
             self.env = xmlrpclib.ServerProxy('http://localhost:8001')
             start = time.clock()
-            self.env.do('meta_step',{'seconds':0.02,'agent':self.name})
+            self.env.do('meta_step',{'seconds':0.2,'agent':self.name})
             self.delay = time.clock()-start
             print "Delay: ", self.delay
         else:#except:

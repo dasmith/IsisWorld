@@ -212,8 +212,7 @@ class Ralph(DirectObject.DirectObject):
             bounds = o.activeModel.getBounds() 
             bounds.xform(o.activeModel.getMat(self.fov))
             print "CONTAINS", lensBounds.contains(bounds)
-            if lensBounds.contains(bounds):
-            #self.fov.node().isInView(o.activeModel.getPos(self.fov)):
+            if self.fov.node().isInView(o.activeModel.getPos(self.fov)):
                 objects_inview+=1
                 print "in view", o
                 p1 = self.fov.getRelativePoint(render,o.activeModel.getPos())
@@ -600,7 +599,7 @@ class Ralph(DirectObject.DirectObject):
         cSphereNode = CollisionNode('agent')
         cSphereNode.addSolid(CollisionSphere(0.0, 0.0, self.height, self.radius))
         cSphereNode.addSolid(CollisionSphere(0.0, 0.0, self.height + 2.2 * self.radius, self.radius))
-        cSphereNode.setFromCollideMask(AGENTMASK|WALLMASK)
+        cSphereNode.setFromCollideMask(AGENTMASK|WALLMASK|OBJMASK)
         cSphereNode.setIntoCollideMask(AGENTMASK)
         cSphereNodePath = self.actorNodePath.attachNewNode(cSphereNode)
         #cSphereNodePath.show()

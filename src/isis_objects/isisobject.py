@@ -13,6 +13,9 @@ class IsisObject(NodePath):
         self.name = "IsisObject/"+name+"+"+str(id(self))
         # construct parent NodePath class
         NodePath.__init__(self, self.name)
+        # store pointer to IsisObject subclass
+        NodePath.setPythonTag(self, "subclass", self)
+
         # store model offsets 
         self.offsetVec = offsetVec
         self.pickupVec = pickupVec

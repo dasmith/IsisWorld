@@ -6,6 +6,7 @@ By Gleb Kuznetsov (glebk@mit.edu)
 '''
 from pandac.PandaModules import VBase3
 import time
+from direct.stdpy.file import  *
 
 class IsisCommandHandler(object):
 

@@ -30,10 +30,14 @@ from src.developerconsole import *
 from src.loader import *
 from src.lights.skydome2 import *
 from src.actions.actions import *
-import time
 from time import ctime
-import sys, os, threading
+import sys, os
 
+# panda's own threading module
+from direct.stdpy import threading
+
+from pandac.PandaModules import Thread
+print "Threads supported?", Thread.isThreadingSupported()
 
 class IsisWorld(DirectObject):
     def __init__(self):
@@ -52,7 +56,8 @@ class IsisWorld(DirectObject):
         self._inspectState = False
         # turn off main help menu by default
         self.toggleInstructionsWindow()
-        
+        self.server_thread.start()
+
     def _setupEnvironment(self,debug=False):
         """  Stuff that's too ugly to put anywhere else. """
         render.setShaderAuto()
@@ -69,18 +74,10 @@ class IsisWorld(DirectObject):
         # xmlrpc server command handler
         commandHandler = IsisCommandHandler(self)
         # xmlrpc server
-        self.server_object = XMLRPCServer()
-        self.server = self.server_object.server
+        self.server = XMLRPCServer() 
         self.server.register_function(commandHandler.handler,'do')
-        self.server_thread = threading.Thread(group=None, target=self.server.serve_forever, name='isisworld-xmlrpc')
-        self.server_thread.setDaemon(True)
-        self.server_thread.start()
-        
-        def delay_sleep_task(task):
-            time.sleep(0.00001)
-            return task.again
-        
-        myTask = taskMgr.doMethodLater(0.01, delay_sleep_task, 'tickTask')
+        self.server_thread = threading.Thread(group=None, target=self.server.start_serving, name='isisworld-xmlrpc')
+        #self.server_thread.setDaemon(True)
 
     def _setupWorld(self, visualizeClouds=False, enableKitchen=False):
         """ The world consists of a plane, the "ground" that stretches to infinity
@@ -402,6 +399,8 @@ class IsisWorld(DirectObject):
         """ Garbage collect and clean up here... Currently, this doesn't do anything special """
         if not self.physicsManager.paused:
             self.physicsManager.togglePaused()
+        self.server.stop()
+        self.server_thread.join()
         print "\n[IsisWorld] quitting IsisWorld...\n"
         sys.exit()
 

@@ -169,12 +169,16 @@ class Ralph(DirectObject.DirectObject):
         objects_inview=0
         objects = []
         objs=base.render.findAllMatches("**/IsisObject*")
-        for o in objs:
+        for obj  in objs:
+            if obj.hasPythonTag("subclass"):
+                # this is not an IsisObject
+                return
+            o = obj.getPythonTag("subclass")
             print "object:   ", o
-            if self.fov.node().isInView(o.getPos(self.fov)):
+            if self.fov.node().isInView(o.activeModel.getPos(self.fov)):
                 objects_inview+=1
                 print "in view", o
-                b_min, b_max =  o.getTightBounds()
+                b_min, b_max =  o.activeModel.getTightBounds()
                 a_min = map3dToAspect2d(render, b_min)
                 a_max = map3dToAspect2d(render, b_max)
                 if a_min == None or a_max == None:
@@ -184,9 +188,9 @@ class Ralph(DirectObject.DirectObject):
                 area = 100*x_diff*y_diff  # percentage of screen
                 object_dict = {'x_pos': (a_min[2]+a_max[2])/2.0,\
                                'y_pos': (a_min[0]+a_max[0])/2.0,\
-                               'distance':o.getDistance(self.fov), \
+                               'distance':o.activeModel.getDistance(self.fov), \
                                'area':area,\
-                               'orientation': o.getH(self.fov)}
+                               'orientation': o.activeModel.getH(self.fov)}
                 objects[o] = object_dict
         self.control__say("If I were wearing x-ray glasses, I could see %i items"  % objects_inview) 
         return objects
@@ -294,7 +298,7 @@ class Ralph(DirectObject.DirectObject):
 
     def control__view_objects(self):
         """ calls a raytrace to to all objects in view """
-        objects = self.getObjectsInView()
+        objects = self.getObjectsInFieldOfVision()
         print "Objects in view:", objects
         return objects
 

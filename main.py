@@ -11,7 +11,7 @@ IsisWorld Developers:  Dustin Smith, Chris M. Jones, Bo Morgan, Gleb Kuznetsov
 ISIS_VERSION = 0.4
 
 # Panda3D libraries:  available from http://panda3d.org
-from direct.showbase import DirectObject
+from direct.showbase.ShowBase import ShowBase
 from panda3d.core import loadPrcFile, loadPrcFileData, ExecutionEnvironment, Filename
 from direct.gui.OnscreenText import OnscreenText
 from direct.task import Task, TaskManagerGlobal
@@ -36,12 +36,14 @@ import sys, os
 # panda's own threading module
 from direct.stdpy import threading
 
+
 from pandac.PandaModules import Thread
 print "Threads supported?", Thread.isThreadingSupported()
 
-class IsisWorld(DirectObject):
+class IsisWorld(ShowBase):
     def __init__(self):
         # load the main simulated environment
+        ShowBase.__init__(self)
         self.isisMessage("Starting Up")
         self.rootDirectory = "."#Filename.fromOsSpecific(ExecutionEnvironment.getCwd())
         config = loadPrcFile(Filename(self.rootDirectory, 'config.prc'))
@@ -73,7 +75,6 @@ class IsisWorld(DirectObject):
         # setup the server
         # xmlrpc server command handler
         commandHandler = IsisCommandHandler(self)
-        # xmlrpc server
         self.server = XMLRPCServer() 
         self.server.register_function(commandHandler.handler,'do')
         self.server_thread = threading.Thread(group=None, target=self.server.start_serving, name='isisworld-xmlrpc')
@@ -234,7 +235,7 @@ class IsisWorld(DirectObject):
         text += "\n[o] lists objects in agent's f.o.v."
         text += "\n[Esc] to quit\n"
         # initialize actions
-        self.actionController = ActionController("Version 0.1")
+        self.actionController = ActionController(0.1)
         #self.actionController.addAction(IsisAction(commandName="move_left",intervalAction=True,keyboardBinding="arrow_left"))
         #self.actionController.addAction(IsisAction(commandName="move_right",intervalAction=True,keyboardBinding="arrow_right"))
         #self.actionController.addAction(IsisAction(commandName="turn_left",intervalAction=True))
@@ -394,17 +395,20 @@ class IsisWorld(DirectObject):
         
     def isisMessage(self,message):
         print "[IsisWorld] %s %s" % (message, str(ctime()))
-        
+
     def exit(self):
-        """ Garbage collect and clean up here... Currently, this doesn't do anything special """
+        """ Shut down threads and """
+        print "\n[IsisWorld] quitting IsisWorld...\n"
+        self.__del__()
+    
+    def __del__(self):
         if not self.physicsManager.paused:
             self.physicsManager.togglePaused()
         self.server.stop()
         self.server_thread.join()
-        print "\n[IsisWorld] quitting IsisWorld...\n"
         sys.exit()
 
 iw = IsisWorld()
-render.ls()
+#render.ls()
 #iw.physicsManager.togglePaused()
-run()
+iw.run()

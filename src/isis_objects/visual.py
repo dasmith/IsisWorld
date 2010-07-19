@@ -99,8 +99,4 @@ class IsisVisual():
         # adds a pickable tag to allow an agent to view this object
         self.setTag('pickable', 'true')
 
-        # TODO: first destroy physics
-        if hasattr(self,'_setupPhysics'):
-            self._setupPhysics()
-
         self._needToRecalculateScalingProperties = True

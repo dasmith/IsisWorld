@@ -52,7 +52,7 @@ class IsisSpatial(object):
         self.setCollideMask(BitMask32.allOff())
         lcorner, ucorner =self.activeModel.getTightBounds()
         center = self.activeModel.getBounds().getCenter()
-        print lcorner, ucorner, center
+
         # setup ray for staying on the ground 
         if 1:#self.name[11:16] == "table"  or self.name[11:16] == "knife" or  self.name[11:17] == "fridge":
             cRay = CollisionRay(center[0],center[1], 0, 0, 0, -1)#center[2]-((lcorner[2]-center[2])/2.5), 0.0, 0.0, -1.0)
@@ -92,16 +92,17 @@ class IsisSpatial(object):
             cGeom = CollisionBox(lcorner, ucorner)
             cGeom.setTangible(1)
             self.fullBoxNP.addSolid(cGeom)
-            
-        
+
         self.wallGeomNP = self.attachNewNode(self.fullBoxNP)
         IsisSpatial.enableCollisions(self)
         #self.wallGeomNP.show()
         self.physicsManager.cFloor.addCollider(self.floorRayGeomNP, self)
-
         base.cTrav.addCollider(self.floorRayGeomNP, self.physicsManager.cFloor)
+        self.floorRayGeomNP.show()
+
         self.physicsManager.cFloor.addCollider(self.floorGeomNP, self)
-        base.cTrav.addCollider(self.floorGeomNP, self.physicsManager.cFloor)
+        #base.cTrav.addCollider(self.floorGeomNP, self.physicsManager.cFloor)
+
         self.physicsManager.cWall.addCollider(self.wallGeomNP, self)
         base.cTrav.addCollider(self.wallGeomNP, self.physicsManager.cWall)
 
@@ -188,8 +189,6 @@ class Surface(IsisSpatial):
             obj.setLayout(self.on_layout)
             return "success"
         return "Surface is full"
-    def action__take_off(self, agent, obj):
-        self.on_layout.remove(obj)
 
 
 class Container(IsisSpatial):
@@ -212,7 +211,7 @@ class Container(IsisSpatial):
 
     
     def enableCollisions(self):
-        pass
+        super(Container,self).enableCollisions()
 
     def disableCollisions(self):
         super(Container,self).disableCollisions()
@@ -246,11 +245,10 @@ class Container(IsisSpatial):
                     agent.control__drop_from_left_hand()
                 elif agent.right_hand_holding_object == obj:
                     agent.control__drop_from_right_hand()
+            print obj.name, pos
             obj.reparentTo(self)
+            obj.disableCollisions()
             obj.setPos(pos)
-            obj.setLayout(self.in_layout)
+            obj.setLayout(self.on_layout)
             return "success"
         return "container is full"
-
-    def action__take_out(self, agent, obj):
-        self.in_layout.remove(obj)

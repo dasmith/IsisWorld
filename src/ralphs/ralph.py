@@ -613,7 +613,6 @@ class Ralph(DirectObject.DirectObject):
         newPos = self.actorNodePath.getPos()+speedVec
 
         self.actorNodePath.setFluidPos(newPos)
-        print self.actorNodePath.getPos()
 
         # allow dialogue window to gradually decay (changing transparancy) and then disappear
         self.last_spoke += stepSize/2

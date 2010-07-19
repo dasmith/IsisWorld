@@ -22,6 +22,7 @@ class IsisFunctional():
 
     ## register actions that are enabled by default in all objects
     def action__pick_up(self, agent, directobject):
+        print "Picking up"
         if self.getNetTag('heldBy') == '':
             # this the thing is not current held, OK to pick up
             if self.layout:
@@ -32,7 +33,6 @@ class IsisFunctional():
             self.setPosHpr(0,0,0,0,0,0)
             self.reparentTo(directobject)
             self.activeModel.setPosHpr(*self.pickupVec)
-            #self.place()
             self.setTag('heldBy', agent.name)
             return 'success'
         else:

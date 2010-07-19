@@ -406,5 +406,4 @@ class IsisWorld(DirectObject):
         sys.exit()
 
 iw = IsisWorld()
-print render.ls()
 run()

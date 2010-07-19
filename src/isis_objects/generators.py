@@ -39,17 +39,17 @@ class fridge(IsisObject, IsisVisual, Container, NoPickup):
 
         Container.__init__(self,density=4000)
         Container.setup(self)
-        self.in_layout = SlotLayout([(0, 0, 1), (0, 0, 1.5)])
+        self.in_layout = SlotLayout([(0, 0, .5), (0, 0, 1),(0, 0, 1.5)])
 
         self.fullBoxNP.setIntoCollideMask(OBJMASK)
         self.fullBoxNP.setFromCollideMask(OBJMASK)
         self.state = "closed"
+
         #freezerDoor
         fd = self.activeModel.find("**/freezerDoor*")
-        fd.hide()
+        fd.setPos(-.6, -.55, 1.65)
         self.door = self.activeModel.find("**/fridgeDoor*")
-        #self.door.place()
-        self.door.setPos(-0.7,.4,.5)
+        self.door.setPos(-0.6,-.55,.72)
 
         NoPickup.__init__(self)
 
@@ -62,15 +62,15 @@ class fridge(IsisObject, IsisVisual, Container, NoPickup):
         print "Select method called"
         if self.state == "closed":
             Sequence(
-                Func(self.setState, "closing"),
-                LerpHprInterval(self.door, 0.5, Vec3(125, 0, 0)),
-                Func(self.setState, "close"),
+                Func(self.setState, "opening"),
+                LerpPosHprInterval(self.door, 0.5, Vec3(-2.3, 1.35, .72), Vec3(-125, 0, 0)),
+                Func(self.setState, "opened"),
             ).start()
         elif self.state == "opened":
             Sequence(
-                Func(self.setState, "opening"),
-                LerpHprInterval(self.door, 0.5, Vec3(0, 0, 0)),
-                Func(self.setState, "opened"),
+                Func(self.setState, "closing"),
+                LerpPosHprInterval(self.door, 0.5, Vec3(-.6, -.55, .72), Vec3(0, 0, 0)),
+                Func(self.setState, "closed"),
             ).start()
 
 class knife(IsisObject, IsisVisual, IsisSpatial, Sharp):

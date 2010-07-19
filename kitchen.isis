@@ -1,5 +1,6 @@
 fridge	at 6,0,0
+
 table	at 0,2.8,0
-toaster	on table
-loaf	on table
 knife	on table
+loaf	in fridge
+#toaster	on table

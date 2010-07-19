@@ -46,7 +46,7 @@ class IsisWorld(DirectObject):
         # load the main simulated environment
         DirectObject.__init__(self)
         self.isisMessage("Starting Up")
-        self.rootDirectory = "."#Filename.fromOsSpecific(ExecutionEnvironment.getCwd())
+        self.rootDirectory = os.path.dirname( os.path.join(os.getcwd(),sys.argv[0]) )
         config = loadPrcFile(Filename(self.rootDirectory, 'config.prc'))
         self._setupEnvironment(debug=False)
         self._setupWorld(visualizeClouds=True, enableKitchen=True)

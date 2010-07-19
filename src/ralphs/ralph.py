@@ -147,49 +147,88 @@ class Ralph(DirectObject.DirectObject):
     def setControl(self, control, value):
         """Set the state of one of the character's movement controls.  """
         self.controlMap[control] = value
+    
+    def is3Din2D(self, node, point1,point2,point3d): 
+      """This function takes a 2d selection box from the screen as defined by two corners 
+      and queries whether a given 3d point lies in that selection box 
+      Returns True if it is 
+      Returns False if it is not""" 
+      #node is the parent node- probably render or similar node 
+      #point1 is the first 2d coordinate in the selection box 
+      #point2 is the opposite corner 2d coordinate in the selection box 
+      #point3d is the point in 3d space to test if that point lies in the 2d selection box 
+       
+      # Convert the point to the 3-d space of the camera 
+      p3 = self.fov.getRelativePoint(node, point3d) 
+
+      # Convert it through the lens to render2d coordinates 
+      p2 = Point2() 
+      if not base.camLens.project(p3, p2): 
+         return False 
+       
+      r2d = Point3(p2[0], 0, p2[1]) 
+
+      # And then convert it to aspect2d coordinates 
+      a2d = aspect2d.getRelativePoint(render2d, r2d) 
+       
+      #Find out the biggest/smallest X and Y of the 2- 2d points provided. 
+      if point1.getX() > point2.getX(): 
+         bigX = point1.getX() 
+         smallX = point2.getX() 
+      else: 
+         bigX = point2.getX() 
+         smallX = point1.getX() 
+          
+      if point1.getY() > point2.getY(): 
+         bigY = point1.getY() 
+         smallY = point2.getY() 
+      else: 
+         bigY = point2.getY() 
+         smallY = point2.getY() 
+       
+      pX = a2d.getX() 
+      pY = a2d.getZ()  #aspect2d is based on a point3 not a point2 like render2d. 
+       
+      if pX < bigX and pX > smallX: 
+         if pY < bigY and pY > smallY: 
+             
+            return True 
+         else: return False 
+      else: return False
 
     def getObjectsInFieldOfVision(self):
         """ This works in an x-ray vision style. Fast"""
-        def map3dToAspect2d(node, point):
-            """Maps the indicated 3-d point (a Point3), which is relative to 
-            the indicated NodePath, to the corresponding point in the aspect2d 
-            scene graph. Returns the corresponding Point3 in aspect2d. 
-            Returns None if the point is not onscreen. """ 
-            # Convert the point to the 3-d space of the camera 
-            p3 = self.fov.getRelativePoint(node, point) 
-
-            # Convert it through the lens to render2d coordinates 
-            p2 = Point2()
-            if not self.fov.node().getLens().project(p3, p2):
-                return None 
-            r2d = Point3(p2[0], 0, p2[1])
-            # And then convert it to aspect2d coordinates 
-            a2d = aspect2d.getRelativePoint(render2d, r2d)
-            return a2d
         objects_inview=0
-        objects = []
+        objects = {} 
+        lensBounds = self.fov.node().getLens().makeBounds()
         objs=base.render.findAllMatches("**/IsisObject*")
-        for obj  in objs:
-            if obj.hasPythonTag("subclass"):
-                # this is not an IsisObject
+        for obj in objs:
+            if not obj.hasPythonTag("isisobj"):
                 return
-            o = obj.getPythonTag("subclass")
+            o = obj.getPythonTag("isisobj")
             print "object:   ", o
-            if self.fov.node().isInView(o.activeModel.getPos(self.fov)):
+            bounds = o.activeModel.getBounds() 
+            bounds.xform(o.activeModel.getMat(self.fov))
+            print "CONTAINS", lensBounds.contains(bounds)
+            if lensBounds.contains(bounds):
+            #self.fov.node().isInView(o.activeModel.getPos(self.fov)):
                 objects_inview+=1
                 print "in view", o
-                b_min, b_max =  o.activeModel.getTightBounds()
-                a_min = map3dToAspect2d(render, b_min)
-                a_max = map3dToAspect2d(render, b_max)
-                if a_min == None or a_max == None:
-                    continue
-                x_diff = math.fabs(a_max[0]-a_min[0])
-                y_diff = math.fabs(a_max[2]-a_min[2])
-                area = 100*x_diff*y_diff  # percentage of screen
-                object_dict = {'x_pos': (a_min[2]+a_max[2])/2.0,\
-                               'y_pos': (a_min[0]+a_max[0])/2.0,\
+                p1 = self.fov.getRelativePoint(render,o.activeModel.getPos())
+                p2 = self.fov.getRelativePoint(self.fov,o.activeModel.getPos())
+                p3 = self.fov.getRelativePoint(render,o.activeModel.getPos(self.fov))
+                p4 = Point2()
+                self.fov.node().getLens().project(p1, p4)
+                p5 = Point2()
+                self.fov.node().getLens().project(p2, p5)
+                p6 = Point2()
+                self.fov.node().getLens().project(p3, p6)
+                print "p1", p1, "p2", p2, "p3", p3
+                print 'p4', p4, "p5", p5, "p6", p6
+                print self.fov.node().getLens()
+                object_dict = {'x_pos': p4[0],\
+                               'y_pos': p4[1],\
                                'distance':o.activeModel.getDistance(self.fov), \
-                               'area':area,\
                                'orientation': o.activeModel.getH(self.fov)}
                 objects[o] = object_dict
         self.control__say("If I were wearing x-ray glasses, I could see %i items"  % objects_inview) 

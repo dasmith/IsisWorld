@@ -316,7 +316,7 @@ class IsisWorld(DirectObject):
         self.accept("space",           self.step_simulation, [.1]) # argument is amount of second to advance
         self.accept("p",               self.physicsManager.togglePaused)
         #self.accept("r",              self.reset_simulation)
-        self.accept("escape",          self.safeShutdown)
+        self.accept("escape",          self.exit)
 
         self.teacher_utterances = [] # last message typed
         # main dialogue box
@@ -395,7 +395,7 @@ class IsisWorld(DirectObject):
     def isisMessage(self,message):
         print "[IsisWorld] %s %s" % (message, str(ctime()))
         
-    def safeShutdown(self):
+    def exit(self):
         """ Garbage collect and clean up here... Currently, this doesn't do anything special """
         if not self.physicsManager.paused:
             self.physicsManager.togglePaused()

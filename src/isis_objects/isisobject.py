@@ -14,14 +14,13 @@ class IsisObject(NodePath):
         # construct parent NodePath class
         NodePath.__init__(self, self.name)
         # store pointer to IsisObject subclass
-        NodePath.setPythonTag(self, "subclass", self)
+        self.setPythonTag("isisobj", self)
 
         # store model offsets 
         self.offsetVec = offsetVec
         self.pickupVec = pickupVec
         # this is the head node that everything is attached to
         self.node = self.node()
-        print "VALUE OF NODE", self.node
         # store a pointer to the world manager
         self.physicsManager = physics        
    

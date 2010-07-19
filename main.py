@@ -434,11 +434,13 @@ class IsisWorld(DirectObject):
     def exit(self):
         """ Shut down threads and """
         print "\n[IsisWorld] quitting IsisWorld...\n"
-        self.__del__()
+        if not self.physicsManager.paused:
+            self.physicsManager.togglePaused()
+        self.server.stop()
+        self.server_thread.join()
+        sys.exit()
     
     def __del__(self):
-        #if not self.physicsManager.paused:
-        #    self.physicsManager.togglePaused()
         self.server.stop()
         self.server_thread.join()
         sys.exit()

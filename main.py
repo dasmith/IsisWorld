@@ -28,6 +28,7 @@ from src.xmlrpc.command_handler import IsisCommandHandler
 from src.xmlrpc.server import XMLRPCServer
 from src.developerconsole import *
 from src.loader import *
+from src.isis_objects.layout_manager import HorizontalGridLayout
 from src.lights.skydome2 import *
 from src.actions.actions import *
 from time import ctime
@@ -101,8 +102,7 @@ class IsisWorld(DirectObject):
         # set the bits which items can collide into
         floorCollisionNP.node().setIntoCollideMask(FLOORMASK)
         floorCollisionNP.node().setFromCollideMask(FLOORMASK)
-        
-        self.worldObjects = load_objects(self.rootDirectory+"/kitchen.isis", render, self.physicsManager)
+
         #if enableKitchen:
 
         #self.room.setCollideMask(BitMask32.allOff())
@@ -110,15 +110,16 @@ class IsisWorld(DirectObject):
         wallHeight=7
         CM=CardMaker('')
         import random
-        xmax = random.randint(-15,-8)
-        ymax = random.randint(8,15)
-        CM.setFrame(xmax,ymax,0,wallHeight) 
-        self.room=render.attachNewNode('') 
-        # walls 
-        self.room.attachNewNode(CM.generate()) 
-        self.room.attachNewNode(CM.generate()).setH(180) 
-        self.room.attachNewNode(CM.generate()).setH(90) 
-        self.room.attachNewNode(CM.generate()).setH(-90) 
+        xmax = random.randint(6, 9)
+        ymax = random.randint(6, 9)
+        self.room=render.attachNewNode('')
+        # walls
+        CM.setFrame(-xmax,xmax,0,wallHeight)
+        self.room.attachNewNode(CM.generate()).setPosHpr(0, ymax, 0, 0, 0, 0)
+        self.room.attachNewNode(CM.generate()).setPosHpr(0, -ymax, 0, 180, 0, 0)
+        CM.setFrame(-ymax,ymax,0,wallHeight)
+        self.room.attachNewNode(CM.generate()).setPosHpr(xmax, 0, 0, -90, 0, 0)
+        self.room.attachNewNode(CM.generate()).setPosHpr(-xmax, 0, 0, 90, 0, 0) 
         self.room.setCollideMask(WALLMASK)
         floorTex=loader.loadTexture('maps/grid.rgb') 
         floorTex.setMinfilter(Texture.FTLinearMipmapLinear) 
@@ -126,10 +127,9 @@ class IsisWorld(DirectObject):
         wallTex=loader.loadTexture('media/textures/concrete.jpg') 
         wallTex.setMinfilter(Texture.FTLinearMipmapLinear) 
         for wall in self.room.getChildrenAsList(): 
-            wall.setY(wall,5) 
             wall.setTexture(wallTex) 
             wall.setTexScale(TextureStage.getDefault(),0.5,wallHeight*roomScale*10)
-        CM.setFrame(xmax,ymax,xmax,ymax) 
+        CM.setFrame(-xmax,xmax,-ymax,ymax) 
         floor=render.attachNewNode(CM.generate()) 
         floor.setTexture(floorTex)
         floor.setTexScale(TextureStage.getDefault(),10,10,10)
@@ -138,6 +138,9 @@ class IsisWorld(DirectObject):
         self.room.setTransparency(TransparencyAttrib.MAlpha) 
         self.room.setTwoSided(1) 
         self.room.flattenLight() 
+
+        self.floorLayout = HorizontalGridLayout((2*xmax, 2*ymax), .01)
+        self.worldObjects = load_objects(self.rootDirectory+"/kitchen.isis", render, self.physicsManager, layoutManager = self.floorLayout)
             
         if False:
             self.map = loader.loadModel(self.rootDirectory+"/media/models/kitchen")

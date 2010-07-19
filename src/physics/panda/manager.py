@@ -170,7 +170,6 @@ class PhysicsWorldManager(DirectObject.DirectObject):
         agentInto = entry.getIntoNodePath().getParent()
         print "Agents collided : %s, %s" % (agentFrom, agentInto) 
 
-    
     def addAgent(self,agent):
         self.agents.append(agent)
         

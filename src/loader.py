@@ -14,7 +14,7 @@ def instantiate_isisobject(classname, physics):
 def load_objects_file(file):
     return map(lambda x: x.strip(), open(file,'r').readlines()) 
 
-def load_objects(file, renderParent, physicsManager):
+def load_objects(file, renderParent, physicsManager, layoutManager = None):
     # add each object to the world
     context = {}
 
@@ -60,6 +60,8 @@ def load_objects(file, renderParent, physicsManager):
                     obj.setPos(x, y, z+1)
             else:
                 obj.reparentTo(renderParent)
+                if layoutManager:
+                    obj.setPos(layoutManager.add(obj))
             if loc:
                 obj.setPos(obj, loc)
             if name:

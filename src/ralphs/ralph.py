@@ -599,7 +599,7 @@ class Ralph(DirectObject.DirectObject):
         cSphereNode = CollisionNode('agent')
         cSphereNode.addSolid(CollisionSphere(0.0, 0.0, self.height, self.radius))
         cSphereNode.addSolid(CollisionSphere(0.0, 0.0, self.height + 2.2 * self.radius, self.radius))
-        cSphereNode.setFromCollideMask(AGENTMASK|WALLMASK|OBJMASK)
+        cSphereNode.setFromCollideMask(WALLMASK|OBJMASK)
         cSphereNode.setIntoCollideMask(AGENTMASK)
         cSphereNodePath = self.actorNodePath.attachNewNode(cSphereNode)
         #cSphereNodePath.show()

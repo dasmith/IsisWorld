@@ -32,7 +32,7 @@ class HorizontalGridLayout(LayoutManager):
         self.px += ow
         if oh > self.maxh:
             self.maxh = oh
-        return (x-(self.w-ow)/2.0, self.py-(self.h-oh)/2.0, self.z+obj.getHeight())
+        return (x-(self.w-ow)/2.0, self.py-(self.h-oh)/2.0, self.z)
 
 
 class SlotLayout(LayoutManager):
@@ -54,3 +54,16 @@ class SlotLayout(LayoutManager):
                 break
         if key:
             del self.map[key]
+
+class HorizontalGridSlotLayout(SlotLayout):
+    """Creates a grid of slots in the given area centered at 0,0"""
+    def __init__(self, area, height, nx, ny, padw = .5, padh = .5):
+        if nx == 1 and ny == 1:
+            slots = [(0, 0, height+1)]
+        else:
+            width = area[0]-2*padw
+            height = area[1]-2*padh
+            dx = width/nx
+            dy = height/ny
+            slots = [(x*dx-width/2, y*dy-height/2, height) for x in xrange(0, nx) for y in xrange(0, ny)]
+        SlotLayout.__init__(self, slots)

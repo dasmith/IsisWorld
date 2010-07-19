@@ -110,8 +110,8 @@ class IsisWorld(DirectObject):
         wallHeight=7
         CM=CardMaker('')
         import random
-        xmax = random.randint(8, 15)
-        ymax = random.randint(8,15)
+        xmax = random.randint(6, 9)
+        ymax = random.randint(6, 9)
         self.room=render.attachNewNode('')
         # walls
         CM.setFrame(-xmax,xmax,0,wallHeight)

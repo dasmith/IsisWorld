@@ -42,8 +42,8 @@ class fridge(IsisObject, IsisVisual, Container, NoPickup):
         Container.setup(self)
         self.in_layout = SlotLayout([(0, 0, 1), (0, 0, 0)])
 
-        self.fullBoxNP.setIntoCollideMask(OBJMASK)
-        self.fullBoxNP.setFromCollideMask(OBJMASK)
+        #self.fullBoxNP.setIntoCollideMask(OBJMASK)
+        #self.fullBoxNP.setFromCollideMask(OBJMASK)
         self.state = "closed"
         #freezerDoor
         fd = self.activeModel.find("**/freezerDoor*")

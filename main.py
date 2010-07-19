@@ -440,7 +440,7 @@ class IsisWorld(DirectObject):
         self.server_thread.join()
         sys.exit()
     
-    def __del__(self):
+    def __exit__(self):
         self.server.stop()
         self.server_thread.join()
         sys.exit()

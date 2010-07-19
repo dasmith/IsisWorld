@@ -28,7 +28,18 @@ def getOrientedBoundedBox(collObj):
 #        print bounds[0], bounds[1]
     return [box[0],box[1],box[2]], [offset[0],offset[1],offset[2]]
     
-    
+def getObjFromNP(np,tag="isisobj"):
+    """ Helper function to get the Python object from a NodePath involved with 
+    a collision entry, using a tag """
+    if np.hasPythonTag(tag):
+        return np.getPythonTag(tag)
+    else:
+        p = np.getParent()
+        if p.hasPythonTag(tag):
+            return p.getPythonTag(tag)
+        else:
+            return np
+
 class PhysicsWorldManager(DirectObject.DirectObject):
     
     def __init__(self):
@@ -67,7 +78,7 @@ class PhysicsWorldManager(DirectObject.DirectObject):
         # initialize 3 handlers: wall, gravity, and other events
         
         # the CollisionHandlerPusher is good for keeping items from going through walls
-        self.cWall = CollisionHandlerPusher()
+        self.cWall = CollisionHandlerFluidPusher()
         self.cWall.setHorizontal(True)
         # this tracks the velocity of moving objects, whereas CollisionHandlerFloor doesnt
         self.cFloor = CollisionHandlerGravity()
@@ -91,63 +102,70 @@ class PhysicsWorldManager(DirectObject.DirectObject):
         base.accept('object-outof-acontainer', self._exitContainer)
         base.accept('object-into-asurface', self._exitSurface)
         base.accept('object-outof-asurface', self._exitSurface)
-        base.accept('object-into-object', self._objCollisionHandlerIn)
-        base.accept('object-outof-object', self._objCollisionHandlerOut)
+        #base.accept('object-into-object', self._objCollisionHandlerIn)
+        #base.accept('object-outof-object', self._objCollisionHandlerOut)
         base.accept('agent-into-object', self._agentCollisionHandlerIn)
         base.accept('agent-into-agent', self._agentsCollisionIn)
 
         # start it up 
         self.paused = False 
         self._startPhysics()
-    
-    
+
 
     def _enterContainer(self, entry):
-        cFrom = entry.getFromNodePath().getParent()
-        cInto = entry.getIntoNodePath().getParent()
+        """ When an object enters into a container. """
+        cFrom = getObjFromNP(entry.getFromNodePath(),"isisobj")
+        cInto = getObjFromNP(entry.getIntoNodePath(),"isisobj")
         cInto.enterContainer(cFrom,cInto)
         print "Entering container %s, %s" % (cFrom, cInto)
 
     def _exitContainer(self, entry):
-        cFrom = entry.getFromNodePath().getParent()
-        cInto = entry.getIntoNodePath().getParent()
+        """ When an object exits a container."""
+        cFrom = getObjFromNP(entry.getFromNodePath(),"isisobj")
+        cInto = getObjFromNP(entry.getIntoNodePath(),"isisobj")
         cInto.enterContainer(cFrom,cInto)
         print "Exiting container %s, %s" % (cFrom, cInto)
 
     def _enterSurface(self, entry):
-        cFrom = entry.getFromNodePath().getParent()
-        cInto = entry.getIntoNodePath().getParent()
+        """ When an object collides with another object's surface plane. """
+        cFrom = getObjFromNP(entry.getFromNodePath(),"isisobj")
+        cInto = getObjFromNP(entry.getIntoNodePath(),"isisobj")
         cInto.enterSurface(cFrom,cInto)
         print "Entering surface %s, %s" % (cFrom, cInto)
 
     def _exitSurface(self, entry):
-        cFrom = entry.getFromNodePath().getParent()
-        cInto = entry.getIntoNodePath().getParent()
+        """ When an object ceases to collide with another object's surface plane. """
+        cFrom = getObjFromNP(entry.getFromNodePath(),"isisobj")
+        cInto = getObjFromNP(entry.getIntoNodePath(),"isisobj")
         cInto.enterSurface(cFrom,cInto)
         print "Exiting surface %s, %s" % (cFrom, cInto)
 
     def _objCollisionHandlerIn(self, entry):
-        cFrom = entry.getFromNodePath().getParent()
-        cInto = entry.getIntoNodePath().getParent()
+        """ The general case when two objects collide"""
+        cFrom = getObjFromNP(entry.getFromNodePath(),"isisobj")
+        cInto = getObjFromNP(entry.getIntoNodePath(),"isisobj")
         if hasattr(cInto,'enterContainer'):
             cInto.enterContainer(cFrom,cInto)
         print "Object In Collision: %s, %s" % (cFrom, cInto)
     
     def _objCollisionHandlerOut(self, entry):
-        cFrom = entry.getFromNodePath().getParent()
-        cInto = entry.getIntoNodePath().getParent()
+        """ The general caase when two objects cease to collide """
+        cFrom = getObjFromNP(entry.getFromNodePath(),"isisobj")
+        cInto = getObjFromNP(entry.getIntoNodePath(),"isisobj")
         if hasattr(cInto,'exitContainer'):
             cInto.exitContainer(cFrom,cInto)
         print "Object Out Collision: %s, %s" % (cFrom, cInto)
 
     def _agentCollisionHandlerIn(self, entry):
+        """ When an agent collides with a container object. """
         agent = entry.getFromNodePath().getParent()
-        cInto = entry.getIntoNodePath().getParent()
+        cInto = getObjFromNP(entry.getIntoNodePath(),"isisobj")
         if hasattr(cInto,'enterContainer'):
-            cInto.enterContainer(cFrom,cInto)
+            cInto.enterContainer(agent,cInto)
         print "Agent In Collision: %s, %s" % (agent, cInto)
 
     def _agentsCollisionIn(self, entry):
+        """ When two agents collide with each other. """
         agentFrom = entry.getFromNodePath().getParent()
         agentInto = entry.getIntoNodePath().getParent()
         print "Agents collided : %s, %s" % (agentFrom, agentInto) 

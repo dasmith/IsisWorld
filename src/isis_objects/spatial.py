@@ -78,11 +78,12 @@ class IsisSpatial(object):
 
         radius = min(ucorner[0]-lcorner[0],ucorner[1]-lcorner[1])/2.0
         if collisionGeom == 'box':
+            #cGeom = CollisionSphere(0.0, 0.0, center[2], radius)
             cGeom = CollisionBox(lcorner, ucorner)
             cGeom.setTangible(1)
             self.fullBoxNP.addSolid(cGeom)            
         elif collisionGeom == 'sphere':
-            cGeomSphere = CollisionSphere(0.0, 0.0, 0.0, radius)
+            cGeomSphere = CollisionSphere(0.0, 0.0, center[2], radius)
             self.fullBoxNP.addSolid(cGeomSphere)
             cGeom = CollisionBox(lcorner, ucorner)
             cGeom.setTangible(1)
@@ -91,8 +92,6 @@ class IsisSpatial(object):
             raise "Geom %s unknown" % collisionGeom
 
 
-        
-        self.wallGeomNP = self.attachNewNode(self.fullBoxNP)
         IsisSpatial.enableCollisions(self)
         # add ray tracer to gravity manager
         self.physicsManager.cFloor.addCollider(self.floorRayGeomNP, self)
@@ -100,6 +99,8 @@ class IsisSpatial(object):
         # add surface geometry to gravity collider
         self.physicsManager.cFloor.addCollider(self.floorGeomNP, self)
         base.cTrav.addCollider(self.floorGeomNP, self.physicsManager.cFloor)
+        self.wallGeomNP = self.attachNewNode(self.fullBoxNP)
+        #self.wallGeomNP.show()
 
         base.cTrav.addCollider(self.wallGeomNP, base.cEvent)        
         #self.physicsManager.cWall.addCollider(self.floorGeomNP, self)
@@ -111,8 +112,8 @@ class IsisSpatial(object):
         self.floorRayNP.setIntoCollideMask(BitMask32.allOff())
         self.topSurfaceNP.setFromCollideMask(BitMask32.allOff())
         self.topSurfaceNP.setIntoCollideMask(OBJFLOOR|FLOORMASK)
-        self.fullBoxNP.setIntoCollideMask(OBJMASK|AGENTMASK)
-        self.fullBoxNP.setFromCollideMask(BitMask32.allOff())
+        self.fullBoxNP.setIntoCollideMask(AGENTMASK)#BitMask32.allOff())
+        self.fullBoxNP.setFromCollideMask(OBJMASK|AGENTMASK)
 
     def disableCollisions(self):
         print "Removing Collisions - Base"
@@ -204,6 +205,7 @@ class Container(IsisSpatial):
             return
         # call base class
         IsisSpatial.setup(self)
+        print "SETTING UP CONTAINER", self.name
         self.fullBoxNP.setTag('container','acontainer')
         self.enableCollisions()
         self.__setup = True

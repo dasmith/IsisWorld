@@ -52,7 +52,8 @@ class IsisSpatial(object):
         self.setCollideMask(BitMask32.allOff())
         lcorner, ucorner =self.activeModel.getTightBounds()
         center = self.activeModel.getBounds().getCenter()
-        # setup ray for staying on the ground 
+
+        # setup ray for staying on the ground
         cRay = CollisionRay(center[0],center[1],center[2]-((lcorner[2]-center[2])/2.5), 0.0, 0.0, -1.0)
         #cRay = CollisionRay(center[0],center[1],lcorner[2]+0.4, 0.0, 0.0, -1.0)
         self.floorRayNP = CollisionNode('object')
@@ -89,9 +90,6 @@ class IsisSpatial(object):
             self.fullBoxNP.addSolid(cGeom)
         else:
             raise "Geom %s unknown" % collisionGeom
-
-
-        
         self.wallGeomNP = self.attachNewNode(self.fullBoxNP)
         IsisSpatial.enableCollisions(self)
         # add ray tracer to gravity manager
@@ -104,7 +102,6 @@ class IsisSpatial(object):
         base.cTrav.addCollider(self.wallGeomNP, base.cEvent)        
         #self.physicsManager.cWall.addCollider(self.floorGeomNP, self)
         #base.cTrav.addCollider(self.floorGeomNP, self.physicsManager.cWall)
-
 
     def enableCollisions(self):
         self.floorRayNP.setFromCollideMask(OBJFLOOR|FLOORMASK)
@@ -149,7 +146,8 @@ class Surface(IsisSpatial):
         self.surfaceContacts = []
         super(Surface,self).__init__(args,kwargs)
         self.__setup = True
-        self.on_layout = HorizontalGridLayout((self.getWidth(), self.getLength()), self.getHeight())
+        area = (self.getWidth(), self.getHeight())
+        self.on_layout = HorizontalGridSlotLayout(area, self.getHeight(), int(self.getWidth()), int(self.getLength()))
 
     def setup(self):
         if self.__setup:
@@ -184,10 +182,9 @@ class Surface(IsisSpatial):
                     agent.control__drop_from_right_hand()
             obj.reparentTo(self)
             obj.setPos(pos)
+            obj.setLayout(self.on_layout)
             return "success"
         return "Surface is full"
-    def action__take_off(self, agent, obj):
-        self.on_layout.remove(obj)
 
 
 class Container(IsisSpatial):
@@ -210,7 +207,7 @@ class Container(IsisSpatial):
 
     
     def enableCollisions(self):
-        pass
+        super(Container,self).enableCollisions()
 
     def disableCollisions(self):
         super(Container,self).disableCollisions()
@@ -244,10 +241,10 @@ class Container(IsisSpatial):
                     agent.control__drop_from_left_hand()
                 elif agent.right_hand_holding_object == obj:
                     agent.control__drop_from_right_hand()
+            print obj.name, pos
             obj.reparentTo(self)
+            obj.disableCollisions()
             obj.setPos(pos)
+            obj.setLayout(self.on_layout)
             return "success"
         return "container is full"
-
-    def action__take_out(self, agent, obj):
-        self.in_layout.remove(obj)

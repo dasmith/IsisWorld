@@ -33,24 +33,23 @@ class table(IsisObject,IsisVisual,Container,Surface,NoPickup):
 class fridge(IsisObject, IsisVisual, Container, NoPickup):
     
     def __init__(self,name,physics):
-        IsisObject.__init__(self,name=name,physics=physics)
+        IsisObject.__init__(self,name=name,physics=physics,offsetVec=(0,0,0,90,0,0))
         IsisVisual.__init__(self,model="Fridge/Fridge", scale=0.17)
         self.create()
-        self.activeModel.setH(90)
 
         Container.__init__(self,density=4000)
         Container.setup(self)
-        self.in_layout = SlotLayout([(0, 0, 1), (0, 0, 0)])
+        self.in_layout = SlotLayout([(0, 0, .5), (0, 0, 1),(0, 0, 1.5)])
 
         self.fullBoxNP.setIntoCollideMask(OBJMASK)
         self.fullBoxNP.setFromCollideMask(OBJMASK)
         self.state = "closed"
+
         #freezerDoor
         fd = self.activeModel.find("**/freezerDoor*")
-        fd.hide()
+        fd.setPos(-.6, -.55, 1.65)
         self.door = self.activeModel.find("**/fridgeDoor*")
-        #self.door.place()
-        self.door.setPos(-0.7,.4,.5)
+        self.door.setPos(-0.6,-.55,.72)
 
         NoPickup.__init__(self)
 
@@ -63,15 +62,15 @@ class fridge(IsisObject, IsisVisual, Container, NoPickup):
         print "Select method called"
         if self.state == "closed":
             Sequence(
-                Func(self.setState, "closing"),
-                LerpHprInterval(self.door, 0.5, Vec3(125, 0, 0)),
-                Func(self.setState, "close"),
+                Func(self.setState, "opening"),
+                LerpPosHprInterval(self.door, 0.5, Vec3(-2.3, 1.35, .72), Vec3(-125, 0, 0)),
+                Func(self.setState, "opened"),
             ).start()
         elif self.state == "opened":
             Sequence(
-                Func(self.setState, "opening"),
-                LerpHprInterval(self.door, 0.5, Vec3(0, 0, 0)),
-                Func(self.setState, "opened"),
+                Func(self.setState, "closing"),
+                LerpPosHprInterval(self.door, 0.5, Vec3(-.6, -.55, .72), Vec3(0, 0, 0)),
+                Func(self.setState, "closed"),
             ).start()
 
 class knife(IsisObject, IsisVisual, IsisSpatial, Sharp):
@@ -92,7 +91,7 @@ class knife(IsisObject, IsisVisual, IsisSpatial, Sharp):
 class toaster(IsisObject, IsisVisual, Container, IsisFunctional):
     
     def __init__(self,name,physics):
-        IsisObject.__init__(self,name=name,physics=physics,offsetVec=(0.442,0.245,0.25,0,0,0))
+        IsisObject.__init__(self,name=name,physics=physics,offsetVec=(0,0,0,0,0,0))
         IsisVisual.__init__(self,model="toaster", scale=0.7)
         self.create()
 
@@ -122,7 +121,7 @@ class bread(IsisObject, IsisVisual, Container, IsisFunctional):
 class loaf(IsisObject, IsisVisual, IsisSpatial, Dividable):
 
     def __init__(self,name,physics):
-        IsisObject.__init__(self,name=name,physics=physics)
+        IsisObject.__init__(self,name=name,physics=physics,offsetVec=(.00144,0,0,0,0,0))
         IsisVisual.__init__(self,model="loaf_of_bread", scale=0.2)
         self.create()
 

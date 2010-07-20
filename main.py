@@ -88,7 +88,7 @@ class IsisWorld(DirectObject):
         self.physicsManager = PhysicsWorldManager()
         
         cm = CardMaker("ground")
-        groundTexture = loader.loadTexture(self.rootDirectory+"/media/textures/env_ground.jpg")
+        groundTexture = loader.loadTexture("media/textures/env_ground.jpg")#self.rootDirectory+"/media/textures/env_ground.jpg")
         cm.setFrame(-100, 100, -100, 100)
         groundNP = render.attachNewNode(cm.generate())
         groundNP.setCollideMask(BitMask32.allOff())

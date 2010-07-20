@@ -10,6 +10,10 @@ class IsisFunctional():
     def registerState(self,stateName,valueDomain):
         self.states[stateName] = valueDomain
 
+    def retrieveState(self,stateName):
+        if self.states.has_key(stateName):
+            return self.states[stateName]
+
     def setLayout(self, l):
         self.layout = l
 
@@ -81,6 +85,18 @@ class Dividable(IsisFunctional):
         return False
 
 
+class Cookable(IsisFunctional):
+    def __init__(self, cooked, raw="default"):
+        IsisFunctional.__init__(self)
+        self.cookedModel = cooked
+        self.registerState("cooked", False)
+        self.changeModel(raw)
+
+    def action__cook(self, agent, object):
+        self.changeModel(self.cookedModel)
+        self.registerState("cooked", True)
+
+
 class Sharp(IsisFunctional):
     def __init__(self):
         IsisFunctional.__init__(self)
@@ -89,13 +105,21 @@ class Sharp(IsisFunctional):
         print "ouch"
         return "success"
 
+
 class Cooker(IsisFunctional):
-    def __init__(self):
+    def __init__(self, cook_in=True, cook_on=True):
         IsisFunctional.__init__(self)
+        self.cook_in = cook_in
+        self.cook_on = cook_on
 
     def action__cook(self, agent, object):
         print "Cooking..."
-        for obj in self.containerItems:
-            print obj.name
-            obj.setModel("cooked")
+        if self.cook_on:
+            for obj in self.on_layout.getItems():
+                print obj.name
+                obj.call(agent, "cook", object)
+        if self.cook_in:
+            for obj in self.in_layout.getItems():
+                print obj.name
+                obj.call(agent, "cook", object)
         print "done."

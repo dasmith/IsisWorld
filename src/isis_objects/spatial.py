@@ -33,7 +33,7 @@ class IsisSpatial(object):
             raise "Error: IsisVisual needs to be instantiated before IsisSpatial for %s" % self.name
 
         self.weight = None
-        self.containerItems = []
+        #self.containerItems = []
         self.isOpen = False
         if 'density' in kwargs:
             self.density = kwargs['density']
@@ -194,7 +194,7 @@ class Container(IsisSpatial):
     def __init__(self, *args, **kwargs):
         # Flag to limit setup to once per object
         self.__setup = False
-        self.surfaceContacts = []
+        self.containerItems = []
         super(Container,self).__init__(args,kwargs)
         #TO-DO: Change this to something more fitting for a container
         self.in_layout = HorizontalGridLayout((self.getWidth(), self.getLength()), self.getHeight())

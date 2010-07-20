@@ -99,23 +99,23 @@ class toaster(IsisObject, IsisVisual, Container, Cooker):
         Container.setup(self)
         self.on_layout = SlotLayout([(.3, .1, .2), (.3, -.1, .2)])
 
-        Cooker.__init__(self)
+        Cooker.__init__(self, cook_in=True, cook_on=False)
         #register functional states
         self.registerState("containsToast", [0,1,2])
 
         addToWorld(self)
 
-class bread(IsisObject, IsisVisual, Container, IsisFunctional):
+class bread(IsisObject, IsisVisual, Container, Cookable):
 
     def __init__(self,name,physics):
         IsisObject.__init__(self,name=name,physics=physics,offsetVec=(0,0,-.1,0,-120,-20),pickupVec=(-.125,.225,0,0,-125,0))
-        IsisVisual.__init__(self,model={"default":"slice_of_bread", "cooked":"piece_of_toast"}, scale=0.5)
+        IsisVisual.__init__(self,model={"default":"slice_of_bread", "toast":"piece_of_toast"}, scale=0.5)
         self.create()
 
         Container.__init__(self, density=100)
         Container.setup(self)
 
-        IsisFunctional.__init__(self)
+        Cookable.__init__(self, "toast")
 
         addToWorld(self)
 

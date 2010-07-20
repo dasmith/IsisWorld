@@ -1,3 +1,5 @@
+from direct.task import Task, TaskManagerGlobal
+
 class IsisFunctional():
 
     def __init__(self, states=None):
@@ -106,13 +108,31 @@ class Sharp(IsisFunctional):
         return "success"
 
 
-class Cooker(IsisFunctional):
-    def __init__(self, cook_in=True, cook_on=True):
+class OnOffDevice(IsisFunctional):
+    def __init__(self):
         IsisFunctional.__init__(self)
+        self.registerState("powerOn", False)
+    def action__turn_on(self, agent, object):
+        self.registerState("powerOn", True)
+    def action__turn_off(self, agent, object):
+        self.registerState("powerOn", False)
+
+
+class Cooker(OnOffDevice):
+    def __init__(self, cook_in=True, cook_on=True):
+        OnOffDevice.__init__(self)
         self.cook_in = cook_in
         self.cook_on = cook_on
 
-    def action__cook(self, agent, object):
+    def action__turn_on(self, agent, object):
+        OnOffDevice.action__turn_on(self, agent, object)
+        taskMgr.doMethodLater(5, self.__timerDone, "Cooker Timer", extraArgs = [])
+
+    def __timerDone(self):
+        self.cook(None, None)
+        self.action__turn_off(None, None)
+
+    def cook(self, agent, object):
         print "Cooking..."
         if self.cook_on:
             for obj in self.on_layout.getItems():

@@ -67,7 +67,7 @@ class IsisVisual():
         self._needToRecalculateScalingProperties = False
 
     def attachAsPart(self, object):
-        """ Attaches another objet to a parent object's exposed joins """
+        """ Attaches another object to a parent object's exposed joins """
         pass
 
     def getParts(self):

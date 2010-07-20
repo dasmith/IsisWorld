@@ -46,7 +46,7 @@ class IsisWorld(DirectObject):
         # load the main simulated environment
         DirectObject.__init__(self)
         self.isisMessage("Starting Up")
-        self.rootDirectory = "."#Filename.fromOsSpecific(ExecutionEnvironment.getCwd())
+        self.rootDirectory = os.path.dirname( os.path.join(os.getcwd(),sys.argv[0]) )
         config = loadPrcFile(Filename(self.rootDirectory, 'config.prc'))
         self._setupEnvironment(debug=False)
         self._setupWorld(visualizeClouds=True, enableKitchen=True)
@@ -110,16 +110,16 @@ class IsisWorld(DirectObject):
         wallHeight=7
         CM=CardMaker('')
         import random
-        xmax = random.randint(6, 9)
-        ymax = random.randint(6, 9)
+        self._xmax = random.randint(6, 9)
+        self._ymax = random.randint(6, 9)
         self.room=render.attachNewNode('')
         # walls
-        CM.setFrame(-xmax,xmax,0,wallHeight)
-        self.room.attachNewNode(CM.generate()).setPosHpr(0, ymax, 0, 0, 0, 0)
-        self.room.attachNewNode(CM.generate()).setPosHpr(0, -ymax, 0, 180, 0, 0)
-        CM.setFrame(-ymax,ymax,0,wallHeight)
-        self.room.attachNewNode(CM.generate()).setPosHpr(xmax, 0, 0, -90, 0, 0)
-        self.room.attachNewNode(CM.generate()).setPosHpr(-xmax, 0, 0, 90, 0, 0) 
+        CM.setFrame(-self._xmax,self._xmax,0,wallHeight)
+        self.room.attachNewNode(CM.generate()).setPosHpr(0, self._ymax, 0, 0, 0, 0)
+        self.room.attachNewNode(CM.generate()).setPosHpr(0, -self._ymax, 0, 180, 0, 0)
+        CM.setFrame(-self._ymax,self._ymax,0,wallHeight)
+        self.room.attachNewNode(CM.generate()).setPosHpr(self._xmax, 0, 0, -90, 0, 0)
+        self.room.attachNewNode(CM.generate()).setPosHpr(-self._xmax, 0, 0, 90, 0, 0) 
         self.room.setCollideMask(WALLMASK)
         floorTex=loader.loadTexture('maps/grid.rgb') 
         floorTex.setMinfilter(Texture.FTLinearMipmapLinear) 
@@ -129,7 +129,7 @@ class IsisWorld(DirectObject):
         for wall in self.room.getChildrenAsList(): 
             wall.setTexture(wallTex) 
             wall.setTexScale(TextureStage.getDefault(),0.5,wallHeight*roomScale*10)
-        CM.setFrame(-xmax,xmax,-ymax,ymax) 
+        CM.setFrame(-self._xmax,self._xmax,-self._ymax,self._ymax) 
         floor=render.attachNewNode(CM.generate()) 
         floor.setTexture(floorTex)
         floor.setTexScale(TextureStage.getDefault(),10,10,10)
@@ -139,7 +139,7 @@ class IsisWorld(DirectObject):
         self.room.setTwoSided(1) 
         self.room.flattenLight() 
 
-        self.floorLayout = HorizontalGridLayout((2*xmax, 2*ymax), .01)
+        self.floorLayout = HorizontalGridLayout((2*self._xmax, 2*self._ymax), .01)
         self.worldObjects = load_objects(self.rootDirectory+"/kitchen.isis", render, self.physicsManager, layoutManager = self.floorLayout)
             
         if False:
@@ -194,9 +194,9 @@ class IsisWorld(DirectObject):
         #base.disableMouse()
         base.camera.reparentTo(self.room)
         
-        base.camera.setPos(-5,3,4.5)
-        base.camera.setHpr(250,323,0)
-        base.camLens.setFov(83.3,76.51)
+        base.camera.setPos(0,self._ymax,15)
+        base.camera.setHpr(180,320,0)
+        #base.camLens.setFov(83.3,76.51)
         #base.camera.setPos(20*math.sin(angleradians),-20.0*math.cos(angleradians),3)
         #base.camera.setHpr(angledegrees, 0, 0)
         #self.floatingCamera = FloatingCamera(self.agents[self.agentNum].actorNodePath)
@@ -230,7 +230,12 @@ class IsisWorld(DirectObject):
         dlight.setColor(Vec4(0.2, 0.2, 0.2, 1))
         dlightNP = render.attachNewNode(dlight)
 
+        pl = PointLight("light") 
+        plnp=render.attachNewNode(pl) 
+
         render.clearLight()
+        render.setLight(plnp) 
+        render.setShaderAuto()
         render.setLight(alightNP)
         render.setLight(dlightNP)
 
@@ -443,7 +448,7 @@ class IsisWorld(DirectObject):
         self.server_thread.join()
         sys.exit()
     
-    def __del__(self):
+    def __exit__(self):
         self.server.stop()
         self.server_thread.join()
         sys.exit()

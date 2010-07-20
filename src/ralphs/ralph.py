@@ -634,7 +634,7 @@ class Ralph(DirectObject.DirectObject):
 
 
     def update(self, stepSize=0.1):
-        moveAtSpeed = 10.0
+        moveAtSpeed = 3.0
 
         self.speed = [0.0, 0.0]
 

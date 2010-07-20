@@ -58,6 +58,7 @@ class NoPickup(IsisFunctional):
     def action__pick_up(self, x,y):
         return 'failed: cannot pick up this object'
 
+
 class Dividable(IsisFunctional):
     def __init__(self,piece=None):
         IsisFunctional.__init__(self)
@@ -66,14 +67,19 @@ class Dividable(IsisFunctional):
         self.piece = piece
 
     def action__divide(self, agent, object):
-        if self.piece and object != None and isinstance(object, Sharp):
+        if self.piece and object != None and hasattr(object, "action__cut"):
             if not agent.right_hand_holding_object:
-                print agent.control__put_object_in_empty_right_hand(self.piece("piece", self.physicsManager).name)
-                return True
+                obj = self.piece("piece", self.physicsManager)
+                obj.call(agent, "pick_up", agent.player_right_hand)
+                agent.right_hand_holding_object = obj
+                return "Success"
             elif not agent.left_hand_holding_object:
-                print agent.control__put_object_in_empty_left_hand(self.piece("piece", self.physicsManager).name)
-                return True
+                obj = self.piece("piece", self.physicsManager)
+                obj.call(agent, "pick_up", agent.player_left_hand)
+                agent.left_hand_holding_object = obj
+                return "Success"
         return False
+
 
 class Sharp(IsisFunctional):
     def __init__(self):
@@ -82,3 +88,14 @@ class Sharp(IsisFunctional):
     def action__cut(self, agent, object):
         print "ouch"
         return "success"
+
+class Cooker(IsisFunctional):
+    def __init__(self):
+        IsisFunctional.__init__(self)
+
+    def action__cook(self, agent, object):
+        print "Cooking..."
+        for obj in self.containerItems:
+            print obj.name
+            obj.setModel("cooked")
+        print "done."

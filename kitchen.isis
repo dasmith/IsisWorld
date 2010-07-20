@@ -1,5 +1,6 @@
 fridge	at 3,0,2
 table	at 0,2.8,3
 toaster	on table
-loaf	on table	at -.2,.5,5
-knife	on table	at 0.4,-0.2,3
+bread	in toaster
+loaf	on table
+knife	on table

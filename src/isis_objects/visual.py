@@ -77,25 +77,31 @@ class IsisVisual():
     def getModelNode(self):
         return self.activeModel
 
-    def addModel(name,path):
+    def addModel(self, name, path):
         """ Adds another model state or part to the model path """
-        self.models[name]=path
+        self.models[name] = loader.loadModel("media/models/"+path)
+        self.models[name].setPosHpr(*self.offsetVec)
+        self.models[name].setScale(self.scale)
+        self.models[name].setCollideMask(BitMask32.allOff())
 
-    def changeModel(toName):
+    def changeModel(self, toName):
         if self.models.has_key(toName):
             print "Changing active model"
             # TODO: blend or play animation depending on kind of transition
+            if self.activeModel:
+                self.activeModel.detachNode()
+            self.activeModel = self.models[toName]
+            self.activeModel.reparentTo(self)
+            # when models are scaled down dramatically (e.g < 1% of original size), Panda3D represents
+            # the geometry non-uniformly, which means scaling occurs every render step and collision
+            # handling is buggy.  flattenLight()  circumvents this.
+            self.activeModel.flattenLight()
 
     def create(self):
-        self.activeModel = loader.loadModel("media/models/"+self.models['default'])
-        self.activeModel.setPosHpr(*self.offsetVec)
-        self.activeModel.setScale(self.scale)
-        self.activeModel.reparentTo(self)
-        self.activeModel.setCollideMask(BitMask32.allOff())
-        # when models are scaled down dramatically (e.g < 1% of original size), Panda3D represents
-        # the geometry non-uniformly, which means scaling occurs every render step and collision
-        # handling is buggy.  flattenLight()  circumvents this.
-        self.activeModel.flattenLight()
+        for key in self.models:
+            self.addModel(key, self.models[key])
+        self.activeModel = None;
+        self.changeModel('default')
         # adds a pickable tag to allow an agent to view this object
         self.setTag('pickable', 'true')
 

@@ -20,7 +20,7 @@ class table(IsisObject,IsisVisual,Container,Surface,NoPickup):
         IsisVisual.__init__(self,model="table/table",scale=0.006)
         self.create()
 
-        Container.__init__(self,density=4000)
+        Container.__init__(self, density=4000)
         Container.setup(self)
         Surface.__init__(self, density=4000)
         Surface.setup(self)
@@ -88,17 +88,18 @@ class knife(IsisObject, IsisVisual, IsisSpatial, Sharp):
         addToWorld(self)
 
 
-class toaster(IsisObject, IsisVisual, Container, IsisFunctional):
+class toaster(IsisObject, IsisVisual, Container, Cooker):
     
     def __init__(self,name,physics):
-        IsisObject.__init__(self,name=name,physics=physics,offsetVec=(0,0,0,0,0,0))
+        IsisObject.__init__(self,name=name,physics=physics,offsetVec=(.5,.16,.19,-8,0,0))
         IsisVisual.__init__(self,model="toaster", scale=0.7)
         self.create()
 
         Container.__init__(self, density=100)
         Container.setup(self)
+        self.on_layout = SlotLayout([(.3, .1, .2), (.3, -.1, .2)])
 
-        IsisFunctional.__init__(self)
+        Cooker.__init__(self)
         #register functional states
         self.registerState("containsToast", [0,1,2])
 
@@ -107,8 +108,8 @@ class toaster(IsisObject, IsisVisual, Container, IsisFunctional):
 class bread(IsisObject, IsisVisual, Container, IsisFunctional):
 
     def __init__(self,name,physics):
-        IsisObject.__init__(self,name=name,physics=physics)
-        IsisVisual.__init__(self,model="slice_of_bread", scale=0.5)
+        IsisObject.__init__(self,name=name,physics=physics,offsetVec=(0,0,-.1,0,-120,-20),pickupVec=(-.125,.225,0,0,-125,0))
+        IsisVisual.__init__(self,model={"default":"slice_of_bread", "cooked":"piece_of_toast"}, scale=0.5)
         self.create()
 
         Container.__init__(self, density=100)

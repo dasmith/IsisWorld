@@ -101,9 +101,10 @@ class IsisSpatial(object):
         self.physicsManager.cFloor.addCollider(self.floorGeomNP, self)
         base.cTrav.addCollider(self.floorGeomNP, self.physicsManager.cFloor)
 
-        base.cTrav.addCollider(self.wallGeomNP, base.cEvent)        
-        #self.physicsManager.cWall.addCollider(self.floorGeomNP, self)
-        #base.cTrav.addCollider(self.floorGeomNP, self.physicsManager.cWall)
+        base.cTrav.addCollider(self.wallGeomNP, base.cEvent)
+        # make object have wall collision properties        
+        self.physicsManager.cWall.addCollider(self.floorGeomNP, self)
+        base.cTrav.addCollider(self.wallGeomNP, self.physicsManager.cWall)
 
     def enableCollisions(self):
         self.floorRayNP.setFromCollideMask(OBJFLOOR|FLOORMASK)
@@ -111,7 +112,7 @@ class IsisSpatial(object):
         self.topSurfaceNP.setFromCollideMask(BitMask32.allOff())
         self.topSurfaceNP.setIntoCollideMask(OBJFLOOR|FLOORMASK)
         self.fullBoxNP.setIntoCollideMask(AGENTMASK)#BitMask32.allOff())
-        self.fullBoxNP.setFromCollideMask(OBJMASK|AGENTMASK)
+        self.fullBoxNP.setFromCollideMask(OBJMASK)
 
     def disableCollisions(self):
         print "Removing Collisions - Base"

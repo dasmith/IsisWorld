@@ -139,10 +139,8 @@ class IsisWorld(DirectObject):
         self.room.setTwoSided(1) 
         self.room.flattenLight() 
 
-        self.floorLayout = HorizontalGridLayout((2*self._xmax, 2*self._ymax), .01)
+        self.floorLayout = HorizontalGridLayout((2*self._xmax, 2*self._ymax), 0)
         self.worldObjects = load_objects(self.rootDirectory+"/kitchen.isis", render, self.physicsManager, layoutManager = self.floorLayout)
-        for obj in self.worldObjects:
-           print obj, self.worldObjects[obj].getH()
 
         if False:
             self.map = loader.loadModel(self.rootDirectory+"/media/models/kitchen")

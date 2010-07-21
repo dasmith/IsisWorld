@@ -80,7 +80,6 @@ class IsisVisual():
     def addModel(self, name, path):
         """ Adds another model state or part to the model path """
         self.models[name] = loader.loadModel("media/models/"+path)
-        self.models[name].setPosHpr(*self.offsetVec)
         self.models[name].setScale(self.scale)
         self.models[name].setCollideMask(BitMask32.allOff())
 
@@ -91,6 +90,7 @@ class IsisVisual():
                 self.activeModel.detachNode()
             self.activeModel = self.models[toName]
             self.activeModel.reparentTo(self)
+            self.activeModel.setPosHpr(*self.offsetVec)
             # when models are scaled down dramatically (e.g < 1% of original size), Panda3D represents
             # the geometry non-uniformly, which means scaling occurs every render step and collision
             # handling is buggy.  flattenLight()  circumvents this.

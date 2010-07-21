@@ -110,11 +110,11 @@ class Sharp(IsisFunctional):
 class OnOffDevice(IsisFunctional):
     def __init__(self):
         IsisFunctional.__init__(self)
-        self.registerState("powerOn", False)
+        self.registerState("power", False)
     def action__turn_on(self, agent, object):
-        self.registerState("powerOn", True)
+        self.registerState("power", True)
     def action__turn_off(self, agent, object):
-        self.registerState("powerOn", False)
+        self.registerState("power", False)
 
 
 class Cooker(OnOffDevice):

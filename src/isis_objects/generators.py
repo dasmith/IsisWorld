@@ -16,7 +16,7 @@ def addToWorld(object):
 class table(IsisObject,IsisVisual,Container,Surface,NoPickup):
 
     def __init__(self,name,physics):
-        IsisObject.__init__(self,name=name,physics=physics,offsetVec=(0,0,0,0,0,0))
+        IsisObject.__init__(self,name=name,physics=physics,offsetVec=(0,0,0,90,0,0))
         IsisVisual.__init__(self,model="table/table",scale=0.006)
         self.create()
 
@@ -27,14 +27,14 @@ class table(IsisObject,IsisVisual,Container,Surface,NoPickup):
 
         NoPickup.__init__(self)
 
-        self.setH(0)
+        self.setH(180)
         addToWorld(self)
 
 
 class fridge(IsisObject, IsisVisual, Container, NoPickup):
     
     def __init__(self,name,physics):
-        IsisObject.__init__(self,name=name,physics=physics,offsetVec=(0,2,0,90,0,0))
+        IsisObject.__init__(self,name=name,physics=physics,offsetVec=(0,0,0,0,0,0))
         IsisVisual.__init__(self,model={'default':"Fridge/Fridge"}, scale=0.17)
         self.create()
 
@@ -43,21 +43,16 @@ class fridge(IsisObject, IsisVisual, Container, NoPickup):
         Container.setup(self)
         self.in_layout = SlotLayout([(0, 0, .5), (0, 0, 1),(0, 0, 1.5)])
 
-        #self.fullBoxNP.setIntoCollideMask(OBJMASK)
-        #self.fullBoxNP.setFromCollideMask(OBJMASK)
         self.state = "closed"
 
-        #self.makePart()
-        #freezerDoor
         fd = self.activeModel.find("**/freezerDoor*")
-        fd.setPos(-.6, -.55, 1.65)
+        fd.setPos(-.56, .6, 1.65)
         self.door = self.activeModel.find("**/fridgeDoor*")
-        #self.door.reparentTo(self)
-        self.door.setPos(-0.6,-.55,.72)
+        self.door.setPos(-0.56, .6, .72)
 
         NoPickup.__init__(self)
 
-        self.setH(90)
+        self.setH(-90)
         addToWorld(self)
 
     def setState(self,state):
@@ -68,13 +63,13 @@ class fridge(IsisObject, IsisVisual, Container, NoPickup):
         if self.state == "closed":
             Sequence(
                 Func(self.setState, "opening"),
-                LerpPosHprInterval(self.door, 0.5, Vec3(-2.3, 1.35, .72), Vec3(-125, 0, 0)),
+                LerpPosHprInterval(self.door, 0.5, Vec3(.45, 2.4, .72), Vec3(-90, 0, 0)),
                 Func(self.setState, "opened"),
             ).start()
         elif self.state == "opened":
             Sequence(
                 Func(self.setState, "closing"),
-                LerpPosHprInterval(self.door, 0.5, Vec3(-.6, -.55, .72), Vec3(0, 0, 0)),
+                LerpPosHprInterval(self.door, 0.5, Vec3(-.56, .6, .72), Vec3(0, 0, 0)),
                 Func(self.setState, "closed"),
             ).start()
 

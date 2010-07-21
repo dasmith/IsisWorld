@@ -23,8 +23,8 @@ def load_objects(file, renderParent, physicsManager, layoutManager = None):
         item = instruction.split("\t")[0]
         if len(instruction.split("\t")) > 1:
             parent = renderParent
-            loc = None
-            rot = None
+            loc = (0, 0, 0)
+            rot = (0, 0, 0)
             prep = None
             name = None
 
@@ -42,8 +42,10 @@ def load_objects(file, renderParent, physicsManager, layoutManager = None):
                     parent = context[val]
                     prep = key
             obj = instantiate_isisobject(item, physicsManager)
-            if rot:
-                obj.setHpr(obj, rot)
+            loc = (loc[0]+obj.getX(), loc[1]+obj.getY(), loc[2]+obj.getZ())
+            rot = (rot[0]+obj.getH(), rot[1]+obj.getP(), rot[2]+obj.getR())
+            obj.setPosHpr(0, 0, 0, 0, 0, 0)
+
             if prep == "on":
                 if parent.call(None, "put_on", obj) != "success":
                     obj.reparentTo(renderParent)
@@ -58,8 +60,8 @@ def load_objects(file, renderParent, physicsManager, layoutManager = None):
                 obj.reparentTo(renderParent)
                 if layoutManager:
                     obj.setPos(layoutManager.add(obj))
-            if loc:
-                obj.setPos(obj, loc)
+
+            obj.setPosHpr(obj, loc, rot)
             if name:
                context[name] = obj
             context[item] = obj

@@ -86,7 +86,6 @@ class IsisVisual():
 
     def changeModel(self, toName):
         if self.models.has_key(toName):
-            print "Changing active model"
             # TODO: blend or play animation depending on kind of transition
             if self.activeModel:
                 self.activeModel.detachNode()

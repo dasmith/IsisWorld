@@ -141,7 +141,9 @@ class IsisWorld(DirectObject):
 
         self.floorLayout = HorizontalGridLayout((2*self._xmax, 2*self._ymax), .01)
         self.worldObjects = load_objects(self.rootDirectory+"/kitchen.isis", render, self.physicsManager, layoutManager = self.floorLayout)
-            
+        for obj in self.worldObjects:
+           print obj, self.worldObjects[obj].getH()
+
         if False:
             self.map = loader.loadModel(self.rootDirectory+"/media/models/kitchen")
             self.map.reparentTo(render)

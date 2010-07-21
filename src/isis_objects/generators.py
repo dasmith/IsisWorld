@@ -16,7 +16,7 @@ def addToWorld(object):
 class table(IsisObject,IsisVisual,Container,Surface,NoPickup):
 
     def __init__(self,name,physics):
-        IsisObject.__init__(self,name=name,physics=physics)
+        IsisObject.__init__(self,name=name,physics=physics,offsetVec=(0,0,0,0,0,0))
         IsisVisual.__init__(self,model="table/table",scale=0.006)
         self.create()
 
@@ -27,6 +27,7 @@ class table(IsisObject,IsisVisual,Container,Surface,NoPickup):
 
         NoPickup.__init__(self)
 
+        self.setH(0)
         addToWorld(self)
 
 
@@ -53,6 +54,7 @@ class fridge(IsisObject, IsisVisual, Container, NoPickup):
 
         NoPickup.__init__(self)
 
+        self.setH(90)
         addToWorld(self)
 
     def setState(self,state):

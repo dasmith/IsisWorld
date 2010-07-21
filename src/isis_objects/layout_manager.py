@@ -73,8 +73,8 @@ class HorizontalGridSlotLayout(SlotLayout):
             slots = [(0, 0, height+1)]
         else:
             width = area[0]-2*padw
-            height = area[1]-2*padh
+            length = area[1]-2*padh
             dx = width/nx
-            dy = height/ny
-            slots = [(x*dx-width/2, y*dy-height/2, height) for x in xrange(0, nx) for y in xrange(0, ny)]
+            dy = length/ny
+            slots = [(x*dx-width/2, y*dy-length/2, height) for x in xrange(0, nx) for y in xrange(0, ny)]
         SlotLayout.__init__(self, slots)

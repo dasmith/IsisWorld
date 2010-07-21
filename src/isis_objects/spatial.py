@@ -149,7 +149,7 @@ class Surface(IsisSpatial):
         self.surfaceContacts = []
         super(Surface,self).__init__(args,kwargs)
         self.__setup = True
-        area = (self.getWidth(), self.getHeight())
+        area = (self.getWidth(), self.getLength())
         self.on_layout = HorizontalGridSlotLayout(area, self.getHeight(), int(self.getWidth()), int(self.getLength()))
 
     def setup(self):
@@ -245,7 +245,6 @@ class Container(IsisSpatial):
                     agent.control__drop_from_left_hand()
                 elif agent.right_hand_holding_object == obj:
                     agent.control__drop_from_right_hand()
-            print obj.name, pos
             obj.reparentTo(self)
             obj.disableCollisions()
             obj.setPos(pos)

@@ -7,7 +7,6 @@ def instantiate_isisobject(classname, physics):
       - classname:  the name of the IsisObject type
       - physics: a pointer to the worldManager, required for adding collision geometries later
     """
-    print "Creating an instance of %s" % classname
     __import__("src.isis_objects.generators")
     return getattr(sys.modules["src.isis_objects.generators"], classname)(name=classname,physics=physics)
 
@@ -19,14 +18,13 @@ def load_objects(file, renderParent, physicsManager, layoutManager = None):
     context = {}
 
     for instruction in load_objects_file(file):
-        print instruction
         if len(instruction) == 0 or instruction[0] == "#":
             continue
         item = instruction.split("\t")[0]
         if len(instruction.split("\t")) > 1:
             parent = renderParent
             loc = None
-            rot = (0, 0, 0)
+            rot = None
             prep = None
             name = None
 
@@ -43,11 +41,9 @@ def load_objects(file, renderParent, physicsManager, layoutManager = None):
                 elif val in context:
                     parent = context[val]
                     prep = key
-            print item
             obj = instantiate_isisobject(item, physicsManager)
-            print "Creating object %s" % (obj.name)
-            print "Dimensions: w=%f, l=%f, h=%f" % (obj.getWidth(), obj.getLength(), obj.getHeight())
-            obj.setHpr(rot)
+            if rot:
+                obj.setHpr(obj, rot)
             if prep == "on":
                 if parent.call(None, "put_on", obj) != "success":
                     obj.reparentTo(renderParent)
@@ -68,5 +64,4 @@ def load_objects(file, renderParent, physicsManager, layoutManager = None):
                context[name] = obj
             context[item] = obj
 
-    print world_objects
     return world_objects

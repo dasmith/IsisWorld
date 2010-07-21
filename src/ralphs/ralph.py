@@ -150,54 +150,6 @@ class Ralph(DirectObject.DirectObject):
         """Set the state of one of the character's movement controls.  """
         self.controlMap[control] = value
     
-    def is3Din2D(self, node, point1,point2,point3d): 
-      """This function takes a 2d selection box from the screen as defined by two corners 
-      and queries whether a given 3d point lies in that selection box 
-      Returns True if it is 
-      Returns False if it is not""" 
-      #node is the parent node- probably render or similar node 
-      #point1 is the first 2d coordinate in the selection box 
-      #point2 is the opposite corner 2d coordinate in the selection box 
-      #point3d is the point in 3d space to test if that point lies in the 2d selection box 
-       
-      # Convert the point to the 3-d space of the camera 
-      p3 = self.fov.getRelativePoint(node, point3d) 
-
-      # Convert it through the lens to render2d coordinates 
-      p2 = Point2() 
-      if not base.camLens.project(p3, p2): 
-         return False 
-       
-      r2d = Point3(p2[0], 0, p2[1]) 
-
-      # And then convert it to aspect2d coordinates 
-      a2d = aspect2d.getRelativePoint(render2d, r2d) 
-       
-      #Find out the biggest/smallest X and Y of the 2- 2d points provided. 
-      if point1.getX() > point2.getX(): 
-         bigX = point1.getX() 
-         smallX = point2.getX() 
-      else: 
-         bigX = point2.getX() 
-         smallX = point1.getX() 
-          
-      if point1.getY() > point2.getY(): 
-         bigY = point1.getY() 
-         smallY = point2.getY() 
-      else: 
-         bigY = point2.getY() 
-         smallY = point2.getY() 
-       
-      pX = a2d.getX() 
-      pY = a2d.getZ()  #aspect2d is based on a point3 not a point2 like render2d. 
-       
-      if pX < bigX and pX > smallX: 
-         if pY < bigY and pY > smallY: 
-             
-            return True 
-         else: return False 
-      else: return False
-
     def getObjectsInFieldOfVision(self):
         """ This works in an x-ray vision style. Fast"""
         objects_inview=0
@@ -215,20 +167,13 @@ class Ralph(DirectObject.DirectObject):
             if self.fov.node().isInView(o.activeModel.getPos(self.fov)):
                 objects_inview+=1
                 print "in view", o
-                p1 = self.fov.getRelativePoint(render,o.activeModel.getPos())
-                p2 = self.fov.getRelativePoint(self.fov,o.activeModel.getPos())
-                p3 = self.fov.getRelativePoint(render,o.activeModel.getPos(self.fov))
-                p4 = Point2()
-                self.fov.node().getLens().project(p1, p4)
-                p5 = Point2()
-                self.fov.node().getLens().project(p2, p5)
-                p6 = Point2()
-                self.fov.node().getLens().project(p3, p6)
-                print "p1", p1, "p2", p2, "p3", p3
-                print 'p4', p4, "p5", p5, "p6", p6
+                p1 = self.fov.getRelativePoint(render,o.activeModel.getPos(self.fov))
+                p2 = Point2()
+                self.fov.node().getLens().project(p1, p2)
+                p3 = aspect2d.getRelativePoint(render2d, Point3(p2[0], 0, p2[1]) )
                 print self.fov.node().getLens()
-                object_dict = {'x_pos': p4[0],\
-                               'y_pos': p4[1],\
+                object_dict = {'x_pos': p3[0],\
+                               'y_pos': p3[2],\
                                'distance':o.activeModel.getDistance(self.fov), \
                                'orientation': o.activeModel.getH(self.fov)}
                 objects[o] = object_dict

@@ -34,9 +34,10 @@ class table(IsisObject,IsisVisual,Container,Surface,NoPickup):
 class fridge(IsisObject, IsisVisual, Container, NoPickup):
     
     def __init__(self,name,physics):
-        IsisObject.__init__(self,name=name,physics=physics,offsetVec=(0,0,0,90,0,0))
-        IsisVisual.__init__(self,model="Fridge/Fridge", scale=0.17)
+        IsisObject.__init__(self,name=name,physics=physics,offsetVec=(0,2,0,90,0,0))
+        IsisVisual.__init__(self,model={'default':"Fridge/Fridge"}, scale=0.17)
         self.create()
+
 
         Container.__init__(self,density=4000)
         Container.setup(self)
@@ -46,10 +47,12 @@ class fridge(IsisObject, IsisVisual, Container, NoPickup):
         #self.fullBoxNP.setFromCollideMask(OBJMASK)
         self.state = "closed"
 
+        #self.makePart()
         #freezerDoor
         fd = self.activeModel.find("**/freezerDoor*")
         fd.setPos(-.6, -.55, 1.65)
         self.door = self.activeModel.find("**/fridgeDoor*")
+        #self.door.reparentTo(self)
         self.door.setPos(-0.6,-.55,.72)
 
         NoPickup.__init__(self)

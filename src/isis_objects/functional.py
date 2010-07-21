@@ -24,6 +24,7 @@ class IsisFunctional():
         try:
             return getattr(self, "action__"+action)(agent, dobject)
         except AttributeError:
+            # TODO: issue isisworld message
             return None
 
     ## register actions that are enabled by default in all objects

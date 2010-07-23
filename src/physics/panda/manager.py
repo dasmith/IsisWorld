@@ -6,7 +6,8 @@ WALLMASK = BitMask32.bit(2)
 PICKMASK = BitMask32.bit(3)
 AGENTMASK = BitMask32.bit(4)
 OBJMASK= BitMask32.bit(5)
-OBJFLOOR = BitMask32.bit(21)
+OBJFLOOR = BitMask32.bit(6)
+OBJPICK = BitMask32.bit(7)
 
 def getOrientedBoundedBox(collObj):
     ''' get the Oriented Bounding Box '''
@@ -73,7 +74,7 @@ class PhysicsWorldManager(DirectObject.DirectObject):
         # Initialize the collision traverser.
         base.cTrav = CollisionTraverser()
         base.cTrav.setRespectPrevTransform(True)
-        #base.cTrav.showCollisions( render )
+        base.cTrav.showCollisions( render )
 
         # initialize 3 handlers: wall, gravity, and other events
         

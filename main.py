@@ -88,7 +88,7 @@ class IsisWorld(DirectObject):
         self.physicsManager = PhysicsWorldManager()
         
         cm = CardMaker("ground")
-        groundTexture = loader.loadTexture("media/textures/env_ground.jpg")#self.rootDirectory+"/media/textures/env_ground.jpg")
+        groundTexture = loader.loadTexture(self.rootDirectory+"/media/textures/env_ground.jpg")
         cm.setFrame(-100, 100, -100, 100)
         groundNP = render.attachNewNode(cm.generate())
         groundNP.setCollideMask(BitMask32.allOff())
@@ -103,9 +103,6 @@ class IsisWorld(DirectObject):
         floorCollisionNP.node().setIntoCollideMask(FLOORMASK)
         floorCollisionNP.node().setFromCollideMask(FLOORMASK)
 
-        #if enableKitchen:
-
-        #self.room.setCollideMask(BitMask32.allOff())
         roomScale=35 
         wallHeight=7
         CM=CardMaker('')
@@ -121,10 +118,10 @@ class IsisWorld(DirectObject):
         self.room.attachNewNode(CM.generate()).setPosHpr(self._xmax, 0, 0, -90, 0, 0)
         self.room.attachNewNode(CM.generate()).setPosHpr(-self._xmax, 0, 0, 90, 0, 0) 
         self.room.setCollideMask(WALLMASK)
-        floorTex=loader.loadTexture('maps/grid.rgb') 
+        floorTex=loader.loadTexture(self.rootDirectory+'/media/maps/grid.rgb') 
         floorTex.setMinfilter(Texture.FTLinearMipmapLinear) 
         floorTex.setMagfilter(Texture.FTLinearMipmapLinear) 
-        wallTex=loader.loadTexture('media/textures/concrete.jpg') 
+        wallTex=loader.loadTexture(self.rootDirectory+'/media/textures/concrete.jpg') 
         wallTex.setMinfilter(Texture.FTLinearMipmapLinear) 
         for wall in self.room.getChildrenAsList(): 
             wall.setTexture(wallTex) 
@@ -173,15 +170,10 @@ class IsisWorld(DirectObject):
     
             taskMgr.add(self._timeUpdated, "skytimeUpdated")
         else:
-            self.skydomeNP = loader.loadModel("media/models/dome2")
+            self.skydomeNP = loader.loadModel(self.rootDirectory+"/media/models/dome2")
             self.skydomeNP.reparentTo(render)
             self.skydomeNP.setCollideMask(BitMask32().allOff())
             self.skydomeNP.setScale(400, 400, 100);
-            #self.skydomeNP.setLightOff()
-            texture = loader.loadTexture("media/textures/test.png")
-            textureStage = TextureStage("stage0")
-            textureStage.setMode(TextureStage.MReplace)
-            self.skydomeNP.setTexture(textureStage, texture)
             #self.skydomeNP.setTexScale(textureStage, 10, 5)
 
     def _timeUpdated(self,task):
@@ -194,9 +186,8 @@ class IsisWorld(DirectObject):
         #base.disableMouse()
         base.camera.reparentTo(self.room)
         
-        base.camera.setPos(0,self._ymax,15)
+        base.camera.setPos(0,self._xmax,15)
         base.camera.setHpr(180,320,0)
-        #base.camLens.setFov(83.3,76.51)
         #base.camera.setPos(20*math.sin(angleradians),-20.0*math.cos(angleradians),3)
         #base.camera.setHpr(angledegrees, 0, 0)
         #self.floatingCamera = FloatingCamera(self.agents[self.agentNum].actorNodePath)

@@ -78,6 +78,9 @@ class IsisSpatial(object):
 
         radius = min(ucorner[0]-lcorner[0],ucorner[1]-lcorner[1])/2.0
         if collisionGeom == 'box':
+            cGeom = CollisionSphere(0.0, 0.0, center[2], radius)
+            cGeom.setTangible(1)
+            self.fullBoxNP.addSolid(cGeom)
             cGeom = CollisionBox(lcorner, ucorner)
             cGeom.setTangible(1)
             self.fullBoxNP.addSolid(cGeom)            
@@ -89,8 +92,8 @@ class IsisSpatial(object):
             self.fullBoxNP.addSolid(cGeom)
         else:
             raise "Geom %s unknown" % collisionGeom
-
         self.wallGeomNP = self.attachNewNode(self.fullBoxNP)
+        self.wallGeomNP.show()
         IsisSpatial.enableCollisions(self)
         # add ray tracer to gravity manager
         self.physicsManager.cFloor.addCollider(self.floorRayGeomNP, self)

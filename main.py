@@ -57,9 +57,11 @@ class IsisWorld(DirectObject):
         self.devConsole = DeveloperConsole()            
         self._textObjectVisible = True
         self._inspectState = False
+        #base.cTrav.showCollisions(self.objRender)
         # turn off main help menu by default
         self.toggleInstructionsWindow()
         self.server_thread.start()
+        base.exitFunc = self.exit
 
     def _setupEnvironment(self,debug=False):
         """  Stuff that's too ugly to put anywhere else. """
@@ -69,11 +71,12 @@ class IsisWorld(DirectObject):
         base.camLens.setFov(75)
         base.camLens.setNear(0.1)
         base.disableMouse()
+        # subnode to hang all objects on
+        self.objRender = base.render.attachNewNode(PandaNode('isisObjects'))
         # debugging stuff
         if debug:
             # display all events
             messenger.toggleVerbose()
-        # setup the server
         # xmlrpc server command handler
         commandHandler = IsisCommandHandler(self)
         self.server = XMLRPCServer() 
@@ -137,7 +140,7 @@ class IsisWorld(DirectObject):
         self.room.flattenLight() 
 
         self.floorLayout = HorizontalGridLayout((2*self._xmax, 2*self._ymax), 0)
-        self.worldObjects = load_objects("kitchen.isis", render, self.physicsManager, layoutManager=self.floorLayout)#os.path.join(self.rootDirectory,"kitchen.isis"), render, self.physicsManager, layoutManager = self.floorLayout)
+        self.worldObjects = load_objects("kitchen.isis", self.objRender, self.physicsManager, layoutManager = self.floorLayout)
 
         if False:
             self.map = loader.loadModel("media/models/kitchen")#os.path.join(self.rootDirectory,"media","models","kitchen"))
@@ -185,9 +188,9 @@ class IsisWorld(DirectObject):
         ### Set up displays and cameras ###
         #base.disableMouse()
         base.camera.reparentTo(self.room)
-        
-        base.camera.setPos(0,self._xmax,15)
-        base.camera.setHpr(180,320,0)
+        base.camera.setPos(self._xmax,self._ymax,10)
+        base.camera.setHpr(150,320,0)
+        #base.camera.place()
         #base.camera.setPos(20*math.sin(angleradians),-20.0*math.cos(angleradians),3)
         #base.camera.setHpr(angledegrees, 0, 0)
         #self.floatingCamera = FloatingCamera(self.agents[self.agentNum].actorNodePath)
@@ -429,6 +432,7 @@ class IsisWorld(DirectObject):
         
     def isisMessage(self,message):
         print "[IsisWorld] %s %s" % (message, str(ctime()))
+
 
     def exit(self):
         """ Shut down threads and """

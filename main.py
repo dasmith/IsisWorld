@@ -374,6 +374,7 @@ class IsisWorld(DirectObject):
                 self.agents[self.agentNum].control__say("Action: " + message)
             else:
                 self.agents[self.agentNum].msg = None
+                return
             if message.split()[0] == "goal":
                 self.agents[self.agentNum].control__say_goal(' '.join(message.split()[1:]))
             elif message.split()[0] == "meta":

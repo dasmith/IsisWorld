@@ -131,6 +131,7 @@ class Ralph(DirectObject.DirectObject):
         self.isSitting = False
         self.isDisabled = False
         self.msg = None
+        self.setPythonTag("agent", self)
 
         """
         Object used for picking objects in the field of view
@@ -140,6 +141,7 @@ class Ralph(DirectObject.DirectObject):
         # Initialize the action queue, with a maximum length of queueSize
         self.queue = []
         self.queueSize = queueSize
+        self.lastSense = 0
         
         # when you're done, register yourself with physical simulator
         # so it can call update() at each step of the physics
@@ -152,33 +154,47 @@ class Ralph(DirectObject.DirectObject):
     
     def getObjectsInFieldOfVision(self):
         """ This works in an x-ray vision style. Fast"""
-        objects_inview=0
-        objects = {} 
-        lensBounds = self.fov.node().getLens().makeBounds()
-        objs=base.render.findAllMatches("**/IsisObject*")
-        for obj in objs:
+        objects = {}
+        for obj in base.render.findAllMatches("**/IsisObject*"):
             if not obj.hasPythonTag("isisobj"):
-                return
+                continue
             o = obj.getPythonTag("isisobj")
-            print "object:   ", o
             bounds = o.activeModel.getBounds() 
             bounds.xform(o.activeModel.getMat(self.fov))
-            print "CONTAINS", lensBounds.contains(bounds)
             if self.fov.node().isInView(o.activeModel.getPos(self.fov)):
-                objects_inview+=1
-                print "in view", o
                 p1 = self.fov.getRelativePoint(render,o.activeModel.getPos(self.fov))
                 p2 = Point2()
                 self.fov.node().getLens().project(p1, p2)
                 p3 = aspect2d.getRelativePoint(render2d, Point3(p2[0], 0, p2[1]) )
-                print self.fov.node().getLens()
                 object_dict = {'x_pos': p3[0],\
                                'y_pos': p3[2],\
                                'distance':o.activeModel.getDistance(self.fov), \
                                'orientation': o.activeModel.getH(self.fov)}
                 objects[o] = object_dict
-        self.control__say("If I were wearing x-ray glasses, I could see %i items"  % objects_inview) 
+        self.control__say("If I were wearing x-ray glasses, I could see %i items"  % len(objects)) 
         return objects
+
+    def getAgentsInFeildOfVision(self):
+        """ This works in an x-ray vision style as well"""
+        agents = {}
+        for agent in base.render.findAllMatches("**/agent-*"):
+            if not agent.hasPythonTag("agent")
+                continue
+            a = agent.getPythonTag("agent")
+            bounds = a.actorNode.getBounds()
+            bounds.xform(a.actorNode.getMat(self.fov))
+            pos = a.actorNode.getPos(self.fov)
+            if self.fov.node().isInView(pos):
+                p1 = self.fov.getRelativePoint(render,pos)
+                p2 = Point2()
+                self.fov.node().getLens().project(p1, p2)
+                p3 = aspect2d.getRElativePoint(render2d, Point3(p2[0], 0, p2[1]))
+                agentDict = {'x_pos': p3[0],\
+                             'y_pos': p3[2],\
+                             'distance':a.actorNode.getDistance(self.fov),\
+                             'orientation': a.actorNode.getH(self.fov)}
+                agents[a] = agentDict
+        return agents
 
     def setPosition(self,position):
         self.actorNodePath.setPos(position)
@@ -298,6 +314,8 @@ class Ralph(DirectObject.DirectObject):
         percepts['position'] = self.sense__get_position()
         # language: get last utterances that were typed
         percepts['language'] = self.sense__get_utterances()
+        # agents: returns a map of agents to a list of actions that have been sensed
+        percepts['agents'] = self.sense_get_agents()
         print percepts
         return percepts
         
@@ -502,7 +520,16 @@ class Ralph(DirectObject.DirectObject):
         return []
 
     def sense__get_objects(self):
-        return dict([x.getName(),y] for (x,y) in self.getObjectsInView().items())
+        return dict([x.getName(),y] for (x,y) in self.getObjectsInFieldOfVision().items())
+
+    def sense__get_agents(self):
+        curSense = time()
+        agents = {}
+        for k, v in self.getAgentsInFieldOfVision():
+            v['actions'] = k.getActions(self.lastSense, curSense)
+            agents[k.name] = v
+        self.lastSense = curSense
+        return agents
 
     def sense__get_utterances(self):
         """ Clear out the buffer of things that the teacher has typed,

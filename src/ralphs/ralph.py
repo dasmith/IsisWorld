@@ -40,8 +40,9 @@ class Ralph(DirectObject.DirectObject):
         self.actor.setH(0)
 
         self.actor.setColorScale(random.random(), random.random(), random.random(), 1.0)
-        self.actorNode = ActorNode('agent-%s' % name)
-        self.actorNodePath = render.attachNewNode(self.actorNode)
+        self.actorNodePath = NodePath('agent-%s' % name)
+        self.actorNode = self.actorNodePath.node()
+        self.actorNodePath.reparentTo(render)
         self.actor.setPos(self.actorNodePath,0,0,-.2)
         self.actor.reparentTo(self.actorNodePath)
         self.actor.setCollideMask(BitMask32.allOff())
@@ -131,7 +132,7 @@ class Ralph(DirectObject.DirectObject):
         self.isSitting = False
         self.isDisabled = False
         self.msg = None
-        self.setPythonTag("agent", self)
+        self.actorNodePath.setPythonTag("agent", self)
 
         """
         Object used for picking objects in the field of view
@@ -174,25 +175,25 @@ class Ralph(DirectObject.DirectObject):
         self.control__say("If I were wearing x-ray glasses, I could see %i items"  % len(objects)) 
         return objects
 
-    def getAgentsInFeildOfVision(self):
+    def getAgentsInFieldOfVision(self):
         """ This works in an x-ray vision style as well"""
         agents = {}
         for agent in base.render.findAllMatches("**/agent-*"):
-            if not agent.hasPythonTag("agent")
+            if not agent.hasPythonTag("agent"):
                 continue
             a = agent.getPythonTag("agent")
-            bounds = a.actorNode.getBounds()
-            bounds.xform(a.actorNode.getMat(self.fov))
-            pos = a.actorNode.getPos(self.fov)
+            bounds = a.actorNodePath.getBounds()
+            bounds.xform(a.actorNodePath.getMat(self.fov))
+            pos = a.actorNodePath.getPos(self.fov)
             if self.fov.node().isInView(pos):
                 p1 = self.fov.getRelativePoint(render,pos)
                 p2 = Point2()
                 self.fov.node().getLens().project(p1, p2)
-                p3 = aspect2d.getRElativePoint(render2d, Point3(p2[0], 0, p2[1]))
+                p3 = aspect2d.getRelativePoint(render2d, Point3(p2[0], 0, p2[1]))
                 agentDict = {'x_pos': p3[0],\
                              'y_pos': p3[2],\
-                             'distance':a.actorNode.getDistance(self.fov),\
-                             'orientation': a.actorNode.getH(self.fov)}
+                             'distance':a.actorNodePath.getDistance(self.fov),\
+                             'orientation': a.actorNodePath.getH(self.fov)}
                 agents[a] = agentDict
         return agents
 
@@ -315,7 +316,7 @@ class Ralph(DirectObject.DirectObject):
         # language: get last utterances that were typed
         percepts['language'] = self.sense__get_utterances()
         # agents: returns a map of agents to a list of actions that have been sensed
-        percepts['agents'] = self.sense_get_agents()
+        percepts['agents'] = self.sense__get_agents()
         print percepts
         return percepts
         
@@ -525,7 +526,7 @@ class Ralph(DirectObject.DirectObject):
     def sense__get_agents(self):
         curSense = time()
         agents = {}
-        for k, v in self.getAgentsInFieldOfVision():
+        for k, v in self.getAgentsInFieldOfVision().items():
             v['actions'] = k.getActions(self.lastSense, curSense)
             agents[k.name] = v
         self.lastSense = curSense

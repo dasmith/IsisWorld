@@ -47,7 +47,7 @@ class IsisWorld(DirectObject):
         DirectObject.__init__(self)
         self.isisMessage("Starting Up")
         self.rootDirectory = os.path.dirname( os.path.join(os.getcwd(),sys.argv[0]) )
-        config = loadPrcFile(Filename(self.rootDirectory, 'config.prc'))
+        config = loadPrcFile(Filename("config.prc"))#os.path.join(self.rootDirectory,'config.prc')))
         self._setupEnvironment(debug=False)
         self._setupWorld(visualizeClouds=True, enableKitchen=True)
         self._setupAgents()
@@ -88,7 +88,7 @@ class IsisWorld(DirectObject):
         self.physicsManager = PhysicsWorldManager()
         
         cm = CardMaker("ground")
-        groundTexture = loader.loadTexture(self.rootDirectory+"/media/textures/env_ground.jpg")
+        groundTexture = loader.loadTexture("media/textures/env_ground.jpg")#os.path.join(self.rootDirectory,"media","textures","env_ground.jpg"))
         cm.setFrame(-100, 100, -100, 100)
         groundNP = render.attachNewNode(cm.generate())
         groundNP.setCollideMask(BitMask32.allOff())
@@ -118,10 +118,10 @@ class IsisWorld(DirectObject):
         self.room.attachNewNode(CM.generate()).setPosHpr(self._xmax, 0, 0, -90, 0, 0)
         self.room.attachNewNode(CM.generate()).setPosHpr(-self._xmax, 0, 0, 90, 0, 0) 
         self.room.setCollideMask(WALLMASK)
-        floorTex=loader.loadTexture(self.rootDirectory+'/media/maps/grid.rgb') 
+        floorTex=loader.loadTexture("media/maps/grid.rgb")#os.path.join(self.rootDirectory,"media","maps","grid.rgb"))
         floorTex.setMinfilter(Texture.FTLinearMipmapLinear) 
         floorTex.setMagfilter(Texture.FTLinearMipmapLinear) 
-        wallTex=loader.loadTexture(self.rootDirectory+'/media/textures/concrete.jpg') 
+        wallTex=loader.loadTexture("media/textures/concrete.jpg")#os.path.join(self.rootDirectory,"media","textures","concrete.jpg"))
         wallTex.setMinfilter(Texture.FTLinearMipmapLinear) 
         for wall in self.room.getChildrenAsList(): 
             wall.setTexture(wallTex) 
@@ -137,10 +137,10 @@ class IsisWorld(DirectObject):
         self.room.flattenLight() 
 
         self.floorLayout = HorizontalGridLayout((2*self._xmax, 2*self._ymax), 0)
-        self.worldObjects = load_objects(self.rootDirectory+"/kitchen.isis", render, self.physicsManager, layoutManager = self.floorLayout)
+        self.worldObjects = load_objects("kitchen.isis", render, self.physicsManager, layoutManager=self.floorLayout)#os.path.join(self.rootDirectory,"kitchen.isis"), render, self.physicsManager, layoutManager = self.floorLayout)
 
         if False:
-            self.map = loader.loadModel(self.rootDirectory+"/media/models/kitchen")
+            self.map = loader.loadModel("media/models/kitchen")#os.path.join(self.rootDirectory,"media","models","kitchen"))
             self.map.reparentTo(render)
             self.mapNode = self.map.find("-PandaNode")
             self.room = self.mapNode.find("Wall")
@@ -170,7 +170,7 @@ class IsisWorld(DirectObject):
     
             taskMgr.add(self._timeUpdated, "skytimeUpdated")
         else:
-            self.skydomeNP = loader.loadModel(self.rootDirectory+"/media/models/dome2")
+            self.skydomeNP = loader.loadModel("media/models/dome2")#os.path.join(self.rootDirectory,"media","models","dome2"))
             self.skydomeNP.reparentTo(render)
             self.skydomeNP.setCollideMask(BitMask32().allOff())
             self.skydomeNP.setScale(400, 400, 100);

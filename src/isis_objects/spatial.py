@@ -17,8 +17,6 @@ from layout_manager import *
     Styrofoam 100
 """
 
-OBJFLOOR = BitMask32.bit(21)
-
 class IsisSpatial(object):
     """ This class is called _after_ IsisVisual is called and it, and its children classes
     are responsible for maintaining the spatial, geometric and physical properties of the 
@@ -50,6 +48,7 @@ class IsisSpatial(object):
             return
         # ensure all existing collision masks are off
         self.setCollideMask(BitMask32.allOff())
+        self.activeModel.setCollideMask(OBJPICK)
         lcorner, ucorner =self.activeModel.getTightBounds()
         center = self.activeModel.getBounds().getCenter()
 

@@ -661,7 +661,7 @@ class Picker(DirectObject.DirectObject):
         self.pickerNode = CollisionNode('mouseRay')
         self.pickerNP = self.camera.attachNewNode(self.pickerNode)
 
-        self.pickerNode.setFromCollideMask(OBJMASK|AGENTMASK)
+        self.pickerNode.setFromCollideMask(OBJPICK|AGENTMASK)
         self.pickerNode.setIntoCollideMask(BitMask32.bit(0))
 
         self.pickerRay = CollisionRay()

@@ -153,7 +153,7 @@ class Ralph(DirectObject.DirectObject):
     def getObjectsInFieldOfVision(self):
         """ This works in an x-ray vision style. Fast"""
         objects_inview=0
-        objects = {} 
+        objects = {}
         lensBounds = self.fov.node().getLens().makeBounds()
         objs=base.render.findAllMatches("**/IsisObject*")
         for obj in objs:
@@ -565,7 +565,7 @@ class Ralph(DirectObject.DirectObject):
         cRay = CollisionRay(0.0, 0.0, CollisionHandlerRayStart, 0.0, 0.0, -1.0)
         cRayNode = CollisionNode('actor-raynode')
         cRayNode.addSolid(cRay)
-        cRayNode.setFromCollideMask(OBJFLOOR|FLOORMASK)
+        cRayNode.setFromCollideMask(FLOORMASK)
         cRayNode.setIntoCollideMask(BitMask32.allOff()) 
         self.cRayNodePath = self.actorNodePath.attachNewNode(cRayNode)
         # add colliders

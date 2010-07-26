@@ -74,7 +74,7 @@ class PhysicsWorldManager(DirectObject.DirectObject):
         # Initialize the collision traverser.
         base.cTrav = CollisionTraverser()
         base.cTrav.setRespectPrevTransform(True)
-        base.cTrav.showCollisions( render )
+        
 
         # initialize 3 handlers: wall, gravity, and other events
         

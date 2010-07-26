@@ -57,9 +57,11 @@ class IsisWorld(DirectObject):
         self.devConsole = DeveloperConsole()            
         self._textObjectVisible = True
         self._inspectState = False
+        #base.cTrav.showCollisions(self.objRender)
         # turn off main help menu by default
         self.toggleInstructionsWindow()
         self.server_thread.start()
+        base.exitFunc = self.exit
 
     def _setupEnvironment(self,debug=False):
         """  Stuff that's too ugly to put anywhere else. """
@@ -69,11 +71,12 @@ class IsisWorld(DirectObject):
         base.camLens.setFov(75)
         base.camLens.setNear(0.1)
         base.disableMouse()
+        # subnode to hang all objects on
+        self.objRender = base.render.attachNewNode(PandaNode('isisObjects'))
         # debugging stuff
         if debug:
             # display all events
             messenger.toggleVerbose()
-        # setup the server
         # xmlrpc server command handler
         commandHandler = IsisCommandHandler(self)
         self.server = XMLRPCServer() 
@@ -137,7 +140,7 @@ class IsisWorld(DirectObject):
         self.room.flattenLight() 
 
         self.floorLayout = HorizontalGridLayout((2*self._xmax, 2*self._ymax), 0)
-        self.worldObjects = load_objects(self.rootDirectory+"/kitchen.isis", render, self.physicsManager, layoutManager = self.floorLayout)
+        self.worldObjects = load_objects(self.rootDirectory+"/kitchen.isis", self.objRender, self.physicsManager, layoutManager = self.floorLayout)
 
         if False:
             self.map = loader.loadModel(self.rootDirectory+"/media/models/kitchen")
@@ -429,6 +432,7 @@ class IsisWorld(DirectObject):
         
     def isisMessage(self,message):
         print "[IsisWorld] %s %s" % (message, str(ctime()))
+
 
     def exit(self):
         """ Shut down threads and """

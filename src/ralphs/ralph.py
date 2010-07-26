@@ -40,7 +40,7 @@ class Ralph(DirectObject.DirectObject):
         self.actor.setH(0)
 
         self.actor.setColorScale(random.random(), random.random(), random.random(), 1.0)
-        self.actorNode = ActorNode('agent-%s' % name)
+        self.actorNode = ActorNode('physicsControler-%s' % name)
         self.actorNodePath = render.attachNewNode(self.actorNode)
         self.actor.setPos(self.actorNodePath,0,0,-.2)
         self.actor.reparentTo(self.actorNodePath)

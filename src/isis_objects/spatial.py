@@ -78,9 +78,9 @@ class IsisSpatial(object):
 
         radius = min(ucorner[0]-lcorner[0],ucorner[1]-lcorner[1])/2.0
         if collisionGeom == 'box':
-            cGeom = CollisionSphere(0.0, 0.0, center[2], radius)
-            cGeom.setTangible(1)
-            self.fullBoxNP.addSolid(cGeom)
+            #cGeom = CollisionSphere(0.0, 0.0, center[2], radius)
+            #cGeom.setTangible(1)
+            #self.fullBoxNP.addSolid(cGeom)
             cGeom = CollisionBox(lcorner, ucorner)
             cGeom.setTangible(1)
             self.fullBoxNP.addSolid(cGeom)            
@@ -112,8 +112,8 @@ class IsisSpatial(object):
         self.floorRayNP.setIntoCollideMask(BitMask32.allOff())
         self.topSurfaceNP.setFromCollideMask(BitMask32.allOff())
         self.topSurfaceNP.setIntoCollideMask(OBJFLOOR|FLOORMASK)
-        self.fullBoxNP.setIntoCollideMask(AGENTMASK)#BitMask32.allOff())
-        self.fullBoxNP.setFromCollideMask(OBJMASK)
+        self.fullBoxNP.setIntoCollideMask(AGENTMASK|OBJMASK|BitMask32.allOff())
+        self.fullBoxNP.setFromCollideMask(BitMask32.allOff())
 
     def disableCollisions(self):
         print "Removing Collisions - Base"
@@ -169,11 +169,11 @@ class Surface(IsisSpatial):
         print "Removing Collision - Surface"
         super(Surface,self).disableCollisions()
 
-    def enterSurface(self,fromObj,toObject):
-        print "Added to surface contacts", toObject
+    def enterSurface(self,fromObj):
+        print "Added to surface contacts", fromObj
     
-    def exitSurface(self,fromObj,toObject):
-        print "Removed item from surface contacts", toObject
+    def exitSurface(self,fromObj):
+        print "Removed item from surface contacts", fromObj
 
     def action__put_on(self, agent, obj):
         # TODO: requires that object has an exposed surface
@@ -209,7 +209,6 @@ class Container(IsisSpatial):
         self.fullBoxNP.setTag('container','acontainer')
         self.enableCollisions()
         self.__setup = True
-
     
     def enableCollisions(self):
         super(Container,self).enableCollisions()
@@ -217,16 +216,15 @@ class Container(IsisSpatial):
     def disableCollisions(self):
         super(Container,self).disableCollisions()
 
-    def enterContainer(self,fromObj,toObject):
-        print "Entering container", toObject
-        assert toObject == self, "Error: cannot put into self"
+    def enterContainer(self,fromObj):
+        print "Entering container", self.name
         if fromObj not in self.containerItems:
             self.containerItems.append(fromObj)
 
-    def leaveContainer(self,fromObj,toObject):
-        assert toObject == self, "Error: cannot remove from another container"
+    def leaveContainer(self,fromObj):
+        print "Removing %s from container", fromObj
         if fromObj in self.containerItems:
-            self.containerItems.remove(toObject)
+            self.containerItems.remove(fromObj)
 
     def isEmpty(self):
         return len(self.containerItems) == 0

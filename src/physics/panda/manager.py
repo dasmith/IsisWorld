@@ -84,9 +84,9 @@ class PhysicsWorldManager(DirectObject.DirectObject):
         # this tracks the velocity of moving objects, whereas CollisionHandlerFloor doesnt
         self.cFloor = CollisionHandlerGravity()
         # gravity should be -9.81m/s, but that doesn't quite work
-        self.cFloor.setGravity(9.81*100)
+        self.cFloor.setGravity(9.81*50)
         self.cFloor.setOffset(.2)
-        self.cFloor.setMaxVelocity(10)
+        self.cFloor.setMaxVelocity(1)
         self.cFloor.addInPattern('into')
 
         # Initialize the handler.
@@ -117,28 +117,28 @@ class PhysicsWorldManager(DirectObject.DirectObject):
         """ When an object enters into a container. """
         cFrom = getObjFromNP(entry.getFromNodePath(),"isisobj")
         cInto = getObjFromNP(entry.getIntoNodePath(),"isisobj")
-        cInto.enterContainer(cFrom,cInto)
+        cInto.enterContainer(cInto)
         print "Entering container %s, %s" % (cFrom, cInto)
 
     def _exitContainer(self, entry):
         """ When an object exits a container."""
         cFrom = getObjFromNP(entry.getFromNodePath(),"isisobj")
         cInto = getObjFromNP(entry.getIntoNodePath(),"isisobj")
-        cInto.enterContainer(cFrom,cInto)
+        cInto.enterContainer(cInto)
         print "Exiting container %s, %s" % (cFrom, cInto)
 
     def _enterSurface(self, entry):
         """ When an object collides with another object's surface plane. """
         cFrom = getObjFromNP(entry.getFromNodePath(),"isisobj")
         cInto = getObjFromNP(entry.getIntoNodePath(),"isisobj")
-        cInto.enterSurface(cFrom,cInto)
+        cInto.enterSurface(cInto)
         print "Entering surface %s, %s" % (cFrom, cInto)
 
     def _exitSurface(self, entry):
         """ When an object ceases to collide with another object's surface plane. """
         cFrom = getObjFromNP(entry.getFromNodePath(),"isisobj")
         cInto = getObjFromNP(entry.getIntoNodePath(),"isisobj")
-        cInto.enterSurface(cFrom,cInto)
+        cInto.enterSurface(cInto)
         print "Exiting surface %s, %s" % (cFrom, cInto)
 
     def _objCollisionHandlerIn(self, entry):
@@ -146,7 +146,7 @@ class PhysicsWorldManager(DirectObject.DirectObject):
         cFrom = getObjFromNP(entry.getFromNodePath(),"isisobj")
         cInto = getObjFromNP(entry.getIntoNodePath(),"isisobj")
         if hasattr(cInto,'enterContainer'):
-            cInto.enterContainer(cFrom,cInto)
+            cInto.enterContainer(cInto)
         print "Object In Collision: %s, %s" % (cFrom, cInto)
     
     def _objCollisionHandlerOut(self, entry):
@@ -154,7 +154,7 @@ class PhysicsWorldManager(DirectObject.DirectObject):
         cFrom = getObjFromNP(entry.getFromNodePath(),"isisobj")
         cInto = getObjFromNP(entry.getIntoNodePath(),"isisobj")
         if hasattr(cInto,'exitContainer'):
-            cInto.exitContainer(cFrom,cInto)
+            cInto.exitContainer(cInto)
         print "Object Out Collision: %s, %s" % (cFrom, cInto)
 
     def _agentCollisionHandlerIn(self, entry):
@@ -162,7 +162,7 @@ class PhysicsWorldManager(DirectObject.DirectObject):
         agent = entry.getFromNodePath().getParent()
         cInto = getObjFromNP(entry.getIntoNodePath(),"isisobj")
         if hasattr(cInto,'enterContainer'):
-            cInto.enterContainer(agent,cInto)
+            cInto.enterContainer(agent)
         print "Agent In Collision: %s, %s" % (agent, cInto)
 
     def _agentsCollisionIn(self, entry):

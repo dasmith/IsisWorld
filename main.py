@@ -189,7 +189,7 @@ class IsisWorld(DirectObject):
         #base.disableMouse()
         base.camera.reparentTo(self.room)
         base.camera.setPos(self._xmax,self._ymax,10)
-        base.camera.setHpr(150,320,0)
+        base.camera.setHpr(130,320,0)
         #base.camera.place()
         #base.camera.setPos(20*math.sin(angleradians),-20.0*math.cos(angleradians),3)
         #base.camera.setHpr(angledegrees, 0, 0)
@@ -409,27 +409,9 @@ class IsisWorld(DirectObject):
             active_agent = self.agents[self.agentNum].actorNodePath
             base.camera.reparentTo(render)
             base.camera.lookAt(active_agent)
-            for child in render.getChildren():
-                if child != active_agent and child.getName()[-5:] != "Light" and child.getName()[0:16] != "physicsControler":
-                    child.hide()
-                    print "hiding", child.getName()[0:16]
-            for i, other_agent in enumerate(self.agents):
-                if i != self.agentNum: other_agent.actor.hide()
-            # turn off directobject widgets
-            self.command_box.hide()
-            # turn off text object if visible
-            if self._textObjectVisible:
-                self.toggleInstructionsWindow()
-
         else:
-            for child in render.getChildren(): child.show()
-            self.agentCamera.setActive(1)
-            self.command_box.show()
-            self.devConsole.hide()
-            # turn it back on if visible
-            if self._textObjectVisible:
-                self.toggleInstructionsWindow()
-        
+            return
+
     def isisMessage(self,message):
         print "[IsisWorld] %s %s" % (message, str(ctime()))
 

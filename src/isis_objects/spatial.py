@@ -92,8 +92,8 @@ class IsisSpatial(object):
             self.fullBoxNP.addSolid(cGeom)
         else:
             raise "Geom %s unknown" % collisionGeom
-
         self.wallGeomNP = self.attachNewNode(self.fullBoxNP)
+        self.wallGeomNP.show()
         IsisSpatial.enableCollisions(self)
         # add ray tracer to gravity manager
         self.physicsManager.cFloor.addCollider(self.floorRayGeomNP, self)

@@ -5,25 +5,36 @@ from ..physics.panda.manager import *
 
 
 class IsisObject(NodePath):
-    """ IsisObject is the base class for all visible objects in IsisWorld, other
+    """ IsisObject is the decorator class for all visible objects in IsisWorld, other
     than sky, house, ground and agents """
 
-    def  __init__(self, name, physics, offsetVec=(0,0,0,0,0,0), pickupVec=(0,0,0,0,0,0)): 
-        # setup the name of the object
-        self.name = "IsisObject/"+name+"+"+str(id(self))
-        # construct parent NodePath class
-        NodePath.__init__(self, self.name)
+    def  __init__(self,name=1):         
+        # generate a unique name for the object, warning, unique id uses GENERATORS ID
+        self.name = "IsisObject/"+self.__class__.__name__+"+"+str(id(self))
+        NodePath.__init__(self,self.name)
         # store pointer to IsisObject subclass
         self.setPythonTag("isisobj", self)
-
         # store model offsets 
-        self.offsetVec = offsetVec
-        self.pickupVec = pickupVec
-        # this is the head node that everything is attached to
-        self.node = self.node()
-        # store a pointer to the world manager
-        self.physicsManager = physics        
-   
+        if not hasattr(self, 'offsetVec'):
+            self.offsetVec = (0,0,0,0,0,0)
+        if not hasattr(self, 'pickupVec'):
+            self.pickupVec = (0,0,0,0,0,0)
+
+        if not hasattr(self,'physics'):
+            raise "Error: %s missing self.physics" % self.name
+        
+        superclasses =  map(lambda x: [x,hasattr(x, 'priority') and x.priority or 101], self.__class__.__bases__)
+        # call __init__ on all parent classes
+        for sc, rank in sorted(superclasses, key=lambda x: x[1]):
+            if sc.__name__ != "IsisObject":
+                sc.__init__(self)
+        # call setup() on all appropriate parent classes
+        for sc, rank in sorted(superclasses, key=lambda x: x[1]):
+            if hasattr(sc,'setup'):
+                sc.setup(self)
+        if hasattr(self,'setup'):
+            self.setup()
+
     def getName(self):
         return self.name
         

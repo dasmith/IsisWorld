@@ -7,52 +7,44 @@ from layout_manager import SlotLayout
 
 from direct.interval.IntervalGlobal import *
 
-world_objects = {}
-
-def addToWorld(object):
-    world_objects[object.name] = object
 
 class table(IsisObject,IsisVisual,Container,Surface,NoPickup):
 
-    def __init__(self,name,physics):
-        IsisObject.__init__(self,name=name,physics=physics,offsetVec=(0,0,0,0,0,0))
-        IsisVisual.__init__(self,model="table/table",scale=0.006)
-        self.create()
+    def  __init__(self, physics): 
+        # store pointer to world manager
+        self.physics = physics
+        self.offsetVec = offsetVec=(0,0,0,0,0,0)
+        
+        self.model = "table/table"
+        self.scale=0.006
+        #self.setH(180)
 
-        Container.__init__(self, density=4000)
-        Container.setup(self)
-        Surface.__init__(self, density=4000)
-        Surface.setup(self)
-
-        NoPickup.__init__(self)
-
-        self.setH(180)
-        addToWorld(self)
+        self.density = 4000
+        IsisObject.__init__(self)
 
 
 class fridge(IsisObject, IsisVisual, Container, NoPickup):
     
-    def __init__(self,name,physics):
-        IsisObject.__init__(self,name=name,physics=physics,offsetVec=(0,0,0,0,0,0))
-        IsisVisual.__init__(self,model={'default':"Fridge/Fridge"}, scale=0.17)
-        self.create()
-
-
-        Container.__init__(self,density=4000)
-        Container.setup(self)
+    def  __init__(self, physics): 
+        # store pointer to world manager
+        self.physics = physics
+        self.model={'default':"Fridge/Fridge"}
+        #self.setH(-90)
+        self.scale=0.17
+        
+        self.density = 4000
+        
         self.in_layout = SlotLayout([(0, 0, .5), (0, 0, 1),(0, 0, 1.5)])
 
         self.state = "closed"
-
+        IsisObject.__init__(self)
+        
+    def setup(self):
         fd = self.activeModel.find("**/freezerDoor*")
         fd.setPos(-.56, .6, 1.65)
         self.door = self.activeModel.find("**/fridgeDoor*")
         self.door.setPos(-0.56, .6, .72)
-
-        NoPickup.__init__(self)
-
         self.setH(0)
-        addToWorld(self)
 
     def setState(self,state):
         self.state = state
@@ -72,62 +64,72 @@ class fridge(IsisObject, IsisVisual, Container, NoPickup):
                 Func(self.setState, "closed"),
             ).start()
 
+
 class knife(IsisObject, IsisVisual, IsisSpatial, Sharp):
 
-    def __init__(self,name,physics):
-        IsisObject.__init__(self,name=name,physics=physics,pickupVec=(0,.15,0,0,75,0))
-        IsisVisual.__init__(self,model="knife", scale=0.01)
-        self.create()
-
-        IsisSpatial.__init__(self, density=25)
-        IsisSpatial.setup(self)
-
-        Sharp.__init__(self)
-
-        addToWorld(self)
-
+    def  __init__(self, physics): 
+        # store pointer to world manager
+        self.physics = physics
+        self.pickupVec = (0,.15,0,0,75,0)
+        self.model="knife"
+        self.scale=0.01
+        self.density = 25
+        IsisObject.__init__(self)
 
 class toaster(IsisObject, IsisVisual, Container, Cooker):
     
-    def __init__(self,name,physics):
-        IsisObject.__init__(self,name=name,physics=physics,offsetVec=(.5,.16,.19,-8,0,0))
-        IsisVisual.__init__(self,model="toaster", scale=0.7)
-        self.create()
-
-        Container.__init__(self, density=100)
-        Container.setup(self)
+    def __init__(self, physics):
+        self.physics = physics
+        ######### Base Variables ##########
+         # visual offset for the model's position and rotation
+        self.offsetVec = (.5,.16,.19,-8,0,0)
+        
+        ######## Visual Parameters ###############
+        # store a model, either as a string or a dictionary
+        self.model = "toaster"
+        self.scale = 0.7
+        ######## Spatial Parameters ##############
+        self.density = 100
         self.on_layout = SlotLayout([(.3, .1, .2), (.3, -.1, .2)])
 
-        Cooker.__init__(self, cook_in=True, cook_on=False)
-        #register functional states
+        ######## Functional Parameters ############
+        self.cook_in = True
+        self.cook_on = False
+        
         self.registerState("containsToast", [0,1,2])
-
-        addToWorld(self)
+        IsisObject.__init__(self)
 
 class bread(IsisObject, IsisVisual, Container, Cookable):
 
-    def __init__(self,name,physics):
-        IsisObject.__init__(self,name=name,physics=physics,offsetVec=(0,0,-.1,0,-120,-20),pickupVec=(-.125,.225,0,0,-125,0))
-        IsisVisual.__init__(self,model={"default":"slice_of_bread", "toast":"piece_of_toast"}, scale=0.5)
-        self.create()
+    def  __init__(self, physics): 
+        # store pointer to world manager
+        self.physics = physics
 
-        Container.__init__(self, density=100)
-        Container.setup(self)
+        self.offsetVec = (0,0,-.1,0,-120,-20)
+        self.pickupVec=(-.125,.225,0,0,-125,0)
+        self.model={"default":"slice_of_bread", "toast":"piece_of_toast"}
+        self.scale = 0.5
+        
+        self.density = 200
+        
+        self.cookableCookedModel = "toast"
+        IsisObject.__init__(self)
 
-        Cookable.__init__(self, "toast")
+class loaf( IsisObject, IsisVisual, IsisSpatial, Dividable):
 
-        addToWorld(self)
+    def  __init__(self, physics): 
+        # store pointer to world manager
+        self.physics = physics
+        self.offsetVec = (.00144,0,0,0,0,0)
+        
+        self.model = "loaf_of_bread"
+        self.scale = 0.2
+        #self.create()
 
-class loaf(IsisObject, IsisVisual, IsisSpatial, Dividable):
-
-    def __init__(self,name,physics):
-        IsisObject.__init__(self,name=name,physics=physics,offsetVec=(.00144,0,0,0,0,0))
-        IsisVisual.__init__(self,model="loaf_of_bread", scale=0.2)
-        self.create()
-
-        IsisSpatial.__init__(self, density=1000)
-        IsisSpatial.setup(self)
-
-        Dividable.__init__(self, bread)
-
-        addToWorld(self)
+        # this is a dividable object, so define a piece
+        self.piece = bread
+        self.density =1000
+        IsisObject.__init__(self)
+        
+        
+        

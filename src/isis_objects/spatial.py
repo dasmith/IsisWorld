@@ -22,7 +22,7 @@ class IsisSpatial(object):
     are responsible for maintaining the spatial, geometric and physical properties of the 
     objects in IsisWorld."""
 
-    def __init__(self,*args,**kwargs):
+    def __init__(self):
         # Flag to limit setup to once per object
         self.__setup = False
 
@@ -33,9 +33,7 @@ class IsisSpatial(object):
         self.weight = None
         #self.containerItems = []
         self.isOpen = False
-        if 'density' in kwargs:
-            self.density = kwargs['density']
-        else:
+        if not hasattr(self,'density'):
             self.density = 1
 
         self._neetToRecalculateSpatialProperties = True
@@ -59,7 +57,6 @@ class IsisSpatial(object):
         self.floorRayNP.addSolid(cRay)
         self.floorRayGeomNP = self.attachNewNode(self.floorRayNP)
 
-        print "Adding Ray to %s" % self.name
         # construct geometry of top surface
         self.topSurfaceNP = CollisionNode('object')
         left_front = Vec3(lcorner[0], lcorner[1], ucorner[2])
@@ -70,7 +67,6 @@ class IsisSpatial(object):
         surfaceGeom = CollisionPolygon(left_front, right_front, right_back, left_back)
         self.topSurfaceNP.addSolid(surfaceGeom)
         self.floorGeomNP = self.attachNewNode(self.topSurfaceNP)
-        print "Setup colliders for ", self.name
 
         # setup wall collider 
         self.fullBoxNP = CollisionNode('object')
@@ -96,16 +92,16 @@ class IsisSpatial(object):
         self.wallGeomNP.show()
         IsisSpatial.enableCollisions(self)
         # add ray tracer to gravity manager
-        self.physicsManager.cFloor.addCollider(self.floorRayGeomNP, self)
-        base.cTrav.addCollider(self.floorRayGeomNP, self.physicsManager.cFloor)
+        self.physics.cFloor.addCollider(self.floorRayGeomNP, self)
+        base.cTrav.addCollider(self.floorRayGeomNP, self.physics.cFloor)
         # add surface geometry to gravity collider
-        self.physicsManager.cFloor.addCollider(self.floorGeomNP, self)
-        base.cTrav.addCollider(self.floorGeomNP, self.physicsManager.cFloor)
+        self.physics.cFloor.addCollider(self.floorGeomNP, self)
+        base.cTrav.addCollider(self.floorGeomNP, self.physics.cFloor)
 
         base.cTrav.addCollider(self.wallGeomNP, base.cEvent)
         # make object have wall collision properties        
-        self.physicsManager.cWall.addCollider(self.floorGeomNP, self)
-        base.cTrav.addCollider(self.wallGeomNP, self.physicsManager.cWall)
+        self.physics.cWall.addCollider(self.floorGeomNP, self)
+        base.cTrav.addCollider(self.wallGeomNP, self.physics.cWall)
 
     def enableCollisions(self):
         self.floorRayNP.setFromCollideMask(OBJFLOOR|FLOORMASK)
@@ -146,19 +142,22 @@ class IsisSpatial(object):
 
 
 class Surface(IsisSpatial):
-    def __init__(self, *args, **kwargs):
+    priority = 2
+    def __init__(self):
         self.surfaceContacts = []
-        super(Surface,self).__init__(args,kwargs)
+        IsisSpatial.__init__(self)
         self.__setup = True
-        area = (self.getWidth(), self.getLength())
-        self.on_layout = HorizontalGridSlotLayout(area, self.getHeight(), int(self.getWidth()), int(self.getLength()))
+
 
     def setup(self):
         if self.__setup:
             return
+        area = (self.getWidth(), self.getLength())
+        self.on_layout = HorizontalGridSlotLayout(area, self.getHeight(), int(self.getWidth()),int(self.getLength()))
+        # Creates a surface collision geometry on the top of the object
         self.topSurfaceNP.setTag('surface','asurface')
-        """ Creates a surface collision geometry on the top of the object"""
-        super(Surface,self).setup()
+
+        IsisSpatial.setup(self)
         self.__setup = True
 
 
@@ -167,7 +166,7 @@ class Surface(IsisSpatial):
 
     def disableCollisions(self):
         print "Removing Collision - Surface"
-        super(Surface,self).disableCollisions()
+        IsisSpatial.disableCollisions(self)
 
     def enterSurface(self,fromObj):
         print "Added to surface contacts", fromObj
@@ -192,29 +191,30 @@ class Surface(IsisSpatial):
 
 
 class Container(IsisSpatial):
-    def __init__(self, *args, **kwargs):
+    priority = 2
+    def __init__(self):
         # Flag to limit setup to once per object
         self.__setup = False
         self.containerItems = []
-        super(Container,self).__init__(args,kwargs)
-        #TO-DO: Change this to something more fitting for a container
-        self.in_layout = HorizontalGridLayout((self.getWidth(), self.getLength()), self.getHeight())
+        IsisSpatial.__init__(self)
 
     def setup(self,collisionGeom='box'):
         if self.__setup:
             return
         # call base class
+        #TO-DO: Change this to something more fitting for a container
+        self.in_layout = HorizontalGridLayout((self.getWidth(), self.getLength()), self.getHeight())
+
         IsisSpatial.setup(self)
-        print "SETTING UP CONTAINER", self.name
         self.fullBoxNP.setTag('container','acontainer')
         self.enableCollisions()
         self.__setup = True
     
     def enableCollisions(self):
-        super(Container,self).enableCollisions()
+        IsisSpatial.enableCollisions(self)
 
     def disableCollisions(self):
-        super(Container,self).disableCollisions()
+        IsisSpatial.disableCollisions(self)
 
     def enterContainer(self,fromObj):
         print "Entering container", self.name

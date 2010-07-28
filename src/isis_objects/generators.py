@@ -1,4 +1,3 @@
-
 from pandac.PandaModules import Vec3
 from visual import *
 from spatial import *
@@ -20,8 +19,6 @@ class table(IsisObject,IsisVisual,Container,Surface,NoPickup):
         self.scale=0.006
         #self.setH(180)
 
-        #self.create()
-        
         self.density = 4000
         IsisObject.__init__(self)
 
@@ -47,7 +44,7 @@ class fridge(IsisObject, IsisVisual, Container, NoPickup):
         fd.setPos(-.56, .6, 1.65)
         self.door = self.activeModel.find("**/fridgeDoor*")
         self.door.setPos(-0.56, .6, .72)
-
+        self.setH(0)
 
     def setState(self,state):
         self.state = state
@@ -81,7 +78,8 @@ class knife(IsisObject, IsisVisual, IsisSpatial, Sharp):
 
 class toaster(IsisObject, IsisVisual, Container, Cooker):
     
-    def __init__(self):
+    def __init__(self, physics):
+        self.physics = physics
         ######### Base Variables ##########
          # visual offset for the model's position and rotation
         self.offsetVec = (.5,.16,.19,-8,0,0)
@@ -90,12 +88,8 @@ class toaster(IsisObject, IsisVisual, Container, Cooker):
         # store a model, either as a string or a dictionary
         self.model = "toaster"
         self.scale = 0.7
-        self.create()
-
         ######## Spatial Parameters ##############
         self.density = 100
-        
-                #Container.setup(self)
         self.on_layout = SlotLayout([(.3, .1, .2), (.3, -.1, .2)])
 
         ######## Functional Parameters ############
@@ -132,6 +126,10 @@ class loaf( IsisObject, IsisVisual, IsisSpatial, Dividable):
         self.scale = 0.2
         #self.create()
 
+        # this is a dividable object, so define a piece
+        self.piece = bread
         self.density =1000
-        IsisObject.__init__(self)        
+        IsisObject.__init__(self)
+        
+        
         

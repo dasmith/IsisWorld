@@ -25,6 +25,7 @@ class HorizontalGridLayout(LayoutManager):
         self.maxh = 0
         self.padw = padw
         self.padh = padh
+
     def add(self, obj):
         LayoutManager.add(self, obj)
         ow = obj.getWidth()+self.padw*2

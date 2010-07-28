@@ -13,7 +13,6 @@ class IsisVisual():
     def __init__(self):
         # keep a dictionary mapping model names to paths 
         self.models = {}
-        
         # define default model or override
         if not hasattr(self,'model'):
             self.models['default'] = "box"
@@ -80,28 +79,36 @@ class IsisVisual():
         return self.activeModel
 
     def addModel(self, name, path):
-        """ Adds another model state or part to the model path """
-        self.models[name] = loader.loadModel("media/models/"+path)
-        self.models[name].setScale(self.scale)
-        self.models[name].setCollideMask(BitMask32.allOff())
+        """ Adds another model state or part to the model path.
+        This is set to a string to the egg file (without the .egg) 
+        and is loaded later by changeModel """
+        self.models[name] = path
+        #self.models[name].setScale(self.scale)
+        #self.models[name].setCollideMask(BitMask32.allOff())
 
-    def changeModel(self, toName):
-        if self.models.has_key(toName):
+    def changeModel(self, changeToKey):
+        """ Given, changeToKey, containing the key of the self.models dict, this loads
+        the activeModel.
+        
+        TODO: improve so that models can have their own scale. Generalize with separate Models class."""
+        if self.models.has_key(changeToKey):
             # TODO: blend or play animation depending on kind of transition
-            if self.activeModel:
+            if hasattr(self,'activeModel') and self.activeModel:
                 self.activeModel.detachNode()
-            self.activeModel = self.models[toName]
-            self.activeModel.reparentTo(self)
+            self.activeModel = loader.loadModel("media/models/"+self.models[changeToKey])
+            self.activeModel.setScale(self.scale)
             self.activeModel.setPosHpr(*self.offsetVec)
+            self.activeModel.setCollideMask(BitMask32.allOff())
+            self.activeModel.reparentTo(self)
+
             # when models are scaled down dramatically (e.g < 1% of original size), Panda3D represents
             # the geometry non-uniformly, which means scaling occurs every render step and collision
             # handling is buggy.  flattenLight()  circumvents this.
             self.activeModel.flattenLight()
+        else:
+            raise Exception("Error in %s.changeModel() -- cannot find model %s" % (self.name, changeToKey))
 
     def setup(self):
-        for key in self.models:
-            self.addModel(key, self.models[key])
-        self.activeModel = None;
         self.changeModel('default')
         # adds a pickable tag to allow an agent to view this object
         self.setTag('pickable', 'true')

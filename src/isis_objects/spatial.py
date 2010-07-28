@@ -57,7 +57,6 @@ class IsisSpatial(object):
         self.floorRayNP.addSolid(cRay)
         self.floorRayGeomNP = self.attachNewNode(self.floorRayNP)
 
-        print "Adding Ray to %s" % self.name
         # construct geometry of top surface
         self.topSurfaceNP = CollisionNode('object')
         left_front = Vec3(lcorner[0], lcorner[1], ucorner[2])
@@ -68,7 +67,6 @@ class IsisSpatial(object):
         surfaceGeom = CollisionPolygon(left_front, right_front, right_back, left_back)
         self.topSurfaceNP.addSolid(surfaceGeom)
         self.floorGeomNP = self.attachNewNode(self.topSurfaceNP)
-        print "Setup colliders for ", self.name
 
         # setup wall collider 
         self.fullBoxNP = CollisionNode('object')
@@ -149,14 +147,16 @@ class Surface(IsisSpatial):
         self.surfaceContacts = []
         IsisSpatial.__init__(self)
         self.__setup = True
-        area = (self.getWidth(), self.getLength())
-        self.on_layout = HorizontalGridSlotLayout(area, self.getHeight(), int(self.getWidth()), int(self.getLength()))
+
 
     def setup(self):
         if self.__setup:
             return
+        area = (self.getWidth(), self.getLength())
+        self.on_layout = HorizontalGridSlotLayout(area, self.getHeight(), int(self.getWidth()),int(self.getLength()))
+        # Creates a surface collision geometry on the top of the object
         self.topSurfaceNP.setTag('surface','asurface')
-        """ Creates a surface collision geometry on the top of the object"""
+
         IsisSpatial.setup(self)
         self.__setup = True
 
@@ -197,15 +197,15 @@ class Container(IsisSpatial):
         self.__setup = False
         self.containerItems = []
         IsisSpatial.__init__(self)
-        #TO-DO: Change this to something more fitting for a container
-        self.in_layout = HorizontalGridLayout((self.getWidth(), self.getLength()), self.getHeight())
 
     def setup(self,collisionGeom='box'):
         if self.__setup:
             return
         # call base class
+        #TO-DO: Change this to something more fitting for a container
+        self.in_layout = HorizontalGridLayout((self.getWidth(), self.getLength()), self.getHeight())
+
         IsisSpatial.setup(self)
-        print "SETTING UP CONTAINER", self.name
         self.fullBoxNP.setTag('container','acontainer')
         self.enableCollisions()
         self.__setup = True

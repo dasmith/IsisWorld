@@ -5,11 +5,11 @@ class IsisFunctional():
     def __init__(self):
         if not hasattr(self,'states'):
             self.states = {}
-        else:
-            self.states = states
         self.layout = None
 
     def registerState(self,stateName,valueDomain):
+        if not hasattr(self,'states'):
+            self.states = {}
         self.states[stateName] = valueDomain
 
     def retrieveState(self,stateName):
@@ -69,17 +69,17 @@ class Dividable(IsisFunctional):
         IsisFunctional.__init__(self)
         if not hasattr(self,'piece'):
             print "Warning: no piece object defined for Dividable object", self.name
-        self.piece = piece
 
     def action__divide(self, agent, object):
         if self.piece and object != None and hasattr(object, "action__cut"):
             if not agent.right_hand_holding_object:
-                obj = self.piece("piece", self.physicsManager)
+                # instantiate a new IsisObject
+                obj = self.piece("piece", self.physics)
                 obj.call(agent, "pick_up", agent.player_right_hand)
                 agent.right_hand_holding_object = obj
                 return "Success"
             elif not agent.left_hand_holding_object:
-                obj = self.piece("piece", self.physicsManager)
+                obj = self.piece("piece", self.physics)
                 obj.call(agent, "pick_up", agent.player_left_hand)
                 agent.left_hand_holding_object = obj
                 return "Success"

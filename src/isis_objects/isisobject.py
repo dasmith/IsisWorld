@@ -22,15 +22,12 @@ class IsisObject(NodePath):
 
         if not hasattr(self,'physics'):
             raise "Error: %s missing self.physics" % self.name
-
+        
         superclasses =  map(lambda x: [x,hasattr(x, 'priority') and x.priority or 101], self.__class__.__bases__)
         # call __init__ on all parent classes
-        print "SUPERCLASSES", superclasses
         for sc, rank in sorted(superclasses, key=lambda x: x[1]):
             if sc.__name__ != "IsisObject":
-                print sc, rank, sc.__name__, sc.__name__=="src.isis_objects.isisobject.IsisObject"
                 sc.__init__(self)
-
         # call setup() on all appropriate parent classes
         for sc, rank in sorted(superclasses, key=lambda x: x[1]):
             if hasattr(sc,'setup'):

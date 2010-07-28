@@ -66,14 +66,17 @@ class SlotLayout(LayoutManager):
             del self.map[key]
 
 class HorizontalGridSlotLayout(SlotLayout):
-    """Creates a grid of slots in the given area centered at 0,0"""
+    """Creates a grid of slots in the given area centered at 0,0, nx slots wide by nx slots in length"""
     def __init__(self, area, height, nx, ny, padw = .5, padh = .5):
         LayoutManager.__init__(self)
-        if nx == 1 and ny == 1:
+        if nx <= 1 and ny <= 1:
+            # Create a single slot centered on the item in question
             slots = [(0, 0, height+1)]
         else:
+            #the width and height of the area to work in, minus the padding specified so objects don't end up on the edge of the area
             width = area[0]-2*padw
             length = area[1]-2*padh
+            #calculate the spacing of each slot
             dx = width/nx
             dy = length/ny
             slots = [(x*dx-width/2, y*dy-length/2, height) for x in xrange(0, nx) for y in xrange(0, ny)]

@@ -55,9 +55,7 @@ class PhysicsWorldManager(DirectObject.DirectObject):
         #self._FrameTime=self._GlobalClock.getFrameTime() 
         #self._GlobalClock.setRealTime(self._FrameTime) 
         
-        # run the physical simulator 1.0/X = X times per sec
-        self.stepSize = 1.0/50.0
-                
+               
         self.stepping = False
         # keep track of all agents
         self.agents = []
@@ -225,7 +223,6 @@ class PhysicsWorldManager(DirectObject.DirectObject):
     def _startPhysics(self, stopAt=None):
         if stopAt != None:
           assert stopAt > 0.0
-          assert stopAt > self.stepSize # cannot step less than physical simulator
           taskMgr.doMethodLater(stopAt, self._stopPhysics, "physics-SimulationStopper", priority=10)
           # or can you
           self.stepping = True 

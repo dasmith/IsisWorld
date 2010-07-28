@@ -165,7 +165,9 @@ class Ralph(DirectObject.DirectObject):
             bounds = o.activeModel.getBounds() 
             bounds.xform(o.activeModel.getMat(self.fov))
             if self.fov.node().isInView(o.activeModel.getPos(self.fov)):
-                p1 = self.fov.getRelativePoint(render,o.activeModel.getPos(self.fov))
+                pos = o.activeModel.getPos(render)
+                pos = (pos[0], pos[1], pos[2]+o.getHeight()/2)
+                p1 = self.fov.getRelativePoint(render,pos)
                 p2 = Point2()
                 self.fov.node().getLens().project(p1, p2)
                 p3 = aspect2d.getRelativePoint(render2d, Point3(p2[0], 0, p2[1]) )

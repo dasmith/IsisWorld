@@ -2,12 +2,12 @@ from direct.task import Task, TaskManagerGlobal
 
 class IsisFunctional():
 
-    def __init__(self, states=None):
-        if states == None:
+    def __init__(self):
+        if not hasattr(self,'states'):
             self.states = {}
         else:
             self.states = states
-        self.layout = None;
+        self.layout = None
 
     def registerState(self,stateName,valueDomain):
         self.states[stateName] = valueDomain
@@ -65,9 +65,9 @@ class NoPickup(IsisFunctional):
 
 
 class Dividable(IsisFunctional):
-    def __init__(self,piece=None):
+    def __init__(self):
         IsisFunctional.__init__(self)
-        if piece == None:
+        if not hasattr(self,'piece'):
             print "Warning: no piece object defined for Dividable object", self.name
         self.piece = piece
 
@@ -87,14 +87,20 @@ class Dividable(IsisFunctional):
 
 
 class Cookable(IsisFunctional):
-    def __init__(self, cooked, raw="default"):
+    def __init__(self):
         IsisFunctional.__init__(self)
-        self.cookedModel = cooked
         self.registerState("cooked", False)
-        self.changeModel(raw)
+
+        if not hasattr(self,'cookableRawModel'):
+            self.cookableRawModel = "default"
+        if not hasattr(self,'cookableCookedModel'):
+            print "Warning: %s has no Cookable.cookableCookedModel model defined, using default." % self.name
+            self.cookableCookedModel = "default"
+        self.changeModel(self.cookableRawModel)
 
     def action__cook(self, agent, object):
-        self.changeModel(self.cookedModel)
+        """ This defines an action that changes the state and the corresponding model."""
+        self.changeModel(self.cookableCookedModel)
         self.registerState("cooked", True)
 
 
@@ -118,10 +124,12 @@ class OnOffDevice(IsisFunctional):
 
 
 class Cooker(OnOffDevice):
-    def __init__(self, cook_in=True, cook_on=True):
+    def __init__(self):
         OnOffDevice.__init__(self)
-        self.cook_in = cook_in
-        self.cook_on = cook_on
+        if not hasattr(self,'cook_in'):
+            self.cook_in = False
+        if not hasattr(self,'cook_on'):
+            self.cook_on = False
 
     def action__turn_on(self, agent, object):
         OnOffDevice.action__turn_on(self, agent, object)

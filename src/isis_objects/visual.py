@@ -2,6 +2,7 @@ from pandac.PandaModules import Vec3, BitMask32
 from ..physics.panda.manager import *
 
 class IsisVisual():
+    priority = 1
     """ This is the base class responsible for handling all of the visual aspects of an object
     in IsisWorld, including all of the handling of visual features (scaling, colors, textures),
     and models (animations, exposing parts).
@@ -9,24 +10,25 @@ class IsisVisual():
     It is the first class instantiated because the self.activeModel is what is used in the other
     object classes: IsisSpatial and IsisFunctional."""
 
-    def __init__(self, model=None, scale=1.0):
+    def __init__(self):
         # keep a dictionary mapping model names to paths 
         self.models = {}
         
         # define default model or override
-        if model == None:
+        if not hasattr(self,'model'):
             self.models['default'] = "box"
-        elif isinstance(model,dict):
+        elif isinstance(self.model,dict):
             # accept a dictionary with a 'default' key of models
-            self.models = model
+            self.models = self.model
             if not self.models.has_key("default"):
-                raise "Error: default model needed for IsisVisual object"
-        elif isinstance(model,str):
+                raise Exception("Error: default model needed for IsisVisual object")
+        elif isinstance(self.model,str):
             self.models = {}
-            self.models['default'] = model
+            self.models['default'] = self.model
 
         # set the scale of the object
-        self.scale = scale
+        if not hasattr(self,'scale'):
+            self.scale = 1
 
         # private flag to lazily recompute properties when necessary
         self._needToRecalculateScalingProperties = False
@@ -96,12 +98,12 @@ class IsisVisual():
             # handling is buggy.  flattenLight()  circumvents this.
             self.activeModel.flattenLight()
 
-    def create(self):
+    def setup(self):
         for key in self.models:
             self.addModel(key, self.models[key])
         self.activeModel = None;
         self.changeModel('default')
         # adds a pickable tag to allow an agent to view this object
-        self.setTag('pickable', 'true')
+        self.node.setTag('pickable', 'true')
 
         self._needToRecalculateScalingProperties = True

@@ -1,6 +1,6 @@
 """  Object Loader for IsisWorld Simulator """
 import sys
-from isis_objects.generators import world_objects
+#from isis_objects.generators import world_objects
 
 def instantiate_isisobject(classname, physics):
     """ Instantiates an IsisObject as defined in a class in the "generators.py" file.
@@ -8,7 +8,7 @@ def instantiate_isisobject(classname, physics):
       - physics: a pointer to the worldManager, required for adding collision geometries later
     """
     __import__("src.isis_objects.generators")
-    return getattr(sys.modules["src.isis_objects.generators"], classname)(name=classname,physics=physics)
+    return getattr(sys.modules["src.isis_objects.generators"], classname)(physics=physics)
 
 def load_objects_file(file):
     return map(lambda x: x.strip(), open(file,'r').readlines()) 
@@ -66,4 +66,4 @@ def load_objects(file, renderParent, physicsManager, layoutManager = None):
                context[name] = obj
             context[item] = obj
 
-    return world_objects
+    return True

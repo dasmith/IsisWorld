@@ -22,7 +22,7 @@ class IsisSpatial(object):
     are responsible for maintaining the spatial, geometric and physical properties of the 
     objects in IsisWorld."""
 
-    def __init__(self,*args,**kwargs):
+    def __init__(self):
         # Flag to limit setup to once per object
         self.__setup = False
 
@@ -33,9 +33,7 @@ class IsisSpatial(object):
         self.weight = None
         #self.containerItems = []
         self.isOpen = False
-        if 'density' in kwargs:
-            self.density = kwargs['density']
-        else:
+        if not hasattr(self,'density'):
             self.density = 1
 
         self._neetToRecalculateSpatialProperties = True
@@ -146,9 +144,10 @@ class IsisSpatial(object):
 
 
 class Surface(IsisSpatial):
-    def __init__(self, *args, **kwargs):
+    priority = 2
+    def __init__(self):
         self.surfaceContacts = []
-        super(Surface,self).__init__(args,kwargs)
+        super(Surface,self).__init__()
         self.__setup = True
         area = (self.getWidth(), self.getLength())
         self.on_layout = HorizontalGridSlotLayout(area, self.getHeight(), int(self.getWidth()), int(self.getLength()))
@@ -192,11 +191,12 @@ class Surface(IsisSpatial):
 
 
 class Container(IsisSpatial):
-    def __init__(self, *args, **kwargs):
+    priority = 2
+    def __init__(self):
         # Flag to limit setup to once per object
         self.__setup = False
         self.containerItems = []
-        super(Container,self).__init__(args,kwargs)
+        super(Container,self).__init__()
         #TO-DO: Change this to something more fitting for a container
         self.in_layout = HorizontalGridLayout((self.getWidth(), self.getLength()), self.getHeight())
 

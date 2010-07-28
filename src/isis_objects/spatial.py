@@ -94,16 +94,16 @@ class IsisSpatial(object):
         self.wallGeomNP.show()
         IsisSpatial.enableCollisions(self)
         # add ray tracer to gravity manager
-        self.physicsManager.cFloor.addCollider(self.floorRayGeomNP, self)
-        base.cTrav.addCollider(self.floorRayGeomNP, self.physicsManager.cFloor)
+        self.physics.cFloor.addCollider(self.floorRayGeomNP, self)
+        base.cTrav.addCollider(self.floorRayGeomNP, self.physics.cFloor)
         # add surface geometry to gravity collider
-        self.physicsManager.cFloor.addCollider(self.floorGeomNP, self)
-        base.cTrav.addCollider(self.floorGeomNP, self.physicsManager.cFloor)
+        self.physics.cFloor.addCollider(self.floorGeomNP, self)
+        base.cTrav.addCollider(self.floorGeomNP, self.physics.cFloor)
 
         base.cTrav.addCollider(self.wallGeomNP, base.cEvent)
         # make object have wall collision properties        
-        self.physicsManager.cWall.addCollider(self.floorGeomNP, self)
-        base.cTrav.addCollider(self.wallGeomNP, self.physicsManager.cWall)
+        self.physics.cWall.addCollider(self.floorGeomNP, self)
+        base.cTrav.addCollider(self.wallGeomNP, self.physics.cWall)
 
     def enableCollisions(self):
         self.floorRayNP.setFromCollideMask(OBJFLOOR|FLOORMASK)
@@ -147,7 +147,7 @@ class Surface(IsisSpatial):
     priority = 2
     def __init__(self):
         self.surfaceContacts = []
-        super(Surface,self).__init__()
+        IsisSpatial.__init__(self)
         self.__setup = True
         area = (self.getWidth(), self.getLength())
         self.on_layout = HorizontalGridSlotLayout(area, self.getHeight(), int(self.getWidth()), int(self.getLength()))
@@ -157,7 +157,7 @@ class Surface(IsisSpatial):
             return
         self.topSurfaceNP.setTag('surface','asurface')
         """ Creates a surface collision geometry on the top of the object"""
-        super(Surface,self).setup()
+        IsisSpatial.setup(self)
         self.__setup = True
 
 
@@ -166,7 +166,7 @@ class Surface(IsisSpatial):
 
     def disableCollisions(self):
         print "Removing Collision - Surface"
-        super(Surface,self).disableCollisions()
+        IsisSpatial.disableCollisions(self)
 
     def enterSurface(self,fromObj):
         print "Added to surface contacts", fromObj
@@ -196,7 +196,7 @@ class Container(IsisSpatial):
         # Flag to limit setup to once per object
         self.__setup = False
         self.containerItems = []
-        super(Container,self).__init__()
+        IsisSpatial.__init__(self)
         #TO-DO: Change this to something more fitting for a container
         self.in_layout = HorizontalGridLayout((self.getWidth(), self.getLength()), self.getHeight())
 
@@ -211,10 +211,10 @@ class Container(IsisSpatial):
         self.__setup = True
     
     def enableCollisions(self):
-        super(Container,self).enableCollisions()
+        IsisSpatial.enableCollisions(self)
 
     def disableCollisions(self):
-        super(Container,self).disableCollisions()
+        IsisSpatial.disableCollisions(self)
 
     def enterContainer(self,fromObj):
         print "Entering container", self.name

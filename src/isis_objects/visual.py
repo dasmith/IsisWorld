@@ -104,6 +104,6 @@ class IsisVisual():
         self.activeModel = None;
         self.changeModel('default')
         # adds a pickable tag to allow an agent to view this object
-        self.node.setTag('pickable', 'true')
+        self.setTag('pickable', 'true')
 
         self._needToRecalculateScalingProperties = True

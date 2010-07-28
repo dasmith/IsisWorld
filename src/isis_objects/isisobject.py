@@ -8,21 +8,12 @@ class IsisObject(NodePath):
     """ IsisObject is the decorator class for all visible objects in IsisWorld, other
     than sky, house, ground and agents """
 
-    def  __init__(self, physics): 
-        # store pointer to world manager
-        self.physics = physics
-        
+    def  __init__(self,name=1):         
         # generate a unique name for the object, warning, unique id uses GENERATORS ID
-        self.name = "IsisObject/"+self.generator.__class__.__name__+"+"+str(id(self))
-        
-        # construct parent IsisObject class
-        IsisObject.__init__(self, self.name)
-        
-        self.node = self.node()
+        self.name = "IsisObject/"+self.__class__.__name__+"+"+str(id(self))
+        NodePath.__init__(self,self.name)
         # store pointer to IsisObject subclass
         self.setPythonTag("isisobj", self)
-        # bind worldmanager pointer to instance
-        self.physics = physics
         # store model offsets 
         if not hasattr(self, 'offsetVec'):
             self.offsetVec = (0,0,0,0,0,0)
@@ -32,12 +23,14 @@ class IsisObject(NodePath):
         if not hasattr(self,'physics'):
             raise "Error: %s missing self.physics" % self.name
 
-        superclasses =  map(lambda x: [x,hasattr(x, 'priority') and x.priority or 101], self.generator.__bases__)
+        superclasses =  map(lambda x: [x,hasattr(x, 'priority') and x.priority or 101], self.__class__.__bases__)
         # call __init__ on all parent classes
+        print "SUPERCLASSES", superclasses
         for sc, rank in sorted(superclasses, key=lambda x: x[1]):
-            if sc != "NodePath":
+            if sc.__name__ != "IsisObject":
+                print sc, rank, sc.__name__, sc.__name__=="src.isis_objects.isisobject.IsisObject"
                 sc.__init__(self)
-            print sc, rank
+
         # call setup() on all appropriate parent classes
         for sc, rank in sorted(superclasses, key=lambda x: x[1]):
             if hasattr(sc,'setup'):

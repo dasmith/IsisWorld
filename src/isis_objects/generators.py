@@ -11,7 +11,9 @@ from direct.interval.IntervalGlobal import *
 
 class table(IsisObject,IsisVisual,Container,Surface,NoPickup):
 
-    def __init__(self):
+    def  __init__(self, physics): 
+        # store pointer to world manager
+        self.physics = physics
         self.offsetVec = offsetVec=(0,0,0,0,0,0)
         
         self.model = "table/table"
@@ -21,14 +23,14 @@ class table(IsisObject,IsisVisual,Container,Surface,NoPickup):
         #self.create()
         
         self.density = 4000
-        self.makeObject()
+        IsisObject.__init__(self)
 
 
 class fridge(IsisObject, IsisVisual, Container, NoPickup):
     
-    def __init__(self):
-
-
+    def  __init__(self, physics): 
+        # store pointer to world manager
+        self.physics = physics
         self.model={'default':"Fridge/Fridge"}
         #self.setH(-90)
         self.scale=0.17
@@ -38,7 +40,7 @@ class fridge(IsisObject, IsisVisual, Container, NoPickup):
         self.in_layout = SlotLayout([(0, 0, .5), (0, 0, 1),(0, 0, 1.5)])
 
         self.state = "closed"
-        self.makeObject()
+        IsisObject.__init__(self)
         
     def setup(self):
         fd = self.activeModel.find("**/freezerDoor*")
@@ -68,13 +70,14 @@ class fridge(IsisObject, IsisVisual, Container, NoPickup):
 
 class knife(IsisObject, IsisVisual, IsisSpatial, Sharp):
 
-    def __init__(self,name):
-
+    def  __init__(self, physics): 
+        # store pointer to world manager
+        self.physics = physics
         self.pickupVec = (0,.15,0,0,75,0)
         self.model="knife"
         self.scale=0.01
         self.density = 25
-        self.makeObject()
+        IsisObject.__init__(self)
 
 class toaster(IsisObject, IsisVisual, Container, Cooker):
     
@@ -100,12 +103,13 @@ class toaster(IsisObject, IsisVisual, Container, Cooker):
         self.cook_on = False
         
         self.registerState("containsToast", [0,1,2])
-        self.makeObject()
+        IsisObject.__init__(self)
 
 class bread(IsisObject, IsisVisual, Container, Cookable):
 
-    def __init__(self):
-
+    def  __init__(self, physics): 
+        # store pointer to world manager
+        self.physics = physics
 
         self.offsetVec = (0,0,-.1,0,-120,-20)
         self.pickupVec=(-.125,.225,0,0,-125,0)
@@ -115,11 +119,13 @@ class bread(IsisObject, IsisVisual, Container, Cookable):
         self.density = 200
         
         self.cookableCookedModel = "toast"
-        self.makeObject()
+        IsisObject.__init__(self)
 
 class loaf( IsisObject, IsisVisual, IsisSpatial, Dividable):
 
-    def __init__(self):
+    def  __init__(self, physics): 
+        # store pointer to world manager
+        self.physics = physics
         self.offsetVec = (.00144,0,0,0,0,0)
         
         self.model = "loaf_of_bread"
@@ -127,5 +133,5 @@ class loaf( IsisObject, IsisVisual, IsisSpatial, Dividable):
         #self.create()
 
         self.density =1000
-        self.makeObject()        
+        IsisObject.__init__(self)        
         

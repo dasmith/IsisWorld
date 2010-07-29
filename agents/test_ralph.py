@@ -22,9 +22,11 @@ while not containsFridge(p['objects']):
     p = sense()
 
 fridge = containsFridge(p['objects'])
-if p['objects'][fridge]['x_pos'] < 0:
-    e.do('turn_left-start', {'agent':'Ralph'})
 while abs(p['objects'][fridge]['x_pos']) > .2:
+    if p['objects'][fridge]['x_pos'] < 0:
+        e.do('turn_left-start', {'agent':'Ralph'})
+    else:
+        e.do('turn_right-start', {'agent':'Ralph'})
     step(.005)
     p = sense()
     print abs(p['objects'][fridge]['x_pos'])
@@ -49,4 +51,5 @@ e.do('look_down-stop', {'agent':'Ralph'})
 e.do('look_up-stop', {'agent':'Ralph'})
 e.do('move_forward-stop', {'agent':'Ralph'})
 e.do('use_right_hand', {'action':'open', 'object':'fridge', 'agent':'Ralph'})
+e.do('pick_up_with_right_hand', {'target':'loaf', 'agent':'Ralph'})
 step(1)

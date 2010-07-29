@@ -344,51 +344,52 @@ class Ralph(DirectObject.DirectObject):
        self.last_spoke = 0
        return "success"
 
-    def control__pick_up_with_right_hand(self, pick_up_object=None):
-        if not pick_up_object:
+    def control__pick_up_with_right_hand(self, target=None):
+        print target
+        if not target:
             d = self.picker.pick((0, 0))
             if d:
-                pick_up_object = d[0]
+                target = d[0]
             else:
                 print "no target in reach"
                 return
         else:
-            pick_up_object = render.find("**/*" + pick_up_object + "*")
-        print "attempting to pick up " + pick_up_object.name + " with right hand.\n"
+            target = render.find("**/*" + target + "*").getPythonTag("isisobj")
+        print "attempting to pick up " + target.name + " with right hand.\n"
         if self.right_hand_holding_object:
             return 'right hand is already holding ' + self.right_hand_holding_object.getName() + '.'
-        if self.can_grasp(pick_up_object):
-            result = pick_up_object.call(self, "pick_up",self.player_right_hand)
-            print "Result of trying to pick up %s:" % pick_up_object.name, result
+        if self.can_grasp(target):
+            result = target.call(self, "pick_up",self.player_right_hand)
+            print "Result of trying to pick up %s:" % target.name, result
             if result == 'success':
-                self.right_hand_holding_object = pick_up_object 
+                self.right_hand_holding_object = target 
             return result
         else:
             print "that item is not graspable"
-            return 'object (' + pick_up_object.name + ') is not graspable (i.e. in view and close enough).'
+            return 'object (' + target.name + ') is not graspable (i.e. in view and close enough).'
 
-    def control__pick_up_with_left_hand(self, pick_up_object = None):
-        if not pick_up_object:
+    def control__pick_up_with_left_hand(self, target = None):
+        if not target:
             d = self.picker.pick((0, 0))
             if d:
-                pick_up_object = d[0]
+                target = d[0]
             else:
                 print "no target in reach"
                 return
         else:
-            pick_up_object = render.find("**/*" + pick_up_object + "*")
-        print "attempting to pick up " + pick_up_object.name + " with left hand.\n"
+            target = render.find("**/*" + target + "*").getPythonTag("isisobj")
+        print "attempting to pick up " + target.name + " with left hand.\n"
         if self.left_hand_holding_object:
             return 'left hand is already holding ' + self.left_hand_holding_object.getName() + '.'
-        if self.can_grasp(pick_up_object):
-            result = pick_up_object.call(self, "pick_up",self.player_left_hand)
-            print "Result of trying to pick up %s:" % pick_up_object.name, result
+        if self.can_grasp(target):
+            result = target.call(self, "pick_up",self.player_left_hand)
+            print "Result of trying to pick up %s:" % target.name, result
             if result == 'success':
-                self.left_hand_holding_object = pick_up_object
+                self.left_hand_holding_object = target
             return result
         else:
             print "that item is not graspable"
-            return 'object (' + pick_up_object.name + ') is not graspable (i.e. in view and close enough).'
+            return 'object (' + target.name + ') is not graspable (i.e. in view and close enough).'
 
     def control__put_object_in_empty_left_hand(self, object_name):
         if (self.left_hand_holding_object is not False):

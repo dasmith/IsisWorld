@@ -1,5 +1,6 @@
 table
 toaster	on table
-loaf	on table
+#loaf	on table
 knife	on table
 fridge
+loaf	in fridge

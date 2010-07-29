@@ -140,7 +140,7 @@ class IsisWorld(DirectObject):
         self.room.flattenLight() 
 
         self.floorLayout = HorizontalGridLayout((2*self._xmax, 2*self._ymax), 0)
-        self.worldObjects = load_objects("kitchen.isis", self.objRender, self.physicsManager, layoutManager = self.floorLayout)
+        load_objects("kitchen.isis", self.objRender, self.physicsManager, layoutManager = self.floorLayout)
 
         if False:
             self.map = loader.loadModel("media/models/kitchen")#os.path.join(self.rootDirectory,"media","models","kitchen"))
@@ -242,7 +242,7 @@ class IsisWorld(DirectObject):
         self.agentsNamesToIDs = {'Ralph':0, 'Lauren':1}
         # add and initialize new agents
         for name in self.agentsNamesToIDs.keys():
-            newAgent = Ralph(self.physicsManager, self, name, self.worldObjects)
+            newAgent = Ralph(self.physicsManager, self, name)
             newAgent.setPosition(defaultPos[name])
             newAgent.control__say("Hi, I'm %s. Please build me." % name)
             self.agents.append(newAgent)

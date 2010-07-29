@@ -10,34 +10,32 @@ from direct.interval.IntervalGlobal import *
 
 class table(IsisObject,IsisVisual,Container,Surface,NoPickup):
 
-    def  __init__(self, physics): 
+    def  __init__(self, physics):
         # store pointer to world manager
         self.physics = physics
         self.offsetVec = offsetVec=(0,0,0,0,0,0)
-        
         self.model = "table/table"
         self.scale=0.006
-        #self.setH(180)
-
         self.density = 4000
+
         IsisObject.__init__(self)
+
+        self.setH(180)
 
 
 class fridge(IsisObject, IsisVisual, Container, NoPickup):
     
-    def  __init__(self, physics): 
+    def  __init__(self, physics):
         # store pointer to world manager
         self.physics = physics
         self.model={'default':"Fridge/Fridge"}
-        #self.setH(-90)
         self.scale=0.17
-        
         self.density = 4000
-        
-        self.in_layout = SlotLayout([(0, 0, .5), (0, 0, 1),(0, 0, 1.5)])
-
         self.state = "closed"
+
         IsisObject.__init__(self)
+
+        self.in_layout = SlotLayout([(0, 0, .5), (0, 0, 1),(0, 0, 1.5)])
         
     def setup(self):
         fd = self.activeModel.find("**/freezerDoor*")

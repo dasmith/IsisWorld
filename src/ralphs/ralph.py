@@ -32,7 +32,7 @@ def frange(x,y,inc):
 
 class Ralph(DirectObject.DirectObject):
     
-    def __init__(self, physicsManager, agentSimulator, name, worldObjectsDict, queueSize = 100):
+    def __init__(self, physicsManager, agentSimulator, name, queueSize = 100):
 
         # setup the visual aspects of ralph
         self.actor= Actor("media/models/boxman",{"walk":"media/models/boxman-walk", "idle": "media/models/boxman-idle"})
@@ -139,7 +139,7 @@ class Ralph(DirectObject.DirectObject):
         """
         Object used for picking objects in the field of view
         """
-        self.picker =Picker(self.fov, worldObjectsDict, self)
+        self.picker = Picker(self.fov, self)
 
         # Initialize the action queue, with a maximum length of queueSize
         self.queue = []
@@ -352,6 +352,8 @@ class Ralph(DirectObject.DirectObject):
             else:
                 print "no target in reach"
                 return
+        else:
+            pick_up_object = render.find("**/*" + pick_up_object + "*")
         print "attempting to pick up " + pick_up_object.name + " with right hand.\n"
         if self.right_hand_holding_object:
             return 'right hand is already holding ' + self.right_hand_holding_object.getName() + '.'
@@ -373,6 +375,8 @@ class Ralph(DirectObject.DirectObject):
             else:
                 print "no target in reach"
                 return
+        else:
+            pick_up_object = render.find("**/*" + pick_up_object + "*")
         print "attempting to pick up " + pick_up_object.name + " with left hand.\n"
         if self.left_hand_holding_object:
             return 'left hand is already holding ' + self.left_hand_holding_object.getName() + '.'
@@ -438,7 +442,7 @@ class Ralph(DirectObject.DirectObject):
             else:
                 target = target[0]
         else:
-            target = self.agent_simulator.worldObjects[target]
+            target = render.find("**/*" + target + "*")
         if self.can_grasp(target):
             if(target.call(self, action, self.right_hand_holding_object) or
               (self.right_hand_holding_object and self.right_hand_holding_object.call(self, action, target))):
@@ -460,7 +464,7 @@ class Ralph(DirectObject.DirectObject):
             else:
                 target = target[0]
         else:
-            target = self.agent_simulator.worldObjects[target]
+            target = render.find("**/*" + target + "*")
         if self.can_grasp(target):
             target.call(self, action, self.left_hand_holding_object)
             return "success"
@@ -684,7 +688,7 @@ def map3dToAspect2d(node, point):
 
 class Picker(DirectObject.DirectObject):
     """Picker class derived from http://www.panda3d.org/phpbb2/viewtopic.php?p=4532&sid=d5ec617d578fbcc4c4db0fc68ee87ac0"""
-    def __init__(self, camera, worldObjects, agent, tag = 'pickable', value = 'true'):
+    def __init__(self, camera, agent, tag = 'pickable', value = 'true'):
         self.camera = camera
         self.tag = tag
         self.value = value
@@ -700,7 +704,6 @@ class Picker(DirectObject.DirectObject):
         self.pickerNode.addSolid(self.pickerRay)
 
         base.cTrav.addCollider(self.pickerNP, self.queue)
-        self.worldObjects = worldObjects
 
     def pick(self, pos):
         self.pickerRay.setFromLens(self.camera.node(), pos[0], pos[1])
@@ -716,8 +719,8 @@ class Picker(DirectObject.DirectObject):
                 if(self.tag == None):
                     return (parent, object_dict)
                 elif parent.getTag(self.tag) == self.value:
-                    name = str(parent)
-                    return (self.worldObjects[name[name.rfind("IsisObject"):]], object_dict)
+                    print "FOUND OBJECT:", parent
+                    return (parent.getPythonTag("isisobj"), object_dict)
                 else:
                     parent = parent.getParent()
         return None

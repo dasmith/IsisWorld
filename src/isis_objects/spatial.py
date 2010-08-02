@@ -46,70 +46,64 @@ class IsisSpatial(object):
             return
         # ensure all existing collision masks are off
         self.setCollideMask(BitMask32.allOff())
+        # allow model to be picked (visual correspondance with Ralph's vision methods)
         self.activeModel.setCollideMask(OBJPICK)
+        
+        # compute model properties
         lcorner, ucorner =self.activeModel.getTightBounds()
         center = self.activeModel.getBounds().getCenter()
-
-        # setup ray for staying on the ground
-        cRay = CollisionRay(center[0],center[1],center[2]-((lcorner[2]-center[2])/2.5), 0.0, 0.0, -1.0)
-        #cRay = CollisionRay(center[0],center[1],lcorner[2]+0.4, 0.0, 0.0, -1.0)
-        self.floorRayNP = CollisionNode('object')
-        self.floorRayNP.addSolid(cRay)
-        self.floorRayGeomNP = self.attachNewNode(self.floorRayNP)
-
-        # construct geometry of top surface
-        self.topSurfaceNP = CollisionNode('object')
+        #ucorner[2] += 0.2
         left_front = Vec3(lcorner[0], lcorner[1], ucorner[2])
         left_back = Vec3(lcorner[0], ucorner[1], ucorner[2])
         right_front = Vec3(ucorner[0], lcorner[1], ucorner[2])
         right_back = ucorner
-        # construct geometry of top surface
-        surfaceGeom = CollisionPolygon(left_front, right_front, right_back, left_back)
-        self.topSurfaceNP.addSolid(surfaceGeom)
-        self.floorGeomNP = self.attachNewNode(self.topSurfaceNP)
-
-        # setup wall collider 
-        self.fullBoxNP = CollisionNode('object')
         bounds, offset = getOrientedBoundedBox(self.activeModel)
-
         radius = min(ucorner[0]-lcorner[0],ucorner[1]-lcorner[1])/2.0
-        if collisionGeom == 'box':
-            #cGeom = CollisionSphere(0.0, 0.0, center[2], radius)
-            #cGeom.setTangible(1)
-            #self.fullBoxNP.addSolid(cGeom)
-            cGeom = CollisionBox(lcorner, ucorner)
-            cGeom.setTangible(1)
-            self.fullBoxNP.addSolid(cGeom)            
-        elif collisionGeom == 'sphere':
-            cGeomSphere = CollisionSphere(0.0, 0.0, center[2], radius)
-            self.fullBoxNP.addSolid(cGeomSphere)
-            cGeom = CollisionBox(lcorner, ucorner)
-            cGeom.setTangible(1)
-            self.fullBoxNP.addSolid(cGeom)
-        else:
-            raise "Geom %s unknown" % collisionGeom
-        self.wallGeomNP = self.attachNewNode(self.fullBoxNP)
-        self.wallGeomNP.show()
-        IsisSpatial.enableCollisions(self)
-        # add ray tracer to gravity manager
-        self.physics.cFloor.addCollider(self.floorRayGeomNP, self)
-        base.cTrav.addCollider(self.floorRayGeomNP, self.physics.cFloor)
-        # add surface geometry to gravity collider
-        self.physics.cFloor.addCollider(self.floorGeomNP, self)
-        base.cTrav.addCollider(self.floorGeomNP, self.physics.cFloor)
 
-        base.cTrav.addCollider(self.wallGeomNP, base.cEvent)
-        # make object have wall collision properties        
-        self.physics.cWall.addCollider(self.floorGeomNP, self)
-        base.cTrav.addCollider(self.wallGeomNP, self.physics.cWall)
+        # set up the floor ray collision node
+        self.floorRay = CollisionRay() 
+        self.floorRay.setOrigin(center[0],center[1],0.3) 
+        self.floorRay.setDirection(0,0,-1)
+        self.floorRayCN = CollisionNode('floorRayCollider-%s' % self.name) 
+        self.floorRayCN.addSolid(self.floorRay)
+        self.floorRayNP =self.attachNewNode(self.floorRayCN)
+        self.physics.cFloor.addCollider(self.floorRayNP, self)
+        base.cTrav.addCollider(self.floorRayNP, self.physics.cFloor)
+
+        # construct geometry of top surface
+        self.topSurfaceCN = CollisionNode('topSurfaceCollidee-%s' % self.name)
+        self.topSurfaceCN.addSolid(CollisionPolygon(left_front, right_front, right_back, left_back))
+        self.topSurfaceNP = self.attachNewNode(self.topSurfaceCN)
+    
+        # setup wall (horizontal) collider 
+        self.fullBoxCN = CollisionNode('object')
+        cGeom = CollisionBox(lcorner, ucorner+Vec3(0,0,0.0))
+        cGeom.setTangible(1)
+        self.fullBoxNP = self.attachNewNode(self.fullBoxCN)
+        self.fullSphereCN = CollisionNode('object')
+        self.fullSphereCN.addSolid(cGeom)            
+        cGeomSphere = CollisionSphere(0.0, 0.0, center[2], radius)
+        cGeomSphere.setTangible(1)
+        self.fullSphereCN.addSolid(cGeomSphere)
+
+
+        self.fullSphereNP = self.attachNewNode(self.fullSphereCN)
+        #self.fullBoxNP.show()
+        #self.physics.cWall.addCollider(self.fullBoxNP, self)
+        # trace collision events
+        base.cTrav.addCollider(self.fullBoxNP, base.cEvent)
+        base.cTrav.addCollider(self.fullSphereNP, base.cEvent)
+        self.enableCollisions()
 
     def enableCollisions(self):
-        self.floorRayNP.setFromCollideMask(OBJFLOOR|FLOORMASK)
-        self.floorRayNP.setIntoCollideMask(BitMask32.allOff())
-        self.topSurfaceNP.setFromCollideMask(BitMask32.allOff())
-        self.topSurfaceNP.setIntoCollideMask(OBJFLOOR|FLOORMASK)
-        self.fullBoxNP.setIntoCollideMask(AGENTMASK|OBJMASK|BitMask32.allOff())
-        self.fullBoxNP.setFromCollideMask(BitMask32.allOff())
+        self.floorRayCN.setFromCollideMask(OBJFLOOR|FLOORMASK) 
+        self.floorRayCN.setIntoCollideMask(BitMask32.allOff())
+        self.topSurfaceCN.setFromCollideMask(BitMask32.allOff())
+        self.topSurfaceCN.setIntoCollideMask(FLOORMASK|OBJFLOOR)
+        self.fullBoxCN.setFromCollideMask(OBJMASK)
+        self.fullBoxCN.setIntoCollideMask(OBJMASK|AGENTMASK)
+        self.fullSphereCN.setFromCollideMask(OBJMASK)
+        self.fullSphereCN.setIntoCollideMask(OBJMASK)
 
     def disableCollisions(self):
         print "Removing Collisions - Base"

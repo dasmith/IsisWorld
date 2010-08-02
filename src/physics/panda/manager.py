@@ -59,15 +59,6 @@ class PhysicsWorldManager(DirectObject.DirectObject):
         self.stepping = False
         # keep track of all agents
         self.agents = []
-     
-        if False:
-            base.enableParticles()
-            self.cHandler = PhysicsCollisionHandler()
-            gravityFN = ForceNode('gravity')
-            gravityNP = render.attachNewNode(gravityFN)
-            gravityForce = LinearVectorForce(0, 0, -9.81)
-            gravityFN.addForce(gravityForce)
-            base.physicsMgr.addLinearForce(gravityForce)  
 
         # Initialize the collision traverser.
         base.cTrav = CollisionTraverser()
@@ -78,14 +69,12 @@ class PhysicsWorldManager(DirectObject.DirectObject):
         
         # the CollisionHandlerPusher is good for keeping items from going through walls
         self.cWall = CollisionHandlerFluidPusher()
-        self.cWall.setHorizontal(True)
         # this tracks the velocity of moving objects, whereas CollisionHandlerFloor doesnt
         self.cFloor = CollisionHandlerGravity()
         # gravity should be -9.81m/s, but that doesn't quite work
         self.cFloor.setGravity(9.81*50)
-        self.cFloor.setOffset(.2)
+        #self.cFloor.setOffset(.2)
         self.cFloor.setMaxVelocity(1)
-        self.cFloor.addInPattern('into')
 
         # Initialize the handler.
         base.cEvent = CollisionHandlerEvent()
@@ -143,6 +132,7 @@ class PhysicsWorldManager(DirectObject.DirectObject):
         """ The general case when two objects collide"""
         cFrom = getObjFromNP(entry.getFromNodePath(),"isisobj")
         cInto = getObjFromNP(entry.getIntoNodePath(),"isisobj")
+        
         if hasattr(cInto,'enterContainer'):
             cInto.enterContainer(cInto)
         print "Object In Collision: %s, %s" % (cFrom, cInto)

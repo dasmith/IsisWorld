@@ -96,7 +96,8 @@ class PhysicsWorldManager(DirectObject.DirectObject):
         base.accept('agent-into-agent', self._agentsCollisionIn)
 
         # start it up 
-        self.paused = False 
+        self.paused = False
+        self.timer = "notime"
         self._startPhysics()
 
 
@@ -198,26 +199,33 @@ class PhysicsWorldManager(DirectObject.DirectObject):
             self.paused = not self.paused
 
     def simulationTask(self, task):
+        print "step:",self.timer
         dt = self._GlobalClock.getDt()
         for agent in self.agents:
             agent.update(dt) 
+        if self.timer != "notime":
+            self.timer -= dt
+            print self.timer
+            if self.timer < 0:
+                self.timer = "notime"
+                self.stepping = False
+                return task.done
+
         return task.cont 
     
     def _stopPhysics(self,task=None):
         print "[IsisWorld] Stopping Physical Simulator"
         taskMgr.remove("physics-SimulationTask")
         self.stepping = False
+        self.timer = 0
         #base.disableParticles() 
 
 
     def _startPhysics(self, stopAt=None):
         if stopAt != None:
-          assert stopAt > 0.0
-          taskMgr.doMethodLater(stopAt, self._stopPhysics, "physics-SimulationStopper", priority=10)
-          # or can you
-          self.stepping = True 
-          taskMgr.add(self.simulationTask, "physics-SimulationTask", priority=10)
-        else:
-          taskMgr.add(self.simulationTask, "physics-SimulationTask", priority=10)
-
-
+            assert stopAt > 0.0
+            #taskMgr.doMethodLater(stopAt, self._stopPhysics, "physics-SimulationStopper", priority=10)
+            # or can you
+            self.stepping = True 
+            self.timer = stopAt
+        taskMgr.add(self.simulationTask, "physics-SimulationTask", priority=10)

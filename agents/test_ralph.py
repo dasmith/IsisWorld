@@ -3,17 +3,25 @@ import xmlrpclib as xml
 e = xml.ServerProxy('http://localhost:8001')
 e.do('meta_pause')
 
-def containsFridge(dict):
-    for k in dict:
-        if 'fridge' in k:
-            return k
-    return False
-
 def sense():
     return e.do('sense', {'agent':'Ralph'})
 
 def step(time):
     e.do('meta_step', {'seconds':time})
+
+for j in range(10):
+    e.do('turn_right-start', {'agent':'Ralph'})
+    for i in range(10):
+        step(.01)
+    e.do('turn_right-stop', {'agent':'Ralph'})
+    step(1)
+
+"""
+def containsFridge(dict):
+    for k in dict:
+        if 'fridge' in k:
+            return k
+    return False
 
 e.do('turn_right-start', {'agent':'Ralph'})
 p = sense()
@@ -52,4 +60,4 @@ e.do('look_up-stop', {'agent':'Ralph'})
 e.do('move_forward-stop', {'agent':'Ralph'})
 e.do('use_right_hand', {'action':'open', 'object':'fridge', 'agent':'Ralph'})
 e.do('pick_up_with_right_hand', {'target':'loaf', 'agent':'Ralph'})
-step(1)
+step(1)"""

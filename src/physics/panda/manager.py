@@ -199,13 +199,11 @@ class PhysicsWorldManager(DirectObject.DirectObject):
             self.paused = not self.paused
 
     def simulationTask(self, task):
-        print "step:",self.timer
         dt = self._GlobalClock.getDt()
         for agent in self.agents:
             agent.update(dt) 
         if self.timer != "notime":
             self.timer -= dt
-            print self.timer
             if self.timer < 0:
                 self.timer = "notime"
                 self.stepping = False
@@ -215,7 +213,6 @@ class PhysicsWorldManager(DirectObject.DirectObject):
     
     def _stopPhysics(self,task=None):
         print "[IsisWorld] Stopping Physical Simulator"
-        taskMgr.remove("physics-SimulationTask")
         self.stepping = False
         self.timer = 0
         #base.disableParticles() 

@@ -225,4 +225,4 @@ class PhysicsWorldManager(DirectObject.DirectObject):
             # or can you
             self.stepping = True 
             self.timer = stopAt
-        taskMgr.add(self.simulationTask, "physics-SimulationTask", priority=10)
+        taskMgr.add(self.simulationTask, "physics-SimulationTask", priority=1)

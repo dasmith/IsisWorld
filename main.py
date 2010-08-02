@@ -60,6 +60,7 @@ class IsisWorld(DirectObject):
         # turn off main help menu by default
         self.toggleInstructionsWindow()
         #self.server_thread.start()
+        base.exitFunc = self.exit
 
     def _setupEnvironment(self,debug=False):
         """  Stuff that's too ugly to put anywhere else. """

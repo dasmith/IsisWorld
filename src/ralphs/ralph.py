@@ -616,20 +616,20 @@ class Ralph(DirectObject.DirectObject):
 
 
     def update(self, stepSize=0.1):
-        moveAtSpeed = 3.0
+        moveAtSpeed = 1.0
 
         self.speed = [0.0, 0.0]
 
-        if (self.controlMap["turn_left"]!=0):        self.actorNodePath.setH(self.actorNodePath.getH() + stepSize*220)
-        if (self.controlMap["turn_right"]!=0):       self.actorNodePath.setH(self.actorNodePath.getH() - stepSize*220)
+        if (self.controlMap["turn_left"]!=0):        self.actorNodePath.setH(self.actorNodePath.getH() + stepSize*20)
+        if (self.controlMap["turn_right"]!=0):       self.actorNodePath.setH(self.actorNodePath.getH() - stepSize*20)
         if (self.controlMap["move_forward"]!=0):     self.speed[1] =  moveAtSpeed
         if (self.controlMap["move_backward"]!=0):    self.speed[1] = -moveAtSpeed
         if (self.controlMap["move_left"]!=0):        self.speed[0] = -moveAtSpeed
         if (self.controlMap["move_right"]!=0):       self.speed[0] =  moveAtSpeed
-        if (self.controlMap["look_left"]!=0):        self.neck.setR(bound(self.neck.getR(),-60,60)+1*(stepSize*50))
-        if (self.controlMap["look_right"]!=0):       self.neck.setR(bound(self.neck.getR(),-60,60)-1*(stepSize*50))
-        if (self.controlMap["look_up"]!=0):          self.neck.setP(bound(self.neck.getP(),-60,80)+1*(stepSize*50))
-        if (self.controlMap["look_down"]!=0):        self.neck.setP(bound(self.neck.getP(),-60,80)-1*(stepSize*50))
+        if (self.controlMap["look_left"]!=0):        self.neck.setR(bound(self.neck.getR(),-60,60)+1*(stepSize*20))
+        if (self.controlMap["look_right"]!=0):       self.neck.setR(bound(self.neck.getR(),-60,60)-1*(stepSize*20))
+        if (self.controlMap["look_up"]!=0):          self.neck.setP(bound(self.neck.getP(),-60,80)+1*(stepSize*20))
+        if (self.controlMap["look_down"]!=0):        self.neck.setP(bound(self.neck.getP(),-60,80)-1*(stepSize*20))
 
         speedVec = Vec3(self.speed[0]*stepSize, self.speed[1]*stepSize, 0)
         quat = self.actor.getQuat(render)

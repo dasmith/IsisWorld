@@ -238,7 +238,7 @@ class IsisWorld(DirectObject):
         # that the camera and fov follow
         self.agentNum = 0
         self.agents = []
-        defaultPos = { 'Ralph':Vec3(2,0,3), 'Lauren': Vec3(0,0,4)}
+        defaultPos = { 'Ralph':Vec3(0,0,4), 'Lauren':Vec3(2,0,3)}
         self.agentsNamesToIDs = {'Ralph':0, 'Lauren':1}
         # add and initialize new agents
         for name in self.agentsNamesToIDs.keys():
@@ -246,6 +246,7 @@ class IsisWorld(DirectObject):
             newAgent.setPosition(defaultPos[name])
             newAgent.control__say("Hi, I'm %s. Please build me." % name)
             self.agents.append(newAgent)
+        self.agents.sort(key=lambda x:self.agentsNamesToIDs[x.name])
 
     def _setupActions(self):
         """ Initializes commands that are related to the XML-Server and

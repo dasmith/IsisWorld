@@ -83,7 +83,7 @@ class IsisSpatial(object):
         self.fullSphereCN = CollisionNode('object')
         self.fullSphereCN.addSolid(cGeom)            
         cGeomSphere = CollisionSphere(0.0, 0.0, center[2], radius)
-        cGeomSphere.setTangible(1)
+        cGeomSphere.setTangible(0)
         self.fullSphereCN.addSolid(cGeomSphere)
 
 
@@ -96,10 +96,10 @@ class IsisSpatial(object):
         self.enableCollisions()
 
     def enableCollisions(self):
-        self.floorRayCN.setFromCollideMask(OBJFLOOR|FLOORMASK) 
+        self.floorRayCN.setFromCollideMask(OBJFLOOR) 
         self.floorRayCN.setIntoCollideMask(BitMask32.allOff())
         self.topSurfaceCN.setFromCollideMask(BitMask32.allOff())
-        self.topSurfaceCN.setIntoCollideMask(FLOORMASK|OBJFLOOR)
+        self.topSurfaceCN.setIntoCollideMask(OBJFLOOR)
         self.fullBoxCN.setFromCollideMask(OBJMASK)
         self.fullBoxCN.setIntoCollideMask(OBJMASK|AGENTMASK)
         self.fullSphereCN.setFromCollideMask(OBJMASK)

@@ -10,7 +10,7 @@ xmlrpc server for interfacing with homesim
 import sys
 from SimpleXMLRPCServer import SimpleXMLRPCServer, SimpleXMLRPCRequestHandler
 # override Python's file operations with Panda's thread-safe file ops
-from direct.stdpy import threading 
+from direct.stdpy import threading
 from direct.stdpy.file import *
 import SocketServer
 
@@ -27,14 +27,15 @@ class XMLRPCServer(SocketServer.ThreadingMixIn,SimpleXMLRPCServer):
         # allow the server to be turned off
         self.closed = False
     
-    def start_serving(self):
+    def start_serving(self, task):
         self.socket.setblocking(0)
         while not self.closed:
             self.handle_request()
             # cooprative thread, allow Panda's main thread to run
             # consisder Yield causes signal.signal(signal.SIGINT, signal.default_int_handler)  error.
             # so force it instead
-            threading.Thread.forceYield()
+            #threading.Thread.forceYield()
+            return task.cont
 
     def print_command(self, command):
         """ Test method to see if we can print to panda3d thread output """

@@ -37,8 +37,7 @@ import sys, os
 # panda's own threading module
 from direct.stdpy import threading
 
-
-from pandac.PandaModules import Thread
+from pandac.PandaModules import *
 print "Threads supported?", Thread.isThreadingSupported()
 
 class IsisWorld(DirectObject):
@@ -60,8 +59,7 @@ class IsisWorld(DirectObject):
         #base.cTrav.showCollisions(self.objRender)
         # turn off main help menu by default
         self.toggleInstructionsWindow()
-        self.server_thread.start()
-        base.exitFunc = self.exit
+        #self.server_thread.start()
 
     def _setupEnvironment(self,debug=False):
         """  Stuff that's too ugly to put anywhere else. """
@@ -81,8 +79,9 @@ class IsisWorld(DirectObject):
         commandHandler = IsisCommandHandler(self)
         self.server = XMLRPCServer() 
         self.server.register_function(commandHandler.handler,'do')
-        self.server_thread = threading.Thread(group=None, target=self.server.start_serving, name='isisworld-xmlrpc')
-        #self.server_thread.setDaemon(True)
+        # some hints on threading: https://www.panda3d.org/forums/viewtopic.php?t=7345
+        base.taskMgr.setupTaskChain('xmlrpc',numThreads=1)
+        base.taskMgr.add(self.server.start_serving, 'xmlrpc-server', taskChain='xmlrpc')
 
     def _setupWorld(self, visualizeClouds=False, enableKitchen=False):
         """ The world consists of a plane, the "ground" that stretches to infinity
@@ -423,12 +422,12 @@ class IsisWorld(DirectObject):
         if not self.physicsManager.paused:
             self.physicsManager.togglePaused()
         self.server.stop()
-        self.server_thread.join()
+        #self.server_thread.join()
         sys.exit()
     
     def __exit__(self):
         self.server.stop()
-        self.server_thread.join()
+        #self.server_thread.join()
         sys.exit()
 
 iw = IsisWorld()

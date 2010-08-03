@@ -59,9 +59,9 @@ class Ralph(DirectObject.DirectObject):
         DirectObject.DirectObject.__init__(self) 
         self.agent_simulator = agentSimulator
         self.physicsManager = physicsManager    
-        x = random.randint(0,10)
-        y = random.randint(0,10)
-        z = random.randint(12,25)
+        #x = random.randint(0,10)
+        #y = random.randint(0,10)
+        #z = random.randint(12,25)
         #self.actorNodePath.setFluidPos(Vec3(x,y,z))
         
         self.setupCollisionSpheres()
@@ -72,14 +72,14 @@ class Ralph(DirectObject.DirectObject):
         # Expose agent's right hand joint to attach objects to
         self.player_right_hand = self.actor.exposeJoint(None, 'modelRoot', 'Hand.R')
         self.player_left_hand  = self.actor.exposeJoint(None, 'modelRoot', 'Hand.L')
-        if 0: #name == "Lauren":
-            toaster = loader.loadModel("media/models/toaster")
-            toaster.setScale(0.7)
-            toaster.setPos(0,0,0)
-            toaster.reparentTo(self.player_right_hand)
-            toaster.setPos(Vec3(.2,0,.6))
-            toaster.place()
 
+        #if name == "Lauren":
+        #    toaster = loader.loadModel("media/models/toaster")
+        #    toaster.setScale(0.7)
+        #    toaster.setPos(0,0,0)
+        #    toaster.reparentTo(self.player_right_hand)
+        #    toaster.setPos(Vec3(.2,0,.6))
+        #    toaster.place()
         #toaster.setPos(1,0.4,0)
 
 
@@ -90,6 +90,9 @@ class Ralph(DirectObject.DirectObject):
 
         self.controlMap = {"turn_left":0, "turn_right":0, "move_forward":0, "move_backward":0, "move_right":0, "move_left":0,\
                            "look_up":0, "look_down":0, "look_left":0, "look_right":0, "jump":0}
+        # see update method for uses, indices are [turn left, turn right, move_forward, move_back, move_right, move_left]
+        # turns are in degrees per second, moves are in units per second
+        self.speeds = [270, 270, 5, 5, 5, 5]
 
         self.originalPos = self.actor.getPos()
 
@@ -208,54 +211,66 @@ class Ralph(DirectObject.DirectObject):
         """ Gets objects through ray tracing.  Slow"""
         return self.picker.getObjectsInView()
             
-    def control__turn_left__start(self):
+    def control__turn_left__start(self, speed=None):
         self.setControl("turn_left",  1)
         self.setControl("turn_right", 0)
+        if speed:
+            self.speeds[0] = speed
         return "success"
 
     def control__turn_left__stop(self):
         self.setControl("turn_left",  0)
         return "success"
 
-    def control__turn_right__start(self):
+    def control__turn_right__start(self, speed=None):
         self.setControl("turn_left",  0)
         self.setControl("turn_right", 1)
+        if speed:
+            self.speeds[1] = speed
         return "success"
 
     def control__turn_right__stop(self):
         self.setControl("turn_right", 0)
         return "success"
 
-    def control__move_forward__start(self):
+    def control__move_forward__start(self, speed=None):
         self.setControl("move_forward",  1)
         self.setControl("move_backward", 0)
+        if speed:
+            self.speeds[2] = speed
         return "success"
 
     def control__move_forward__stop(self):
         self.setControl("move_forward",  0)
         return "success"
 
-    def control__move_backward__start(self):
+    def control__move_backward__start(self, speed=None):
         self.setControl("move_forward",  0)
         self.setControl("move_backward", 1)
+        if speed:
+            self.speeds[3] = speed
         return "success"
 
     def control__move_backward__stop(self):
         self.setControl("move_backward", 0)
         return "success"
 
-    def control__move_left__start(self):
+    def control__move_left__start(self, speed=None):
         self.setControl("move_left",  1)
         self.setControl("move_right", 0)
+        if speed:
+            self.speeds[4] = speed
         return "success"
 
     def control__move_left__stop(self):
         self.setControl("move_left",  0)
         return "success"
 
-    def control__move_right__start(self):
+    def control__move_right__start(self, speed=None):
         self.setControl("move_right",  1)
         self.setControl("move_left", 0)
+        if speed:
+            self.speeds[5] = speed
         return "success"
 
     def control__move_right__stop(self):
@@ -616,22 +631,21 @@ class Ralph(DirectObject.DirectObject):
 
 
     def update(self, stepSize=0.1):
-        moveAtSpeed = 1.0
+        self.speedvec = [0.0, 0.0]
 
-        self.speed = [0.0, 0.0]
+        # the values in self.speeds are used as coefficientes for turns and movements
+        if (self.controlMap["turn_left"]!=0):        self.actorNodePath.setH(self.actorNodePath.getH() + stepSize*self.speeds[0])
+        if (self.controlMap["turn_right"]!=0):       self.actorNodePath.setH(self.actorNodePath.getH() - stepSize*self.speeds[1])
+        if (self.controlMap["move_forward"]!=0):     self.speedvec[1] =  self.speeds[2]
+        if (self.controlMap["move_backward"]!=0):    self.speedvec[1] = -self.speeds[3]
+        if (self.controlMap["move_left"]!=0):        self.speedvec[0] = -self.speeds[4]
+        if (self.controlMap["move_right"]!=0):       self.speedvec[0] =  self.speeds[5]
+        if (self.controlMap["look_left"]!=0):        self.neck.setR(bound(self.neck.getR(),-60,60)+stepSize*80)
+        if (self.controlMap["look_right"]!=0):       self.neck.setR(bound(self.neck.getR(),-60,60)-stepSize*80)
+        if (self.controlMap["look_up"]!=0):          self.neck.setP(bound(self.neck.getP(),-60,80)+stepSize*80)
+        if (self.controlMap["look_down"]!=0):        self.neck.setP(bound(self.neck.getP(),-60,80)-stepSize*80)
 
-        if (self.controlMap["turn_left"]!=0):        self.actorNodePath.setH(self.actorNodePath.getH() + stepSize*20)
-        if (self.controlMap["turn_right"]!=0):       self.actorNodePath.setH(self.actorNodePath.getH() - stepSize*20)
-        if (self.controlMap["move_forward"]!=0):     self.speed[1] =  moveAtSpeed
-        if (self.controlMap["move_backward"]!=0):    self.speed[1] = -moveAtSpeed
-        if (self.controlMap["move_left"]!=0):        self.speed[0] = -moveAtSpeed
-        if (self.controlMap["move_right"]!=0):       self.speed[0] =  moveAtSpeed
-        if (self.controlMap["look_left"]!=0):        self.neck.setR(bound(self.neck.getR(),-60,60)+1*(stepSize*20))
-        if (self.controlMap["look_right"]!=0):       self.neck.setR(bound(self.neck.getR(),-60,60)-1*(stepSize*20))
-        if (self.controlMap["look_up"]!=0):          self.neck.setP(bound(self.neck.getP(),-60,80)+1*(stepSize*20))
-        if (self.controlMap["look_down"]!=0):        self.neck.setP(bound(self.neck.getP(),-60,80)-1*(stepSize*20))
-
-        speedVec = Vec3(self.speed[0]*stepSize, self.speed[1]*stepSize, 0)
+        speedVec = Vec3(self.speedvec[0]*stepSize, self.speedvec[1]*stepSize, 0)
         quat = self.actor.getQuat(render)
         # xform applies rotation to the speedVector
         speedVec = quat.xform(speedVec)

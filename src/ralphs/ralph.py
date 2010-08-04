@@ -110,9 +110,12 @@ class Ralph(DirectObject.DirectObject):
         self.speech_bubble.setColorScaleOff()
         self.speech_bubble.component('text0').textNode.setCardDecal(1)
         self.speech_bubble.setBillboardAxis()
+        # hide the speech bubble from Ralph's own camera
+        self.speech_bubble.hide(BitMask32.bit(1))
         
         # put a camera on ralph
         self.fov = NodePath(Camera('RaphViz'))
+        self.fov.node().setCameraMask(BitMask32.bit(1))
         
         # position the camera to be infront of Boxman's face.
         self.fov.reparentTo(self.player_head)

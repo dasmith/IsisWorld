@@ -32,5 +32,5 @@ def test_move(time, speed = 10):
     p = sense()
     return ((p['position']['body_x']-x)**2+(p['position']['body_y']-y)**2)**.5
 
-print test_turn(36, 10)
-print test_move(1, 1)
+print test_turn(1, 10)
+print test_move(10, 1)

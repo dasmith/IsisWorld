@@ -16,7 +16,7 @@ from panda3d.core import loadPrcFile, loadPrcFileData, ExecutionEnvironment, Fil
 from direct.gui.OnscreenText import OnscreenText
 from direct.task import Task, TaskManagerGlobal
 from direct.filter.CommonFilters import CommonFilters 
-from direct.gui.DirectGui import DirectEntry, DirectButton
+from direct.gui.DirectGui import *#DirectEntry, DirectButton, DirectOptionMenu
 from pandac.PandaModules import * # TODO: specialize this import
 
 
@@ -31,6 +31,7 @@ from src.loader import *
 from src.isis_objects.layout_manager import HorizontalGridLayout
 from src.lights.skydome2 import *
 from src.actions.actions import *
+from src.isis_scenario import *
 from time import ctime
 import sys, os
 
@@ -52,7 +53,9 @@ class IsisWorld(DirectObject):
         self._setupAgents()
         self._setupLights()
         self._setupCameras()
+        self._loadScenarioFiles()
         self._setupActions()
+        
         self.devConsole = DeveloperConsole()            
         self._textObjectVisible = True
         self._inspectState = False
@@ -245,6 +248,41 @@ class IsisWorld(DirectObject):
             self.agents.append(newAgent)
         self.agents.sort(key=lambda x:self.agentsNamesToIDs[x.name])
 
+    def _loadScenarioFiles(self):
+        """ Loads all of the Scenario definitions from the scenario/ directory. """
+        # load files in the scenario directory
+        self.scenarioFiles = ["Scenarios:"]
+        self.scenarioTasks = ["Tasks:"]
+        for scenarioPath in os.listdir("scenarios"):
+            print "path ", scenarioPath, scenarioPath[:-3]
+            if scenarioPath[-3:] == ".py":
+                scenarioFile = scenarioPath[scenarioPath.rfind("/")+1:-3]
+                self.scenarioFiles.append(scenarioFile)
+                print "Loading scenario file", scenarioFile
+        
+        # display GUI for navigating tasks
+        #textObj = OnscreenText(text = "Scenarios:", pos = (1,0.9), scale = 0.05,fg=(1,0.5,0.5,1),align=TextNode.ALeft,mayChange=1)
+        print "Scenario Files", self.scenarioFiles
+        self.menuScenarioOptions = DirectOptionMenu(text="Scenarios:", scale=0.06, items=self.scenarioFiles,textMayChange=1, highlightColor=(0.65,0.65,0.65,1),command=self.loadScenario)
+        self.menuScenarioOptions.setPos(1,0,0.9)
+        
+        self.menuTaskOptions = DirectOptionMenu(text="Tasks:", scale=0.06, items=self.scenarioTasks,textMayChange=1, highlightColor=(0.65,0.65,0.65,1),command=self.loadTask)
+        self.menuTaskOptions.setPos(1,0,0.8)
+        
+        #self.menuResetTaskButton = DirectButton(text = "Restart", pos=(.95,0,0.80), scale=0.05)
+        #self.menuResetTaskButton = DirectButton(text = "R", pos=(1,0,0.84), scale=0.05)
+        
+    def loadScenario(self,arg):
+        if self.scenarioFiles.index(arg) == 0: return
+        self.currentScenario = IsisScenario(arg)
+        newMenu =  self.currentScenario.getTasks()
+        self.menuTaskOptions['items'] = newMenu
+        print "tasks:", self.scenarioTasks
+        # display options on the screen
+        
+    def loadTask(self,arg):
+        print "Task Selected"
+
     def _setupActions(self):
         """ Initializes commands that are related to the XML-Server and
         the keyboard bindings """
@@ -320,6 +358,8 @@ class IsisWorld(DirectObject):
                 wordwrap = 15,
         )
 
+        
+
         def changeAgent():
             if (self.agentNum == (len(self.agents)-1)):
                 self.agentNum = 0
@@ -327,18 +367,6 @@ class IsisWorld(DirectObject):
             else:
                 self.agentNum += 1
             self._setupCameras()
-        # Accept some keys to move the camera.
-        
-        #self.accept("a-up", self.floatingCamera.setControl, ["right", 0])
-        #self.accept("a",    self.floatingCamera.setControl, ["right", 1])
-        #self.accept("s-up", self.floatingCamera.setControl, ["left",  0])
-        #self.accept("s",    self.floatingCamera.setControl, ["left",  1])
-        #self.accept("d",    self.floatingCamera.setControl, ["zoom-in",  1])
-        #self.accept("d-up", self.floatingCamera.setControl, ["zoom-in",  0])
-        #self.accept("f",    self.floatingCamera.setControl, ["zoom-out",  1])
-        #self.accept("f-up", self.floatingCamera.setControl, ["zoom-out",  0])
-        #if self.is_ralph == True:
-        # control keys to move the character
 
         b = DirectButton(pos=(-1.3,0.0,-0.95),text = ("Inspect", "click!", "rolling over", "disabled"), scale=0.05, command = self.toggleInspect)
         #base.accept("o", toggleInstructionsWindow)

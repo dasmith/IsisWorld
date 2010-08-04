@@ -57,8 +57,10 @@ class IsisCommandHandler(object):
             if args.has_key('seconds'):
                 seconds = args['seconds']
             self.simulator.physicsManager.stepSimulation(seconds)
+            time.sleep(seconds)
             # dont accept new commands until this has stepped
-            while self.simulator.physicsManager.stepping:   time.sleep(0.00001)
+            while self.simulator.physicsManager.stepping:   self.closed = True
+            self.closed = False#time.sleep(0.00001)
             return 'success'            
         elif cmd == 'step_simulation':
             print "WARNING, the step_simulation command will soon be deprecated. use 'meta_step' instead"
@@ -67,7 +69,8 @@ class IsisCommandHandler(object):
                 seconds = args['seconds']
             self.simulator.physicsManager.stepSimulation(seconds)
             # dont accept new commands until this has stepped
-            while self.simulator.physicsManager.stepping:   time.sleep(0.00001)
+            while self.simulator.physicsManager.stepping:  self.closed = True
+            self.closed = False
             return 'success'
         elif cmd == 'meta_pause':
             self.simulator.physicsManager.pause()

@@ -72,7 +72,7 @@ class PhysicsWorldManager(DirectObject.DirectObject):
         # this tracks the velocity of moving objects, whereas CollisionHandlerFloor doesnt
         self.cFloor = CollisionHandlerGravity()
         # gravity should be -9.81m/s, but that doesn't quite work
-        self.cFloor.setGravity(9.81*50)
+        self.cFloor.setGravity(9.81*10)
         #self.cFloor.setOffset(.2)
         self.cFloor.setMaxVelocity(1)
 
@@ -185,14 +185,14 @@ class PhysicsWorldManager(DirectObject.DirectObject):
 
     def togglePaused(self,stepTime=None):
         if self.paused: 
-            #self._GlobalClock.setMode(ClockObject.MNormal) 
+            self._GlobalClock.setMode(ClockObject.MNormal) 
             #base.enableParticles()
             #base.particleMgrEnabled = 0 
             print "[IsisWorld] Resuming Simulator"
             self._startPhysics(stepTime)
         else:
             self._stopPhysics()
-            #self._GlobalClock.setMode(ClockObject.MSlave)
+            self._GlobalClock.setMode(ClockObject.MSlave)
         # only untoggle bit if pause is called, not step
         if stepTime == None:
             self.paused = not self.paused

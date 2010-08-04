@@ -18,5 +18,5 @@ class isisworld(p3d):
 
     # Pull in the python files
     file("main.py")
-    mainModule("main")
+    #mainModule("main")
 

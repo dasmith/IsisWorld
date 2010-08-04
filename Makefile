@@ -12,7 +12,7 @@ clean:
 	rm -rf **/*.pyc *.pyo; **/*.pyo
 
 package: main.py
-	packpanda -i build isisworld.pdef
+	cd ..; packpanda --dir IsisWorld
 
 panda: *.p3d
 	rm *.p3d
@@ -28,7 +28,7 @@ install: package
 	pdeploy -n isis_world -N "IsisWorld v$(SIM_VERSION)"  -l "GPL v3" -P osx_i386 -L COPYING -t width=800 -t height=600  -v $(SIM_VERSION)  -s isis_world.p3d installer 
 
 mac2:
-	packp3d -o isis_world.p3d  -d . -r ode -r morepy -e isis -e isis
+	packp3d -o isis_world.p3d  -d . -r morepy -e isis -e isis
 	pdeploy -N "IsisWorld" -v 0.5 isis_world.p3d installer
 
 mac:

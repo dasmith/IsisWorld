@@ -1,4 +1,4 @@
-#!/usr/bin/env ppackage
+#!/usr/bin/env packpanda
 
 from panda3d.core import loadPrcFile
 

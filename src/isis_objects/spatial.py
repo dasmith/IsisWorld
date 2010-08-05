@@ -32,7 +32,6 @@ class IsisSpatial(object):
 
         self.weight = None
         #self.containerItems = []
-        self.isOpen = False
         if not hasattr(self,'density'):
             self.density = 1
 
@@ -222,11 +221,6 @@ class Container(IsisSpatial):
 
     def isEmpty(self):
         return len(self.containerItems) == 0
-
-    def open(self):
-        if self.isOpen:
-            # container already open 
-            return True
 
     def action__put_in(self, agent, obj):
         # TODO: ensure that object can fit in other object

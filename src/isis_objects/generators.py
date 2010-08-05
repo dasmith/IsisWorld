@@ -31,12 +31,12 @@ class fridge(IsisObject, IsisVisual, Container, NoPickup):
         self.model={'default':"Fridge/Fridge"}
         self.scale=0.17
         self.density = 4000
-        self.state = "closed"
+        self.registerState("openState", "closed")
 
         IsisObject.__init__(self)
 
         self.in_layout = SlotLayout([(0, 0, .5), (0, 0, 1),(0, 0, 1.5)])
-        
+
     def setup(self):
         fd = self.activeModel.find("**/freezerDoor*")
         fd.setPos(-.56, .6, 1.65)
@@ -44,22 +44,19 @@ class fridge(IsisObject, IsisVisual, Container, NoPickup):
         self.door.setPos(-0.56, .6, .72)
         self.setH(0)
 
-    def setState(self,state):
-        self.state = state
-
     def action__open(self, agent, directobj):
         print "Select method called"
-        if self.state == "closed":
+        if self.retrieveState("openState") == "closed":
             Sequence(
-                Func(self.setState, "opening"),
+                Func(self.registerState, "openState", "opening"),
                 LerpPosHprInterval(self.door, 0.5, Vec3(.45, 2.4, .72), Vec3(-90, 0, 0)),
-                Func(self.setState, "opened"),
+                Func(self.registerState, "openState", "opened")
             ).start()
-        elif self.state == "opened":
+        elif self.retrieveState("openState") == "opened":
             Sequence(
-                Func(self.setState, "closing"),
+                Func(self.registerState, "openState", "closing"),
                 LerpPosHprInterval(self.door, 0.5, Vec3(-.56, .6, .72), Vec3(0, 0, 0)),
-                Func(self.setState, "closed"),
+                Func(self.registerState, "openState", "closed")
             ).start()
 
 
@@ -100,7 +97,7 @@ class toaster(IsisObject, IsisVisual, Container, Cooker):
 
 class bread(IsisObject, IsisVisual, Container, Cookable):
 
-    def  __init__(self, physics): 
+    def  __init__(self, physics):
         # store pointer to world manager
         self.physics = physics
 
@@ -129,6 +126,3 @@ class loaf( IsisObject, IsisVisual, IsisSpatial, Dividable):
         self.piece = bread
         self.density =1000
         IsisObject.__init__(self)
-        
-        
-        

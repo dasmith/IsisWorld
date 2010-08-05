@@ -13,24 +13,45 @@ def do(command, args = None):
     if not args:
         args = {}
     args['agent'] = 'Ralph'
-    e.do(command, args)
+    return e.do(command, args)
 
-def test_turn(time, speed = 360):
-    h = sense()['position']['body_h']
-    do('turn_left-start', {'speed':speed})
-    step(time)
-    do('turn_left-stop')
-    return sense()['position']['body_h']-h
 
-def test_move(time, speed = 10):
+p = None
+fridge = None
+do('turn_right-start', {'speed':180})
+while fridge == None:
+    step(.1)
     p = sense()
-    x = p['position']['body_x']
-    y = p['position']['body_y']
-    do('move_forward-start', {'speed':speed})
-    step(time)
-    do('move_forward-stop')
-    p = sense()
-    return ((p['position']['body_x']-x)**2+(p['position']['body_y']-y)**2)**.5
+    for obj in p['objects'].keys():
+        if obj.find("fridge") > -1:
+            fridge = obj
+            break
 
-print test_turn(1, 10)
-print test_move(10, 1)
+turn = 'turn_right'
+if p['objects'][fridge]['x_pos'] < 0:
+    turn = 'turn_left'
+do(turn+'-start', {'speed':10})
+
+while abs(p['objects'][fridge]['x_pos']) > .1:
+    step(.1)
+    p = sense()
+
+do(turn+'-stop')
+while p['objects'][fridge]['distance'] > 4:
+    do('move_forward-start', {'speed':(p['objects'][fridge]['distance']-3)})
+    if p['objects'][fridge]['y_pos'] > .75:
+        turn = 'look_up'
+        do(turn+'-start', {'speed':15})
+    elif p['objects'][fridge]['y_pos'] < .45:
+        turn = 'look_down'
+        do(turn+'-start', {'speed':15})
+    else:
+        do(turn+'-stop')
+    step(.02)
+    p = sense()
+do(turn+'-stop')
+do('move_forward-stop')
+
+do('use_right_hand', {'target':'fridge', 'action':'open'})
+step(.5)
+print do('pick_up_with_right_hand', {'target':'loaf'})

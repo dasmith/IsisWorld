@@ -90,9 +90,9 @@ class Ralph(DirectObject.DirectObject):
 
         self.controlMap = {"turn_left":0, "turn_right":0, "move_forward":0, "move_backward":0, "move_right":0, "move_left":0,\
                            "look_up":0, "look_down":0, "look_left":0, "look_right":0, "jump":0}
-        # see update method for uses, indices are [turn left, turn right, move_forward, move_back, move_right, move_left]
+        # see update method for uses, indices are [turn left, turn right, move_forward, move_back, move_right, move_left, look_up, look_down, look_right, look_left]
         # turns are in degrees per second, moves are in units per second
-        self.speeds = [270, 270, 5, 5, 5, 5]
+        self.speeds = [270, 270, 5, 5, 5, 5, 60, 60, 60, 60]
 
         self.originalPos = self.actor.getPos()
 
@@ -280,36 +280,44 @@ class Ralph(DirectObject.DirectObject):
         self.setControl("move_right",  0)
         return "success"
 
-    def control__look_left__start(self):
+    def control__look_left__start(self, speed=None):
         self.setControl("look_left",  1)
         self.setControl("look_right", 0)
+        if speed:
+            self.speeds[9] = speed
         return "success"
 
     def control__look_left__stop(self):
         self.setControl("look_left",  0)
         return "success"
 
-    def control__look_right__start(self):
+    def control__look_right__start(self, speed=None):
         self.setControl("look_right",  1)
         self.setControl("look_left", 0)
+        if speed:
+            self.speeds[8] = speed
         return "success"
 
     def control__look_right__stop(self):
         self.setControl("look_right",  0)
         return "success"
 
-    def control__look_up__start(self):
+    def control__look_up__start(self, speed=None):
         self.setControl("look_up",  1)
         self.setControl("look_down", 0)
+        if speed:
+            self.speeds[6] = speed
         return "success"
 
     def control__look_up__stop(self):
         self.setControl("look_up",  0)
         return "success"
 
-    def control__look_down__start(self):
+    def control__look_down__start(self, speed=None):
         self.setControl("look_down",  1)
         self.setControl("look_up",  0)
+        if speed:
+            self.speeds[7] = speed
         return "success"
 
     def control__look_down__stop(self):
@@ -461,7 +469,7 @@ class Ralph(DirectObject.DirectObject):
             else:
                 target = target[0]
         else:
-            target = render.find("**/*" + target + "*")
+            target = render.find("**/*" + target + "*").getPythonTag('isisobj')
         if self.can_grasp(target):
             if(target.call(self, action, self.right_hand_holding_object) or
               (self.right_hand_holding_object and self.right_hand_holding_object.call(self, action, target))):
@@ -483,7 +491,7 @@ class Ralph(DirectObject.DirectObject):
             else:
                 target = target[0]
         else:
-            target = render.find("**/*" + target + "*")
+            target = render.find("**/*" + target + "*").getPythonTag('isisobj')
         if self.can_grasp(target):
             target.call(self, action, self.left_hand_holding_object)
             return "success"
@@ -643,10 +651,10 @@ class Ralph(DirectObject.DirectObject):
         if (self.controlMap["move_backward"]!=0):    self.speedvec[1] = -self.speeds[3]
         if (self.controlMap["move_left"]!=0):        self.speedvec[0] = -self.speeds[4]
         if (self.controlMap["move_right"]!=0):       self.speedvec[0] =  self.speeds[5]
-        if (self.controlMap["look_left"]!=0):        self.neck.setR(bound(self.neck.getR(),-60,60)+stepSize*80)
-        if (self.controlMap["look_right"]!=0):       self.neck.setR(bound(self.neck.getR(),-60,60)-stepSize*80)
-        if (self.controlMap["look_up"]!=0):          self.neck.setP(bound(self.neck.getP(),-60,80)+stepSize*80)
-        if (self.controlMap["look_down"]!=0):        self.neck.setP(bound(self.neck.getP(),-60,80)-stepSize*80)
+        if (self.controlMap["look_left"]!=0):        self.neck.setR(bound(self.neck.getR(),-60,60)+stepSize*self.speeds[9])
+        if (self.controlMap["look_right"]!=0):       self.neck.setR(bound(self.neck.getR(),-60,60)-stepSize*self.speeds[8])
+        if (self.controlMap["look_up"]!=0):          self.neck.setP(bound(self.neck.getP(),-60,80)+stepSize*self.speeds[6])
+        if (self.controlMap["look_down"]!=0):        self.neck.setP(bound(self.neck.getP(),-60,80)-stepSize*self.speeds[7])
 
         speedVec = Vec3(self.speedvec[0]*stepSize, self.speedvec[1]*stepSize, 0)
         quat = self.actor.getQuat(render)

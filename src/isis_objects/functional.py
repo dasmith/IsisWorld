@@ -23,8 +23,9 @@ class IsisFunctional():
         """ This is the dispatcher for the action methods """
         try:
             return getattr(self, "action__"+action)(agent, dobject)
-        except AttributeError:
-            # TODO: issue isisworld message
+        except AttributeError as e:
+            print e
+            print "Error: object has no method action__"+action
             return None
 
     ## register actions that are enabled by default in all objects

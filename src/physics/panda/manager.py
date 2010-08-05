@@ -180,9 +180,12 @@ class PhysicsWorldManager(DirectObject.DirectObject):
     def resume(self,stepTime=None):
         if self.paused: 
             #self._GlobalClock.setMode(ClockObject.MNormal) 
-            print "[IsisWorld] Restarting Simulator"
             self._startPhysics(stepTime)
-            self.paused = False
+            if stepTime == None:
+                print "[IsisWorld] Restarting Simulator"
+                self.paused = False
+            else:
+                print "[IsisWorld] Stepping Simulator"
 
     def togglePaused(self,stepTime=None):
         if self.paused:

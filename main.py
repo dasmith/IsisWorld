@@ -64,6 +64,10 @@ class IsisWorld(DirectObject):
         self.toggleInstructionsWindow()
         #self.server_thread.start()
         base.exitFunc = self.exit
+        
+    
+    def scenarioSelectionWindow(self):
+        pass
 
     def _setupEnvironment(self,debug=False):
         """  Stuff that's too ugly to put anywhere else. """
@@ -73,6 +77,11 @@ class IsisWorld(DirectObject):
         base.camLens.setFov(75)
         base.camLens.setNear(0.1)
         base.disableMouse()
+        # load a nicer font
+        self.fonts = {'bold': base.loader.loadFont('media/fonts/DroidSans-Bold.ttf'), \
+                       'mono': base.loader.loadFont('media/fonts/DroidSansMono.ttf'),\
+                       'normal': base.loader.loadFont('media/fonts/DroidSans.ttf')}
+        
         # subnode to hang all objects on
         self.objRender = base.render.attachNewNode(PandaNode('isisObjects'))
         # debugging stuff
@@ -252,7 +261,7 @@ class IsisWorld(DirectObject):
         """ Loads all of the Scenario definitions from the scenario/ directory. """
         # load files in the scenario directory
         self.scenarioFiles = ["Scenarios:"]
-        self.scenarioTasks = ["Tasks:"]
+        self.scenarioTasks = []
         for scenarioPath in os.listdir("scenarios"):
             print "path ", scenarioPath, scenarioPath[:-3]
             if scenarioPath[-3:] == ".py":
@@ -263,25 +272,41 @@ class IsisWorld(DirectObject):
         # display GUI for navigating tasks
         #textObj = OnscreenText(text = "Scenarios:", pos = (1,0.9), scale = 0.05,fg=(1,0.5,0.5,1),align=TextNode.ALeft,mayChange=1)
         print "Scenario Files", self.scenarioFiles
-        self.menuScenarioOptions = DirectOptionMenu(text="Scenarios:", scale=0.06, items=self.scenarioFiles,textMayChange=1, highlightColor=(0.65,0.65,0.65,1),command=self.loadScenario)
-        self.menuScenarioOptions.setPos(1,0,0.9)
+        self.menuScenarioOptions = DirectOptionMenu(text='Scenarios:', text_font=self.fonts['normal'],  item_text_font=self.fonts['normal'], scale=0.06, items=self.scenarioFiles,textMayChange=1, highlightColor=(0.65,0.65,0.65,1),command=self.loadScenario)
+        self.menuScenarioOptions.setPos(-1,0,0.9)
         
-        self.menuTaskOptions = DirectOptionMenu(text="Tasks:", scale=0.06, items=self.scenarioTasks,textMayChange=1, highlightColor=(0.65,0.65,0.65,1),command=self.loadTask)
-        self.menuTaskOptions.setPos(1,0,0.8)
+        self.menuTaskOptions = DirectOptionMenu(text="Tasks:", text_font=self.fonts['normal'], scale=0.06, items=self.scenarioTasks,textMayChange=1, highlightColor=(0.65,0.65,0.65,1),command=self.loadTask)
+        #self.menuTaskOptions.setPos(-1,0,0.8)
         
-        #self.menuResetTaskButton = DirectButton(text = "Restart", pos=(.95,0,0.80), scale=0.05)
-        #self.menuResetTaskButton = DirectButton(text = "R", pos=(1,0,0.84), scale=0.05)
+        self.menuTrainButton = DirectButton(text = "Train", scale=0.10, text_font=self.fonts['normal'])
+        self.menuTestButton = DirectButton(text = "Test", scale=0.10, text_font=self.fonts['normal'])
+        self.menuStartPauseButton = DirectButton(text = ("Start", "Pause"), scale=0.10, text_font=self.fonts['normal'])
+        self.menuTrainButton.hide()
+        self.menuTestButton.hide()
+        self.menuStartPauseButton.hide()
         
     def loadScenario(self,arg):
-        if self.scenarioFiles.index(arg) == 0: return
+        if self.scenarioFiles.index(arg) == 0: 
+            self.menuTaskOptions.hide()
+            return
         self.currentScenario = IsisScenario(arg)
+
         newMenu =  self.currentScenario.getTasks()
         self.menuTaskOptions['items'] = newMenu
+        # oddly, you cannot initialize with a font if there are no items in the menu
+        self.menuTaskOptions['item_text_font']=self.fonts['normal']
+        self.menuTaskOptions.show()
+        self.menuTaskOptions.setPos(self.menuScenarioOptions, Vec3(7,0,0))
         print "tasks:", self.scenarioTasks
         # display options on the screen
         
     def loadTask(self,arg):
-        print "Task Selected"
+        self.menuTrainButton.setPos(self.menuTaskOptions, Vec3(6,0,0))
+        self.menuTrainButton.show()
+        self.menuTestButton.setPos(self.menuTrainButton, Vec3(2,0,0))
+        self.menuTestButton.show()
+        self.menuStartPauseButton.setPos(self.menuTestButton, Vec3(3,0,0))
+        self.menuStartPauseButton.show()
 
     def _setupActions(self):
         """ Initializes commands that are related to the XML-Server and
@@ -400,12 +425,6 @@ class IsisWorld(DirectObject):
             else:
                 self.agents[self.agentNum].msg = None
                 return
-            if message.split()[0] == "goal":
-                self.agents[self.agentNum].control__say_goal(' '.join(message.split()[1:]))
-            elif message.split()[0] == "meta":
-                self.agents[self.agentNum].control__say_meta(' '.join(message.split()[1:]))
-            elif message.split()[0] == "say":
-                self.agents[self.agentNum].control__say(' '.join(message.split()[1:]))
             x.teacher_utterances.append(message)
             x.command_box.enterText("")
 

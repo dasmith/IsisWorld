@@ -106,12 +106,14 @@ class IsisSpatial(object):
 
     def disableCollisions(self):
         print "Removing Collisions - Base"
-        self.floorRayNP.setFromCollideMask(BitMask32.allOff())
-        self.floorRayNP.setIntoCollideMask(BitMask32.allOff())
-        self.topSurfaceNP.setFromCollideMask(BitMask32.allOff())
-        self.topSurfaceNP.setIntoCollideMask(BitMask32.allOff())
-        self.fullBoxNP.setIntoCollideMask(BitMask32.allOff())
-        self.fullBoxNP.setFromCollideMask(BitMask32.allOff())
+        self.floorRayCN.setFromCollideMask(BitMask32.allOff())
+        self.floorRayCN.setIntoCollideMask(BitMask32.allOff())
+        self.topSurfaceCN.setFromCollideMask(BitMask32.allOff())
+        self.topSurfaceCN.setIntoCollideMask(BitMask32.allOff())
+        self.fullBoxCN.setIntoCollideMask(BitMask32.allOff())
+        self.fullBoxCN.setFromCollideMask(BitMask32.allOff())
+        self.fullSphereCN.setFromCollideMask(BitMask32.allOff())
+        self.fullSphereCN.setIntoCollideMask(BitMask32.allOff())
 
     def getWeight(self):
         """ Returns the weight of an object, based on its bounding box dimensions

@@ -52,8 +52,8 @@ class PhysicsWorldManager(DirectObject.DirectObject):
         self._GlobalClock=ClockObject.getGlobalClock() 
         globalClock.setMode(ClockObject.MLimited) 
         globalClock.setFrameRate(20)
-        #self._FrameTime=self._GlobalClock.getFrameTime() 
-        #self._GlobalClock.setRealTime(self._FrameTime) 
+        self._FrameTime=self._GlobalClock.getFrameTime() 
+        self._GlobalClock.setRealTime(self._FrameTime) 
         
                
         self.stepping = False
@@ -69,12 +69,14 @@ class PhysicsWorldManager(DirectObject.DirectObject):
         
         # the CollisionHandlerPusher is good for keeping items from going through walls
         self.cWall = CollisionHandlerFluidPusher()
+        self.cWall.setHorizontal(True)
         # this tracks the velocity of moving objects, whereas CollisionHandlerFloor doesnt
         self.cFloor = CollisionHandlerGravity()
         # gravity should be -9.81m/s, but that doesn't quite work
-        self.cFloor.setGravity(9.81*10)
-        #self.cFloor.setOffset(.2)
-        self.cFloor.setMaxVelocity(1)
+        self.cFloor.setGravity(100)
+        self.cFloor.setOffset(.2)
+        self.cFloor.setReach(3)
+        #self.cFloor.setMaxVelocity(1)
 
         # Initialize the handler.
         base.cEvent = CollisionHandlerEvent()
@@ -170,29 +172,21 @@ class PhysicsWorldManager(DirectObject.DirectObject):
  
     def pause(self):
          if not self.paused: 
-             self._stopPhysics()
              #self._GlobalClock.setMode(ClockObject.MSlave)
-             self.paused = True
+             print "[IsisWorld] Pausing Simulator"
+             self._stopPhysics()
 
     def resume(self):
         if self.paused: 
             #self._GlobalClock.setMode(ClockObject.MNormal) 
-            #base.enableParticles()
-            #base.particleMgrEnabled = 0 
-            print "[IsisWorld] Resuming Simulator"
-            self._startPhysics(None)
-            self.paused = False
+            print "[IsisWorld] Restarting Simulator"
+            self._startPhysics()
 
     def togglePaused(self,stepTime=None):
-        if self.paused: 
-            self._GlobalClock.setMode(ClockObject.MNormal) 
-            #base.enableParticles()
-            #base.particleMgrEnabled = 0 
-            print "[IsisWorld] Resuming Simulator"
-            self._startPhysics(stepTime)
+        if self.paused:
+            self.resume()
         else:
-            self._stopPhysics()
-            self._GlobalClock.setMode(ClockObject.MSlave)
+            self.pause()
         # only untoggle bit if pause is called, not step
         if stepTime == None:
             self.paused = not self.paused
@@ -201,15 +195,11 @@ class PhysicsWorldManager(DirectObject.DirectObject):
         dt = self._GlobalClock.getDt()
         for agent in self.agents:
             agent.update(dt) 
-
         return task.cont 
     
     def _stopPhysics(self,task=None):
-        print "[IsisWorld] Stopping Physical Simulator"
         taskMgr.remove("physics-SimulationTask")
         self.stepping = False
-        #base.disableParticles() 
-
 
     def _startPhysics(self, stopAt=None):
         if stopAt != None:

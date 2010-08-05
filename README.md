@@ -171,3 +171,6 @@ Here is a list of resources for developers that are getting started working with
   [Panda3d.org](http://panda3d.org) has a really good manual, though it doesn't have 100% coverage of all the features in the API.  Also [the Panda3D forum](http://Panda3d.org/phpbb2/) is very valuable resource.
 
 To learn about Git, Dustin recommends [GitHub's videos](http://learn.github.com).
+
+
+

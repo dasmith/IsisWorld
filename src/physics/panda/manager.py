@@ -166,7 +166,7 @@ class PhysicsWorldManager(DirectObject.DirectObject):
         
     def stepSimulation(self,stepTime=1):
         if self.paused:
-            self.togglePaused(stepTime)
+            self.resume(stepTime)
         else:
             print "Error, cannot step while simulator is running"
  
@@ -175,22 +175,21 @@ class PhysicsWorldManager(DirectObject.DirectObject):
              #self._GlobalClock.setMode(ClockObject.MSlave)
              print "[IsisWorld] Pausing Simulator"
              self._stopPhysics()
+             self.paused = True
 
-    def resume(self):
+    def resume(self,stepTime=None):
         if self.paused: 
             #self._GlobalClock.setMode(ClockObject.MNormal) 
             print "[IsisWorld] Restarting Simulator"
-            self._startPhysics()
+            self._startPhysics(stepTime)
+            self.paused = False
 
     def togglePaused(self,stepTime=None):
         if self.paused:
-            self.resume()
+            self.resume(stepTime)
         else:
             self.pause()
-        # only untoggle bit if pause is called, not step
-        if stepTime == None:
-            self.paused = not self.paused
-
+            
     def simulationTask(self, task):
         dt = self._GlobalClock.getDt()
         for agent in self.agents:
@@ -201,13 +200,13 @@ class PhysicsWorldManager(DirectObject.DirectObject):
         taskMgr.remove("physics-SimulationTask")
         self.stepping = False
 
-    def _startPhysics(self, stopAt=None):
-        if stopAt != None:
-            assert stopAt >= 0.01
+    def _startPhysics(self, stepTime=None):
+        if stepTime != None:
+            assert stepTime >= 0.01
             # Adujust for delays to better approximate the right stopping time
-            if stopAt >= .015:
-                stopAt -= .005
-            taskMgr.doMethodLater(stopAt, self._stopPhysics, "physics-SimulationStopper", priority=10)
+            if stepTime >= .015:
+                stepTime -= .005
+            taskMgr.doMethodLater(stepTime, self._stopPhysics, "physics-SimulationStopper", priority=10)
             # or can you
             self.stepping = True
         taskMgr.add(self.simulationTask, "physics-SimulationTask", priority=10)

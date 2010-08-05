@@ -276,11 +276,13 @@ class IsisWorld(DirectObject):
         self.menuScenarioOptions.setPos(-1,0,0.9)
         
         self.menuTaskOptions = DirectOptionMenu(text="Tasks:", text_font=self.fonts['normal'], scale=0.06, items=self.scenarioTasks,textMayChange=1, highlightColor=(0.65,0.65,0.65,1),command=self.loadTask)
-        #self.menuTaskOptions.setPos(-1,0,0.8)
+
         
-        self.menuTrainButton = DirectButton(text = "Train", scale=0.10, text_font=self.fonts['normal'])
-        self.menuTestButton = DirectButton(text = "Test", scale=0.10, text_font=self.fonts['normal'])
-        self.menuStartPauseButton = DirectButton(text = ("Start", "Pause"), scale=0.10, text_font=self.fonts['normal'])
+        self.menuTrainButton = DirectButton(text = "Train", scale=0.8, text_font=self.fonts['normal'])
+        self.menuTestButton = DirectButton(text = "Test", scale=0.8, text_font=self.fonts['normal'])
+        self.menuStartPauseButton = DirectButton(text = ("Start", "Pause"), scale=0.8, text_font=self.fonts['normal'])
+
+        self.menuTaskOptions.hide()
         self.menuTrainButton.hide()
         self.menuTestButton.hide()
         self.menuStartPauseButton.hide()
@@ -303,7 +305,7 @@ class IsisWorld(DirectObject):
     def loadTask(self,arg):
         self.menuTrainButton.setPos(self.menuTaskOptions, Vec3(6,0,0))
         self.menuTrainButton.show()
-        self.menuTestButton.setPos(self.menuTrainButton, Vec3(2,0,0))
+        self.menuTestButton.setPos(self.menuTrainButton, Vec3(3,0,0))
         self.menuTestButton.show()
         self.menuStartPauseButton.setPos(self.menuTestButton, Vec3(3,0,0))
         self.menuStartPauseButton.show()

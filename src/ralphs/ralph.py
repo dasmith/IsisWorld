@@ -493,16 +493,18 @@ class Ralph(DirectObject.DirectObject):
         else:
             target = render.find("**/*" + target + "*").getPythonTag('isisobj')
         if self.can_grasp(target):
-            target.call(self, action, self.left_hand_holding_object)
-            return "success"
+            if(target.call(self, action, self.left_hand_holding_object) or
+              (self.left_hand_holding_object and self.left_hand_holding_object.call(self, action, target))):
+                return "success"
+            return str(action) + " not associated with either target or object"
         return "target not within reach"
 
     def can_grasp(self, object):
         return object.getDistance(self.fov) < 5.0
 
     def is_holding(self, object_name):
-        return ((self.left_hand_holding_object  and (self.left_hand_holding_object.getName()  == object_name)) \
-             or (self.right_hand_holding_object and (self.right_hand_holding_object.getName() == object_name)))
+        return ((self.left_hand_holding_object  and (self.left_hand_holding_object.name  == object_name)) \
+             or (self.right_hand_holding_object and (self.right_hand_holding_object.name == object_name)))
 
     def empty_hand(self):
         if (self.left_hand_holding_object is False):

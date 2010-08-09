@@ -33,7 +33,7 @@ if p['objects'][fridge]['x_pos'] < 0:
 do(turn+'-start', {'speed':10})
 
 while abs(p['objects'][fridge]['x_pos']) > .1:
-    step(.1)
+    step(.075)
     p = sense()
 
 do(turn+'-stop')
@@ -52,6 +52,25 @@ while p['objects'][fridge]['distance'] > 4:
 do(turn+'-stop')
 do('move_forward-stop')
 
-do('use_right_hand', {'target':'fridge', 'action':'open'})
+do('use_right_hand', {'target':fridge, 'action':'open'})
 step(.5)
-print do('pick_up_with_right_hand', {'target':'loaf'})
+do('pick_up_with_right_hand', {'target':'loaf'})
+
+do('move_right-start')
+step(.4)
+do('move_right-stop')
+
+do('move_forward-start')
+step(.5)
+do('move_forward-stop')
+
+print do('use_right_hand', {'target':'table', 'action':'put_on'})
+step(.1)
+print do('pick_up_with_right_hand', {'target':'knife'})
+step(.1)
+print do('use_right_hand', {'target':'loaf', 'action':'divide'})
+step(.1)
+print do('use_left_hand', {'target':'toaster', 'action':'put_in'})
+step(.1)
+print do('use_right_hand', {'target':'toaster', 'action':'turn_on'})
+step(.1)

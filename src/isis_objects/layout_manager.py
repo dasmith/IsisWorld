@@ -8,6 +8,8 @@ class LayoutManager():
     def __init__(self):
         self.items = []
     def add(self, obj):
+        if not obj:
+            return
         self.items.append(obj)
         return (0, 0, 0)
     def remove(self, obj):
@@ -25,9 +27,9 @@ class HorizontalGridLayout(LayoutManager):
         self.maxh = 0
         self.padw = padw
         self.padh = padh
-
     def add(self, obj):
-        LayoutManager.add(self, obj)
+        if not LayoutManager.add(self, obj):
+            return
         ow = obj.getWidth()+self.padw*2
         oh = obj.getLength()+self.padh*2
         if self.px+ow > self.w:
@@ -50,7 +52,8 @@ class SlotLayout(LayoutManager):
         self.slots = slots
         self.map = {}
     def add(self, obj):
-        LayoutManager.add(self, obj)
+        if not LayoutManager.add(self, obj):
+            return
         for s in self.slots:
             if not s in self.map:
                 self.map[s] = obj

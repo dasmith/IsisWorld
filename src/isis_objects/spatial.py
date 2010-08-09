@@ -141,7 +141,7 @@ class Surface(IsisSpatial):
     def __init__(self):
         self.surfaceContacts = []
         IsisSpatial.__init__(self)
-        self.__setup = True
+        self.__setup = False
 
 
     def setup(self):
@@ -214,6 +214,7 @@ class Container(IsisSpatial):
     def enterContainer(self,fromObj):
         print "Entering container", self.name
         if fromObj not in self.containerItems:
+
             self.containerItems.append(fromObj)
 
     def leaveContainer(self,fromObj):

@@ -22,6 +22,7 @@ class IsisFunctional():
     def call(self, agent, action, dobject = None):
         """ This is the dispatcher for the action methods """
         try:
+            print self,action,dobject
             return getattr(self, "action__"+action)(agent, dobject)
         except AttributeError as e:
             print e
@@ -30,6 +31,8 @@ class IsisFunctional():
 
     ## register actions that are enabled by default in all objects
     def action__pick_up(self, agent, directobject):
+        if not directobject:
+            return "No object to pick up"
         if self.getNetTag('heldBy') == '':
             # this the thing is not current held, OK to pick up
             if self.layout:
@@ -45,6 +48,8 @@ class IsisFunctional():
             return "Error: already held by someone"
 
     def action__drop(self, agent, directobject):
+        if not directobject:
+            return "No object to drop"
         if self.getNetTag('heldBy') == agent.name:
             self.enableCollisions()
             self.wrtReparentTo(directobject)
@@ -72,19 +77,19 @@ class Dividable(IsisFunctional):
             print "Warning: no piece object defined for Dividable object", self.name
 
     def action__divide(self, agent, object):
-        if self.piece and object != None and hasattr(object, "action__cut"):
+        if object != None and hasattr(object, "action__cut"):
             if not agent.right_hand_holding_object:
                 # instantiate a new IsisObject
-                obj = self.piece("piece", self.physics)
+                obj = self.piece(self.physics)
                 obj.call(agent, "pick_up", agent.player_right_hand)
                 agent.right_hand_holding_object = obj
-                return "Success"
+                return "success"
             elif not agent.left_hand_holding_object:
-                obj = self.piece("piece", self.physics)
+                obj = self.piece(self.physics)
                 obj.call(agent, "pick_up", agent.player_left_hand)
                 agent.left_hand_holding_object = obj
-                return "Success"
-        return False
+                return "success"
+        return None
 
 
 class Cookable(IsisFunctional):
@@ -135,6 +140,7 @@ class Cooker(OnOffDevice):
     def action__turn_on(self, agent, object):
         OnOffDevice.action__turn_on(self, agent, object)
         taskMgr.doMethodLater(5, self.__timerDone, "Cooker Timer", extraArgs = [])
+        return "success"
 
     def __timerDone(self):
         self.cook(None, None)

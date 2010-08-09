@@ -36,7 +36,7 @@ class IsisObject(NodePath):
             self.setup()
 
     def getName(self):
-        return self.name
+        return self.name[11:]
         
     def getActiveModel(self):
         return self.activeModel

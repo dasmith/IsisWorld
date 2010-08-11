@@ -101,78 +101,7 @@ class IsisWorld(DirectObject):
         and a dome, the "sky" that sits concavely on the ground. """
          # setup physics
         self.physicsManager = PhysicsWorldManager()
-        
-        cm = CardMaker("ground")
-        groundTexture = loader.loadTexture("media/textures/env_ground.jpg")#os.path.join(self.rootDirectory,"media","textures","env_ground.jpg"))
-        cm.setFrame(-100, 100, -100, 100)
-        groundNP = render.attachNewNode(cm.generate())
-        groundNP.setCollideMask(BitMask32.allOff())
-        groundNP.setTexture(groundTexture)
-        groundNP.setPos(0, 0, 0)
-        groundNP.lookAt(0, 0, -1)
-        groundNP.setTransparency(TransparencyAttrib.MAlpha)
-        collPlane = CollisionPlane(Plane(Vec3(0, 0, 1), Point3(0, 0, 0)))
-        floorCollisionNP = base.render.attachNewNode(CollisionNode('collisionNode'))
-        floorCollisionNP.node().addSolid(collPlane)
-        # set the bits which items can collide into
-        floorCollisionNP.node().setIntoCollideMask(FLOORMASK)
-        floorCollisionNP.node().setFromCollideMask(FLOORMASK)
-
-        roomScale=35 
-        wallHeight=7
-        CM=CardMaker('')
-        import random
-        self._xmax = random.randint(6, 9)
-        self._ymax = random.randint(6, 9)
-        self.room=render.attachNewNode('')
-        # walls
-        CM.setFrame(-self._xmax,self._xmax,0,wallHeight)
-        self.room.attachNewNode(CM.generate()).setPosHpr(0, self._ymax, 0, 0, 0, 0)
-        self.room.attachNewNode(CM.generate()).setPosHpr(0, -self._ymax, 0, 180, 0, 0)
-        CM.setFrame(-self._ymax,self._ymax,0,wallHeight)
-        self.room.attachNewNode(CM.generate()).setPosHpr(self._xmax, 0, 0, -90, 0, 0)
-        self.room.attachNewNode(CM.generate()).setPosHpr(-self._xmax, 0, 0, 90, 0, 0) 
-        self.room.setCollideMask(WALLMASK)
-        floorTex=loader.loadTexture("media/maps/grid.rgb")#os.path.join(self.rootDirectory,"media","maps","grid.rgb"))
-        floorTex.setMinfilter(Texture.FTLinearMipmapLinear) 
-        floorTex.setMagfilter(Texture.FTLinearMipmapLinear) 
-        wallTex=loader.loadTexture("media/textures/concrete.jpg")#os.path.join(self.rootDirectory,"media","textures","concrete.jpg"))
-        wallTex.setMinfilter(Texture.FTLinearMipmapLinear) 
-        for wall in self.room.getChildrenAsList(): 
-            wall.setTexture(wallTex) 
-            wall.setTexScale(TextureStage.getDefault(),0.5,wallHeight*roomScale*10)
-        CM.setFrame(-self._xmax,self._xmax,-self._ymax,self._ymax) 
-        floor=render.attachNewNode(CM.generate()) 
-        floor.setTexture(floorTex)
-        floor.setTexScale(TextureStage.getDefault(),10,10,10)
-        floor.setP(-90)
-        floor.setZ(0.01)
-        self.room.setTransparency(TransparencyAttrib.MAlpha) 
-        self.room.setTwoSided(1) 
-        self.room.flattenLight() 
-
-        self.floorLayout = HorizontalGridLayout((2*self._xmax, 2*self._ymax), 0)
-        load_objects("kitchen.isis", self.objRender, self.physicsManager, layoutManager = self.floorLayout)
-
-        if False:
-            self.map = loader.loadModel("media/models/kitchen")#os.path.join(self.rootDirectory,"media","models","kitchen"))
-            self.map.reparentTo(render)
-            self.mapNode = self.map.find("-PandaNode")
-            self.room = self.mapNode.find("Wall")
-            self.room.flattenStrong()
-            self.room.setCollideMask(BitMask32.allOff())
-            # allow other items to collide INTO wallmask
-            self.room.node().setIntoCollideMask(WALLMASK)
-            """
-            Steps is yet another part of the map.
-            Meant, obviously, to demonstrate the ability to climb stairs.
-            """
-            self.steps = self.mapNode.find("Steps")
-
-            self.steps.flattenStrong()
-            self.steps.setCollideMask(BitMask32.allOff())
-            # allow other items to collide INTO wallmask
-            self.steps.node().setIntoCollideMask(WALLMASK|FLOORMASK)
+        load_objects("kitchen.isis", self.objRender, self.physicsManager, layoutManager = render)
         """
         Setup the skydome
         Moving clouds are pretty but computationally expensive 
@@ -278,9 +207,9 @@ class IsisWorld(DirectObject):
         self.menuTaskOptions = DirectOptionMenu(text="Tasks:", text_font=self.fonts['normal'], scale=0.06, items=self.scenarioTasks,textMayChange=1, highlightColor=(0.65,0.65,0.65,1),command=self.loadTask)
 
         
-        self.menuTrainButton = DirectButton(text = "Train", scale=0.8, text_font=self.fonts['normal'])
-        self.menuTestButton = DirectButton(text = "Test", scale=0.8, text_font=self.fonts['normal'])
-        self.menuStartPauseButton = DirectButton(text = ("Start", "Pause"), scale=0.8, text_font=self.fonts['normal'])
+        self.menuTrainButton = DirectButton(text = "Train", scale=0.08, text_font=self.fonts['normal'])
+        self.menuTestButton = DirectButton(text = "Test", scale=0.08, text_font=self.fonts['normal'])
+        self.menuStartPauseButton = DirectButton(text = ("Start", "Pause"), scale=0.08, text_font=self.fonts['normal'])
 
         self.menuTaskOptions.hide()
         self.menuTrainButton.hide()

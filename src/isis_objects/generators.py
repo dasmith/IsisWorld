@@ -6,6 +6,8 @@ from isisobject import IsisObject
 from layout_manager import SlotLayout
 
 from direct.interval.IntervalGlobal import *
+from random import *
+from kitchen import *
 
 
 class table(IsisObject,IsisVisual,Container,Surface,NoPickup):

@@ -1,22 +1,3 @@
-# Isis World Simulator
-
-The IsisWorld simulator is available to researchers for building and evaluating problem solving and language learning systems with everyday problems that take place in a kitchen.  We aim to use IsisWorld to simulate everyday commonsense reasoning problems that span many realms, such as the social, visual, kinesthetic, physical, spatial and mental. 
-
-What is a problem "realm"?  Consider the problem of *hailing a taxi*.  You could represent and reason about this problem in several different ways.
-
- 1. **Temporally**: Wait for a taxi. Maybe if you stay put, a taxi will drive by
- 2. **Spatially**:  Find a taxi. You must eliminate the distance between yourself and a taxi.
- 2. **Socially**: Call a taxi.  Communicate your position to a dispatching agent and an available taxi will come to you. 
-
-It is this resourcefulness---having many ways to solve a problem---that allows human problem solvers to flexibly adapt to many problem solving situations.  A system that lacks these abilities is *brittle*.
-
-Further, we are looking for test-bed to study the problems of meta-reasoning: where a super-level planning system reasons about the world of a sub-planning system.  Returning to a taxi example, we could consider the failure mode which causes a meta-level reasoner to step in and change the state of the planner.  For example, it could ask the system to *elevate* the problem description to pursue the parent goal:  *instead of "searching for a taxi" reconsider the problem as "traveling to your destination" and pursue other options: e.g., walking, train, asking a friend etc*.
-
- More detailed arguments about using a simulator for studying AI and the choice to use kitchen problem domain is explain in this paper:
-
-  * [An open source commonsense simulator for AI researchers](http://web.media.mit.edu/~dustin/simulator_metacog_aaai_2010.pdf).  Dustin Smith and Bo Morgan.  *Submitted to AAAI-10 Workshop on Metacognition*.
-
-
 
 # To Do List
 
@@ -36,7 +17,7 @@ Further, we are looking for test-bed to study the problems of meta-reasoning: wh
   - working out the kinks in packaging binaries (try by running `make package` on mac)
   - separating actions from the `main.py` as a different data structure in a different file.
 
-# IsisScenario
+# IsisScenarios
 
 Isis Scenarios are Python files found in the `scenarios/` directory.
 
@@ -59,6 +40,26 @@ For example, putting ralph in front of various objects.
 ### Test
 
 Any function that returns *true* or *false*.  Has access to the entirety of IsisWorld.
+
+# About the IsisWorld Simulator
+
+The IsisWorld simulator is available to researchers for building and evaluating problem solving and language learning systems with everyday problems that take place in a kitchen.  We aim to use IsisWorld to simulate everyday commonsense reasoning problems that span many realms, such as the social, visual, kinesthetic, physical, spatial and mental. 
+
+What is a problem "realm"?  Consider the problem of *hailing a taxi*.  You could represent and reason about this problem in several different ways.
+
+ 1. **Temporally**: Wait for a taxi. Maybe if you stay put, a taxi will drive by
+ 2. **Spatially**:  Find a taxi. You must eliminate the distance between yourself and a taxi.
+ 2. **Socially**: Call a taxi.  Communicate your position to a dispatching agent and an available taxi will come to you. 
+
+It is this resourcefulness---having many ways to solve a problem---that allows human problem solvers to flexibly adapt to many problem solving situations.  A system that lacks these abilities is *brittle*.
+
+Further, we are looking for test-bed to study the problems of meta-reasoning: where a super-level planning system reasons about the world of a sub-planning system.  Returning to a taxi example, we could consider the failure mode which causes a meta-level reasoner to step in and change the state of the planner.  For example, it could ask the system to *elevate* the problem description to pursue the parent goal:  *instead of "searching for a taxi" reconsider the problem as "traveling to your destination" and pursue other options: e.g., walking, train, asking a friend etc*.
+
+ More detailed arguments about using a simulator for studying AI and the choice to use kitchen problem domain is explain in this paper:
+
+  * [An open source commonsense simulator for AI researchers](http://web.media.mit.edu/~dustin/simulator_metacog_aaai_2010.pdf).  Dustin Smith and Bo Morgan.  *Presented at the to AAAI-10 Workshop on Metacognition*. 
+  * [IsisWorld Presentation](http://web.media.mit.edu/~dustin/isisworld.pdf)
+
 
 ## Use cases / Problem Scenarios
 

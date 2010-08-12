@@ -44,6 +44,7 @@ class fridge(IsisObject, IsisVisual, Container, NoPickup):
         fd.setPos(-.56, .6, 1.65)
         self.door = self.activeModel.find("**/fridgeDoor*")
         self.door.setPos(-0.56, .6, .72)
+        self.door.setCollideMask(BitMask32.allOff())
         self.setH(0)
 
     def setState(self,state):

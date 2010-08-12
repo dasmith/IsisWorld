@@ -19,7 +19,7 @@ class LayoutManager():
 
 
 class RoomLayout(LayoutManager):
-    """Arranges objects in rows along the walls"""
+    """Arranges objects in rows around the perimeter"""
     def __init__(self, area, height, padw = .05, padh = .05):
         LayoutManager.__init__(self)
         self.w, self.h = area
@@ -31,8 +31,8 @@ class RoomLayout(LayoutManager):
     def add(self, obj):
         if not LayoutManager.add(self, obj):
             return
-        ow = obj.getWidth()
-        oh = 0
+        ow = obj.getWidth()+self.padw#*2
+        oh = obj.getLength()+self.padh#*2
         if self.px+ow > self.w:
             self.py += self.maxh
             self.px = 0
@@ -44,7 +44,7 @@ class RoomLayout(LayoutManager):
         if oh > self.maxh:
             self.maxh = oh
         return (x-(self.w-ow)/2.0, self.py-(self.h-oh)/2.0, self.z)
-        
+
 class HorizontalGridLayout(LayoutManager):
     """Arranges objects in rows within the given area"""
     def __init__(self, area, height, padw = .05, padh = .05):

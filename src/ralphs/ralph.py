@@ -585,25 +585,37 @@ class Ralph(DirectObject.DirectObject):
           2- cRay handled by cFloor keeps Ralph on the ground
           3- cEvent is a general purpose collision handler that registers
            and delegates collision callbacks, as defined in the physics/panda/manager.py file """
-           
+        self.cFloor = CollisionHandlerGravity()
+        self.cFloor.setGravity(100) # gravity should be -9.81m/s, but that doesn't quite work
+        self.cFloor.setOffset(.2)
+        self.cFloor.setReach(3)
+        self.cFloor.setMaxVelocity(1)
+        # fluid pusher causes unnecessary vertical motion against walls, so have two -- one for walls+agents
         cSphereNode = CollisionNode('agent')
-        cSphereNode.addSolid(CollisionSphere(0.0, 0.0, self.height, self.radius))
-        cSphereNode.addSolid(CollisionSphere(0.0, 0.0, self.height + 2.2 * self.radius, self.radius))
-        cSphereNode.setFromCollideMask(AGENTMASK|WALLMASK|OBJMASK)
+        cSphereNode.addSolid(CollisionSphere(0.0, 0.0, self.height+1, self.radius))
+        cSphereNode.setFromCollideMask(AGENTMASK|WALLMASK)
         cSphereNode.setIntoCollideMask(AGENTMASK)
         cSphereNodePath = self.actorNodePath.attachNewNode(cSphereNode)
-        #cSphereNodePath.show()
         self.physicsManager.cWall.addCollider(cSphereNodePath, self.actorNodePath)
         base.cTrav.addCollider(cSphereNodePath, self.physicsManager.cWall)
+        # and another wall collider for going into objects.
+        cSphereNode2 = CollisionNode('agent')
+        cSphereNode2.addSolid(CollisionSphere(0.0, 0.0, self.height, self.radius))
+        cSphereNode2.setFromCollideMask(OBJMASK|OBJPICK)
+        cSphereNode2.setIntoCollideMask(BitMask32.allOff())
+        cSphereNodePath2 = self.actorNodePath.attachNewNode(cSphereNode2)
+        #cSphereNodePath.show()
+        self.physicsManager.cWallO.addCollider(cSphereNodePath2, self.actorNodePath)
+        base.cTrav.addCollider(cSphereNodePath2, self.physicsManager.cWallO)
         # add same colliders to cEvent
         cEventSphereNode = CollisionNode('agent')
         cEventSphere = CollisionSphere(0.0, 0.0, self.height, self.radius)
         cEventSphere.setTangible(0)
         cEventSphereNode.addSolid(cEventSphere)
-        cEventSphereNode.setFromCollideMask(AGENTMASK )
+        cEventSphereNode.setFromCollideMask(AGENTMASK | OBJMASK)
         cEventSphereNode.setIntoCollideMask(AGENTMASK | OBJMASK)
         cEventSphereNodePath = self.actorNodePath.attachNewNode(cEventSphereNode)
-        
+        #cEventSphereNodePath.show()
         base.cTrav.addCollider(cEventSphereNodePath, base.cEvent)
 
         # add collision ray to keep ralph on the ground
@@ -614,8 +626,8 @@ class Ralph(DirectObject.DirectObject):
         cRayNode.setIntoCollideMask(BitMask32.allOff()) 
         self.cRayNodePath = self.actorNodePath.attachNewNode(cRayNode)
         # add colliders
-        self.physicsManager.cFloor.addCollider(self.cRayNodePath, self.actorNodePath)
-        base.cTrav.addCollider(self.cRayNodePath, self.physicsManager.cFloor)
+        self.cFloor.addCollider(self.cRayNodePath, self.actorNodePath)
+        base.cTrav.addCollider(self.cRayNodePath, self.cFloor)
 
 
     def addBlastForce(self, vector):
@@ -629,10 +641,12 @@ class Ralph(DirectObject.DirectObject):
         # the values in self.speeds are used as coefficientes for turns and movements
         if (self.controlMap["turn_left"]!=0):        self.actorNodePath.setH(self.actorNodePath.getH() + stepSize*self.speeds[0])
         if (self.controlMap["turn_right"]!=0):       self.actorNodePath.setH(self.actorNodePath.getH() - stepSize*self.speeds[1])
-        if (self.controlMap["move_forward"]!=0):     self.speedvec[1] =  self.speeds[2]
-        if (self.controlMap["move_backward"]!=0):    self.speedvec[1] = -self.speeds[3]
-        if (self.controlMap["move_left"]!=0):        self.speedvec[0] = -self.speeds[4]
-        if (self.controlMap["move_right"]!=0):       self.speedvec[0] =  self.speeds[5]
+        if self.cFloor.isOnGround():
+            # these actions require floor contact
+            if (self.controlMap["move_forward"]!=0):     self.speedvec[1] =  self.speeds[2]
+            if (self.controlMap["move_backward"]!=0):    self.speedvec[1] = -self.speeds[3]
+            if (self.controlMap["move_left"]!=0):        self.speedvec[0] = -self.speeds[4]
+            if (self.controlMap["move_right"]!=0):       self.speedvec[0] =  self.speeds[5]
         if (self.controlMap["look_left"]!=0):        self.neck.setR(bound(self.neck.getR(),-60,60)+stepSize*80)
         if (self.controlMap["look_right"]!=0):       self.neck.setR(bound(self.neck.getR(),-60,60)-stepSize*80)
         if (self.controlMap["look_up"]!=0):          self.neck.setP(bound(self.neck.getP(),-60,80)+stepSize*80)

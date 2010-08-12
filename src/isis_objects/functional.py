@@ -21,10 +21,9 @@ class IsisFunctional():
 
     def call(self, agent, action, dobject = None):
         """ This is the dispatcher for the action methods """
-        try:
+        if hasattr(self, "action__"+action):
             return getattr(self, "action__"+action)(agent, dobject)
-        except AttributeError:
-            # TODO: issue isisworld message
+        else:
             print "Error, %s does not respond to action__%s" % (self.name, action)
             return None
 

@@ -7,7 +7,8 @@ from ..physics.panda.manager import *
 class IsisObject(NodePath):
     """ IsisObject is the decorator class for all visible objects in IsisWorld, other
     than sky, house, ground and agents """
-
+    priority = 0
+    
     def  __init__(self,name=1):         
         # generate a unique name for the object, warning, unique id uses GENERATORS ID
         self.name = "IsisObject/"+self.__class__.__name__+"+"+str(id(self))
@@ -28,16 +29,19 @@ class IsisObject(NodePath):
         for sc, rank in sorted(superclasses, key=lambda x: x[1]):
             if sc.__name__ != "IsisObject":
                 sc.__init__(self)
+        # call generator's setup method first
+        if hasattr(self,'setup'):
+            self.setup()
         # call setup() on all appropriate parent classes
         for sc, rank in sorted(superclasses, key=lambda x: x[1]):
             if hasattr(sc,'setup'):
                 sc.setup(self)
-        if hasattr(self,'setup'):
-            self.setup()
+        # call generator's post-setup function too
+        if hasattr(self,'afterSetup'):
+            self.afterSetup()
 
     def getName(self):
         return self.name
         
     def getActiveModel(self):
         return self.activeModel
-

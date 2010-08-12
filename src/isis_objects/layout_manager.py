@@ -8,6 +8,8 @@ class LayoutManager():
     def __init__(self):
         self.items = []
     def add(self, obj):
+        if not obj:
+            return
         self.items.append(obj)
         return (0, 0, 0)
     def remove(self, obj):
@@ -15,8 +17,9 @@ class LayoutManager():
     def getItems(self):
         return self.items
 
-class HorizontalGridLayout(LayoutManager):
-    """Arranges objects in rows within the given area"""
+
+class RoomLayout(LayoutManager):
+    """Arranges objects in rows along the walls"""
     def __init__(self, area, height, padw = .05, padh = .05):
         LayoutManager.__init__(self)
         self.w, self.h = area
@@ -25,14 +28,11 @@ class HorizontalGridLayout(LayoutManager):
         self.maxh = 0
         self.padw = padw
         self.padh = padh
-
     def add(self, obj):
-        LayoutManager.add(self, obj)
-        ow = obj.getWidth()+self.padw*2
-        oh = obj.getLength()+self.padh*2
-        self.w = self.getWidth()
-        self.h = self.getHeight()
-        print "HGL CALLED", ow, oh, self.w, self.h
+        if not LayoutManager.add(self, obj):
+            return
+        ow = obj.getWidth()+self.padw#*2
+        oh = 0+self.padh#*2
         if self.px+ow > self.w:
             self.py += self.maxh
             self.px = 0
@@ -43,7 +43,33 @@ class HorizontalGridLayout(LayoutManager):
         self.px += ow
         if oh > self.maxh:
             self.maxh = oh
-        print "HGL",  (x-(self.w-ow)/2.0, self.py-(self.h-oh)/2.0, self.z)
+        return (x-(self.w-ow)/2.0, self.py-(self.h-oh)/2.0, self.z)
+        
+class HorizontalGridLayout(LayoutManager):
+    """Arranges objects in rows within the given area"""
+    def __init__(self, area, height, padw = .05, padh = .05):
+        LayoutManager.__init__(self)
+        self.w, self.h = area
+        self.z = height
+        self.px, self.py = (0, 0)
+        self.maxh = 0
+        self.padw = padw
+        self.padh = padh
+    def add(self, obj):
+        if not LayoutManager.add(self, obj):
+            return
+        ow = obj.getWidth()+self.padw#*2
+        oh = obj.getLength()+self.padh#*2
+        if self.px+ow > self.w:
+            self.py += self.maxh
+            self.px = 0
+            self.maxh = 0
+            if self.py+oh > self.h:
+                return None
+        x = self.px
+        self.px += ow
+        if oh > self.maxh:
+            self.maxh = oh
         return (x-(self.w-ow)/2.0, self.py-(self.h-oh)/2.0, self.z)
 
 
@@ -54,7 +80,8 @@ class SlotLayout(LayoutManager):
         self.slots = slots
         self.map = {}
     def add(self, obj):
-        LayoutManager.add(self, obj)
+        if not LayoutManager.add(self, obj):
+            return
         for s in self.slots:
             if not s in self.map:
                 self.map[s] = obj

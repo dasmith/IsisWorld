@@ -2,6 +2,7 @@ from pandac.PandaModules import *
 #from pandac.PandaModules import Vec3, BitMask32 
 from ..physics.panda.manager import *
 
+from direct.controls.ControlManager import CollisionHandlerRayStart
 from layout_manager import *
 
 """ Material	Density (kg/m^3)
@@ -49,11 +50,11 @@ class IsisSpatial(object):
         callbacks.   Must be called after self.activeModel is defined."""
         if self.__setup:
             return
+        print "Spatial setup called for ", self.name
         # ensure all existing collision masks are off
         self.setCollideMask(BitMask32.allOff())
         # allow model to be picked (visual correspondance with Ralph's vision methods)
         self.activeModel.setCollideMask(OBJPICK)
-        
         # compute model properties
         lcorner, ucorner =self.activeModel.getTightBounds()
         center = self.activeModel.getBounds().getCenter()
@@ -67,11 +68,12 @@ class IsisSpatial(object):
 
         # set up the floor ray collision node
         self.floorRay = CollisionRay() 
-        self.floorRay.setOrigin(center[0],center[1],0.3) 
+        self.floorRay.setOrigin(center[0],center[1],lcorner[2]-0.1) 
         self.floorRay.setDirection(0,0,-1)
         self.floorRayCN = CollisionNode('floorRayCollider-%s' % self.name) 
         self.floorRayCN.addSolid(self.floorRay)
         self.floorRayNP =self.attachNewNode(self.floorRayCN)
+        #self.floorRayNP.show()
         self.physics.cFloor.addCollider(self.floorRayNP, self)
         base.cTrav.addCollider(self.floorRayNP, self.physics.cFloor)
 
@@ -79,47 +81,31 @@ class IsisSpatial(object):
         self.topSurfaceCN = CollisionNode('topSurfaceCollidee-%s' % self.name)
         self.topSurfaceCN.addSolid(CollisionPolygon(left_front, right_front, right_back, left_back))
         self.topSurfaceNP = self.attachNewNode(self.topSurfaceCN)
-    
         # setup wall (horizontal) collider 
         self.fullBoxCN = CollisionNode('object')
-        cGeom = CollisionBox(lcorner, ucorner+Vec3(0,0,0.0))
+        cGeom = CollisionBox(lcorner, ucorner)
         cGeom.setTangible(1)
         self.fullBoxNP = self.attachNewNode(self.fullBoxCN)
-        self.fullSphereCN = CollisionNode('object')
-        self.fullSphereCN.addSolid(cGeom)            
-        cGeomSphere = CollisionSphere(0.0, 0.0, center[2], radius)
-        cGeomSphere.setTangible(0)
-        self.fullSphereCN.addSolid(cGeomSphere)
-
-
-        self.fullSphereNP = self.attachNewNode(self.fullSphereCN)
+        self.fullBoxCN.addSolid(cGeom)
         #self.fullBoxNP.show()
-        #self.physics.cWall.addCollider(self.fullBoxNP, self)
-        # trace collision events
-        base.cTrav.addCollider(self.fullBoxNP, base.cEvent)
-        base.cTrav.addCollider(self.fullSphereNP, base.cEvent)
+
         self.enableCollisions()
 
     def enableCollisions(self):
-        self.floorRayCN.setFromCollideMask(OBJFLOOR) 
-        self.floorRayCN.setIntoCollideMask(BitMask32.allOff())
         self.topSurfaceCN.setFromCollideMask(BitMask32.allOff())
         self.topSurfaceCN.setIntoCollideMask(OBJFLOOR)
+        self.floorRayCN.setFromCollideMask(OBJFLOOR|OBJPICK) 
+        self.floorRayCN.setIntoCollideMask(BitMask32.allOff())
         self.fullBoxCN.setFromCollideMask(OBJMASK)
-        self.fullBoxCN.setIntoCollideMask(OBJMASK|AGENTMASK)
-        self.fullSphereCN.setFromCollideMask(OBJMASK)
-        self.fullSphereCN.setIntoCollideMask(OBJMASK)
+        self.fullBoxCN.setIntoCollideMask(OBJMASK)
 
     def disableCollisions(self):
-        print "Removing Collisions - Base"
-        self.floorRayCN.setFromCollideMask(BitMask32.allOff())
-        self.floorRayCN.setIntoCollideMask(BitMask32.allOff())
+        #self.floorRayCN.setFromCollideMask(BitMask32.allOff())
+        #self.floorRayCN.setIntoCollideMask(BitMask32.allOff())
         self.topSurfaceCN.setFromCollideMask(BitMask32.allOff())
         self.topSurfaceCN.setIntoCollideMask(BitMask32.allOff())
         self.fullBoxCN.setIntoCollideMask(BitMask32.allOff())
         self.fullBoxCN.setFromCollideMask(BitMask32.allOff())
-        self.fullSphereCN.setFromCollideMask(BitMask32.allOff())
-        self.fullSphereCN.setIntoCollideMask(BitMask32.allOff())
 
     def getWeight(self):
         """ Returns the weight of an object, based on its bounding box dimensions
@@ -143,11 +129,11 @@ class IsisSpatial(object):
 
 
 class Surface(IsisSpatial):
-    priority = 2
+    priority = 3
     def __init__(self):
         self.surfaceContacts = []
+        self.__setup = False
         IsisSpatial.__init__(self)
-        self.__setup = True
 
 
     def setup(self):
@@ -159,11 +145,12 @@ class Surface(IsisSpatial):
         self.topSurfaceNP.setTag('surface','asurface')
 
         IsisSpatial.setup(self)
+        self.enableCollisions()
         self.__setup = True
 
 
     def enableCollisions(self):
-        return
+        IsisSpatial.enableCollisions(self)
 
     def disableCollisions(self):
         print "Removing Collision - Surface"
@@ -194,12 +181,13 @@ class Surface(IsisSpatial):
 
 
 class Container(IsisSpatial):
-    priority = 2
+    priority = 3
     def __init__(self):
         # Flag to limit setup to once per object
         self.__setup = False
         self.containerItems = []
         IsisSpatial.__init__(self)
+
 
     def setup(self):
         if self.__setup:
@@ -250,7 +238,7 @@ class Container(IsisSpatial):
             obj.reparentTo(self)
             obj.disableCollisions()
             obj.setPos(pos)
-            obj.setLayout(self.on_layout)
+            obj.setLayout(self.in_layout)
             return "success"
         return "container is full"
 
@@ -260,12 +248,12 @@ class Room(object):
     methods, like 'action__put_in' that Container objects do, because 'put item in room' should be 
     decomposed as a series of smaller tasks: grab object, enter room, drop object. """
     
-    priority = 2
+    priority = 3
     def __init__(self):
         # Flag to limit setup to once per object
         self.__setup = False
         self.containerItems = []
-        self.in_layout = HorizontalGridLayout((self.getWidth(), self.getLength()), self.getHeight())
+        self.in_layout = HorizontalGridLayout((self.getWidth(), self.getLength()), 0)
 
     def setup(self):
         if self.__setup:
@@ -285,7 +273,6 @@ class Room(object):
         cGeom = CollisionBox(lcorner, ucorner+Vec3(0,0,0.0))
         cGeom.setTangible(1)
         self.fullBoxNP = self.attachNewNode(self.fullBoxCN)
-        self.fullBoxNP.show()
         base.cTrav.addCollider(self.fullBoxNP, base.cEvent)
         #TO-DO: Change this to something more fitting for a container
 
@@ -326,6 +313,6 @@ class Room(object):
             obj.reparentTo(self)
             obj.disableCollisions()
             obj.setPos(pos)
-            obj.setLayout(self.on_layout)
+            obj.setLayout(self.in_layout)
             return "success"
         return "container is full"

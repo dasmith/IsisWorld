@@ -2,7 +2,7 @@ from pandac.PandaModules import Vec3, BitMask32
 from ..physics.panda.manager import *
 
 class IsisVisual():
-    priority = 1
+    priority = 2
     """ This is the base class responsible for handling all of the visual aspects of an object
     in IsisWorld, including all of the handling of visual features (scaling, colors, textures),
     and models (animations, exposing parts).
@@ -35,11 +35,6 @@ class IsisVisual():
         # private flag to lazily recompute properties when necessary
         self._needToRecalculateScalingProperties = False
         
-        # initialize dummy variables
-        self.width = None
-        self.length = None
-        self.height = None
-
     def rescaleModel(self,scale):
         """ Changes the model's dimensions to a given scale"""
         self.activeModel.setScale(scale, scale, scale)

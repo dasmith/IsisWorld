@@ -39,7 +39,7 @@ class fridge(IsisObject, IsisVisual, Container, NoPickup):
 
         self.in_layout = SlotLayout([(0, 0, .5), (0, 0, 1),(0, 0, 1.5)])
         
-    def setup(self):
+    def afterSetup(self):
         fd = self.activeModel.find("**/freezerDoor*")
         fd.setPos(-.56, .6, 1.65)
         self.door = self.activeModel.find("**/fridgeDoor*")
@@ -70,7 +70,7 @@ class knife(IsisObject, IsisVisual, IsisSpatial, Sharp):
     def  __init__(self, physics): 
         # store pointer to world manager
         self.physics = physics
-        self.offsetVec = (0,0,0.3,0,0,0)
+        self.offsetVec = (0,0,0.0,0,0,0)
         self.pickupVec = (0,.15,0,0,75,0)
         self.model="knife"
         self.scale=0.01
@@ -121,7 +121,7 @@ class loaf( IsisObject, IsisVisual, IsisSpatial, Dividable):
     def  __init__(self, physics): 
         # store pointer to world manager
         self.physics = physics
-        self.offsetVec = (.00144,0,0.3,0,0,0)
+        self.offsetVec = (.00144,0,0.0,0,0,0)
         
         self.model = "loaf_of_bread"
         self.scale = 0.2

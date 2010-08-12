@@ -149,7 +149,7 @@ class IsisWorld(DirectObject):
         #base.disableMouse()
         
         base.camera.reparentTo(self.room)
-        base.camera.setPos(self.room.xmax,self.room.ymax,10)
+        base.camera.setPos(self.room.getWidth()/2,self.room.getLength()/2,self.room.getHeight())
         base.camera.setHpr(130,320,0)
         base.cam.node().setCameraMask(BitMask32.bit(0))
         #base.camera.place()

@@ -62,21 +62,24 @@ class PhysicsWorldManager(DirectObject.DirectObject):
 
         # Initialize the collision traverser.
         base.cTrav = CollisionTraverser()
-        base.cTrav.setRespectPrevTransform(True)
+        base.cTrav.setRespectPrevTransform(True) 
         
-
-        # initialize 3 handlers: wall, gravity, and other events
-        
-        # the CollisionHandlerPusher is good for keeping items from going through walls
-        self.cWall = CollisionHandlerFluidPusher()
-        self.cWall.setHorizontal(True)
-        # this tracks the velocity of moving objects, whereas CollisionHandlerFloor doesnt
+        # this handler is used by ISISOBJECTS only, Ralphs have their own Gravity Handlers.
         self.cFloor = CollisionHandlerGravity()
         # gravity should be -9.81m/s, but that doesn't quite work
         self.cFloor.setGravity(100)
-        self.cFloor.setOffset(.2)
+        self.cFloor.setOffset(.5)
         self.cFloor.setReach(3)
-        #self.cFloor.setMaxVelocity(1)
+        self.cFloor.setMaxVelocity(1)
+        # initialize 3 handlers: wall, gravity, and other events
+        
+        # the CollisionHandlerPusher is good for keeping items from going through walls
+        self.cWall = CollisionHandlerPusher()
+        self.cWall.setHorizontal(True)
+        # this tracks the velocity of moving objects, whereas CollisionHandlerFloor doesnt
+
+        self.cWallO = CollisionHandlerFluidPusher()
+        self.cWallO.setHorizontal(True)
 
         # Initialize the handler.
         base.cEvent = CollisionHandlerEvent()

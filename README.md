@@ -57,8 +57,8 @@ Further, we are looking for test-bed to study the problems of meta-reasoning: wh
 
  More detailed arguments about using a simulator for studying AI and the choice to use kitchen problem domain is explain in this paper:
 
-  * [An open source commonsense simulator for AI researchers](http://web.media.mit.edu/~dustin/simulator_metacog_aaai_2010.pdf).  Dustin Smith and Bo Morgan.  *Presented at the to AAAI-10 Workshop on Metacognition*. 
-  * [IsisWorld Presentation](http://web.media.mit.edu/~dustin/isisworld.pdf)
+  * [An open source commonsense simulator for AI researchers](http://web.media.mit.edu/~dustin/simulator_metacog_aaai_2010.pdf).  Dustin Smith and Bo Morgan.  *Proceedings of AAAI-10. Workshop on Metacognition*. 
+  * [IsisWorld Presentation](http://web.media.mit.edu/~dustin/isisworld.pdf) *Presented at the AAAI-10 Workshop on Metacognition*. 
 
 
 ## Use cases / Problem Scenarios

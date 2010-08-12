@@ -20,7 +20,7 @@ class LayoutManager():
 
 class RoomLayout(LayoutManager):
     """Arranges objects in rows around the perimeter"""
-    def __init__(self, area, height, padw = .05, padh = .05):
+    def __init__(self, area, height, padw = .00, padh = .00):
         LayoutManager.__init__(self)
         self.w, self.h = area
         self.z = height

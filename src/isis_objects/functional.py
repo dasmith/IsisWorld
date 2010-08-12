@@ -21,13 +21,10 @@ class IsisFunctional():
 
     def call(self, agent, action, dobject = None):
         """ This is the dispatcher for the action methods """
-        try:
-            print self,action,dobject
+        if hasattr(self, "action__"+action):
             return getattr(self, "action__"+action)(agent, dobject)
-        except AttributeError as e:
-            print e
-            print "Error: object has no method action__"+action
-            return None
+        else:
+            print "Error, %s does not respond to action__%s" % (self.name, action)
 
     ## register actions that are enabled by default in all objects
     def action__pick_up(self, agent, directobject):

@@ -4,7 +4,7 @@
   - exporting screen shots  (there's the beginning of code to do this in Ralph's `get_vision` method -- but it's something I found in a Panda3d forum post)
   - making the RoomLayout layout manager that puts objects around the walls (right now, it's just a placeholder: a copy of `HorizontalGridLayout`)
   - parsing of attributes in scenario files. e.g. `kitchen {'width':20, 'color': blue}` in "kitchen.isis".  IsisObject generators specify/randomly select the default values during `__init__()`, but then the defaults can be changed sometime after `__init__` and before `setup()`.
-  - Loading and running *[IsisSecnarios](#isiscenarios)* files:
+  - Loading and running *[IsisSecnarios](#IsisSecnarios)* files:
     - migrating the kitchen.isis into an "scene initialization" section of the "scenario/" files.
     - a DirectGUI for loading tasks, which is the default screen when the simulator loads.
     - buttons for starting a task, running a training and test scenario

@@ -253,7 +253,7 @@ class Room(object):
         # Flag to limit setup to once per object
         self.__setup = False
         self.containerItems = []
-        self.in_layout = HorizontalGridLayout((self.getWidth(), self.getLength()), 0)
+        self.in_layout = RoomLayout((self.getWidth(), self.getLength()), 0)
 
     def setup(self):
         if self.__setup:

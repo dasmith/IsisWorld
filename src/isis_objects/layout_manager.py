@@ -30,6 +30,9 @@ class HorizontalGridLayout(LayoutManager):
         LayoutManager.add(self, obj)
         ow = obj.getWidth()+self.padw*2
         oh = obj.getLength()+self.padh*2
+        self.w = self.getWidth()
+        self.h = self.getHeight()
+        print "HGL CALLED", ow, oh, self.w, self.h
         if self.px+ow > self.w:
             self.py += self.maxh
             self.px = 0
@@ -40,6 +43,7 @@ class HorizontalGridLayout(LayoutManager):
         self.px += ow
         if oh > self.maxh:
             self.maxh = oh
+        print "HGL",  (x-(self.w-ow)/2.0, self.py-(self.h-oh)/2.0, self.z)
         return (x-(self.w-ow)/2.0, self.py-(self.h-oh)/2.0, self.z)
 
 

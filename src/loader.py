@@ -58,6 +58,7 @@ def load_objects(file, renderParent, physicsManager, layoutManager = None):
                 x, y, z = parent.activeModel.getPos(renderParent)
                 obj.setPos(x, y, z+1)
         elif prep == "in":
+            print "calling %s in %s" % (parent, obj), parent.call(None, "put_in", obj)
             if parent.call(None, "put_in", obj) != "success":
                 obj.reparentTo(renderParent)
                 x, y, z = parent.activeModel.getPos(renderParent)

@@ -35,13 +35,18 @@ class IsisSpatial(object):
         self.isOpen = False
         if not hasattr(self,'density'):
             self.density = 1
+        if not hasattr(self,'collisionGeom'):
+            self.collisionGeom = 'box'
 
         self._neetToRecalculateSpatialProperties = True
 
     def _destroyPhysics(self):
         pass
     
-    def setup(self,collisionGeom='box'):
+    def setup(self):
+        """ Initializes all the collision geometries for the top surface (gravity) and
+        geometric reigon for wall and agent collisions, as well as aribtrary collide
+        callbacks.   Must be called after self.activeModel is defined."""
         if self.__setup:
             return
         # ensure all existing collision masks are off
@@ -186,6 +191,8 @@ class Surface(IsisSpatial):
         return "Surface is full"
 
 
+
+
 class Container(IsisSpatial):
     priority = 2
     def __init__(self):
@@ -194,7 +201,7 @@ class Container(IsisSpatial):
         self.containerItems = []
         IsisSpatial.__init__(self)
 
-    def setup(self,collisionGeom='box'):
+    def setup(self):
         if self.__setup:
             return
         # call base class
@@ -229,6 +236,82 @@ class Container(IsisSpatial):
         if self.isOpen:
             # container already open 
             return True
+
+    def action__put_in(self, agent, obj):
+        # TODO: ensure that object can fit in other object
+        #  1) internal volume is big enough, 2) vol - vol of other things in there
+        pos = self.in_layout.add(obj)
+        if pos:
+            if agent and agent.is_holding(obj.name):
+                if agent.left_hand_holding_object == obj:
+                    agent.control__drop_from_left_hand()
+                elif agent.right_hand_holding_object == obj:
+                    agent.control__drop_from_right_hand()
+            obj.reparentTo(self)
+            obj.disableCollisions()
+            obj.setPos(pos)
+            obj.setLayout(self.on_layout)
+            return "success"
+        return "container is full"
+
+class Room(object):
+    """ Room is like a container, but it does not inherit from the IsisSpatial methods,  so it needs to 
+    implement its geometry (wall) collisions on its own.  Also, it doesn't have some of the specialized
+    methods, like 'action__put_in' that Container objects do, because 'put item in room' should be 
+    decomposed as a series of smaller tasks: grab object, enter room, drop object. """
+    
+    priority = 2
+    def __init__(self):
+        # Flag to limit setup to once per object
+        self.__setup = False
+        self.containerItems = []
+        self.in_layout = HorizontalGridLayout((self.getWidth(), self.getLength()), self.getHeight())
+
+    def setup(self):
+        if self.__setup:
+            return
+        lcorner, ucorner =self.activeModel.getTightBounds()
+        center = self.activeModel.getBounds().getCenter()
+
+        left_front = Vec3(lcorner[0], lcorner[1], ucorner[2])
+        left_back = Vec3(lcorner[0], ucorner[1], ucorner[2])
+        right_front = Vec3(ucorner[0], lcorner[1], ucorner[2])
+        right_back = ucorner
+        bounds, offset = getOrientedBoundedBox(self.activeModel)
+        radius = min(ucorner[0]-lcorner[0],ucorner[1]-lcorner[1])/2.0
+
+        # setup wall (horizontal) collider 
+        self.fullBoxCN = CollisionNode('room')
+        cGeom = CollisionBox(lcorner, ucorner+Vec3(0,0,0.0))
+        cGeom.setTangible(1)
+        self.fullBoxNP = self.attachNewNode(self.fullBoxCN)
+        self.fullBoxNP.show()
+        base.cTrav.addCollider(self.fullBoxNP, base.cEvent)
+        #TO-DO: Change this to something more fitting for a container
+
+        self.fullBoxNP.setTag('container','acontainer')
+        self.__setup = True
+
+    def enableCollisions(self):
+        self.fullBoxCN.setFromCollideMask(OBJMASK)
+        self.fullBoxCN.setIntoCollideMask(OBJMASK|AGENTMASK)
+
+    def disableCollisions(self):
+        self.fullBoxCN.setFromCollideMask(BitMask32.allOff())
+        self.fullBoxCN.setIntoCollideMask(BitMask32.allOff())
+
+    def enterContainer(self,fromObj):
+        print "Entering room", self.name
+        if fromObj not in self.containerItems:
+            self.containerItems.append(fromObj)
+
+    def leaveContainer(self,fromObj):
+        print "Removing %s from room %s" % (fromObj, self.name)
+        if fromObj in self.containerItems:
+            self.containerItems.remove(fromObj)
+
+    def isEmpty(self):
+        return len(self.containerItems) == 0
 
     def action__put_in(self, agent, obj):
         # TODO: ensure that object can fit in other object

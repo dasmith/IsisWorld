@@ -1,6 +1,7 @@
-table
+kitchen	at 0,0,0
+table	in kitchen
 toaster	on table
 #loaf	on table
 knife	on table
-fridge
+fridge	in kitchen
 loaf	in fridge

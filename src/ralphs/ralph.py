@@ -341,16 +341,6 @@ class Ralph(DirectObject.DirectObject):
         percepts['agents'] = self.sense__get_agents()
         print percepts
         return percepts
-        
-    def control__open_fridge(self):
-        print "Opening fridge"
-        print self.control__use_right_hand(target='fridge',action="open")
-
-    def control__say_meta(self, message = "Hello!"):
-       self.speech_bubble['text'] = "META: "+message
-       self.last_spoke = 0
-       return "success"
-
  
     def control__say_goal(self, message = "Hello!"):
        self.speech_bubble['text'] = "GOAL: "+message

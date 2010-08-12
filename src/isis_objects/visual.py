@@ -24,6 +24,9 @@ class IsisVisual():
         elif isinstance(self.model,str):
             self.models = {}
             self.models['default'] = self.model
+        else:
+            # assume model is a generated model
+            self.models['default'] = self.model
 
         # set the scale of the object
         if not hasattr(self,'scale'):
@@ -109,8 +112,10 @@ class IsisVisual():
             raise Exception("Error in %s.changeModel() -- cannot find model %s" % (self.name, changeToKey))
 
     def setup(self):
-        self.changeModel('default')
-        # adds a pickable tag to allow an agent to view this object
-        self.setTag('pickable', 'true')
-
+        if not hasattr(self,'staticModel'):
+            self.changeModel('default')
+            # adds a pickable tag to allow an agent to view this object
+            self.setTag('pickable', 'true')
+        else:
+            self.activeModel.reparentTo(self)
         self._needToRecalculateScalingProperties = True

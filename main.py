@@ -71,7 +71,6 @@ class IsisWorld(DirectObject):
 
     def _setupEnvironment(self,debug=False):
         """  Stuff that's too ugly to put anywhere else. """
-        render.setShaderAuto()
         base.setFrameRateMeter(True)
         base.setBackgroundColor(.2, .2, .2)
         base.camLens.setFov(75)
@@ -101,7 +100,27 @@ class IsisWorld(DirectObject):
         and a dome, the "sky" that sits concavely on the ground. """
          # setup physics
         self.physicsManager = PhysicsWorldManager()
-        load_objects("kitchen.isis", self.objRender, self.physicsManager, layoutManager = render)
+        # setup ground
+        cm = CardMaker("ground")
+        groundTexture = loader.loadTexture("media/textures/env_ground.jpg")
+        cm.setFrame(-100, 100, -100, 100)
+        groundNP = render.attachNewNode(cm.generate())
+        groundNP.setCollideMask(BitMask32.allOff())
+        groundNP.setTexture(groundTexture)
+        groundNP.setPos(0, 0, 0)
+        groundNP.lookAt(0, 0, -1)
+        groundNP.setTransparency(TransparencyAttrib.MAlpha)
+        collPlane = CollisionPlane(Plane(Vec3(0, 0, 1), Point3(0, 0, 0)))
+        floorCollisionNP = render.attachNewNode(CollisionNode('collisionNode'))
+        floorCollisionNP.node().addSolid(collPlane)
+        # set the bits which items can collide into
+        floorCollisionNP.node().setIntoCollideMask(FLOORMASK)
+        floorCollisionNP.node().setFromCollideMask(FLOORMASK)
+        
+        load_objects("kitchen.isis", self.objRender, self.physicsManager, layoutManager = None)
+        
+        # define pointer to base scene.
+        self.room = render.find("**/*kitchen*").getPythonTag("isisobj")
         """
         Setup the skydome
         Moving clouds are pretty but computationally expensive 
@@ -128,8 +147,9 @@ class IsisWorld(DirectObject):
         # Set up the camera 
         ### Set up displays and cameras ###
         #base.disableMouse()
+        
         base.camera.reparentTo(self.room)
-        base.camera.setPos(self._xmax,self._ymax,10)
+        base.camera.setPos(self.room.xmax,self.room.ymax,10)
         base.camera.setHpr(130,320,0)
         base.cam.node().setCameraMask(BitMask32.bit(0))
         #base.camera.place()
@@ -264,11 +284,8 @@ class IsisWorld(DirectObject):
         text += "\n[Esc] to quit\n"
         # initialize actions
         self.actionController = ActionController(0.1)
-        #self.actionController.addAction(IsisAction(commandName="move_left",intervalAction=True,keyboardBinding="arrow_left"))
-        #self.actionController.addAction(IsisAction(commandName="move_right",intervalAction=True,keyboardBinding="arrow_right"))
-        #self.actionController.addAction(IsisAction(commandName="turn_left",intervalAction=True))
-        #self.actionController.addAction(IsisAction(commandName="turn_right",intervalAction=True))
-
+        self.actionController.addAction(IsisAction(commandName="move_left",intervalAction=True))
+        self.actionController.addAction(IsisAction(commandName="move_right",intervalAction=True))
         self.actionController.addAction(IsisAction(commandName="open_fridge",intervalAction=False,keyboardBinding="p"))
         self.actionController.addAction(IsisAction(commandName="turn_left",intervalAction=True,argList=['speed'],keyboardBinding="arrow_left"))
         self.actionController.addAction(IsisAction(commandName="turn_right",intervalAction=True,argList=['speed'],keyboardBinding="arrow_right"))

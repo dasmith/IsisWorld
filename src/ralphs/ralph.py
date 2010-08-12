@@ -651,16 +651,6 @@ class Ralph(DirectObject.DirectObject):
         # the values in self.speeds are used as coefficientes for turns and movements
         if (self.controlMap["turn_left"]!=0):        self.actorNodePath.setH(self.actorNodePath.getH() + stepSize*self.speeds[0])
         if (self.controlMap["turn_right"]!=0):       self.actorNodePath.setH(self.actorNodePath.getH() - stepSize*self.speeds[1])
-<<<<<<< HEAD
-        if (self.controlMap["move_forward"]!=0):     self.speedvec[1] =  self.speeds[2]
-        if (self.controlMap["move_backward"]!=0):    self.speedvec[1] = -self.speeds[3]
-        if (self.controlMap["move_left"]!=0):        self.speedvec[0] = -self.speeds[4]
-        if (self.controlMap["move_right"]!=0):       self.speedvec[0] =  self.speeds[5]
-        if (self.controlMap["look_left"]!=0):        self.neck.setR(bound(self.neck.getR(),-60,60)+stepSize*self.speeds[9])
-        if (self.controlMap["look_right"]!=0):       self.neck.setR(bound(self.neck.getR(),-60,60)-stepSize*self.speeds[8])
-        if (self.controlMap["look_up"]!=0):          self.neck.setP(bound(self.neck.getP(),-60,80)+stepSize*self.speeds[6])
-        if (self.controlMap["look_down"]!=0):        self.neck.setP(bound(self.neck.getP(),-60,80)-stepSize*self.speeds[7])
-=======
         if self.cFloor.isOnGround():
             # these actions require floor contact
             if (self.controlMap["move_forward"]!=0):     self.speedvec[1] =  self.speeds[2]
@@ -671,7 +661,6 @@ class Ralph(DirectObject.DirectObject):
         if (self.controlMap["look_right"]!=0):       self.neck.setR(bound(self.neck.getR(),-60,60)-stepSize*80)
         if (self.controlMap["look_up"]!=0):          self.neck.setP(bound(self.neck.getP(),-60,80)+stepSize*80)
         if (self.controlMap["look_down"]!=0):        self.neck.setP(bound(self.neck.getP(),-60,80)-stepSize*80)
->>>>>>> pkitchen
 
         speedVec = Vec3(self.speedvec[0]*stepSize, self.speedvec[1]*stepSize, 0)
         quat = self.actor.getQuat(render)

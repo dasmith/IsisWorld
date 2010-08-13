@@ -2,7 +2,7 @@ from pandac.PandaModules import Vec3, BitMask32
 from ..physics.panda.manager import *
 
 class IsisVisual():
-    priority = 1
+    priority = 2
     """ This is the base class responsible for handling all of the visual aspects of an object
     in IsisWorld, including all of the handling of visual features (scaling, colors, textures),
     and models (animations, exposing parts).
@@ -24,6 +24,9 @@ class IsisVisual():
         elif isinstance(self.model,str):
             self.models = {}
             self.models['default'] = self.model
+        else:
+            # assume model is a generated model
+            self.models['default'] = self.model
 
         # set the scale of the object
         if not hasattr(self,'scale'):
@@ -32,11 +35,6 @@ class IsisVisual():
         # private flag to lazily recompute properties when necessary
         self._needToRecalculateScalingProperties = False
         
-        # initialize dummy variables
-        self.width = None
-        self.length = None
-        self.height = None
-
     def rescaleModel(self,scale):
         """ Changes the model's dimensions to a given scale"""
         self.activeModel.setScale(scale, scale, scale)
@@ -109,8 +107,10 @@ class IsisVisual():
             raise Exception("Error in %s.changeModel() -- cannot find model %s" % (self.name, changeToKey))
 
     def setup(self):
-        self.changeModel('default')
-        # adds a pickable tag to allow an agent to view this object
-        self.setTag('pickable', 'true')
-
+        if not hasattr(self,'staticModel'):
+            self.changeModel('default')
+            # adds a pickable tag to allow an agent to view this object
+            self.setTag('pickable', 'true')
+        else:
+            self.activeModel.reparentTo(self)
         self._needToRecalculateScalingProperties = True

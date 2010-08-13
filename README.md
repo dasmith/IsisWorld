@@ -1,4 +1,47 @@
-# Isis World Simulator
+
+# To Do List
+
+  - exporting screen shots  (there's the beginning of code to do this in Ralph's `get_vision` method -- but it's something I found in a Panda3d forum post)
+  - making the RoomLayout layout manager that puts objects around the walls (right now, it's just a placeholder: a copy of `HorizontalGridLayout`)
+  - parsing of attributes in scenario files. e.g. `kitchen {'width':20, 'color': blue}` in "kitchen.isis".  IsisObject generators specify/randomly select the default values during `__init__()`, but then the defaults can be changed sometime after `__init__` and before `setup()`.
+  - Loading and running [IsisScenarios](#IsisScenarios) files:
+    - migrating the `kitchen.isis` into an "scene initialization" section of the "scenario/" files.
+    - a DirectGUI for loading tasks, which is the default screen when the simulator loads.
+    - buttons for starting a task, running a training and test scenario
+    - checking for whether the goal state is met
+    - recording statistics about the task: how many steps since it started, state of task (failed/completed/ongoing)
+    - displaying state of task in the menu
+    - recording state of task/scenario in logging file
+  - specifying scale ranges for some of the common models sizes, the same way the size of the kitchen is chosen from a random range.
+  - fully documenting a skeleton generator file with all possible superclass attributes, so that other people can work on the project by adding / describing models.
+  - working out the kinks in packaging binaries (try by running `make package` on mac)
+  - separating actions from the `main.py` as a different data structure in a different file.
+
+# IsisScenarios
+
+Isis Scenarios are Python files found in the `scenarios/` directory.
+
+**Settings**:
+
+ * Sequential or unordered:  does the simulator reset IsisWorld between each task, or are they staged incrementally?
+ * Metadata: a string describing the scenario
+ 
+## Tasks
+
+Each isisScenario has one or more **tasks**, defined using the python `def task__name_of_task`.  Each task can contain a  **training** phase and one or more **test** functions.
+Allows you to specify different versions of Actions to use during training/test.
+
+
+### Training
+
+For example, putting ralph in front of various objects.
+
+
+### Test
+
+Any function that returns *true* or *false*.  Has access to the entirety of IsisWorld.
+
+# About the IsisWorld Simulator
 
 The IsisWorld simulator is available to researchers for building and evaluating problem solving and language learning systems with everyday problems that take place in a kitchen.  We aim to use IsisWorld to simulate everyday commonsense reasoning problems that span many realms, such as the social, visual, kinesthetic, physical, spatial and mental. 
 
@@ -10,11 +53,13 @@ What is a problem "realm"?  Consider the problem of *hailing a taxi*.  You could
 
 It is this resourcefulness---having many ways to solve a problem---that allows human problem solvers to flexibly adapt to many problem solving situations.  A system that lacks these abilities is *brittle*.
 
-Further, we are looking for test-bed to study the problems of meta-reasoning: where a super-level planning system reasons about the world of a sub-planning system.  Returning to a taxi example, we could consider the failure mode which causes a meta-level reasoner to step in and change the state of the planner.  For example, it could ask the system to *elevate* the problem description to pursue the parent goal:  *instead of "searching for a taxi" reconsider the problem as "traveling to your destination" and pursue other options: e.g., walking, train, asking a friend etc*.
+Further, we are looking for test bed to study the problems of meta-reasoning: where a super-level planning system reasons about the world of a sub-planning system.  Returning to a taxi example, we could consider the failure mode which causes a meta-level reasoner to step in and change the state of the planner.  For example, it could ask the system to *elevate* the problem description to pursue the parent goal:  *instead of "searching for a taxi" reconsider the problem as "traveling to your destination" and pursue other options: e.g., walking, train, asking a friend etc*.
 
  More detailed arguments about using a simulator for studying AI and the choice to use kitchen problem domain is explain in this paper:
 
-  * [An open source commonsense simulator for AI researchers](http://web.media.mit.edu/~dustin/simulator_metacog_aaai_2010.pdf).  Dustin Smith and Bo Morgan.  *Submitted to AAAI-10 Workshop on Metacognition*.
+  * [An open source commonsense simulator for AI researchers](http://web.media.mit.edu/~dustin/simulator_metacog_aaai_2010.pdf).  Dustin Smith and Bo Morgan.  *Proceedings of AAAI-10. Workshop on Metacognition*. 
+  * [IsisWorld Presentation](http://web.media.mit.edu/~dustin/isisworld.pdf) *Presented at the AAAI-10 Workshop on Metacognition*. 
+
 
 ## Use cases / Problem Scenarios
 
@@ -150,18 +195,6 @@ Use the [FSM](http://www.panda3d.org/wiki/index.php/Finite_State_Machines) of Pa
 Several tasks for evaluating intelligent agents in IsisWorld.
 
 ## Creating Toast in the Kitchen
-
-
-# Other Lower Priority Improvements
-
-  - Configuration parameters to disable non-essential, CPU intensive visual effects, like the clouds in the sky.
-  - Replace Ralph with nicer model(s)
-  - Obtain copyright information for all models
-  - Multi-client implementation
-  - Improving granularity of actions:  kinesthetic grasp, move items between arms, damage to body depending on forces
-  - Adding "scale" parameter to existing perceptual controls
-  - Finer resolution perceptual/motor controls.
-  - Adding rotation-based animation methods to graphics
 
 
 ## Resources for Developers

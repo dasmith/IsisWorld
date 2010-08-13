@@ -333,8 +333,6 @@ class IsisWorld(DirectObject):
                 wordwrap = 15,
         )
 
-        
-
         def changeAgent():
             if (self.agentNum == (len(self.agents)-1)):
                 self.agentNum = 0
@@ -353,6 +351,8 @@ class IsisWorld(DirectObject):
         self.accept("4",               self.toggleInstructionsWindow, [])
         self.accept("space",           self.step_simulation, [.1]) # argument is amount of second to advance
         self.accept("p",               self.physicsManager.togglePaused)
+        self.accept("s",               self.screenshot, ["snapshot"])
+        self.accept("a",               self.screenshot_agent, ["agent_snapshot"])
         #self.accept("r",              self.reset_simulation)
         self.accept("escape",          self.exit)
 
@@ -410,6 +410,19 @@ class IsisWorld(DirectObject):
     def isisMessage(self,message):
         print "[IsisWorld] %s %s" % (message, str(ctime()))
 
+    def screenshot(self, name):
+        name = os.path.join("screenshots", name+"_")
+        num = 0
+        while os.path.exists(name+str(num)):
+            num += 1
+        base.camNode.getDisplayRegion(0).saveScreenshot(name+str(num)+".jpg")
+
+    def screenshot_agent(self, name):
+        name = os.path.join("screenshots", name+"_")
+        num = 0
+        while os.path.exists(name+str(num)+".jpg"):
+            num += 1
+        self.agentCamera.saveScreenshot(name+str(num)+".jpg")
 
     def exit(self):
         """ Shut down threads and """

@@ -5,19 +5,6 @@ from ..physics.panda.manager import *
 from direct.controls.ControlManager import CollisionHandlerRayStart
 from layout_manager import *
 
-""" Material	Density (kg/m^3)
-    Balsa wood	120
-    Brick	2000
-    Copper	8900
-    Cork	250
-    Diamond	3300
-    Glass	2500
-    Gold	19300
-    Iron	7900
-    Lead	11300
-    Styrofoam 100
-"""
-
 class IsisSpatial(object):
     """ This class is called _after_ IsisVisual is called and it, and its children classes
     are responsible for maintaining the spatial, geometric and physical properties of the 

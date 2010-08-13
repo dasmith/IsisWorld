@@ -86,10 +86,10 @@ class IsisSpatial(object):
         self.fullBoxCN.setIntoCollideMask(OBJMASK)
 
     def disableCollisions(self):
-        #self.floorRayCN.setFromCollideMask(BitMask32.allOff())
-        #self.floorRayCN.setIntoCollideMask(BitMask32.allOff())
         self.topSurfaceCN.setFromCollideMask(BitMask32.allOff())
         self.topSurfaceCN.setIntoCollideMask(BitMask32.allOff())
+        self.floorRayCN.setFromCollideMask(BitMask32.allOff())
+        self.floorRayCN.setIntoCollideMask(BitMask32.allOff())
         self.fullBoxCN.setIntoCollideMask(BitMask32.allOff())
         self.fullBoxCN.setFromCollideMask(BitMask32.allOff())
 

@@ -413,7 +413,7 @@ class IsisWorld(DirectObject):
     def screenshot(self, name):
         name = os.path.join("screenshots", name+"_")
         num = 0
-        while os.path.exists(name+str(num)):
+        while os.path.exists(name+str(num)+".jpg"):
             num += 1
         base.camNode.getDisplayRegion(0).saveScreenshot(name+str(num)+".jpg")
 

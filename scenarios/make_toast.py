@@ -1,14 +1,25 @@
+self.description = "making toast in isisworld"
 
-def task1(a):
-    a.worldDescription = """table in kitchen
-    bread in table
-    """
+def environment("first"):
     
-    task1 = IsisTask("pick up toast", order=1)
-    task1.setGoal("")
+    k = kitchen()
+    r = ralph()
+    r.color = "blue"
     
-    a.addTask(task1)
+    r.set_color()
+    k.put_in(r)
+    t = toast()
+    ta = table()
+    put_on(t,ta)
 
 
-def task2(a):
-    print "task2"
+def task("go to toast"):
+    # define which environment to use (if not the default)
+    task.environment = "first"
+    
+    def train():
+        putin(ralph,kitchen)
+
+    def goal("ralph's at the toast")
+        return ralph.in_view("toast")
+        r.in_view(t)

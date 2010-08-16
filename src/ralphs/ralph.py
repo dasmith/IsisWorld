@@ -14,7 +14,7 @@ from direct.gui.DirectGui import DirectLabel
 #from direct.controls.GravityWalker import GravityWalker
 from pandac.PandaModules import *# PandaNode,NodePath,Camera
 #from panda3d.core import CollisionHandlerPusher, CollisionHandlerGravity, CollisionTraverser
-import math, random
+import math, random, os, Image
 from time import time
 # project stuff
 from ..actions.actions import *
@@ -544,8 +544,10 @@ class Ralph(DirectObject.DirectObject):
                 'body_p': p, 'body_r': r,  'in_left_hand': left_hand_obj, 'in_right_hand':right_hand_obj}
 
     def sense__get_vision(self):
-        # TODO: not yet implemented
-        return []
+        self.simulator.agentCamera.saveScreenshot("temp.jpg")
+        image = Image.open("temp.jpg")
+        os.remove("temp.jpg")
+        return image
 
     def sense__get_objects(self):
         return dict([x.getName(),y] for (x,y) in self.getObjectsInFieldOfVision().items())

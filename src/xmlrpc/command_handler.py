@@ -132,26 +132,29 @@ class Logger(object):
         if self.logDir:
             title = os.path.join(self.logDir, title)
 
-        if os.path.exists(title+".isl"):
+        if os.path.exists(title+".log"):
             logNum = 1
-            while os.path.exists(title+"_"+str(logNum)+".isl"):
+            while os.path.exists(title+"_"+str(logNum)+".log"):
                 logNum += 1
             title += "__"+str(logNum)
 
-        self.logFile = title+".isl"
+        self.logFile = title+".log"
         self.log("date: "+time.asctime())
         self.log("scenario: "+scenario)
         self.log("task: "+task)
         self.log("")
 
     def openLog(self, title):
-        self.logFile = title+".isl"
+        self.logFile = title+".log"
 
     def closeLog(self):
         self.logFile = None
 
     def log(self, msg):
         if self.logFile:
-            f = open(self.logFile, "a")
-            f.write(msg+"\n")
-            f.close()
+            try:
+                f = open(self.logFile, "a")
+                f.write(msg+"\n")
+                f.close()
+            except IOError, e:
+                print "Could not open log file %s for writing" % (self.logFile)

@@ -6,7 +6,11 @@ from ..physics.panda.manager import *
 
 class IsisObject(NodePath):
     """ IsisObject is the decorator class for all visible objects in IsisWorld, other
-    than sky, house, ground and agents """
+    than sky, house, ground and agents.
+    
+    This iterates through the parent classes and initializes them, then calls
+    their setup() method, if they have one defined, and then calls the afterSetup()
+    method on just the isisobject generator."""
     priority = 0
     
     def  __init__(self,name=1):         

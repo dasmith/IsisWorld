@@ -1,25 +1,25 @@
-self.description = "making toast in isisworld"
+description = "making toast in isisworld"
+author = "dustin smith"
+version = "1"
 
-def environment("first"):
-    
+def environment():
     k = kitchen()
     r = ralph()
-    r.color = "blue"
-    
-    r.set_color()
+    #r.set_color()
     k.put_in(r)
     t = toast()
     ta = table()
-    put_on(t,ta)
+    ta.put_on(t)
 
 
-def task("go to toast"):
+def task_toast_in_view():
+    task.name = "toast in view"
     # define which environment to use (if not the default)
     task.environment = "first"
     
     def train():
-        putin(ralph,kitchen)
+        k.put_in(r) # put ralph in the kitchen
 
-    def goal("ralph's at the toast")
-        return ralph.in_view("toast")
-        r.in_view(t)
+    def goal():
+        goal.name = "toast in view"
+        return r.in_view(t)

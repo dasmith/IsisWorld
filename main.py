@@ -16,9 +16,9 @@ from panda3d.core import loadPrcFile, loadPrcFileData, ExecutionEnvironment, Fil
 from direct.gui.OnscreenText import OnscreenText
 from direct.task import Task, TaskManagerGlobal
 from direct.filter.CommonFilters import CommonFilters 
+from direct.fsm.FSM import FSM
 from direct.gui.DirectGui import *#DirectEntry, DirectButton, DirectOptionMenu
 from pandac.PandaModules import * # TODO: specialize this import
-
 
 # local source code
 from src.ralphs.ralph import *
@@ -28,10 +28,12 @@ from src.xmlrpc.command_handler import IsisCommandHandler
 from src.xmlrpc.server import XMLRPCServer
 from src.developerconsole import *
 from src.loader import *
+from src.isis_scenario import *
+from src.menu import *
 from src.isis_objects.layout_manager import HorizontalGridLayout
 from src.lights.skydome2 import *
 from src.actions.actions import *
-from src.isis_scenario import *
+
 from time import ctime
 import sys, os
 
@@ -41,34 +43,40 @@ from direct.stdpy import threading
 from pandac.PandaModules import *
 print "Threads supported?", Thread.isThreadingSupported()
 
+
 class IsisWorld(DirectObject):
     def __init__(self):
         # load the main simulated environment
+        
         DirectObject.__init__(self)
         self.isisMessage("Starting Up")
-        self.rootDirectory = os.path.dirname( os.path.join(os.getcwd(),sys.argv[0]) )
-        config = loadPrcFile(Filename("config.prc"))#os.path.join(self.rootDirectory,'config.prc')))
+        # initialize Finite State Machine to control UI
+        self.menu = MainMenu(self)
+        self.rootDirectory = ExecutionEnvironment.getEnvironmentVariable("MAIN_DIR")
+                
+        self.agentNum = 0
+        self.agents = []
+        
+        #base.config = loadPrcFile(Filename(self.rootDirectory, "config.prc"))
         self._setupEnvironment(debug=False)
-        self._setupWorld(visualizeClouds=True, enableKitchen=True)
-        self._setupAgents()
+        self._setupWorld(visualizeClouds=True)
+        #self._setupAgents()
         self._setupLights()
         self._setupCameras()
-        self._loadScenarioFiles()
         self._setupActions()
-        
-        self.devConsole = DeveloperConsole()            
+                  
         self._textObjectVisible = True
-        self._inspectState = False
         #base.cTrav.showCollisions(self.objRender)
         # turn off main help menu by default
         self.toggleInstructionsWindow()
         #self.server_thread.start()
         base.exitFunc = self.exit
-        
-    
-    def scenarioSelectionWindow(self):
-        pass
 
+
+    def makeSafePath(self,path):
+        print "In path", path, "out path", Filename(self.rootDirectory, path)
+        return Filename(self.rootDirectory, path)
+    
     def _setupEnvironment(self,debug=False):
         """  Stuff that's too ugly to put anywhere else. """
         base.setFrameRateMeter(True)
@@ -95,14 +103,14 @@ class IsisWorld(DirectObject):
         base.taskMgr.setupTaskChain('xmlrpc',numThreads=1)
         base.taskMgr.add(self.server.start_serving, 'xmlrpc-server', taskChain='xmlrpc')
 
-    def _setupWorld(self, visualizeClouds=False, enableKitchen=False):
+    def _setupWorld(self, visualizeClouds=False):
         """ The world consists of a plane, the "ground" that stretches to infinity
         and a dome, the "sky" that sits concavely on the ground. """
          # setup physics
         self.physicsManager = PhysicsWorldManager()
         # setup ground
         cm = CardMaker("ground")
-        groundTexture = loader.loadTexture("media/textures/env_ground.jpg")
+        groundTexture = loader.loadTexture(self.makeSafePath("media/textures/env_ground.jpg"))
         cm.setFrame(-100, 100, -100, 100)
         groundNP = render.attachNewNode(cm.generate())
         groundNP.setCollideMask(BitMask32.allOff())
@@ -117,10 +125,6 @@ class IsisWorld(DirectObject):
         floorCollisionNP.node().setIntoCollideMask(FLOORMASK)
         floorCollisionNP.node().setFromCollideMask(FLOORMASK)
         
-        load_objects("kitchen.isis", self.objRender, self.physicsManager, layoutManager = None)
-        
-        # define pointer to base scene.
-        self.room = render.find("**/*kitchen*").getPythonTag("isisobj")
         """
         Setup the skydome
         Moving clouds are pretty but computationally expensive 
@@ -133,12 +137,11 @@ class IsisWorld(DirectObject):
     
             taskMgr.add(self._timeUpdated, "skytimeUpdated")
         else:
-            self.skydomeNP = loader.loadModel("media/models/dome2")#os.path.join(self.rootDirectory,"media","models","dome2"))
+            self.skydomeNP = loader.loadModel(self.makeSafePath("media/models/dome2"))
             self.skydomeNP.reparentTo(render)
             self.skydomeNP.setCollideMask(BitMask32().allOff())
             self.skydomeNP.setScale(400, 400, 100);
-            #self.skydomeNP.setTexScale(textureStage, 10, 5)
-
+    
     def _timeUpdated(self,task):
         self.skydomeNP.skybox.setShaderInput('time', task.time)
         return task.cont
@@ -147,29 +150,8 @@ class IsisWorld(DirectObject):
         # Set up the camera 
         ### Set up displays and cameras ###
         #base.disableMouse()
-        
-        base.camera.reparentTo(self.room)
-        base.camera.setPos(self.room.getWidth()/2,self.room.getLength()/2,self.room.getHeight())
-        base.camera.setHpr(130,320,0)
         base.cam.node().setCameraMask(BitMask32.bit(0))
-        #base.camera.place()
-        #base.camera.setPos(20*math.sin(angleradians),-20.0*math.cos(angleradians),3)
-        #base.camera.setHpr(angledegrees, 0, 0)
-        #self.floatingCamera = FloatingCamera(self.agents[self.agentNum].actorNodePath)
-        # set up picture in picture
-        dr = base.camNode.getDisplayRegion(0)
-        aspect_ratio = 16.0 / 9.0
-        window = dr.getWindow()
-        pip_size = 0.40 # percentage of width of screen
-        self.agentCamera = window.makeDisplayRegion(1-pip_size,1,0,\
-             (1.0 / aspect_ratio) * float(dr.getPixelWidth())/float(dr.getPixelHeight()) * pip_size)
-        self.agentCamera.setCamera(self.agents[self.agentNum].fov)
-        self.agentCamera.setSort(dr.getSort())
-        self.agentCamera.setClearColor(VBase4(0, 0, 0, 1))
-        self.agentCamera.setClearColorActive(True)
-        self.agentCamera.setClearDepthActive(True)
-        #self.agent.fov.node().getLens().setAspectRatio(aspect_ratio)
-        self.agentCamera.setActive(1)
+        base.camera.setPos(0,0,10)
 
 
     def _setupLights(self):
@@ -191,73 +173,6 @@ class IsisWorld(DirectObject):
         render.setLight(alightNP)
         render.setLight(dlightNP)
 
-    def _setupAgents(self):
-        # agentNum keeps track of the currently active visible
-        # that the camera and fov follow
-        self.agentNum = 0
-        self.agents = []
-        defaultPos = { 'Ralph':Vec3(0,0,4), 'Lauren':Vec3(2,0,3)}
-        self.agentsNamesToIDs = {'Ralph':0, 'Lauren':1}
-        # add and initialize new agents
-        for name in self.agentsNamesToIDs.keys():
-            newAgent = Ralph(self.physicsManager, self, name)
-            newAgent.setPosition(defaultPos[name])
-            newAgent.control__say("Hi, I'm %s. Please build me." % name)
-            self.agents.append(newAgent)
-        self.agents.sort(key=lambda x:self.agentsNamesToIDs[x.name])
-
-    def _loadScenarioFiles(self):
-        """ Loads all of the Scenario definitions from the scenario/ directory. """
-        # load files in the scenario directory
-        self.scenarioFiles = ["Scenarios:"]
-        self.scenarioTasks = []
-        for scenarioPath in os.listdir("scenarios"):
-            print "path ", scenarioPath, scenarioPath[:-3]
-            if scenarioPath[-3:] == ".py":
-                scenarioFile = scenarioPath[scenarioPath.rfind("/")+1:-3]
-                self.scenarioFiles.append(scenarioFile)
-                print "Loading scenario file", scenarioFile
-        
-        # display GUI for navigating tasks
-        #textObj = OnscreenText(text = "Scenarios:", pos = (1,0.9), scale = 0.05,fg=(1,0.5,0.5,1),align=TextNode.ALeft,mayChange=1)
-        print "Scenario Files", self.scenarioFiles
-        self.menuScenarioOptions = DirectOptionMenu(text='Scenarios:', text_font=self.fonts['normal'],  item_text_font=self.fonts['normal'], scale=0.06, items=self.scenarioFiles,textMayChange=1, highlightColor=(0.65,0.65,0.65,1),command=self.loadScenario)
-        self.menuScenarioOptions.setPos(-1,0,0.9)
-        
-        self.menuTaskOptions = DirectOptionMenu(text="Tasks:", text_font=self.fonts['normal'], scale=0.06, items=self.scenarioTasks,textMayChange=1, highlightColor=(0.65,0.65,0.65,1),command=self.loadTask)
-
-        
-        self.menuTrainButton = DirectButton(text = "Train", scale=0.08, text_font=self.fonts['normal'])
-        self.menuTestButton = DirectButton(text = "Test", scale=0.08, text_font=self.fonts['normal'])
-        self.menuStartPauseButton = DirectButton(text = ("Start", "Pause"), scale=0.08, text_font=self.fonts['normal'])
-
-        self.menuTaskOptions.hide()
-        self.menuTrainButton.hide()
-        self.menuTestButton.hide()
-        self.menuStartPauseButton.hide()
-        
-    def loadScenario(self,arg):
-        if self.scenarioFiles.index(arg) == 0: 
-            self.menuTaskOptions.hide()
-            return
-        self.currentScenario = IsisScenario(arg)
-
-        newMenu =  self.currentScenario.getTasks()
-        self.menuTaskOptions['items'] = newMenu
-        # oddly, you cannot initialize with a font if there are no items in the menu
-        self.menuTaskOptions['item_text_font']=self.fonts['normal']
-        self.menuTaskOptions.show()
-        self.menuTaskOptions.setPos(self.menuScenarioOptions, Vec3(7,0,0))
-        print "tasks:", self.scenarioTasks
-        # display options on the screen
-        
-    def loadTask(self,arg):
-        self.menuTrainButton.setPos(self.menuTaskOptions, Vec3(6,0,0))
-        self.menuTrainButton.show()
-        self.menuTestButton.setPos(self.menuTrainButton, Vec3(3,0,0))
-        self.menuTestButton.show()
-        self.menuStartPauseButton.setPos(self.menuTestButton, Vec3(3,0,0))
-        self.menuStartPauseButton.show()
 
     def _setupActions(self):
         """ Initializes commands that are related to the XML-Server and
@@ -343,9 +258,6 @@ class IsisWorld(DirectObject):
                 self.agentNum += 1
             self._setupCameras()
 
-        b = DirectButton(pos=(-1.3,0.0,-0.95),text = ("Inspect", "click!", "rolling over", "disabled"), scale=0.05, command = self.toggleInspect)
-        #base.accept("o", toggleInstructionsWindow)
-
         # key input\\\
         self.accept("1",               base.toggleWireframe, [])
         self.accept("2",               base.toggleTexture, [])
@@ -394,18 +306,6 @@ class IsisWorld(DirectObject):
             self.textObject.reparentTo(aspect2d)
             self._textObjectVisible = True
 
-    def toggleInspect(self):
-        self._inspectState = not self._inspectState
-        if self._inspectState:
-            self.devConsole.show()
-            if (not self.physicsManager.paused): # pause it
-                self.physicsManager.togglePaused()
-            self.agentCamera.setActive(0)
-            active_agent = self.agents[self.agentNum].actorNodePath
-            base.camera.reparentTo(render)
-            base.camera.lookAt(active_agent)
-        else:
-            return
 
     def isisMessage(self,message):
         print "[IsisWorld] %s %s" % (message, str(ctime()))

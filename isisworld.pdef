@@ -14,9 +14,10 @@ class isisworld(p3d):
 
     # Add the data and configuration files
     loadPrcFile("config.prc")
-    dir('media')
-    dir('src')
-    dir('scenarios')
+    dir('media','media')
+    dir('src','src')
+    dir('scenarios','scenarios')
+    dir('media/fonts/')
     
     file("config.prc")
     file("kitchen.isis")

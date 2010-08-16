@@ -20,7 +20,7 @@ class MainMenu(object, FSM):
         self.defaultTransitions = {
             'Menu' : ['Scenario'],
             'Scenario' : ['Menu','TaskPaused'],
-            'TaskPaused' : ['Menu','TaskTrain','TaskTest'],
+            'TaskPaused' : ['Menu','TaskTrain','TaskTest','Scenario'],
             'TaskTrain' : ['TaskPaused','TaskTest','Menu'],
             'TaskTest' : ['TaskPaused','TaskTrain','Menu'],
         }
@@ -93,15 +93,15 @@ class MainMenu(object, FSM):
                                                 highlightColor=(0.65,0.65,0.65,1))
         self.menuTaskOptions.reparentTo(self.scenarioFrame)
         self.loadTaskText = DirectButton(text='Load Task', relief=None,
-                                      pos=(0, 0,.5), text_scale=(0.09),
-                                      text_font=self.fonts['bold'],
+                                      pos=(0, 0,.5), text_scale=(0.05),
+                                      text_font=self.fonts['normal'],
                                       text_pos=(0, -0.01),
                                       text_fg=(0.79, 0.69, 0.57, 1),
                                       command=self.request, extraArgs=['TaskPaused'])
         self.loadTaskText.reparentTo(self.scenarioFrame)
         self.goBackFromScenarioText = DirectButton(text='Change Scenario', relief=None,
-                                    pos=(0,0,.3), text_scale=(0.09),
-                                    text_font=self.fonts['bold'],
+                                    pos=(0,0,.3), text_scale=(0.05),
+                                    text_font=self.fonts['normal'],
                                     text_pos=(0, -0.01),
                                     text_fg=(0.79, 0.69, 0.57, 1),
                                     command=self.request, extraArgs=['Menu'])
@@ -125,14 +125,14 @@ class MainMenu(object, FSM):
                                        pos=(0, 0, 0.2), text_scale=(0.15, 0.15),
                                        text_fg=(0.79, 0.69, 0.57, 1))
         self.fullscreen.reparentTo(self.taskFrame)
-        self.toMain = DirectButton(text='Scenario Manager', relief=None,
+        self.toMain = DirectButton(text='Change Task', relief=None,
                                    frameSize=(-0.2, 0.2, -0.05, 0.05),
                                    pos=(0, 0, -0.5), text_scale=(0.1, 0.1),
                                    text_fg=(0.79, 0.69, 0.57, 1),
                                    command=self.request, extraArgs=['Scenario'])
         self.toMain.reparentTo(self.taskFrame)
         self.goBackFromTaskText = DirectButton(text='Change Scenario', relief=None,
-                                    pos=(0,0,.3), text_scale=(0.09),
+                                    pos=(0,0,-0.4), text_scale=(0.09),
                                     text_font=self.fonts['bold'],
                                     text_pos=(0, -0.01),
                                     text_fg=(0.79, 0.69, 0.57, 1),
@@ -238,7 +238,7 @@ class MainMenu(object, FSM):
         self.currentScenario = IsisScenario(self.selectedScenario)
 
         # setup world
-        load_objects("kitchen.isis", self.world.objRender, self.world.physicsManager, layoutManager = None)
+        load_objects(self.currentScenario, self.world.objRender, self.world.physicsManager, layoutManager = None)
         # setup agents
         
         # setup cameras

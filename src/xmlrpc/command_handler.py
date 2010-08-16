@@ -6,6 +6,7 @@ By Gleb Kuznetsov (glebk@mit.edu)
 '''
 from pandac.PandaModules import VBase3
 import time
+import os
 from direct.stdpy.file import  *
 
 class IsisCommandHandler(object):
@@ -13,6 +14,8 @@ class IsisCommandHandler(object):
     def __init__(self, simulator):
         self.simulator = simulator
         self.meta_commands  = ['meta_step','meta_pause','meta_resume','meta_list_actions','step_simulation']
+        self.logger = Logger("logs")
+        self.logger.createLog(str(int(time.time())), "Test scenario making toast", "Create toast")
 
     def handler(self,cmd,args={}):
         '''
@@ -27,6 +30,7 @@ class IsisCommandHandler(object):
             # don't know about this command
             print 'Unknown command: %s' % cmd
             print self.simulator.actionController.actionMap.values()
+            self.logger.log("UNKNOWN COMMAND: "+cmd)
             return 'failure'
         agent_to_control = 0
         # trying to figure out the agent to control
@@ -45,12 +49,14 @@ class IsisCommandHandler(object):
             print "Available agents:"
             for agent,id in self.simulator.agentsNamesToIDs.items():
                 print "\t (%i)  %s\n" % (id,agent)
+            self.logger.log(cmd + ": Error - No agent specified")
             return 'failure'
 
         print "ID", agent_to_control
         if self.simulator.actionController.hasAction(cmd):
             # not a meta command and agent_to_control is defined
             # TODO: check to see if proper keys are defined for the given command
+            self.logger.log(cmd+", "+self.simulator.agents[agent_to_control].name+": Relayed to agent")
             return self._relayAgentControl(agent_to_control,cmd,args)
         elif cmd == 'meta_step':
             seconds = 0.05
@@ -61,6 +67,7 @@ class IsisCommandHandler(object):
             # dont accept new commands until this has stepped
             while self.simulator.physicsManager.stepping:   self.closed = True
             self.closed = False#time.sleep(0.00001)
+            self.logger.log("step: "+str(seconds)+" seconds")
             return 'success'            
         elif cmd == 'step_simulation':
             print "WARNING, the step_simulation command will soon be deprecated. use 'meta_step' instead"
@@ -74,13 +81,16 @@ class IsisCommandHandler(object):
             return 'success'
         elif cmd == 'meta_pause':
             self.simulator.physicsManager.pause()
+            self.logger.log("pause: Simulation paused")
             return 'success'
         elif cmd == 'meta_resume':
             self.simulator.physicsManager.resume()
+            self.logger.log("resume: Simulation resumed")
             return 'success'
         elif cmd == 'meta_list_actions':
             return self.simulator.actionController.actionMap.keys()+self.meta_commands
         else:
+            self.logger.log("UNKNOWN COMMAND: " + cmd)
             raise "Undefined meta command: %s" % cmd
         
         return "done"
@@ -112,4 +122,39 @@ class IsisCommandHandler(object):
             raise NotImplementedError, "handle_remove_object through xmlrpc not implemented"
 
 
+class Logger(object):
+    def __init__(self, logDir = None):
+        self.logFile = None
+        self.logDir = logDir
 
+    def createLog(self, title, scenario, task):
+        self.closeLog()
+        if self.logDir:
+            title = os.path.join(self.logDir, title)
+
+        if os.path.exists(title+".log"):
+            logNum = 1
+            while os.path.exists(title+"_"+str(logNum)+".log"):
+                logNum += 1
+            title += "__"+str(logNum)
+
+        self.logFile = title+".log"
+        self.log("date: "+time.asctime())
+        self.log("scenario: "+scenario)
+        self.log("task: "+task)
+        self.log("")
+
+    def openLog(self, title):
+        self.logFile = title+".log"
+
+    def closeLog(self):
+        self.logFile = None
+
+    def log(self, msg):
+        if self.logFile:
+            try:
+                f = open(self.logFile, "a")
+                f.write(msg+"\n")
+                f.close()
+            except IOError, e:
+                print "Could not open log file %s for writing" % (self.logFile)

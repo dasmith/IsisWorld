@@ -338,7 +338,7 @@ class Ralph(DirectObject.DirectObject):
         """ perceives the world, returns percepts dict """
         percepts = dict()
         # eyes: visual matricies
-        percepts['vision'] = self.sense__get_vision()
+        #percepts['vision'] = self.sense__get_vision()
         # objects in purview (cheating object recognition)
         percepts['objects'] = self.sense__get_objects()
         # global position in environment - our robots can have GPS :)

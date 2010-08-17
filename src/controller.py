@@ -22,8 +22,8 @@ class Controller(object, FSM):
             'Menu' : ['Scenario'],
             'Scenario' : ['Menu','TaskPaused'],
             'TaskPaused' : ['Menu','TaskTrain','TaskTest','Scenario'],
-            'TaskTrain' : ['TaskPaused','TaskTest','Menu'],
-            'TaskTest' : ['TaskPaused','TaskTrain','Menu'],
+            'TaskTrain' : ['TaskPaused','TaskTest','Menu','Scenario'],
+            'TaskTest' : ['TaskPaused','TaskTrain','Menu','Scenario'],
         }
         base.setBackgroundColor(0, 0, 0, 1)
         self.world = isisworld
@@ -237,7 +237,9 @@ class Controller(object, FSM):
 
         # only initialize world if you are coming from the menu
         if self.oldState == 'Menu':
-            # TODO: delete render path
+            if hasattr(self,'room'):
+                # delete all nodes from the render path
+                self.room.removeNode()
             self.world.agents = []
             self.world.agentsNamesToID = {}
             self.currentScenario = IsisScenario(self.selectedScenario)

@@ -256,12 +256,14 @@ class IsisWorld(DirectObject):
         )
 
         def changeAgent():
-            if (self.agentNum == (len(self.agents)-1)):
-                self.agentNum = 0
-
+            if not self.acceptAgentCommands:
+                self.isisMessage("Cannot switch agents in current controller state") 
             else:
-                self.agentNum += 1
-            self._setupCameras()
+                if (self.agentNum == (len(self.agents)-1)):
+                    self.agentNum = 0
+
+                else:
+                    self.agentNum += 1
 
         # key input\\\
         self.accept("1",               base.toggleWireframe, [])

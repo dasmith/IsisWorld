@@ -338,7 +338,7 @@ class Ralph(DirectObject.DirectObject):
         """ perceives the world, returns percepts dict """
         percepts = dict()
         # eyes: visual matricies
-        percepts['vision'] = self.sense__get_vision()
+        #percepts['vision'] = self.sense__get_vision()
         # objects in purview (cheating object recognition)
         percepts['objects'] = self.sense__get_objects()
         # global position in environment - our robots can have GPS :)
@@ -544,7 +544,7 @@ class Ralph(DirectObject.DirectObject):
                 'body_p': p, 'body_r': r,  'in_left_hand': left_hand_obj, 'in_right_hand':right_hand_obj}
 
     def sense__get_vision(self):
-        self.simulator.agentCamera.saveScreenshot("temp.jpg")
+        self.fov.node().saveScreenshot("temp.jpg")
         image = Image.open("temp.jpg")
         os.remove("temp.jpg")
         return image

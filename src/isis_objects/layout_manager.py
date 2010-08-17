@@ -20,30 +20,86 @@ class LayoutManager():
 
 class RoomLayout(LayoutManager):
     """Arranges objects in rows around the perimeter"""
-    def __init__(self, area, height, padw = .00, padh = .00):
+    def __init__(self, area, height, padw = .05, padh = .05):
         LayoutManager.__init__(self)
         self.w, self.h = area
         self.z = height
         self.px, self.py = (0, 0)
-        self.maxh = 0
+        self.maxd = 0
         self.padw = padw
         self.padh = padh
+        self.side = 0;
+        self.sides = [self.__addn, self.__adde, self.__adds, self.__addw]
     def add(self, obj):
-        if not LayoutManager.add(self, obj):
-            return
-        ow = obj.getWidth()+self.padw#*2
-        oh = obj.getLength()+self.padh#*2
+        """Tries to add the object to the current side"""
+        if self.side < len(self.sides) and LayoutManager.add(self, obj):
+            # There are still some empty walls
+            ow = obj.getWidth()+self.padw*2
+            oh = obj.getLength()+self.padh*2
+            coords = self.sides[self.side](obj, ow, oh)
+            if coords:
+                # Recalculate coordinates returned from the top left point to the object's center
+                return (coords[0]-(self.w-ow)/2.0+self.padw, coords[1]-(self.h-oh)/2.0+self.padh, self.z)
+        return
+    def __addn(self, obj, ow, oh):
+        """Tries to add the object along the north side"""
         if self.px+ow > self.w:
-            self.py += self.maxh
-            self.px = 0
-            self.maxh = 0
-            if self.py+oh > self.h:
-                return None
+            # No more room on this side, prepare coordinates for next wall
+            self.side += 1
+            self.py = self.maxd
+            self.maxd = 0
+            return self.__adde(obj, ow, oh)
+        # Calculate the 2D coordinates for the top left of the object
         x = self.px
         self.px += ow
-        if oh > self.maxh:
-            self.maxh = oh
-        return (x-(self.w-ow)/2.0, self.py-(self.h-oh)/2.0, self.z)
+        # Compute maximum distance from this wall for the starting point of the next
+        # Once this wall is full
+        if oh > self.maxd:
+            self.maxd = oh
+        return (x, 0)
+    def __adde(self, obj, ow, oh):
+        """Tries to add the object along the east side"""
+        if self.py+oh > self.h:
+            # No more room on this side, prepare coordinates for next wall
+            self.side += 1
+            self.px = self.w-self.maxd
+            self.maxd = 0
+            return self.__adds(obj, ow, oh)
+        # Calculate the 2D coordinates for the top left of the object
+        y = self.py
+        self.py += oh
+        # Compute maximum distance from this wall for the starting point of the next
+        # Once this wall is full
+        if ow > self.maxd:
+            self.maxd = ow
+        return (self.w-ow, y)
+    def __adds(self, obj, ow, oh):
+        """Tries to add the object along the south side"""
+        if self.px-ow < 0:
+            # No more room on this side, prepare coordinates for next wall
+            self.side += 1
+            self.py = self.h-self.maxd
+            return self.__addw(obj, ow, oh)
+        # Calculate the 2D coordinates for the top left of the object
+        x = self.px
+        self.px -= ow
+        # Compute maximum distance from this wall for the starting point of the next
+        # Once this wall is full
+        if oh > self.maxd:
+            self.maxd = oh
+        return (x-ow, self.h-oh)
+    def __addw(self, obj, ow, oh):
+        """Tries to add the object along the west side"""
+        if self.py-oh < 0:
+            # No more room on this side, room is full
+            self.side += 1
+            LayoutManager.remove(self, obj)
+            return
+        # Calculate the 2D coordinates for the top left of the object
+        y = self.py
+        self.py -= oh
+        return (0, y-oh)
+
 
 class HorizontalGridLayout(LayoutManager):
     """Arranges objects in rows within the given area"""

@@ -15,8 +15,8 @@ class kitchen(IsisObject,IsisVisual,Room, NoPickup):
         self.density = 4000
         self.roomScale=35
         
-        self.length =  random.randint(6, 9)
-        self.width = random.randint(6, 9)
+        self.length =  random.randint(6, 9)*2
+        self.width = random.randint(6, 9)*2
         self.height = random.randint(6, 9)
         self.activeModel = NodePath('kitchen')
         # don't allow model to ever be changed. since model is a pointer to a procedurally generated visual model, it doesn't behave like an egg file
@@ -32,15 +32,15 @@ class kitchen(IsisObject,IsisVisual,Room, NoPickup):
         
         CM=CardMaker('')
 
-        self.length = random.randint(6, 9)
-        self.width = random.randint(6, 9)
+        hw = self.width/2
+        hl = self.length/2
         # walls
-        CM.setFrame(-self.length,self.length,0,self.height)
-        self.activeModel.attachNewNode(CM.generate()).setPosHpr(0, self.width, 0, 0, 0, 0)
-        self.activeModel.attachNewNode(CM.generate()).setPosHpr(0, -self.width, 0, 180, 0, 0)
-        CM.setFrame(-self.width,self.width,0,self.height)
-        self.activeModel.attachNewNode(CM.generate()).setPosHpr(self.length, 0, 0, -90, 0, 0)
-        self.activeModel.attachNewNode(CM.generate()).setPosHpr(-self.length, 0, 0, 90, 0, 0) 
+        CM.setFrame(-hw,hw,0,self.height)
+        self.activeModel.attachNewNode(CM.generate()).setPosHpr(0, hl, 0, 0, 0, 0)
+        self.activeModel.attachNewNode(CM.generate()).setPosHpr(0, -hl, 0, 180, 0, 0)
+        CM.setFrame(-hl,hl,0,self.height)
+        self.activeModel.attachNewNode(CM.generate()).setPosHpr(hw, 0, 0, -90, 0, 0)
+        self.activeModel.attachNewNode(CM.generate()).setPosHpr(-hw, 0, 0, 90, 0, 0) 
         self.activeModel.setCollideMask(WALLMASK)
         floorTex=loader.loadTexture("media/maps/grid.rgb")#os.path.join(self.rootDirectory,"media","maps","grid.rgb"))
         floorTex.setMinfilter(Texture.FTLinearMipmapLinear) 
@@ -50,7 +50,7 @@ class kitchen(IsisObject,IsisVisual,Room, NoPickup):
         for wall in self.activeModel.getChildrenAsList(): 
            wall.setTexture(wallTex) 
            wall.setTexScale(TextureStage.getDefault(),0.5,self.height*self.roomScale*10)
-        CM.setFrame(-self.length,self.length,-self.width,self.width) 
+        CM.setFrame(-hw,hw,-hl,hl) 
         floor=self.activeModel.attachNewNode(CM.generate()) 
         floor.setTexture(floorTex)
         floor.setTexScale(TextureStage.getDefault(),10,10,10)
@@ -59,6 +59,3 @@ class kitchen(IsisObject,IsisVisual,Room, NoPickup):
         self.activeModel.setTransparency(TransparencyAttrib.MAlpha) 
         self.activeModel.setTwoSided(1) 
         self.activeModel.flattenLight()
-         
-
-

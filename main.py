@@ -155,7 +155,8 @@ class IsisWorld(DirectObject):
         ### Set up displays and cameras ###
         #base.disableMouse()
         base.cam.node().setCameraMask(BitMask32.bit(0))
-        base.camera.setPos(0,0,10)
+        base.camera.setPos(0,0,12)
+        base.camera.setP(315)
 
 
     def _setupLights(self):
@@ -264,6 +265,8 @@ class IsisWorld(DirectObject):
 
                 else:
                     self.agentNum += 1
+                # change agent view camera
+                self.agentCamera.setCamera(self.agents[self.agentNum].fov)
 
         # key input\\\
         self.accept("1",               base.toggleWireframe, [])
@@ -325,8 +328,6 @@ class IsisWorld(DirectObject):
             self.agentCamera.setClearColor(VBase4(0, 0, 0, 1))
             self.agentCamera.setClearColorActive(True)
             self.agentCamera.setClearDepthActive(True)
-
-
             self.agentCamera.setCamera(self.agents[self.agentNum].fov)
             self.agentCamera.setActive(1)
             

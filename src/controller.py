@@ -79,7 +79,7 @@ class Controller(object, FSM):
 
 
         #### Define Scenario Frame
-        self.scenarioFrame = DirectFrame(frameColor=(0.26, 0.18, 0.06, 1.0),
+        self.scenarioFrame = DirectFrame(frameColor=(0.26, 0.18, 0.06, 0.65),
                                          frameSize=(-.33,.40,-.35,.75),
                                          pos=(.8, .2, 0), relief=DGG.RIDGE,
                                          borderWidth=(0.05, 0.05))
@@ -109,9 +109,8 @@ class Controller(object, FSM):
         self.goBackFromScenarioText.reparentTo(self.scenarioFrame)
 
 
-
         ### Define Task Frame
-        self.taskFrame = DirectFrame(frameColor=(0.26, 0.18, 0.06, 1.0),
+        self.taskFrame = DirectFrame(frameColor=(0.26, 0.18, 0.06, 0.65),
                                      frameSize=(-.33,.40,-.35,.75),
                                      pos=(0.8, .2, 0), relief=DGG.RIDGE,
                                      borderWidth=(0.05, 0.05))
@@ -241,6 +240,7 @@ class Controller(object, FSM):
                 # delete all nodes from the render path
                 self.room.removeNode()
             self.world.agents = []
+            self.world.agentNum = 0
             self.world.agentsNamesToID = {}
             self.currentScenario = IsisScenario(self.selectedScenario)
             self._loadScene()

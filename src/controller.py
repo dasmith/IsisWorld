@@ -6,13 +6,14 @@ from direct.gui.DirectGui import DirectSlider
 from direct.fsm.FSM import FSM
 from direct.gui.OnscreenText import OnscreenText
 from direct.gui.OnscreenImage import OnscreenImage
+from pandac.PandaModules import Vec3
 
 from src.loader import *
 from src.isis_scenario import *
 
 
 
-class MainMenu(object, FSM):
+class Controller(object, FSM):
 
     def __init__(self, isisworld):
         FSM.__init__(self, 'MainMenuFSM')
@@ -79,8 +80,8 @@ class MainMenu(object, FSM):
 
         #### Define Scenario Frame
         self.scenarioFrame = DirectFrame(frameColor=(0.26, 0.18, 0.06, 1.0),
-                                         frameSize=(-.33,.33,-.75,.75),
-                                         pos=(.8, 0, 0), relief=DGG.RIDGE,
+                                         frameSize=(-.33,.40,-.35,.75),
+                                         pos=(.8, .2, 0), relief=DGG.RIDGE,
                                          borderWidth=(0.05, 0.05))
                                          
         self.menuTaskOptions = DirectOptionMenu(text="Tasks:", 
@@ -111,28 +112,23 @@ class MainMenu(object, FSM):
 
         ### Define Task Frame
         self.taskFrame = DirectFrame(frameColor=(0.26, 0.18, 0.06, 1.0),
-                                     frameSize=(-.33,.33,-.75,.75),
-                                     pos=(0.8, 0, 0), relief=DGG.RIDGE,
+                                     frameSize=(-.33,.40,-.35,.75),
+                                     pos=(0.8, .2, 0), relief=DGG.RIDGE,
                                      borderWidth=(0.05, 0.05))
 
-        self.taskNameLabel = DirectLabel(text='tmp', relief=None,
-                                         pos=(0, 0,.6), text_scale=(0.09),
-                                         text_font=self.fonts['mono'],
-                                         text_fg=(0.79, 0.69, 0.57, 1))
+        self.taskNameLabel = OnscreenText(text='tmp', mayChange=1,
+                                         pos=(0, 0,.5), scale=(0.05),
+                                         font=self.fonts['mono'],
+                                         fg=(0.79, 0.69, 0.57, 1))
         self.taskNameLabel.reparentTo(self.taskFrame)
-        self.fullscreen = DirectButton(text='Off', relief=None,
-                                       frameSize=(-0.2, 0.2, -0.05, 0.05),
-                                       pos=(0, 0, 0.2), text_scale=(0.15, 0.15),
-                                       text_fg=(0.79, 0.69, 0.57, 1))
-        self.fullscreen.reparentTo(self.taskFrame)
         self.toMain = DirectButton(text='Change Task', relief=None,
                                    frameSize=(-0.2, 0.2, -0.05, 0.05),
-                                   pos=(0, 0, -0.5), text_scale=(0.1, 0.1),
+                                   pos=(0, 0, 0), text_scale=(0.05, 0.05),
                                    text_fg=(0.79, 0.69, 0.57, 1),
                                    command=self.request, extraArgs=['Scenario'])
         self.toMain.reparentTo(self.taskFrame)
         self.goBackFromTaskText = DirectButton(text='Change Scenario', relief=None,
-                                    pos=(0,0,-0.4), text_scale=(0.09),
+                                    pos=(0,0,-.1), text_scale=(0.05),
                                     text_font=self.fonts['bold'],
                                     text_pos=(0, -0.01),
                                     text_fg=(0.79, 0.69, 0.57, 1),
@@ -140,11 +136,11 @@ class MainMenu(object, FSM):
         self.goBackFromTaskText.reparentTo(self.taskFrame)
 
         self.menuTrainButton = DirectButton(text = "Start Training", 
-                                            scale=0.08, relief=None,
+                                            scale=0.05, relief=None,
                                             text_font=self.fonts['normal'],
-                                            pos=(0,0,0.1))
+                                            pos=(0,0,0.4))
         self.menuTestButton = DirectButton(text = "Start Testing", 
-                                            scale=0.08, relief=None,
+                                            scale=0.05, relief=None,
                                             text_font=self.fonts['normal'],
                                             pos=(0,0,0.3),
                                             command=self.request, extraArgs=[])
@@ -165,7 +161,7 @@ class MainMenu(object, FSM):
                 scenarioFile = scenarioPath[scenarioPath.rfind("/")+1:-3]
                 self.scenarioFiles.append(scenarioFile)
                 print "Loading scenario file", scenarioFile
-
+                
         # display GUI for navigating tasks
         #textObj = OnscreenText(text = "Scenarios:", pos = (1,0.9), scale = 0.05,fg=(1,0.5,0.5,1),align=TextNode.ALeft,mayChange=1)
         print "Scenario Files", self.scenarioFiles
@@ -176,32 +172,16 @@ class MainMenu(object, FSM):
     def _setupAgents(self):
         # agentNum keeps track of the currently active visible
         # that the camera and fov follow
+        from random import randint
+        agents_to_add = ['Ralph','Lauren']
+        for agent in agents_to_add:
+            newAgent = self.world.add_agent_to_world(agent)
+            newAgent.actorNodePath.reparentTo(self.room)
+            w,h = int(self.room.getWidth()/2), int(self.room.getLength()/2)
+            x = randint(-w,w)
+            y = randint(-h,h)
+            newAgent.setPosition(Vec3(x,y,5))
 
-        defaultPos = { 'Ralph':Vec3(0,0,4), 'Lauren':Vec3(2,0,3)}
-        self.agentsNamesToIDs = {'Ralph':0, 'Lauren':1}
-        # add and initialize new agents
-        for name in self.agentsNamesToIDs.keys():
-            newAgent = Ralph(self.physicsManager, self, name)
-            newAgent.setPosition(defaultPos[name])
-            newAgent.control__say("Hi, I'm %s. Please build me." % name)
-            self.agents.append(newAgent)
-        self.agents.sort(key=lambda x:self.agentsNamesToIDs[x.name])
-        # set up picture in picture
-        dr = base.camNode.getDisplayRegion(0)
-        aspect_ratio = 16.0 / 9.0
-        window = dr.getWindow()
-        pip_size = 0.40 # percentage of width of screen
-        self.world.agentCamera = window.makeDisplayRegion(1-pip_size,1,0,\
-             (1.0 / aspect_ratio) * float(dr.getPixelWidth())/float(dr.getPixelHeight()) * pip_size)
-        
-        self.world.agentCamera.setSort(dr.getSort())
-        self.world.agentCamera.setClearColor(VBase4(0, 0, 0, 1))
-        self.world.agentCamera.setClearColorActive(True)
-        self.world.agentCamera.setClearDepthActive(True)
-
-
-        self.world.agentCamera.setCamera(self.agents[self.agentNum].fov)
-        self.world.agentCamera.setActive(1)
 
     def setScenarioUsingGUI(self,arg=None):
         # you cannot do this when a task is running already
@@ -216,48 +196,59 @@ class MainMenu(object, FSM):
             raise Exception("FSM violation, you cannot change a task from the state %s" % self.state)
         else:
             self.selectedTask = self.scenarioTasks[self.menuTaskOptions.selectedIndex]
+            self.taskNameLabel.setText(self.selectedTask)
 
     def enterMenu(self):
+        
         self.scenarioFrame.hide()
         # make sure default scenario is selected
         self.selectedScenario = self.scenarioFiles[self.menuScenarioOptions.selectedIndex]
         self.taskFrame.hide()
         self.menuFrame.show()
 
+
+    def _loadScene(self):   
+        # temporary loading text
+        loadingText = OnscreenText('Loading...', mayChange=True,
+                                       pos=(0, -0.9), scale=0.1,
+                                       fg=(1, 1, 1, 1), bg=(0, 0, 0, 0.5))
+        loadingText.setTransparency(1)     
+        # setup world
+        load_objects(self.currentScenario, self.world.objRender, self.world.physicsManager, layoutManager = None)
+        # define pointer to base scene.
+        self.room = render.find("**/*kitchen*").getPythonTag("isisobj")
+        # setup agents
+        self._setupAgents()
+        
+        # position the camera in the room
+        base.camera.reparentTo(self.room)
+        base.camera.setPos(self.room.getWidth()/2,self.room.getLength()/2,self.room.getHeight())
+        base.camera.setHpr(130,320,0)
+        loadingText.destroy()
+
+
     def enterScenario(self):
         """ Loads (or resets) the current scenario. """
         self.menuFrame.hide()
         self.taskFrame.hide()
 
-        
-        loadingText = OnscreenText('Loading...', mayChange=True,
-                                       pos=(0, -0.9), scale=0.1,
-                                       fg=(1, 1, 1, 1), bg=(0, 0, 0, 0.5))
-        loadingText.setTransparency(1)        
+        # only initialize world if you are coming from the menu
+        if self.oldState == 'Menu':
+            # TODO: delete render path
+            self.world.agents = []
+            self.world.agentsNamesToID = {}
+            self.currentScenario = IsisScenario(self.selectedScenario)
+            self._loadScene()
 
-        self.currentScenario = IsisScenario(self.selectedScenario)
-
-        # setup world
-        load_objects(self.currentScenario, self.world.objRender, self.world.physicsManager, layoutManager = None)
-        # setup agents
-        
-        # setup cameras
-        # define pointer to base scene.
-        self.room = render.find("**/*kitchen*").getPythonTag("isisobj")
-        # position the camera in the room
-        base.camera.reparentTo(self.room)
-        base.camera.setPos(self.room.getWidth()/2,self.room.getLength()/2,self.room.getHeight())
-        base.camera.setHpr(130,320,0)
-        
-    
+        print "Loading from state", self.state
+        # add list of tasks to the GUI
         self.scenarioTasks =  self.currentScenario.getTasks()
         self.menuTaskOptions['items'] = self.scenarioTasks
         # oddly, you cannot initialize with a font if there are no items in the menu
         self.menuTaskOptions['item_text_font']=self.fonts['normal']
-        print "tasks:", self.scenarioTasks
         # make sure some default task is selected
         self.selectedTask = self.scenarioTasks[self.menuTaskOptions.selectedIndex]
-        loadingText.destroy()
+
         self.scenarioFrame.show()
         # display options on the screen
 

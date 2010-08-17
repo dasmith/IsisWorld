@@ -29,7 +29,7 @@ from src.xmlrpc.server import XMLRPCServer
 from src.developerconsole import *
 from src.loader import *
 from src.isis_scenario import *
-from src.menu import *
+from src.controller import *
 from src.isis_objects.layout_manager import HorizontalGridLayout
 from src.lights.skydome2 import *
 from src.actions.actions import *
@@ -51,11 +51,12 @@ class IsisWorld(DirectObject):
         DirectObject.__init__(self)
         self.isisMessage("Starting Up")
         # initialize Finite State Machine to control UI
-        self.menu = MainMenu(self)
+        self.controller = Controller(self)
         self.rootDirectory = ExecutionEnvironment.getEnvironmentVariable("MAIN_DIR")
                 
         self.agentNum = 0
         self.agents = []
+        self.agentsNamesToIDs = {}
         
         #base.config = loadPrcFile(Filename(self.rootDirectory, "config.prc"))
         self._setupEnvironment(debug=False)
@@ -102,6 +103,7 @@ class IsisWorld(DirectObject):
         # some hints on threading: https://www.panda3d.org/forums/viewtopic.php?t=7345
         base.taskMgr.setupTaskChain('xmlrpc',numThreads=1)
         base.taskMgr.add(self.server.start_serving, 'xmlrpc-server', taskChain='xmlrpc')
+        
 
     def _setupWorld(self, visualizeClouds=False):
         """ The world consists of a plane, the "ground" that stretches to infinity
@@ -292,6 +294,37 @@ class IsisWorld(DirectObject):
 
         self.command_box = DirectEntry(pos=(-1.2,-0.95,-0.95), text_fg=(0.282, 0.725, 0.850,1), frameColor=(0.631, 0.219, 0.247,0.25), suppressKeys=1, initialText="enter text and hit return", enableEdit=0,scale=0.07, focus=0, focusInCommand=disable_keys, focusOutCommand=enable_keys, focusInExtraArgs=[self], focusOutExtraArgs=[self], command=accept_message, extraArgs=[self],  width=15, numLines=1)
         base.win.setClearColor(Vec4(0,0,0,1))
+
+
+    def add_agent_to_world(self,name):
+        
+        # add and initialize new agents
+        newAgent = Ralph(self.physicsManager, self, name)
+        newAgent.control__say("Hi, I'm %s. Please build me." % name)
+        self.agents.append(newAgent)
+        self.agentsNamesToIDs[name] = len(self.agents)
+        #self.agents.sort(key=lambda x:self.agentsNamesToIDs[x.name])
+        
+        # set up picture in picture on first agent
+        if len(self.agents) == 1:
+            dr = base.camNode.getDisplayRegion(0)
+            aspect_ratio = 16.0 / 9.0
+            window = dr.getWindow()
+            pip_size = 0.40 # percentage of width of screen
+            self.agentCamera = window.makeDisplayRegion(1-pip_size,1,0,\
+                 (1.0 / aspect_ratio) * float(dr.getPixelWidth())/float(dr.getPixelHeight()) * pip_size)    
+        
+            self.agentCamera.setSort(dr.getSort())
+            self.agentCamera.setClearColor(VBase4(0, 0, 0, 1))
+            self.agentCamera.setClearColorActive(True)
+            self.agentCamera.setClearDepthActive(True)
+
+
+            self.agentCamera.setCamera(self.agents[self.agentNum].fov)
+            self.agentCamera.setActive(1)
+            
+        return newAgent
+
 
     def step_simulation(self,stepTime=2):
         """ Relays the command to the physics manager """

@@ -2,7 +2,18 @@ description = "making toast in isisworld"
 author = "dustin smith"
 version = "1"
 
-def environment():
+environment = """kitchen	at 0,0,0
+table	in kitchen
+toaster	on table
+loaf	on table
+loaf	on table
+loaf	on toaster
+knife	on table
+fridge	in kitchen
+loaf	in fridge"""
+
+
+def environment_future():
     k = kitchen()
     r = ralph()
     #r.set_color()

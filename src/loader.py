@@ -18,11 +18,11 @@ def instantiate_isisobject(classname, physics):
 def load_objects_file(file):
     return map(lambda x: x.strip(), open(file,'r').readlines()) 
 
-def load_objects(file, renderParent, physicsManager, layoutManager = None):
+def load_objects(scenario, renderParent, physicsManager, layoutManager = None):
     # add each object to the world
-    context = {}
 
-    for instruction in load_objects_file(file):
+    context = {}
+    for instruction in scenario.environment.split('\n'):
         if len(instruction) == 0 or instruction[0] == "#":
             continue
 

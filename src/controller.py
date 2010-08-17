@@ -95,7 +95,7 @@ class Controller(object, FSM):
         self.menuTaskOptions.reparentTo(self.scenarioFrame)
         self.loadTaskText = DirectButton(text='Load Task', relief=None,
                                       pos=(0, 0,.5), text_scale=(0.05),
-                                      text_font=self.fonts['normal'],
+                                      text_font=self.fonts['bold'],
                                       text_pos=(0, -0.01),
                                       text_fg=(0.79, 0.69, 0.57, 1),
                                       command=self.request, extraArgs=['TaskPaused'])
@@ -117,7 +117,7 @@ class Controller(object, FSM):
                                      borderWidth=(0.05, 0.05))
 
         self.taskNameLabel = OnscreenText(text='tmp', mayChange=1,
-                                         pos=(0, 0,.5), scale=(0.05),
+                                         pos=(0, 0.6,-1), scale=(0.05),
                                          font=self.fonts['mono'],
                                          fg=(0.79, 0.69, 0.57, 1))
         self.taskNameLabel.reparentTo(self.taskFrame)
@@ -129,21 +129,23 @@ class Controller(object, FSM):
         self.toMain.reparentTo(self.taskFrame)
         self.goBackFromTaskText = DirectButton(text='Change Scenario', relief=None,
                                     pos=(0,0,-.1), text_scale=(0.05),
-                                    text_font=self.fonts['bold'],
+                                    text_font=self.fonts['normal'],
                                     text_pos=(0, -0.01),
                                     text_fg=(0.79, 0.69, 0.57, 1),
                                     command=self.request, extraArgs=['Menu'])
         self.goBackFromTaskText.reparentTo(self.taskFrame)
 
         self.menuTrainButton = DirectButton(text = "Start Training", 
+                                            scale=0.05, relief=None, textMayChange=1,
+                                            text_font=self.fonts['bold'],
+                                            text_fg=(0.79, 0.69, 0.57, 1),
+                                            pos=(0,0,0.4),command=self.request, extraArgs=['TaskTrain'])
+        self.menuTestButton = DirectButton(text = "Start Testing", textMayChange=1,
                                             scale=0.05, relief=None,
-                                            text_font=self.fonts['normal'],
-                                            pos=(0,0,0.4))
-        self.menuTestButton = DirectButton(text = "Start Testing", 
-                                            scale=0.05, relief=None,
-                                            text_font=self.fonts['normal'],
+                                            text_font=self.fonts['bold'],
                                             pos=(0,0,0.3),
-                                            command=self.request, extraArgs=[])
+                                            text_fg=(0.79, 0.69, 0.57, 1),
+                                            command=self.request, extraArgs=['TaskTest'])
 
         self.menuTrainButton.reparentTo(self.taskFrame)
         self.menuTestButton.reparentTo(self.taskFrame)
@@ -196,10 +198,10 @@ class Controller(object, FSM):
             raise Exception("FSM violation, you cannot change a task from the state %s" % self.state)
         else:
             self.selectedTask = self.scenarioTasks[self.menuTaskOptions.selectedIndex]
-            self.taskNameLabel.setText(self.selectedTask)
+            self.taskNameLabel.setText(str(self.selectedTask))
 
     def enterMenu(self):
-        
+        self.world.acceptAgentCommands = False
         self.scenarioFrame.hide()
         # make sure default scenario is selected
         self.selectedScenario = self.scenarioFiles[self.menuScenarioOptions.selectedIndex]
@@ -231,6 +233,7 @@ class Controller(object, FSM):
         """ Loads (or resets) the current scenario. """
         self.menuFrame.hide()
         self.taskFrame.hide()
+        self.world.acceptAgentCommands = True
 
         # only initialize world if you are coming from the menu
         if self.oldState == 'Menu':
@@ -248,12 +251,29 @@ class Controller(object, FSM):
         self.menuTaskOptions['item_text_font']=self.fonts['normal']
         # make sure some default task is selected
         self.selectedTask = self.scenarioTasks[self.menuTaskOptions.selectedIndex]
+        self.taskNameLabel.setText(str(self.selectedTask))
 
         self.scenarioFrame.show()
         # display options on the screen
 
     def enterTaskPaused(self):
         self.menuFrame.hide()
+        self.world.acceptAgentCommands = True
         self.scenarioFrame.hide()
         self.taskFrame.show()
+        
+    def enterTaskTrain(self):
+        self.menuTrainButton['text'] = "Training..."
+        self.menuTrainButton['state'] = DGG.DISABLED
 
+    def exitTaskTrain(self):
+        self.menuTrainButton['text'] = "Start training"
+        self.menuTrainButton['state'] = DGG.NORMAL
+
+    def enterTaskTest(self):
+        self.menuTestButton['text']  = "Testing..."
+        self.menuTestButton['state'] = DGG.DISABLED
+
+    def exitTaskTest(self):
+        self.menuTestButton['text'] = "Start testing"
+        self.menuTestButton['state'] = DGG.NORMAL

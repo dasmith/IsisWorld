@@ -53,7 +53,9 @@ class IsisWorld(DirectObject):
         # initialize Finite State Machine to control UI
         self.controller = Controller(self)
         self.rootDirectory = ExecutionEnvironment.getEnvironmentVariable("MAIN_DIR")
-                
+        
+        self.acceptAgentCommands = False
+        
         self.agentNum = 0
         self.agents = []
         self.agentsNamesToIDs = {}
@@ -184,11 +186,14 @@ class IsisWorld(DirectObject):
             """ Accepts an instruction issued through the bound keyboard commands
             because "self.agentNum" need to be revaluated at the time the command
             is issued, necessitating this helper function"""
-            if self.actionController.hasAction(command):
-                self.actionController.makeAgentDo(self.agents[self.agentNum], command)
+            if not self.acceptAgentCommands:
+                self.isisMessage("Cannot send agent command %s in the current window state, load scenario and run task" % command) 
             else:
-                print "relayAgentControl: %s command not found in action controller" % (command)
-                raise self.actionController
+                if self.actionController.hasAction(command):
+                    self.actionController.makeAgentDo(self.agents[self.agentNum], command)
+                else:
+                    print "relayAgentControl: %s command not found in action controller" % (command)
+                    raise self.actionController
 
         text = "\n"
         text += "IsisWorld v%s\n" % (ISIS_VERSION)

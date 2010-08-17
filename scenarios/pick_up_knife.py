@@ -9,7 +9,7 @@ fridge	in kitchen
 loaf	in fridge"""
 
 
-def task1_goto_knife(a):
+def task_goto_knife(a):
     
     return True
 

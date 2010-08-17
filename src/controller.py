@@ -233,7 +233,7 @@ class Controller(object, FSM):
         """ Loads (or resets) the current scenario. """
         self.menuFrame.hide()
         self.taskFrame.hide()
-        self.world.acceptAgentCommands = True
+        self.world.acceptAgentCommands = False
 
         # only initialize world if you are coming from the menu
         if self.oldState == 'Menu':

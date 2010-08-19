@@ -59,7 +59,7 @@ class IsisSpatial(object):
         self.floorRayCN = CollisionNode('floorRayCollider-%s' % self.name) 
         self.floorRayCN.addSolid(self.floorRay)
         self.floorRayNP =self.attachNewNode(self.floorRayCN)
-        #self.floorRayNP.show()
+        self.floorRayNP.show()
         self.physics.cFloor.addCollider(self.floorRayNP, self)
         base.cTrav.addCollider(self.floorRayNP, self.physics.cFloor)
 
@@ -78,6 +78,8 @@ class IsisSpatial(object):
         self.enableCollisions()
 
     def enableCollisions(self):
+        print "Enabling collisions for object %s"  %(self.name)
+        self.activeModel.setCollideMask(OBJPICK)
         self.topSurfaceCN.setFromCollideMask(BitMask32.allOff())
         self.topSurfaceCN.setIntoCollideMask(OBJFLOOR)
         self.floorRayCN.setFromCollideMask(OBJFLOOR|OBJPICK) 
@@ -86,6 +88,8 @@ class IsisSpatial(object):
         self.fullBoxCN.setIntoCollideMask(OBJMASK)
 
     def disableCollisions(self):
+        print "Disable collisions called for %s" % (self.name)
+        self.activeModel.setCollideMask(BitMask32.allOff())
         self.topSurfaceCN.setFromCollideMask(BitMask32.allOff())
         self.topSurfaceCN.setIntoCollideMask(BitMask32.allOff())
         self.floorRayCN.setFromCollideMask(BitMask32.allOff())
@@ -292,7 +296,7 @@ class Room(object):
                 elif agent.right_hand_holding_object == obj:
                     agent.control__drop_from_right_hand()
             obj.reparentTo(self)
-            obj.disableCollisions()
+            #obj.disableCollisions()
             obj.setPos(pos)
             obj.setLayout(self.in_layout)
             return "success"

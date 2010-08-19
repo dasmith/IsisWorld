@@ -8,6 +8,7 @@ AGENTMASK = BitMask32.bit(4)
 OBJMASK= BitMask32.bit(5)
 OBJFLOOR = BitMask32.bit(6)
 OBJPICK = BitMask32.bit(7)
+OBJSIDE = BitMask32.bit(8)
 
 def getOrientedBoundedBox(collObj):
     ''' get the Oriented Bounding Box '''

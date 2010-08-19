@@ -1,4 +1,5 @@
 environment = """kitchen	at 0,0,0
+toaster	at 0,0,8
 table	in kitchen
 toaster	on table
 loaf	on table

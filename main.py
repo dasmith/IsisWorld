@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#! /usr/bin/env python
 """
 IsisWorld is a 3D virtual simulator for evaluating commonsense reasoning AI agents.
 

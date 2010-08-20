@@ -7,6 +7,20 @@ knife	on table
 fridge	in kitchen
 loaf	in fridge"""
 
+def environment_future():
+    k = kitchen()
+    put_in_world(k)
+
+    ta = table()
+    put_in(ta, k)
+
+    k = knife()
+    put_on(k, ta)
+
+    r = ralph()
+    #r.set_color()
+    put_in(r, k)
+
 
 def task_goto_knife(a):
     

@@ -8,9 +8,10 @@ def instantiate_isisobject(classname, physics):
       - physics: a pointer to the worldManager, required for adding collision geometries later
     """
     # load the class modules from the generators file into the namespace
-    __import__("src.isis_objects.generators")
+    generators = __import__("src.isis_objects.generators")
     # create an instance
-    newInstance = getattr(sys.modules["src.isis_objects.generators"], classname)(physics)
+    generators.setPhysics(physics)
+    newInstance = getattr(generators, classname)()
     # attach the physics manager pointer to the instance
     #newInstance.physics = physics
     return newInstance
@@ -73,3 +74,34 @@ def load_objects(scenario, renderParent, physicsManager, layoutManager = None):
         context[item] = obj
 
     return True
+
+def load_objects_future(scenario, renderParent, physicsManager):
+    # load functions and modules into the namespace
+    # these functions are globals used by the scenario object
+    # to easily and pythonically set up the environment
+    # TO-DO: need to find a way to import all generator's objects
+    #        into the local variable space, and make sure that space
+    #        is used while running scenario.environment_future()
+    generators = __import__("src.isis_objects.generators")
+
+    # Parents the object to the world node, must be done to the object or a parent
+    # of the object for the object to be visible
+    def put_in_world(obj):
+        obj.parentTo(renderParent)
+
+    # Places the object in to the given container
+    def put_in(obj, container):
+        if container.call(None, "put_in", obj) != "success":
+            obj.reparentTo(renderParent)
+            x, y, z = container.activeModel.getPos(renderParent)
+            obj.setPos(x, y, z+3)
+
+    # Places the object on to the given surface
+    def put_on(obj, surface):
+        if surface.call(None, "put_on", obj) != "success":
+            obj.reparentTo(renderParent)
+            x, y, z = surface.activeModel.getPos(renderParent)
+            obj.setPos(x, y, z+3)
+
+    generators.setPhysics(physics)
+    exec "scenario.environment_future()" in locals()

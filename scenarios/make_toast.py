@@ -4,8 +4,6 @@ version = "1"
 
 environment = """kitchen	at 0,0,0
 table	in kitchen
-table	in kitchen
-table	in kitchen
 toaster	on table
 loaf	on table
 knife	on table
@@ -15,13 +13,26 @@ loaf	in fridge"""
 
 def environment_future():
     k = kitchen()
+    put_in_world(k)
+
+    ta = table()
+    put_in(ta, k)
+
+    t = toaster()
+    put_on(t, ta)
+
+    k = knife()
+    put_on(k, ta)
+
+    f = fridge()
+    put_in(f, k)
+
+    l = loaf()
+    put_in(l, f)
+
     r = ralph()
     #r.set_color()
-    k.put_in(r)
-    t = toast()
-    ta = table()
-    ta.put_on(t)
-
+    put_in(r, k)
 
 def task_toast_in_view():
     task.name = "toast in view"

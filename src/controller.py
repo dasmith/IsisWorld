@@ -216,8 +216,7 @@ class Controller(object, FSM):
                                        fg=(1, 1, 1, 1), bg=(0, 0, 0, 0.5))
         loadingText.setTransparency(1)     
         # setup world
-        #load_objects(self.currentScenario, self.world.objRender, self.world.physicsManager, None)
-        load_objects_future(self.currentScenario, self.world.objRender, self.world.physicsManager)
+        load_objects(self.currentScenario, self.world)
         # define pointer to base scene.
         self.room = render.find("**/*kitchen*").getPythonTag("isisobj")
         # setup agents

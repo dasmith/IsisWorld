@@ -20,10 +20,10 @@ def environment():
     store(locals())
 
 
-def task_goto_knife(a):
+def task_goto_knife():
     
     return True
 
 
-def task_pick_up_knife(a):
+def task_pick_up_knife():
     return True

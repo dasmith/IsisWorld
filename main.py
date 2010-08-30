@@ -310,13 +310,11 @@ class IsisWorld(DirectObject):
         base.win.setClearColor(Vec4(0,0,0,1))
 
 
-    def add_agent_to_world(self,name):
-        
+    def add_agent_to_world(self, newAgent): 
         # add and initialize new agents
-        newAgent = Ralph(self.physicsManager, self, name)
-        newAgent.control__say("Hi, I'm %s. Please build me." % name)
+        newAgent.control__say("Hi, I'm %s. Please build me." % newAgent.name)
         self.agents.append(newAgent)
-        self.agentsNamesToIDs[name] = len(self.agents)
+        self.agentsNamesToIDs[newAgent.name] = len(self.agents)
         #self.agents.sort(key=lambda x:self.agentsNamesToIDs[x.name])
         
         # set up picture in picture on first agent

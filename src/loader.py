@@ -4,11 +4,15 @@ import sys
 from random import *
 from direct.interval.IntervalGlobal import *
 from pandac.PandaModules import Vec3
+from ralphs.ralph import Ralph 
 
-def load_objects_future(scenario, renderParent, physics):
+def load_objects(scenario, world):
     # load functions and modules into the namespace
     # these functions are globals used by the scenario object
     # to easily and pythonically set up the environment
+    
+    renderParent = world.objRender
+    physics = world.physicsManager
 
     # Parents the object to the world node, must be done to the object or a parent
     # of the object for the object to be visible
@@ -21,24 +25,34 @@ def load_objects_future(scenario, renderParent, physics):
         constructor.setPhysics(physics)
     
     # define functions used in the execution namspace
-    def put_in_world(obj):
-        # TODO: if it's an agent, uses add_agent_to_world
-        obj.reparentTo(renderParent)
+    def put_in_world(obj,parent=None):
+        """ Adds items to IsisWorld.  If they are IsisAgents, it calls
+        a function that updates cameras and a list of agents for use by 
+        XMLRPC."""
+        if isinstance(obj,Ralph):
+            world.add_agent_to_world(obj)
+        else:
+            if parent == None: 
+                obj.reparentTo(renderParent)
+            else:
+                obj.reparentTo(parent)
+                x, y, z = parent.activeModel.getPos(renderParent)
+                obj.setPos(x, y, z+3)
 
-    # Places the object in to the given container
     def put_in(obj, container):
+        """Places the object in to the given container"""
+        container = container.getPythonTag('isisobj')
+        if not isinstance(obj,Ralph): obj = obj.getPythonTag('isisobj')
         if container.call(None, "put_in", obj) != "success":
-            obj.reparentTo(renderParent)
-            x, y, z = container.activeModel.getPos(renderParent)
-            obj.setPos(x, y, z+3)
+            put_in_world(obj, container)
 
-    # Places the object on to the given surface
     def put_on(obj, surface):
+        """Places the object on to the given surface"""
+        surface = surface.getPythonTag('isisobj')
+        if not isinstance(obj,Ralph): obj = obj.getPythonTag('isisobj')
         if surface.call(None, "put_on", obj) != "success":
-            obj.reparentTo(renderParent)
-            x, y, z = surface.activeModel.getPos(renderParent)
-            obj.setPos(x, y, z+3)
-
+            put_in_world(obj, surface)
+    
     def store(vars):
         """ Stores the local variables defined in the environment
         so that they can later be used by later references in the task, 

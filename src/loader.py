@@ -22,6 +22,7 @@ def load_objects_future(scenario, renderParent, physics):
     
     # define functions used in the execution namspace
     def put_in_world(obj):
+        # TODO: if it's an agent, uses add_agent_to_world
         obj.reparentTo(renderParent)
 
     # Places the object in to the given container

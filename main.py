@@ -11,7 +11,6 @@ IsisWorld Developers:  Dustin Smith, Chris M. Jones, Bo Morgan, Gleb Kuznetsov
 ISIS_VERSION = 0.4
 
 # Panda3D libraries:  available from http://panda3d.org
-from direct.showbase.DirectObject import DirectObject
 from panda3d.core import loadPrcFile, loadPrcFileData, ExecutionEnvironment, Filename
 from direct.gui.OnscreenText import OnscreenText
 from direct.task import Task, TaskManagerGlobal
@@ -34,6 +33,7 @@ from src.isis_objects.layout_manager import HorizontalGridLayout
 from src.lights.skydome2 import *
 from src.actions.actions import *
 
+from direct.showbase.DirectObject import DirectObject
 from time import ctime
 import sys, os
 
@@ -45,6 +45,8 @@ print "Threads supported?", Thread.isThreadingSupported()
 
 
 class IsisWorld(DirectObject):
+    physics = None
+    
     def __init__(self):
         # load the main simulated environment
         
@@ -112,6 +114,7 @@ class IsisWorld(DirectObject):
         and a dome, the "sky" that sits concavely on the ground. """
          # setup physics
         self.physicsManager = PhysicsWorldManager()
+        IsisWorld.physics = self.physicsManager
         # setup ground
         cm = CardMaker("ground")
         groundTexture = loader.loadTexture(self.makeSafePath("media/textures/env_ground.jpg"))

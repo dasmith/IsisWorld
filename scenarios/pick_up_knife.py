@@ -1,14 +1,8 @@
-environment = """kitchen	at 0,0,0
-toaster	at 0,0,8
-table	in kitchen
-toaster	on table
-loaf	on table
-loaf	on table
-knife	on table
-fridge	in kitchen
-loaf	in fridge"""
+scenario.description = "picking up a knife"
+scenario.author = "dustin smith"
+scenario.version = "1"
 
-def environment_future():
+def environment():
     k = kitchen()
     put_in_world(k)
 
@@ -18,9 +12,12 @@ def environment_future():
     k = knife()
     put_on(k, ta)
 
-    r = ralph()
+    r = Ralph("susan")
     #r.set_color()
     put_in(r, k)
+    
+    # required at the end of the environment setup
+    store(locals())
 
 
 def task_goto_knife(a):

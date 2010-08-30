@@ -36,7 +36,7 @@ class Controller(object, FSM):
         self._loadScenarioFiles()
 
         # define menu frame
-        self.menuFrame = DirectFrame(frameColor=(0.26, 0.18, 0.06, 1.0),
+        self.menuFrame = DirectFrame(frameColor=(0.32,.52,.50, 1.0),
                                      frameSize=(-1, 1, -0.75, 0.75),
                                      pos=(0, -1, 0), relief=DGG.RIDGE,
                                      borderWidth=(0.11, 0.1))
@@ -45,7 +45,7 @@ class Controller(object, FSM):
                                  text_font=self.fonts['bold'],
                                  frameSize=(-0.5, 0.5, -0.1, 0.1),
                                  text_scale=(0.2, 0.2), pos=(0, 0, 0.45),
-                                 text_fg=(0.79, 0.69, 0.57, 1))
+                                 text_fg=(0.63, 0.29, 0.09, 1))
         self.title.reparentTo(self.menuFrame)
         """
             Menu: When you select the scenario
@@ -68,18 +68,18 @@ class Controller(object, FSM):
                                       pos=(0, 0, -.3), text_scale=(0.15, 0.15),
                                       text_font=self.fonts['bold'],
                                       text_pos=(0, -0.01),
-                                      text_fg=(0.79, 0.69, 0.57, 1),
+                                      text_fg=(0.63, 0.29, 0.09, 1),
                                       command=self.request, extraArgs=['Scenario'])
         self.loadScenarioText.reparentTo(self.menuFrame)
         self.exitIsisWorldText = DirectButton(text='Exit', relief=None,
                                      frameSize=(-0.2, 0.2, -0.05, 0.05),
                                      pos=(0, 0, -0.5), text_scale=(0.15, 0.15),
-                                     text_fg=(0.79, 0.69, 0.57, 1), command=self.world.exit)
+                                     text_fg=(0.63, 0.29, 0.09, 1), command=self.world.exit)
         self.exitIsisWorldText.reparentTo(self.menuFrame)
 
 
         #### Define Scenario Frame
-        self.scenarioFrame = DirectFrame(frameColor=(0.26, 0.18, 0.06, 0.65),
+        self.scenarioFrame = DirectFrame(frameColor=(0.32, 0.52, 0.50, 0.65),
                                          frameSize=(-.33,.40,-.35,.75),
                                          pos=(.8, .2, 0), relief=DGG.RIDGE,
                                          borderWidth=(0.05, 0.05))
@@ -97,20 +97,20 @@ class Controller(object, FSM):
                                       pos=(0, 0,.5), text_scale=(0.05),
                                       text_font=self.fonts['bold'],
                                       text_pos=(0, -0.01),
-                                      text_fg=(0.79, 0.69, 0.57, 1),
+                                      text_fg=(0.63, 0.29, 0.09, 1),
                                       command=self.request, extraArgs=['TaskPaused'])
         self.loadTaskText.reparentTo(self.scenarioFrame)
         self.goBackFromScenarioText = DirectButton(text='Change Scenario', relief=None,
                                     pos=(0,0,.3), text_scale=(0.05),
                                     text_font=self.fonts['normal'],
                                     text_pos=(0, -0.01),
-                                    text_fg=(0.79, 0.69, 0.57, 1),
+                                    text_fg=(0.63, 0.29, 0.09, 1),
                                     command=self.request, extraArgs=['Menu'])
         self.goBackFromScenarioText.reparentTo(self.scenarioFrame)
 
 
         ### Define Task Frame
-        self.taskFrame = DirectFrame(frameColor=(0.26, 0.18, 0.06, 0.65),
+        self.taskFrame = DirectFrame(frameColor=(0.63, 0.29, 0.09, 0.65),
                                      frameSize=(-.33,.40,-.35,.75),
                                      pos=(0.8, .2, 0), relief=DGG.RIDGE,
                                      borderWidth=(0.05, 0.05))
@@ -118,32 +118,32 @@ class Controller(object, FSM):
         self.taskNameLabel = OnscreenText(text='tmp', mayChange=1,
                                          pos=(0, 0.6,-1), scale=(0.05),
                                          font=self.fonts['mono'],
-                                         fg=(0.79, 0.69, 0.57, 1))
+                                         fg=(0.63, 0.29, 0.09, 1))
         self.taskNameLabel.reparentTo(self.taskFrame)
         self.toMain = DirectButton(text='Change Task', relief=None,
                                    frameSize=(-0.2, 0.2, -0.05, 0.05),
                                    pos=(0, 0, 0), text_scale=(0.05, 0.05),
-                                   text_fg=(0.79, 0.69, 0.57, 1),
+                                   text_fg=(0.63, 0.29, 0.09, 1),
                                    command=self.request, extraArgs=['Scenario'])
         self.toMain.reparentTo(self.taskFrame)
         self.goBackFromTaskText = DirectButton(text='Change Scenario', relief=None,
                                     pos=(0,0,-.1), text_scale=(0.05),
                                     text_font=self.fonts['normal'],
                                     text_pos=(0, -0.01),
-                                    text_fg=(0.79, 0.69, 0.57, 1),
+                                    text_fg=(0.63, 0.29, 0.09, 1),
                                     command=self.request, extraArgs=['Menu'])
         self.goBackFromTaskText.reparentTo(self.taskFrame)
 
         self.menuTrainButton = DirectButton(text = "Start Training", 
                                             scale=0.05, relief=None, textMayChange=1,
                                             text_font=self.fonts['bold'],
-                                            text_fg=(0.79, 0.69, 0.57, 1),
+                                            text_fg=(0.63, 0.29, 0.09, 1),
                                             pos=(0,0,0.4),command=self.request, extraArgs=['TaskTrain'])
         self.menuTestButton = DirectButton(text = "Start Testing", textMayChange=1,
                                             scale=0.05, relief=None,
                                             text_font=self.fonts['bold'],
                                             pos=(0,0,0.3),
-                                            text_fg=(0.79, 0.69, 0.57, 1),
+                                            text_fg=(0.63, 0.29, 0.09, 1),
                                             command=self.request, extraArgs=['TaskTest'])
 
         self.menuTrainButton.reparentTo(self.taskFrame)
@@ -171,6 +171,7 @@ class Controller(object, FSM):
 
 
     def _setupAgents(self):
+        return
         # agentNum keeps track of the currently active visible
         # that the camera and fov follow
         from random import randint
@@ -215,8 +216,8 @@ class Controller(object, FSM):
                                        fg=(1, 1, 1, 1), bg=(0, 0, 0, 0.5))
         loadingText.setTransparency(1)     
         # setup world
-        load_objects(self.currentScenario, self.world.objRender, self.world.physicsManager, None)
-        #load_objects_future(self.currentScenario, self.world.objRender, self.world.physicsManager)
+        #load_objects(self.currentScenario, self.world.objRender, self.world.physicsManager, None)
+        load_objects_future(self.currentScenario, self.world.objRender, self.world.physicsManager)
         # define pointer to base scene.
         self.room = render.find("**/*kitchen*").getPythonTag("isisobj")
         # setup agents

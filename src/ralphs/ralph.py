@@ -32,7 +32,15 @@ def frange(x,y,inc):
 
 class Ralph(DirectObject.DirectObject):
     
-    def __init__(self, physicsManager, agentSimulator, name, queueSize = 100):
+    @classmethod
+    def setPhysics(cls,physics):
+        """ This method is set in src.loader when the generators are loaded
+        into the namespace.  This frees the environment definitions (in 
+        scenario files) from having to pass around the physics parameter 
+        that is required for all IsisObjects """
+        cls.physics = physics
+
+    def __init__(self, name, queueSize = 100):
 
         # setup the visual aspects of ralph
         self.actor= Actor("media/models/boxman",{"walk":"media/models/boxman-walk", "idle": "media/models/boxman-idle"})
@@ -57,8 +65,6 @@ class Ralph(DirectObject.DirectObject):
         self.height = high[0]-low[0]
 
         DirectObject.DirectObject.__init__(self) 
-        self.agent_simulator = agentSimulator
-        self.physicsManager = physicsManager    
         #x = random.randint(0,10)
         #y = random.randint(0,10)
         #z = random.randint(12,25)
@@ -154,8 +160,10 @@ class Ralph(DirectObject.DirectObject):
         
         # when you're done, register yourself with physical simulator
         # so it can call update() at each step of the physics
-        self.physicsManager.addAgent(self)
+        Ralph.physics.addAgent(self)
 
+    def reparentTo(self, parent):
+        self.actorNodePath.reparentTo(parent)
 
     def setControl(self, control, value):
         """Set the state of one of the character's movement controls.  """
@@ -207,6 +215,10 @@ class Ralph(DirectObject.DirectObject):
                 agents[a] = agentDict
         return agents
 
+    def setPos(self,*position):
+        self.setPosition(position)
+
+    
     def setPosition(self,position):
         self.actorNodePath.setPos(position)
 
@@ -521,11 +533,11 @@ class Ralph(DirectObject.DirectObject):
         #self.aimRay.set(pos, dir)
 
         # raycast
-        closestEntry, closestGeom = self.physicsManager.doRaycast(self.aimRay, [self.capsuleGeom])
+        closestEntry, closestGeom = Ralph.physics.doRaycast(self.aimRay, [self.capsuleGeom])
         if not closestGeom:
             return
         print "Closest geom", closestEntry
-        data = self.physicsManager.getGeomData(closestGeom)
+        data = Ralph.physics.getGeomData(closestGeom)
         print data.name
         if data.selectionCallback:
             data.selectionCallback(self, dir)
@@ -608,8 +620,8 @@ class Ralph(DirectObject.DirectObject):
         cSphereNode.setFromCollideMask(AGENTMASK|WALLMASK)
         cSphereNode.setIntoCollideMask(AGENTMASK)
         cSphereNodePath = self.actorNodePath.attachNewNode(cSphereNode)
-        self.physicsManager.cWall.addCollider(cSphereNodePath, self.actorNodePath)
-        base.cTrav.addCollider(cSphereNodePath, self.physicsManager.cWall)
+        Ralph.physics.cWall.addCollider(cSphereNodePath, self.actorNodePath)
+        base.cTrav.addCollider(cSphereNodePath, Ralph.physics.cWall)
         # and another wall collider for going into objects.
         cSphereNode2 = CollisionNode('agent')
         cSphereNode2.addSolid(CollisionSphere(0.0, 0.0, self.height, self.radius))
@@ -617,8 +629,8 @@ class Ralph(DirectObject.DirectObject):
         cSphereNode2.setIntoCollideMask(BitMask32.allOff())
         cSphereNodePath2 = self.actorNodePath.attachNewNode(cSphereNode2)
         #cSphereNodePath.show()
-        self.physicsManager.cWallO.addCollider(cSphereNodePath2, self.actorNodePath)
-        base.cTrav.addCollider(cSphereNodePath2, self.physicsManager.cWallO)
+        Ralph.physics.cWallO.addCollider(cSphereNodePath2, self.actorNodePath)
+        base.cTrav.addCollider(cSphereNodePath2, Ralph.physics.cWallO)
         # add same colliders to cEvent
         cEventSphereNode = CollisionNode('agent')
         cEventSphere = CollisionSphere(0.0, 0.0, self.height, self.radius)

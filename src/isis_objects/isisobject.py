@@ -1,7 +1,7 @@
 from pandac.PandaModules import *
 #from pandac.PandaModules import NodePath, Vec3
 from layout_manager import *
-from ..physics.panda.manager import *
+#from ..physics.panda.manager import *
 
 
 class IsisObject(NodePath):
@@ -13,7 +13,10 @@ class IsisObject(NodePath):
     method on just the isisobject generator."""
     priority = 0
     
-    def  __init__(self,name=1):         
+    
+    def  __init__(self,name=1):
+        # store pointer to physics
+        self.phys = self.__class__.physics 
         # generate a unique name for the object, warning, unique id uses GENERATORS ID
         self.name = "IsisObject/"+self.__class__.__name__+"+"+str(id(self))
         NodePath.__init__(self,self.name)
@@ -43,6 +46,14 @@ class IsisObject(NodePath):
         # call generator's post-setup function too
         if hasattr(self,'afterSetup'):
             self.afterSetup()
+
+    @classmethod
+    def setPhysics(cls,physics):
+        """ This method is set in src.loader when the generators are loaded
+        into the namespace.  This frees the environment definitions (in 
+        scenario files) from having to pass around the physics parameter 
+        that is required for all IsisObjects """
+        cls.physics = physics
 
     def getName(self):
         return self.name[11:]

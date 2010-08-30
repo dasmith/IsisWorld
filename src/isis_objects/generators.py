@@ -7,18 +7,11 @@ from layout_manager import SlotLayout
 
 from direct.interval.IntervalGlobal import *
 from random import *
-
-PHYSICS = None
-def setPhysics(physics):
-    global PHYSICS
-    PHYSICS = physics
-
+from ..ralphs.ralph import Ralph
 
 class table(IsisObject,IsisVisual,Container,Surface,NoPickup):
 
     def  __init__(self):
-        # store pointer to world manager
-        self.physics =PHYSICS
         self.offsetVec = offsetVec=(0,0,0,0,0,0)
         self.model = "table/table"
         self.scale=0.006
@@ -32,8 +25,6 @@ class table(IsisObject,IsisVisual,Container,Surface,NoPickup):
 class fridge(IsisObject, IsisVisual, Container, NoPickup):
     
     def  __init__(self):
-        # store pointer to world manager
-        self.physics =PHYSICS
         self.model={'default':"Fridge/Fridge"}
         self.scale=0.17
         self.density = 4000
@@ -44,12 +35,12 @@ class fridge(IsisObject, IsisVisual, Container, NoPickup):
         self.in_layout = SlotLayout([(0, 0, .5), (0, 0, 1),(0, 0, 1.5)])
 
     def afterSetup(self):
-
+        # add the door
         fd = self.activeModel.find("**/freezerDoor*")
         fd.setPos(-.56, .6, 1.65)
         self.door = self.activeModel.find("**/fridgeDoor*")
         self.door.setPos(-0.56, .6, .72)
-        self.door.setCollideMask(BitMask32.allOff())
+        #self.door.setCollideMask(BitMask32.allOff())
         self.setH(0)
 
     def action__open(self, agent, directobj):
@@ -71,8 +62,6 @@ class fridge(IsisObject, IsisVisual, Container, NoPickup):
 class knife(IsisObject, IsisVisual, IsisSpatial, Sharp):
 
     def  __init__(self): 
-        # store pointer to world manager
-        self.physics =PHYSICS
         self.offsetVec = (0,0,0.0,0,0,0)
         self.pickupVec = (0,.15,0,0,75,0)
         self.model="knife"
@@ -83,7 +72,6 @@ class knife(IsisObject, IsisVisual, IsisSpatial, Sharp):
 class toaster(IsisObject, IsisVisual, Container, Cooker):
     
     def __init__(self):
-        self.physics =PHYSICS
         ######### Base Variables ##########
          # visual offset for the model's position and rotation
         self.offsetVec = (.5,.16,.19,-8,0,0)
@@ -106,9 +94,6 @@ class toaster(IsisObject, IsisVisual, Container, Cooker):
 class bread(IsisObject, IsisVisual, Container, Cookable):
 
     def  __init__(self):
-        # store pointer to world manager
-        self.physics =PHYSICS
-
         self.offsetVec = (0,0,-.1,0,-120,-20)
         self.pickupVec=(-.125,.225,0,0,-125,0)
         self.model={"default":"slice_of_bread", "toast":"piece_of_toast"}
@@ -122,8 +107,6 @@ class bread(IsisObject, IsisVisual, Container, Cookable):
 class loaf( IsisObject, IsisVisual, IsisSpatial, Dividable):
 
     def  __init__(self): 
-        # store pointer to world manager
-        self.physics =PHYSICS
         self.offsetVec = (.00144,0,0.0,0,0,0)
         
         self.model = "loaf_of_bread"
@@ -139,8 +122,6 @@ class loaf( IsisObject, IsisVisual, IsisSpatial, Dividable):
 class kitchen(IsisObject,IsisVisual,Room, NoPickup):
 
     def  __init__(self):
-        # store pointer to world manager
-        self.physics =PHYSICS
         self.offsetVec = offsetVec=(0,0,0,0,0,0)
         self.scale=0.006
         self.density = 4000
@@ -157,8 +138,6 @@ class kitchen(IsisObject,IsisVisual,Room, NoPickup):
     def setup(self):
         """ This actual model gets generated after the kitchen is initialized
         to allow for configurations to override the defaults"""
-        
-        
         self.activeModel.setCollideMask(BitMask32.allOff())
         
         CM=CardMaker('')

@@ -1,17 +1,9 @@
-description = "making toast in isisworld"
-author = "dustin smith"
-version = "1"
-
-environment = """kitchen	at 0,0,0
-table	in kitchen
-toaster	on table
-loaf	on table
-knife	on table
-fridge	in kitchen
-loaf	in fridge"""
+scenario.description = "making toast in isisworld"
+scenario.author = "dustin smith"
+scenario.version = "1"
 
 
-def environment_future():
+def environment():
     k = kitchen()
     put_in_world(k)
 
@@ -30,12 +22,15 @@ def environment_future():
     l = loaf()
     put_in(l, f)
 
-    r = ralph()
+    r = Ralph("joan")
     #r.set_color()
     put_in(r, k)
 
+    # required at the end of the environment setup
+    store(locals())
+
 def task_toast_in_view():
-    task.name = "toast in view"
+    task.name = "toast is in view"
     # define which environment to use (if not the default)
     task.environment = "first"
     

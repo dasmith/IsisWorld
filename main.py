@@ -101,9 +101,9 @@ class IsisWorld(DirectObject):
             # display all events
             messenger.toggleVerbose()
         # xmlrpc server command handler
-        commandHandler = IsisCommandHandler(self)
+        self.commandHandler = IsisCommandHandler(self)
         self.server = XMLRPCServer() 
-        self.server.register_function(commandHandler.handler,'do')
+        self.server.register_function(self.commandHandler.handler,'do')
         # some hints on threading: https://www.panda3d.org/forums/viewtopic.php?t=7345
         base.taskMgr.setupTaskChain('xmlrpc',numThreads=1)
         base.taskMgr.add(self.server.start_serving, 'xmlrpc-server', taskChain='xmlrpc')
@@ -151,6 +151,7 @@ class IsisWorld(DirectObject):
     
     def _timeUpdated(self,task):
         self.skydomeNP.skybox.setShaderInput('time', task.time)
+        self.commandHandler.panda3d_thread_process_command_queue()
         return task.cont
 
     def _setupCameras(self):

@@ -8,23 +8,45 @@ from pandac.PandaModules import VBase3
 import time
 import os
 from direct.stdpy.file import  *
+from multiprocessing import Queue
 
 class IsisCommandHandler(object):
-
+    
+    waiting_command_queue  = Queue();
+    finished_command_queue = Queue();
+    
     def __init__(self, simulator):
         self.simulator = simulator
         self.meta_commands  = ['meta_step','meta_pause','meta_resume','meta_list_actions','step_simulation']
         self.logger = Logger("logs")
         self.logger.createLog(str(int(time.time())), "Test scenario making toast", "Create toast")
-
+        
     def handler(self,cmd,args={}):
         '''
         Takes command and optional labeled dictionary of arguments
         passed from the xmlrpc client and decides what to do with them.
-        
         '''
         # debug statement
+        print 'Hello.'
         print 'command %s received: (%s) ' % (cmd,','.join(['%s=%s' % (k,v) for k,v in args.items()]))
+        self.waiting_command_queue.put({'cmd':cmd, 'args':args})
+        result = self.finished_command_queue.get()
+        return result
+    
+    def next_waiting_command(self):
+        try:
+            return self.waiting_command_queue.get_nowait()
+        except:
+            return False
+
+    def panda3d_thread_process_command_queue(self):
+        next_command = self.next_waiting_command()
+        while next_command:
+            result = self.handle_next_command(next_command['cmd'], next_command['args'])
+            self.finished_command_queue.put(result)
+            next_command = self.next_waiting_command()
+    
+    def handle_next_command(self, cmd, args):
         # if command is a meta-command, it doesn't require an agent
         if cmd not in self.meta_commands and not self.simulator.actionController.hasAction(cmd):
             # don't know about this command
@@ -63,10 +85,12 @@ class IsisCommandHandler(object):
             if args.has_key('seconds'):
                 seconds = args['seconds']
             self.simulator.physicsManager.stepSimulation(seconds)
-            time.sleep(seconds)
-            # dont accept new commands until this has stepped
-            while self.simulator.physicsManager.stepping:   self.closed = True
-            self.closed = False#time.sleep(0.00001)
+            
+            #time.sleep(seconds)
+            ## dont accept new commands until this has stepped
+            #while self.simulator.physicsManager.stepping:   self.closed = True
+            #
+            #self.closed = False#time.sleep(0.00001)
             self.logger.log("step: "+str(seconds)+" seconds")
             return 'success'            
         elif cmd == 'step_simulation':
@@ -94,7 +118,8 @@ class IsisCommandHandler(object):
             raise "Undefined meta command: %s" % cmd
         
         return "done"
-
+        
+    
     
     def _relayAgentControl(self, agentID, command, args):
         fullCmd = self.simulator.actionController.actionMap[command]

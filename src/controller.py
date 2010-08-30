@@ -110,7 +110,7 @@ class Controller(object, FSM):
 
 
         ### Define Task Frame
-        self.taskFrame = DirectFrame(frameColor=(0.63, 0.29, 0.09, 0.65),
+        self.taskFrame = DirectFrame(frameColor=(0.32,.52,.50, 1.0),
                                      frameSize=(-.33,.40,-.35,.75),
                                      pos=(0.8, .2, 0), relief=DGG.RIDGE,
                                      borderWidth=(0.05, 0.05))

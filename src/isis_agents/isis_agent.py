@@ -11,9 +11,8 @@ from direct.showbase import DirectObject
 from direct.interval.IntervalGlobal import *
 from direct.actor.Actor import Actor
 from direct.gui.DirectGui import DirectLabel
-#from direct.controls.GravityWalker import GravityWalker
+
 from pandac.PandaModules import *# PandaNode,NodePath,Camera
-#from panda3d.core import CollisionHandlerPusher, CollisionHandlerGravity, CollisionTraverser
 import math, random, os, Image
 from time import time
 # project stuff
@@ -30,7 +29,7 @@ def frange(x,y,inc):
         x += inc
 
 
-class Ralph(DirectObject.DirectObject):
+class IsisAgent(DirectObject.DirectObject):
     
     @classmethod
     def setPhysics(cls,physics):
@@ -43,7 +42,9 @@ class Ralph(DirectObject.DirectObject):
     def __init__(self, name, queueSize = 100):
 
         # setup the visual aspects of ralph
-        self.actor= Actor("media/models/boxman",{"walk":"media/models/boxman-walk", "idle": "media/models/boxman-idle"})
+        self.actor= Actor("media/models/boxman",
+                          {"walk":"media/models/boxman-walk", 
+                           "idle": "media/models/boxman-idle"})
         self.actor.setScale(1.0)
         self.actor.setH(0)
 
@@ -51,7 +52,7 @@ class Ralph(DirectObject.DirectObject):
         self.actorNode = ActorNode('physicsControler-%s' % name)
         self.actorNodePath = NodePath('agent-%s' % name)
         self.actorNodePath.attachNewNode(self.actorNode)
-        #self.actorNode = self.actorNodePath.node()
+        
         self.actorNodePath.reparentTo(render)
         self.actor.setPos(self.actorNodePath,0,0,-.2)
         self.actor.reparentTo(self.actorNodePath)
@@ -65,11 +66,7 @@ class Ralph(DirectObject.DirectObject):
         self.height = high[0]-low[0]
 
         DirectObject.DirectObject.__init__(self) 
-        #x = random.randint(0,10)
-        #y = random.randint(0,10)
-        #z = random.randint(12,25)
-        #self.actorNodePath.setFluidPos(Vec3(x,y,z))
-        
+
         self.setupCollisionSpheres()
 
     
@@ -78,16 +75,6 @@ class Ralph(DirectObject.DirectObject):
         # Expose agent's right hand joint to attach objects to
         self.player_right_hand = self.actor.exposeJoint(None, 'modelRoot', 'Hand.R')
         self.player_left_hand  = self.actor.exposeJoint(None, 'modelRoot', 'Hand.L')
-
-        #if name == "Lauren":
-        #    toaster = loader.loadModel("media/models/toaster")
-        #    toaster.setScale(0.7)
-        #    toaster.setPos(0,0,0)
-        #    toaster.reparentTo(self.player_right_hand)
-        #    toaster.setPos(Vec3(.2,0,.6))
-        #    toaster.place()
-        #toaster.setPos(1,0.4,0)
-
 
         self.player_right_hand.setColorScaleOff()
         self.player_left_hand.setColorScaleOff()
@@ -119,7 +106,7 @@ class Ralph(DirectObject.DirectObject):
         self.speech_bubble.setColorScaleOff()
         self.speech_bubble.component('text0').textNode.setCardDecal(1)
         self.speech_bubble.setBillboardAxis()
-        # hide the speech bubble from Ralph's own camera
+        # hide the speech bubble from IsisAgent's own camera
         self.speech_bubble.hide(BitMask32.bit(1))
         
         # put a camera on ralph
@@ -142,7 +129,7 @@ class Ralph(DirectObject.DirectObject):
         self.prevtime = 0
         self.current_frame_count = 0
 
-        #self.name = "Ralph"
+        #self.name = "IsisAgent"
         self.isSitting = False
         self.isDisabled = False
         self.msg = None
@@ -160,7 +147,7 @@ class Ralph(DirectObject.DirectObject):
         
         # when you're done, register yourself with physical simulator
         # so it can call update() at each step of the physics
-        Ralph.physics.addAgent(self)
+        IsisAgent.physics.addAgent(self)
 
     def reparentTo(self, parent):
         self.actorNodePath.reparentTo(parent)
@@ -533,11 +520,11 @@ class Ralph(DirectObject.DirectObject):
         #self.aimRay.set(pos, dir)
 
         # raycast
-        closestEntry, closestGeom = Ralph.physics.doRaycast(self.aimRay, [self.capsuleGeom])
+        closestEntry, closestGeom = IsisAgent.physics.doRaycast(self.aimRay, [self.capsuleGeom])
         if not closestGeom:
             return
         print "Closest geom", closestEntry
-        data = Ralph.physics.getGeomData(closestGeom)
+        data = IsisAgent.physics.getGeomData(closestGeom)
         print data.name
         if data.selectionCallback:
             data.selectionCallback(self, dir)
@@ -606,7 +593,7 @@ class Ralph(DirectObject.DirectObject):
         """ This function sets up three separate collision systems:
           1- cSphereNode handled by cWall traverser, stops agents from
            walking into other agents and walls 
-          2- cRay handled by cFloor keeps Ralph on the ground
+          2- cRay handled by cFloor keeps IsisAgent on the ground
           3- cEvent is a general purpose collision handler that registers
            and delegates collision callbacks, as defined in the physics/panda/manager.py file """
         self.cFloor = CollisionHandlerGravity()
@@ -620,8 +607,8 @@ class Ralph(DirectObject.DirectObject):
         cSphereNode.setFromCollideMask(AGENTMASK|WALLMASK)
         cSphereNode.setIntoCollideMask(AGENTMASK)
         cSphereNodePath = self.actorNodePath.attachNewNode(cSphereNode)
-        Ralph.physics.cWall.addCollider(cSphereNodePath, self.actorNodePath)
-        base.cTrav.addCollider(cSphereNodePath, Ralph.physics.cWall)
+        IsisAgent.physics.cWall.addCollider(cSphereNodePath, self.actorNodePath)
+        base.cTrav.addCollider(cSphereNodePath, IsisAgent.physics.cWall)
         # and another wall collider for going into objects.
         cSphereNode2 = CollisionNode('agent')
         cSphereNode2.addSolid(CollisionSphere(0.0, 0.0, self.height, self.radius))
@@ -629,8 +616,8 @@ class Ralph(DirectObject.DirectObject):
         cSphereNode2.setIntoCollideMask(BitMask32.allOff())
         cSphereNodePath2 = self.actorNodePath.attachNewNode(cSphereNode2)
         #cSphereNodePath.show()
-        Ralph.physics.cWallO.addCollider(cSphereNodePath2, self.actorNodePath)
-        base.cTrav.addCollider(cSphereNodePath2, Ralph.physics.cWallO)
+        IsisAgent.physics.cWallO.addCollider(cSphereNodePath2, self.actorNodePath)
+        base.cTrav.addCollider(cSphereNodePath2, IsisAgent.physics.cWallO)
         # add same colliders to cEvent
         cEventSphereNode = CollisionNode('agent')
         cEventSphere = CollisionSphere(0.0, 0.0, self.height, self.radius)

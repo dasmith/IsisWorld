@@ -7,7 +7,7 @@ from layout_manager import SlotLayout
 
 from direct.interval.IntervalGlobal import *
 from random import *
-from ..ralphs.ralph import Ralph
+from ..isis_agents.isis_agent import IsisAgent
 
 class table(IsisObject,IsisVisual,Container,Surface,NoPickup):
 

@@ -12,7 +12,7 @@ def environment():
     k = knife()
     put_on(k, ta)
 
-    r = Ralph("susan")
+    r = IsisAgent("susan")
     #r.set_color()
     put_in(r, k)
     
@@ -21,9 +21,11 @@ def environment():
 
 
 def task_goto_knife():
+    task.name = "go to knife"
     
     return True
 
 
 def task_pick_up_knife():
-    return True
+    task.name = "pick up knife"
+    if task.time > 10: return True

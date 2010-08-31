@@ -44,7 +44,7 @@ def getObjFromNP(np,tag="isisobj"):
 
 class PhysicsWorldManager(DirectObject.DirectObject):
     
-    def __init__(self):
+    def __init__(self,world):
         """ Initialize the 3 Collision Handlers and the base Traverser, which looks
         through the entire node path. 
         
@@ -56,6 +56,7 @@ class PhysicsWorldManager(DirectObject.DirectObject):
         self._FrameTime=self._GlobalClock.getFrameTime() 
         self._GlobalClock.setRealTime(self._FrameTime) 
         
+        self.world = world # only used by sky task. 
                
         self.stepping = False
         # keep track of all agents
@@ -204,6 +205,7 @@ class PhysicsWorldManager(DirectObject.DirectObject):
         return task.cont 
     
     def _stopPhysics(self,task=None):
+        taskMgr.remove("visual-movingClouds")
         taskMgr.remove("physics-SimulationTask")
         self.stepping = False
 
@@ -216,4 +218,5 @@ class PhysicsWorldManager(DirectObject.DirectObject):
             taskMgr.doMethodLater(stepTime, self._stopPhysics, "physics-SimulationStopper", priority=10)
             # or can you
             self.stepping = True
+        taskMgr.add(self.world.updateSkyTask, "visual-movingClouds")
         taskMgr.add(self.simulationTask, "physics-SimulationTask", priority=10)

@@ -1,3 +1,5 @@
+from pandac.PandaModules import ClockObject
+
 class ScenarioException(Exception):    
     def __init__(self):
         return
@@ -6,6 +8,7 @@ class ScenarioException(Exception):
 class IsisTask(object):
     def __init__(self):
         self.description = "None"
+        self._GlobalClock = ClockObject.getGlobalClock()
 
     def executeTaskCode(self,name,ref):
         """ Executes the task method"""
@@ -13,6 +16,20 @@ class IsisTask(object):
         if not hasattr(self,'name'):
             self.name = name
     
+    def startTask(self, captureMovie):
+        def simulationTask(self, task):
+            
+            for agent in self.agents:
+                agent.update(dt) 
+
+    def _advanceTask(self, task):
+        """ This method is added to Panda's task management and executed at each cycle
+        whenever a task is running.  It checks to see if it's in training or testing mode. 
+        This is responsible for saving screenshots at various intervals."""
+        dt = self._GlobalClock.getDt()
+        return task.cont
+        
+        
 
 class IsisScenario(object):
     def __init__(self,name):

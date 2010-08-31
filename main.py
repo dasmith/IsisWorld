@@ -9,9 +9,23 @@ IsisWorld Developers:  Dustin Smith, Chris M. Jones, Bo Morgan, Gleb Kuznetsov
 """
 # parameters
 ISIS_VERSION = 0.4
+from pandac.PandaModules import loadPrcFileData
+loadPrcFileData("", """sync-video 0
+win-size 1024 768
+yield-timeslice 0 
+client-sleep 0 
+multi-sleep 0
+basic-shaders-only #t
+
+audio-library-name null""")
+
+from time import ctime
+import sys
+import os
+import getopt
 
 # Panda3D libraries:  available from http://panda3d.org
-from panda3d.core import loadPrcFile, loadPrcFileData, ExecutionEnvironment, Filename
+from panda3d.core import ExecutionEnvironment, Filename
 from direct.gui.OnscreenText import OnscreenText
 from direct.task import Task, TaskManagerGlobal
 from direct.filter.CommonFilters import CommonFilters 
@@ -20,7 +34,6 @@ from direct.gui.DirectGui import *#DirectEntry, DirectButton, DirectOptionMenu
 from pandac.PandaModules import * # TODO: specialize this import
 
 # local source code
-from src.ralphs.ralph import *
 from src.physics.panda.manager import *
 from src.cameras.floating import *
 from src.xmlrpc.command_handler import IsisCommandHandler
@@ -34,13 +47,12 @@ from src.lights.skydome2 import *
 from src.actions.actions import *
 
 from direct.showbase.DirectObject import DirectObject
-from time import ctime
-import sys, os
+
 
 # panda's own threading module
 from direct.stdpy import threading
+from pandac.PandaModules import * # TODO specialize
 
-from pandac.PandaModules import *
 print "Threads supported?", Thread.isThreadingSupported()
 
 
@@ -48,42 +60,61 @@ class IsisWorld(DirectObject):
     physics = None
     
     def __init__(self):
-        # load the main simulated environment
-        
+        # MAIN_DIR var is set in direct/showbase/ShowBase.py
+        self.rootDirectory = ExecutionEnvironment.getEnvironmentVariable("MAIN_DIR")
         DirectObject.__init__(self)
+        
         self.isisMessage("Starting Up")
         # initialize Finite State Machine to control UI
         self.controller = Controller(self)
-        self.rootDirectory = ExecutionEnvironment.getEnvironmentVariable("MAIN_DIR")
-        
-        self.acceptAgentCommands = False
-        
+
         self.agentNum = 0
         self.agents = []
         self.agentsNamesToIDs = {}
         
-        #base.config = loadPrcFile(Filename(self.rootDirectory, "config.prc"))
-        self._setupEnvironment(debug=False)
-        self._setupWorld(visualizeClouds=True)
-        #self._setupAgents()
-        self._setupLights()
-        self._setupCameras()
-        self._setupActions()
-                  
+        self._setup_base_environment(debug=False)
+        self._setup_ground_and_sky(visualizeClouds=True)
+        self._setup_lights()
+        self._setup_cameras()
+        self._setup_actions()
+        
+        # parse command line options
+        try:
+            opts, args = getopt.getopt(sys.argv[1:], "ho:vD", ["help", "output=","Default"])
+        except getopt.GetoptError, err:
+            # print help information and exit:
+            print str(err) # will print something like "option -a not recognized"
+            usage()
+            sys.exit(2)
+            
+        self.verbosity = 0
+        for o, a in opts:
+            if o == "-v":
+                self.verbosity = a
+            elif o in ("-h", "--help"):
+                usage()
+                sys.exit()
+            elif o in ("-D", "--default"):
+                # go to the first scenario
+                self.controller.request('Scenario')
+                self.controller.request('TaskPaused')
+            else:
+                assert False, "unhandled option"
+
+        
         self._textObjectVisible = True
         #base.cTrav.showCollisions(self.objRender)
         # turn off main help menu by default
         self.toggleInstructionsWindow()
-        #self.server_thread.start()
         base.exitFunc = self.exit
 
 
-    def makeSafePath(self,path):
-        print "In path", path, "out path", Filename(self.rootDirectory, path)
+    def make_safe_path(self,path):
+        """ Working paths across different operating systems."""
         return Filename(self.rootDirectory, path)
     
-    def _setupEnvironment(self,debug=False):
-        """  Stuff that's too ugly to put anywhere else. """
+    def _setup_base_environment(self,debug=False):
+        """  Configuration code for basic window stuff.  Everything here is only loaded ONCE."""
         base.setFrameRateMeter(True)
         base.setBackgroundColor(.2, .2, .2)
         base.camLens.setFov(75)
@@ -109,15 +140,15 @@ class IsisWorld(DirectObject):
         base.taskMgr.add(self.server.start_serving, 'xmlrpc-server', taskChain='xmlrpc')
         
 
-    def _setupWorld(self, visualizeClouds=False):
+    def _setup_ground_and_sky(self, visualizeClouds=False):
         """ The world consists of a plane, the "ground" that stretches to infinity
         and a dome, the "sky" that sits concavely on the ground. """
          # setup physics
-        self.physicsManager = PhysicsWorldManager()
+        self.physicsManager = PhysicsWorldManager(self)
         IsisWorld.physics = self.physicsManager
         # setup ground
         cm = CardMaker("ground")
-        groundTexture = loader.loadTexture(self.makeSafePath("media/textures/env_ground.jpg"))
+        groundTexture = loader.loadTexture(self.make_safe_path("media/textures/env_ground.jpg"))
         cm.setFrame(-100, 100, -100, 100)
         groundNP = render.attachNewNode(cm.generate())
         groundNP.setCollideMask(BitMask32.allOff())
@@ -142,19 +173,18 @@ class IsisWorld(DirectObject):
             self.skydomeNP.setStandardControl()
             self.skydomeNP.att_skycolor.setColor(Vec4(0.3,0.3,0.3,1))
     
-            taskMgr.add(self._timeUpdated, "skytimeUpdated")
         else:
-            self.skydomeNP = loader.loadModel(self.makeSafePath("media/models/dome2"))
+            self.skydomeNP = loader.loadModel(self.make_safe_path("media/models/dome2"))
             self.skydomeNP.reparentTo(render)
             self.skydomeNP.setCollideMask(BitMask32().allOff())
             self.skydomeNP.setScale(400, 400, 100);
     
-    def _timeUpdated(self,task):
+    def updateSkyTask(self,task):
         self.skydomeNP.skybox.setShaderInput('time', task.time)
         self.commandHandler.panda3d_thread_process_command_queue()
         return task.cont
 
-    def _setupCameras(self):
+    def _setup_cameras(self):
         # Set up the camera 
         ### Set up displays and cameras ###
         #base.disableMouse()
@@ -163,7 +193,7 @@ class IsisWorld(DirectObject):
         base.camera.setP(315)
 
 
-    def _setupLights(self):
+    def _setup_lights(self):
         alight = AmbientLight("ambientLight")
         alight.setColor(Vec4(.7, .7, .7, 1.0))
         alightNP = render.attachNewNode(alight)
@@ -183,7 +213,7 @@ class IsisWorld(DirectObject):
         render.setLight(dlightNP)
 
 
-    def _setupActions(self):
+    def _setup_actions(self):
         """ Initializes commands that are related to the XML-Server and
         the keyboard bindings """
 
@@ -191,14 +221,14 @@ class IsisWorld(DirectObject):
             """ Accepts an instruction issued through the bound keyboard commands
             because "self.agentNum" need to be revaluated at the time the command
             is issued, necessitating this helper function"""
-            if not self.acceptAgentCommands:
-                self.isisMessage("Cannot send agent command %s in the current window state, load scenario and run task" % command) 
-            else:
+            if  len(self.agents) > 0: 
                 if self.actionController.hasAction(command):
                     self.actionController.makeAgentDo(self.agents[self.agentNum], command)
                 else:
-                    print "relayAgentControl: %s command not found in action controller" % (command)
+                    self.isisMessage("relayAgentControl: %s command not found in action controller" % (command))
                     raise self.actionController
+            else:
+                self.isisMessage("Cannot relay command '%s' when there is no agent in the scenario!" % command) 
 
         text = "\n"
         text += "IsisWorld v%s\n" % (ISIS_VERSION)
@@ -261,18 +291,17 @@ class IsisWorld(DirectObject):
         )
 
         def changeAgent():
-            if not self.acceptAgentCommands:
-                self.isisMessage("Cannot switch agents in current controller state") 
-            else:
+            if len(self.agents) > 0:
                 if (self.agentNum == (len(self.agents)-1)):
                     self.agentNum = 0
-
                 else:
                     self.agentNum += 1
                 # change agent view camera
                 self.agentCamera.setCamera(self.agents[self.agentNum].fov)
-
-        # key input\\\
+            else:
+                self.isisMessage("Cannot switch agents because there are no agents.")
+ 
+        # store keybindings
         self.accept("1",               base.toggleWireframe, [])
         self.accept("2",               base.toggleTexture, [])
         self.accept("3",               changeAgent, [])
@@ -332,7 +361,16 @@ class IsisWorld(DirectObject):
             self.agentCamera.setClearDepthActive(True)
             self.agentCamera.setCamera(self.agents[self.agentNum].fov)
             self.agentCamera.setActive(1)
-            
+        # position the agent randomly
+        try: 
+            room = render.find("**/*kitchen*").getPythonTag("isisobj")
+            newAgent.actorNodePath.reparentTo(room)
+            w,h = int(room.getWidth()/2), int(room.getLength()/2)
+            x = randint(-w,w)
+            y = randint(-h,h)
+            newAgent.setPosition(Vec3(x,y,5))
+        except Exception, e:
+            isisMessage("Could not add agent %s to room. Error: %s" % (newAgent.name, e))
         return newAgent
 
 

@@ -22,7 +22,7 @@ def environment():
     l = loaf()
     put_in(l, f)
 
-    r = Ralph("joan")
+    r = IsisAgent("joan")
     #r.set_color()
     put_in(r, k)
 

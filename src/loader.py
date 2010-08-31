@@ -4,7 +4,7 @@ import sys
 from random import *
 from direct.interval.IntervalGlobal import *
 from pandac.PandaModules import Vec3
-from ralphs.ralph import Ralph 
+from isis_agents.isis_agent import IsisAgent
 
 def load_objects(scenario, world):
     # load functions and modules into the namespace
@@ -19,7 +19,7 @@ def load_objects(scenario, world):
     generators = __import__("src.isis_objects.generators")
     generators = generators.isis_objects.generators
     # FIXME: hacky definition to filter the generators from the other Panda3d functions in the namespace
-    filterfun = lambda x: x[0] in ['fridge','toaster','bread','loaf','kitchen','knife','table','Ralph']
+    filterfun = lambda x: x[0] in ['fridge','toaster','bread','loaf','kitchen','knife','table','IsisAgent']
     generators = dict(filter(filterfun, generators.__dict__.items()))
     for klass, constructor in generators.items():
         constructor.setPhysics(physics)
@@ -29,7 +29,7 @@ def load_objects(scenario, world):
         """ Adds items to IsisWorld.  If they are IsisAgents, it calls
         a function that updates cameras and a list of agents for use by 
         XMLRPC."""
-        if isinstance(obj,Ralph):
+        if isinstance(obj,IsisAgent):
             world.add_agent_to_world(obj)
         else:
             if parent == None: 
@@ -42,14 +42,14 @@ def load_objects(scenario, world):
     def put_in(obj, container):
         """Places the object in to the given container"""
         container = container.getPythonTag('isisobj')
-        if not isinstance(obj,Ralph): obj = obj.getPythonTag('isisobj')
+        if not isinstance(obj,IsisAgent): obj = obj.getPythonTag('isisobj')
         if container.call(None, "put_in", obj) != "success":
             put_in_world(obj, container)
 
     def put_on(obj, surface):
         """Places the object on to the given surface"""
         surface = surface.getPythonTag('isisobj')
-        if not isinstance(obj,Ralph): obj = obj.getPythonTag('isisobj')
+        if not isinstance(obj,IsisAgent): obj = obj.getPythonTag('isisobj')
         if surface.call(None, "put_on", obj) != "success":
             put_in_world(obj, surface)
     

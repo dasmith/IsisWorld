@@ -5,7 +5,7 @@ SIM_VERSION=0.4
 #panda3d makescripts/packp3d.p3d
 
 make: main.py
-	ipython -pdb main.py
+	ipython -c "%run main.py -D"
 
 
 clean: 

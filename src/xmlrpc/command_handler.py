@@ -87,6 +87,13 @@ class IsisCommandHandler(object):
                 seconds = args['seconds']
             self.simulator.controller.step_simulation(seconds)
             
+            # Bo says: I remarked these lines out, so we need to find
+            # another way to block time before returning to the
+            # client.  The command queues mean we can't sleep because
+            # all of these functions are called from within a Panda3D
+            # Task now.  The xmlrpc thread shouldn't call -any-
+            # Panda3D functions because they are not thread safe.
+            #
             #time.sleep(seconds)
             ## dont accept new commands until this has stepped
             #while self.simulator.physicsManager.stepping:   self.closed = True

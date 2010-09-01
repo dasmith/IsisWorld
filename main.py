@@ -306,8 +306,8 @@ class IsisWorld(DirectObject):
         self.accept("2",               base.toggleTexture, [])
         self.accept("3",               changeAgent, [])
         self.accept("4",               self.toggleInstructionsWindow, [])
-        self.accept("space",           self.step_simulation, [.1]) # argument is amount of second to advance
-        self.accept("p",               self.physicsManager.togglePaused)
+        self.accept("space",           self.controller.step_simulation, [.1]) # argument is amount of second to advance
+        self.accept("p",               self.controller.toggle_paused)
         self.accept("s",               self.screenshot, ["snapshot"])
         self.accept("a",               self.screenshot_agent, ["agent_snapshot"])
         #self.accept("r",              self.reset_simulation)
@@ -408,11 +408,7 @@ class IsisWorld(DirectObject):
     def exit(self):
         """ Shut down threads and """
         print "\n[IsisWorld] quitting IsisWorld...\n"
-        if not self.physicsManager.paused:
-            self.physicsManager.togglePaused()
-        self.server.stop()
-        #self.server_thread.join()
-        sys.exit()
+        self.__exit__()
     
     def __exit__(self):
         self.server.stop()

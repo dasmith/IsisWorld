@@ -28,7 +28,6 @@ class IsisCommandHandler(object):
         passed from the xmlrpc client and decides what to do with them.
         '''
         # debug statement
-        print 'Hello.'
         print 'command %s received: (%s) ' % (cmd,','.join(['%s=%s' % (k,v) for k,v in args.items()]))
         self.waiting_command_queue.put({'cmd':cmd, 'args':args})
         result = self.finished_command_queue.get()
@@ -75,7 +74,6 @@ class IsisCommandHandler(object):
             self.logger.log(cmd + ": Error - No agent specified")
             return 'failure'
 
-        print "ID", agent_to_control
         if self.simulator.actionController.hasAction(cmd):
             # not a meta command and agent_to_control is defined
             # TODO: check to see if proper keys are defined for the given command
@@ -115,12 +113,40 @@ class IsisCommandHandler(object):
         elif cmd == 'meta_list_actions':
             return self.simulator.actionController.actionMap.keys()+self.meta_commands
         elif cmd == 'meta_list_scenarios':
-            return self.simulator.controller.scenarioFiles()
+            return self.simulator.controller.scenarioFiles
         elif cmd == 'meta_list_tasks':
             if self.simulator.controller.currentScenario:
                 return self.simulator.controller.currentScenario.getTaskList()
             else:
                 return "error: no scenario loaded"            
+        elif cmd == 'meta_load_scenario':
+            """ Loads a particular scenario file """
+            if args.has_key('scenario'):
+                scenario_file = args['scenario']
+                if scenario_file in self.simulator.controller.scenarioFiles:
+                    self.simulator.controller.selectedScenario = scenario_file
+                    return self.simulator.controller.request('Scenario')
+                else:
+                    return "error: meta_load_scenario scenario value '%s' is invalid" % scenario_file
+            else:
+                return "error: meta_load_scenario requires 'scenario' argument"
+        elif cmd == "meta_load_task":
+            """ Loads a task of the current scenario """
+            if not self.simulator.controller.currentScenario:
+                return "error: cannot load task before loading a scenario"
+            if not self.simulator.controller.state  in ['Scenario']:
+                return "error: cannot change task from this state"
+            if args.has_key('task'):
+                task_name = args['task']
+                if task_name in self.simulator.controller.currentScenario.getTaskList():
+                    self.simulator.controller.selectedTask = self.simulator.controller.currentScenario.getTaskByName(task_name)
+                    self.simulator.controller.taskDescription.setText(str(self.simulator.controller.selectedTask.getDescription()))
+                    return self.simulator.controller.request('TaskPaused')
+                else:
+                    # could not find task
+                    return "error: meta_load_task task value '%s' is invalid" % task_name
+            else:
+                return "error: meta_load_task requires 'task' argument"
         else:
             self.logger.log("UNKNOWN COMMAND: " + cmd)
             raise "Undefined meta command: %s" % cmd

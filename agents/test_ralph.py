@@ -7,6 +7,16 @@ print "Connected to IsisWorld"
 scenarios = e.do('meta_list_scenarios')
 print "Listing scenarios: %s" % (scenarios)
 
+# load the first scenario
+print e.do('meta_load_scenario', {'scenario': scenarios[0]})
+
+
+tasks = e.do('meta_list_tasks')
+print "Listing tasks: %s" % (tasks)
+
+# load the first task
+print e.do('meta_load_task', {'task': tasks[0]})
+
 e.do('meta_pause')
 
 def sense():

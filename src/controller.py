@@ -253,12 +253,19 @@ class Controller(object, FSM):
             self.main.physics.startSimulation(1.0/60.0)
     
     def start_simulation(self):
+        """ Starts the simulation, if it is not already running"""
         if not self.runningSimulation:
             self.step_simulation()
-        
+    
+    def toggle_paused(self):
+        """ Starts or Pauses the simulation, depending on the current state"""
+        if self.runningSimulation:
+            self.pause_simulation()
+        else:
+            self.start_simulation()
 
     def enterMenu(self):
-        if self.main.physics != None: self.main.physics.pause()
+        self.pause_simulation()
         self.scenarioFrame.hide()
         # make sure default scenario is selected
         self.selectedScenario = self.scenarioFiles[self.menuScenarioOptions.selectedIndex]

@@ -6,9 +6,10 @@ class ScenarioException(Exception):
 
 
 class IsisTask(object):
-    def __init__(self):
-        self.description = "None"
+    def __init__(self,scenario):
+        self.description = None
         self._GlobalClock = ClockObject.getGlobalClock()
+        self._scenario = scenario 
 
     def executeTaskCode(self,name,ref):
         """ Executes the task method"""
@@ -21,6 +22,14 @@ class IsisTask(object):
             
             for agent in self.agents:
                 agent.update(dt) 
+
+    def getDescription(self):
+        """ Builds the string that is presented in the Task GUI"""
+        s = "<b>Task</b>: %s" % self.name
+        if self.description != None:
+            s += self.description
+        s += "Created by: %s" % self._scenario.author 
+        return s
 
     def _advanceTask(self, task):
         """ This method is added to Panda's task management and executed at each cycle
@@ -49,11 +58,13 @@ class IsisScenario(object):
         # load all of the tasks
         task_functions =  filter(lambda x: x[0:4] == "task",dir(self))
         for tf in task_functions:    
-            new_task = IsisTask()
+            new_task = IsisTask(self)
             new_task.executeTaskCode(tf,self.__dict__[tf])
             # add the task to the dictionary
             self._taskDict[new_task.name] = new_task
 
-        
-    def getTasks(self):
+    def getTaskByName(self,taskName):
+        return self._taskDict[taskName]
+            
+    def getTaskList(self):
         return self._taskDict.keys()

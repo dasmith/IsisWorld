@@ -175,14 +175,14 @@ class PhysicsWorldManager(DirectObject.DirectObject):
         else:
             print "Error, cannot step while simulator is running"
  
-    def pause(self):
+    def stopSimulation(self):
          if not self.paused: 
              #self._GlobalClock.setMode(ClockObject.MSlave)
              print "[IsisWorld] Pausing Simulator"
              self._stopPhysics()
              self.paused = True
 
-    def resume(self,stepTime=None):
+    def startSimulation(self,stepTime=None):
         if self.paused: 
             #self._GlobalClock.setMode(ClockObject.MNormal) 
             self._startPhysics(stepTime)
@@ -191,12 +191,6 @@ class PhysicsWorldManager(DirectObject.DirectObject):
                 self.paused = False
             else:
                 print "[IsisWorld] Stepping Simulator"
-
-    def togglePaused(self,stepTime=None):
-        if self.paused:
-            self.resume(stepTime)
-        else:
-            self.pause()
             
     def simulationTask(self, task):
         dt = self._GlobalClock.getDt()

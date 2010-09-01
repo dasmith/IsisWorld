@@ -32,6 +32,7 @@ class IsisCommandHandler(object):
         self.waiting_command_queue.put({'cmd':cmd, 'args':args})
         result = self.finished_command_queue.get()
         return result
+
     
     def next_waiting_command(self):
         try:
@@ -47,6 +48,8 @@ class IsisCommandHandler(object):
             next_command = self.next_waiting_command()
     
     def handle_next_command(self, cmd, args):
+        """ This is called by the panda3d_thread_process_command_queue, issued by a separate
+        thread defined in IsisTask. """
         # if command is a meta-command, it doesn't require an agent
         if cmd not in self.meta_commands and not self.simulator.actionController.hasAction(cmd):
             # don't know about this command
@@ -96,7 +99,6 @@ class IsisCommandHandler(object):
             ## dont accept new commands until this has stepped
             #while self.simulator.physicsManager.stepping:   self.closed = True
             #
-            #self.closed = False#time.sleep(0.00001)
             self.logger.log("step: "+str(seconds)+" seconds")
             return 'success'            
         elif cmd == 'step_simulation':

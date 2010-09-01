@@ -17,9 +17,7 @@ package:
 	pdeploy -N "IsisWorld" -v 0.5 isisworld.p3d standalone
 
 mac:
-	mv src/physics/ode ../
 	/Developer/Tools/Panda3D/ppackage -i . isisworld.pdef
-	mv ../ode src/physics/
 	/Developer/Tools/Panda3D/pdeploy -N "IsisWorld" -v 0.5 isisworld.p3d standalone
 
 

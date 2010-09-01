@@ -29,13 +29,14 @@ class XMLRPCServer(SocketServer.ThreadingMixIn,SimpleXMLRPCServer):
     
     def start_serving(self, task):
         self.socket.setblocking(0)
-        while not self.closed:
-            self.handle_request()
-            # cooprative thread, allow Panda's main thread to run
-            # consisder Yield causes signal.signal(signal.SIGINT, signal.default_int_handler)  error.
-            # so force it instead
-            #threading.Thread.forceYield()
-            return task.cont
+        #while not self.closed:
+        self.handle_request()
+        
+        # cooprative thread, allow Panda's main thread to run
+        # consisder Yield causes signal.signal(signal.SIGINT, signal.default_int_handler)  error.
+        # so force it instead
+        #threading.Thread.forceYield()
+        return task.cont
 
     def print_command(self, command):
         """ Test method to see if we can print to panda3d thread output """

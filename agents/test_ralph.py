@@ -2,8 +2,23 @@ import xmlrpclib as xml
 # connect to environment via XML-RPC
 e = xml.ServerProxy('http://localhost:8001')
 
+def sense():
+    return e.do('sense', {'agent':'Ralph'})
+
+def step(time):
+    e.do('meta_step', {'seconds':time})
+
+def do(command, args = None):
+    if not args:
+        args = {}
+    args['agent'] = 'Ralph'
+    return e.do(command, args)
+
+
+
 print "Connected to IsisWorld"
 
+sense()
 scenarios = e.do('meta_list_scenarios')
 print "Listing scenarios: %s" % (scenarios)
 
@@ -19,20 +34,10 @@ print e.do('meta_load_task', {'task': tasks[0]})
 
 print 'Going into training mode'
 print e.do('meta_train')
-
-e.do('meta_pause')
-
-def sense():
-    return e.do('sense', {'agent':'Ralph'})
-
-def step(time):
-    e.do('meta_step', {'seconds':time})
-
-def do(command, args = None):
-    if not args:
-        args = {}
-    args['agent'] = 'Ralph'
-    return e.do(command, args)
+sense()
+print "pausing"
+print e.do('meta_pause')
+sense()
 
 
 p = None

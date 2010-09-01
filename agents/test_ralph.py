@@ -17,6 +17,9 @@ print "Listing tasks: %s" % (tasks)
 # load the first task
 print e.do('meta_load_task', {'task': tasks[0]})
 
+print 'Going into training mode'
+print e.do('meta_train')
+
 e.do('meta_pause')
 
 def sense():

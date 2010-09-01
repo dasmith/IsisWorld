@@ -138,6 +138,7 @@ class IsisWorld(DirectObject):
         # some hints on threading: https://www.panda3d.org/forums/viewtopic.php?t=7345
         base.taskMgr.setupTaskChain('xmlrpc',numThreads=1)
         base.taskMgr.add(self.server.start_serving, 'xmlrpc-server', taskChain='xmlrpc')
+        base.taskMgr.add(self.run_xml_command_queue,'xmlrpc-command-queue', priority=1000)
         
 
     def _setup_ground_and_sky(self, visualizeClouds=False):
@@ -181,6 +182,9 @@ class IsisWorld(DirectObject):
     
     def updateSkyTask(self,task):
         self.skydomeNP.skybox.setShaderInput('time', task.time)
+        return task.cont
+    
+    def run_xml_command_queue(self,task):
         self.commandHandler.panda3d_thread_process_command_queue()
         return task.cont
 
@@ -343,7 +347,7 @@ class IsisWorld(DirectObject):
         # add and initialize new agents
         newAgent.control__say("Hi, I'm %s. Please build me." % newAgent.name)
         self.agents.append(newAgent)
-        self.agentsNamesToIDs[newAgent.name] = len(self.agents)
+        self.agentsNamesToIDs[newAgent.name] = len(self.agents)-1
         #self.agents.sort(key=lambda x:self.agentsNamesToIDs[x.name])
         
         # set up picture in picture on first agent

@@ -3,7 +3,7 @@ import os
 
 from direct.gui.DirectGui import DGG, DirectFrame, DirectLabel, DirectButton, DirectOptionMenu
 from direct.gui.DirectGui import DirectSlider
-from direct.fsm.FSM import FSM
+from direct.fsm.FSM import FSM, RequestDenied
 from direct.gui.OnscreenText import OnscreenText
 from direct.gui.OnscreenImage import OnscreenImage
 from pandac.PandaModules import Vec3, Vec4
@@ -27,7 +27,6 @@ class Controller(object, FSM):
             'TaskTest' : ['TaskPaused','TaskTrain','Menu','Scenario'],
         }
         self.runningSimulation = False
-        base.setBackgroundColor(0, 0, 0, 1)
         self.main = isisworld
         # load a nicer font
         self.fonts = {'bold': base.loader.loadFont('media/fonts/DroidSans-Bold.ttf'), \
@@ -230,6 +229,8 @@ class Controller(object, FSM):
     
     def unload_scenario_environment(self):
         #self.main.physics.destroy()
+        if hasattr(self,'room'):
+            self.room.removeNode()
         self.main.agents = []
         self.main.agentNum = 0
         self.main.agentsNamesToID = {}
@@ -250,7 +251,7 @@ class Controller(object, FSM):
                 taskMgr.doMethodLater(stepTime, self.pause_simulation, "physics-SimulationStopper", priority=10)
             self.runningSimulation = True
             taskMgr.add(self.main.updateSkyTask, "visual-movingClouds")
-            self.main.physics.startSimulation(1.0/60.0)
+            self.main.physics.startSimulation(stepTime)
     
     def start_simulation(self):
         """ Starts the simulation, if it is not already running"""
@@ -263,6 +264,15 @@ class Controller(object, FSM):
             self.pause_simulation()
         else:
             self.start_simulation()
+
+
+    def safe_request(self,newState):
+        """ Attempts to advance the state and either does or returns an error message as a string instead of
+        raising an exception."""
+        try:
+            return self.request(newState)
+        except RequestDenied,e:
+            return "error: request to change state denied: %s" % str(e)
 
     def enterMenu(self):
         self.pause_simulation()

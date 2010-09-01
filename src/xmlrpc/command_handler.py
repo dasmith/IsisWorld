@@ -59,6 +59,7 @@ class IsisCommandHandler(object):
         if args.has_key('agent') and args['agent'] in self.simulator.agentsNamesToIDs.keys():
             # if the name is defined and valid
             agent_to_control = self.simulator.agentsNamesToIDs[args['agent']]
+            print "LIST OF AGENTS",self.simulator.agents, agent_to_control
         elif args.has_key('agent_id') and int(args['agent_id']) < len(self.simulator.agents):
             # if the agent id is defined and valid
             print "trying to control agent with ID", args['agent_id']
@@ -77,7 +78,8 @@ class IsisCommandHandler(object):
         if self.simulator.actionController.hasAction(cmd):
             # not a meta command and agent_to_control is defined
             # TODO: check to see if proper keys are defined for the given command
-            self.logger.log(cmd+", "+self.simulator.agents[agent_to_control].name+": Relayed to agent")
+            #self.logger.log(cmd+", "+self.simulator.agents[agent_to_control].name+": Relayed to agent")
+            print "LIST OF AGENTS-2",self.simulator.agents, agent_to_control
             return self._relayAgentControl(agent_to_control,cmd,args)
         elif cmd == 'meta_step':
             seconds = 0.05
@@ -125,7 +127,7 @@ class IsisCommandHandler(object):
                 scenario_file = args['scenario']
                 if scenario_file in self.simulator.controller.scenarioFiles:
                     self.simulator.controller.selectedScenario = scenario_file
-                    return self.simulator.controller.request('Scenario')
+                    return self.simulator.controller.safe_request('Scenario')
                 else:
                     return "error: meta_load_scenario scenario value '%s' is invalid" % scenario_file
             else:
@@ -141,12 +143,18 @@ class IsisCommandHandler(object):
                 if task_name in self.simulator.controller.currentScenario.getTaskList():
                     self.simulator.controller.selectedTask = self.simulator.controller.currentScenario.getTaskByName(task_name)
                     self.simulator.controller.taskDescription.setText(str(self.simulator.controller.selectedTask.getDescription()))
-                    return self.simulator.controller.request('TaskPaused')
+                    return self.simulator.controller.safe_request('TaskPaused')
                 else:
                     # could not find task
                     return "error: meta_load_task task value '%s' is invalid" % task_name
             else:
                 return "error: meta_load_task requires 'task' argument"
+        elif cmd == "meta_train":
+            """ Enters training mode """
+            return self.simulator.controller.safe_request('TaskTrain')
+        elif cmd == "meta_test":
+            """ Enters testing mode """
+            return self.simulator.controller.safe_request('TaskTest')
         else:
             self.logger.log("UNKNOWN COMMAND: " + cmd)
             raise "Undefined meta command: %s" % cmd
@@ -157,6 +165,7 @@ class IsisCommandHandler(object):
     
     def _relayAgentControl(self, agentID, command, args):
         fullCmd = self.simulator.actionController.actionMap[command]
+        print "LIST OF AGENTS-3",self.simulator.agents, agentID
         return self.simulator.actionController.makeAgentDo(self.simulator.agents[agentID], fullCmd, args)
 
     #obsolete cruft

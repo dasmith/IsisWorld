@@ -103,7 +103,7 @@ class PhysicsWorldManager(DirectObject.DirectObject):
         base.accept('agent-into-agent', self._agentsCollisionIn)
 
         # start it up 
-        self.paused = False
+        self.paused = True
         self._startPhysics()
 
 
@@ -191,6 +191,12 @@ class PhysicsWorldManager(DirectObject.DirectObject):
                 self.paused = False
             else:
                 print "[IsisWorld] Stepping Simulator"
+
+    def togglePaused(self,stepTime=None):
+        if self.paused:
+            self.resume(stepTime)
+        else:
+            self.pause()
             
     def simulationTask(self, task):
         dt = self._GlobalClock.getDt()

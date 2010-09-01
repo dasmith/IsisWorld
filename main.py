@@ -65,8 +65,6 @@ class IsisWorld(DirectObject):
         DirectObject.__init__(self)
         
         self.isisMessage("Starting Up")
-        # initialize Finite State Machine to control UI
-        self.controller = Controller(self)
 
         self.agentNum = 0
         self.agents = []
@@ -76,6 +74,11 @@ class IsisWorld(DirectObject):
         self._setup_ground_and_sky(visualizeClouds=True)
         self._setup_lights()
         self._setup_cameras()
+
+        # initialize Finite State Machine to control UI
+        self.controller = Controller(self)
+        
+        
         self._setup_actions()
         
         # parse command line options
@@ -166,19 +169,13 @@ class IsisWorld(DirectObject):
         
         """
         Setup the skydome
-        Moving clouds are pretty but computationally expensive 
-        only visualize them if you have"""
+        Moving clouds are pretty but computationally expensive """
         if visualizeClouds: 
             self.skydomeNP = SkyDome2(render,visualizeClouds)
             self.skydomeNP.setPos(Vec3(0,0,-500))
             self.skydomeNP.setStandardControl()
             self.skydomeNP.att_skycolor.setColor(Vec4(0.3,0.3,0.3,1))
-    
-        else:
-            self.skydomeNP = loader.loadModel(self.make_safe_path("media/models/dome2"))
-            self.skydomeNP.reparentTo(render)
-            self.skydomeNP.setCollideMask(BitMask32().allOff())
-            self.skydomeNP.setScale(400, 400, 100);
+
     
     def updateSkyTask(self,task):
         self.skydomeNP.skybox.setShaderInput('time', task.time)

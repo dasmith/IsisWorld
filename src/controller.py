@@ -45,9 +45,7 @@ class Controller(object, FSM):
                 
         # display GUI for navigating tasks
         #textObj = OnscreenText(text = "Scenarios:", pos = (1,0.9), scale = 0.05,fg=(1,0.5,0.5,1),align=TextNode.ALeft,mayChange=1)
-        
-        self.simulatorRunning = False
-        
+                
         # summer theme
         THEME = 0
         if THEME == 0:
@@ -236,9 +234,10 @@ class Controller(object, FSM):
         self.main.agentsNamesToID = {}
 
     def pause_simulation(self,task=None):
+        print "CALLING PAUSE", self.runningSimulation
         if self.runningSimulation:
+            print "PAUSING", self.runningSimulation
             self.main.physics.stopSimulation()
-            taskMgr.remove("visual-movingClouds")
             self.runningSimulation = False
     
     def step_simulation(self, stepTime=None):
@@ -250,7 +249,6 @@ class Controller(object, FSM):
                     stepTime -= .005
                 taskMgr.doMethodLater(stepTime, self.pause_simulation, "physics-SimulationStopper", priority=10)
             self.runningSimulation = True
-            taskMgr.add(self.main.updateSkyTask, "visual-movingClouds")
             self.main.physics.startSimulation(stepTime)
     
     def start_simulation(self):
@@ -285,6 +283,7 @@ class Controller(object, FSM):
 
     def enterScenario(self):
         """ Loads (or resets) the current scenario. """
+        self.pause_simulation()
         self.menuFrame.hide()
         self.taskFrame.hide()
 

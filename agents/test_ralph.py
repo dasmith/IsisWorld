@@ -18,7 +18,6 @@ def do(command, args = None):
 
 print "Connected to IsisWorld"
 
-sense()
 scenarios = e.do('meta_list_scenarios')
 print "Listing scenarios: %s" % (scenarios)
 
@@ -34,11 +33,18 @@ print e.do('meta_load_task', {'task': tasks[0]})
 
 print 'Going into training mode'
 print e.do('meta_train')
-sense()
+
 print "pausing"
 print e.do('meta_pause')
-sense()
 
+print "pausing"
+print e.do('meta_resume')
+
+print "pausing"
+print e.do('meta_pause')
+
+print "pausing"
+print e.do('meta_pause')
 
 p = None
 fridge = None
@@ -61,7 +67,7 @@ while abs(p['objects'][fridge]['x_pos']) > .1:
     p = sense()
 
 do(turn+'-stop')
-while p['objects'][fridge]['distance'] > 4:
+while p['objects'].has_key(fridge) and p['objects'][fridge]['distance'] > 4:
     do('move_forward-start', {'speed':(p['objects'][fridge]['distance']-3)})
     if p['objects'][fridge]['y_pos'] > .75:
         turn = 'look_up'

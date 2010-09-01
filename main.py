@@ -16,9 +16,6 @@ yield-timeslice 0
 client-sleep 0 
 multi-sleep 0
 basic-shaders-only #f
-want-pstats 1
-task-timer-verbose 1
-pstats-tasks 1
 audio-library-name null""")
 
 import time
@@ -174,8 +171,7 @@ class IsisWorld(DirectObject):
         """
         obj.geom =  OdePlaneGeom(self.physicsManager.space, Vec4(0, 0, 1, 0))
         
-        #obj.setPos(pos)
-        #obj.setQuat(quat)
+
         
         obj.setCatColBits("environment")
         

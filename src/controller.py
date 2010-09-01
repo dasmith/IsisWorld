@@ -6,7 +6,7 @@ from direct.gui.DirectGui import DirectSlider
 from direct.fsm.FSM import FSM
 from direct.gui.OnscreenText import OnscreenText
 from direct.gui.OnscreenImage import OnscreenImage
-from pandac.PandaModules import Vec3
+from pandac.PandaModules import Vec3, Vec4
 
 from src.loader import *
 from src.isis_scenario import *
@@ -26,12 +26,14 @@ class Controller(object, FSM):
             'TaskTrain' : ['TaskPaused','TaskTest','Menu','Scenario'],
             'TaskTest' : ['TaskPaused','TaskTrain','Menu','Scenario'],
         }
+        self.runningSimulation = False
         base.setBackgroundColor(0, 0, 0, 1)
-        self.world = isisworld
+        self.main = isisworld
         # load a nicer font
         self.fonts = {'bold': base.loader.loadFont('media/fonts/DroidSans-Bold.ttf'), \
                        'mono': base.loader.loadFont('media/fonts/DroidSansMono.ttf'),\
                        'normal': base.loader.loadFont('media/fonts/DroidSans.ttf')}
+        self.currentScenario = None
         self.scenarioFiles = []
         self.scenarioTasks = []
         # load files in the scenario directory
@@ -44,21 +46,23 @@ class Controller(object, FSM):
                 
         # display GUI for navigating tasks
         #textObj = OnscreenText(text = "Scenarios:", pos = (1,0.9), scale = 0.05,fg=(1,0.5,0.5,1),align=TextNode.ALeft,mayChange=1)
-        print "Scenario Files", self.scenarioFiles
+        
+        self.simulatorRunning = False
         
         # summer theme
         THEME = 0
         if THEME == 0:
             # summer
-            FRAME_BG = (1.00,1.00,0.27,1)
-            FRAME_BORDER =  (0.02, 0.02)
+            FRAME_BG = (0.00,0.36,0.80,1)
+            FRAME_BORDER =  (0.01, 0.01)
             POPUP_BG = (0.74,0.71,0.70,1) 
             FRAME_RELIEF = DGG.RIDGE
             BUTTON_RELIEF = DGG.RAISED
             BUTTON_BORDER = (0.02,0.02)
             BUTTON_BG = (0.74,1.00,0.94,1)
             BUTTON_FG =  (0.91,0.00,0.26,1)
-            TEXT_FG = (0.00,0.36,0.80,1)
+            TEXT_FG = (1.00,1.00,0.27,1)
+            TEXT_LARGE = (0.12,0.12)
             ALERT_TEXT_FG = (0.91,0.00,0.26,1)
         elif THEME ==1:
             FRAME_BG = (0.74,0.71,0.70,1)
@@ -69,6 +73,7 @@ class Controller(object, FSM):
             BUTTON_BORDER = (0.02,0.02)
             BUTTON_BG =  (0.29,0.09,0.18,1)
             BUTTON_FG = (1.00,0.80,0.34,1)
+            TEXT_LARGE = (0.12,0.12)
             TEXT_FG =(0.02,0.19,0.25,1)
             ALERT_TEXT_FG = (0.91,0.00,0.26,1)
         #FRAME_FONT_SIZE_SMALL = 
@@ -92,7 +97,7 @@ class Controller(object, FSM):
         
         """
         
-        def setScenarioUsingGUI(self,arg=None):
+        def setScenarioUsingGUI(arg=None):
             # you cannot do this when a task is running already
             if self.state == 'TaskPaused':
                 raise Exception("FSM violation, you cannot change a task from the Task state.  First you must stop the task")
@@ -104,7 +109,7 @@ class Controller(object, FSM):
                                                     text_font=self.fonts['normal'],
                                                     text_bg = POPUP_BG, text_fg = BUTTON_FG,
                                                     item_text_font=self.fonts['normal'], 
-                                                    scale=0.1, 
+                                                    scale=0.1,
                                                     items=self.scenarioFiles,
                                                     textMayChange=1, 
                                                     highlightColor=(0.65,0.65,0.65,1),
@@ -112,15 +117,15 @@ class Controller(object, FSM):
                                                     pos=(-.3, 0, -0.1))
         self.menuScenarioOptions.reparentTo(self.menuFrame)
         self.loadScenarioText = DirectButton(text='Load Scenario',
-                                      pos=(0, 0, -.3), text_scale=(0.15, 0.15),
+                                      pos=(0, 0, -.3), text_scale=TEXT_LARGE,
                                       text_font=self.fonts['bold'],borderWidth = BUTTON_BORDER,
                                       text_pos=(0, -0.01),
                                       text_fg=BUTTON_FG, text_bg = BUTTON_BG, relief=BUTTON_RELIEF,
                                       command=self.request, extraArgs=['Scenario'])
         self.loadScenarioText.reparentTo(self.menuFrame)
         self.exitIsisWorldText = DirectButton(text='Exit', relief=BUTTON_RELIEF, borderWidth=BUTTON_BORDER,
-                                     pos=(0, 0, -0.5), text_scale=(0.15, 0.15), text_bg=BUTTON_BG,
-                                     text_fg=BUTTON_FG, command=self.world.exit)
+                                     pos=(0, 0, -0.5), text_scale=TEXT_LARGE, text_bg=BUTTON_BG,
+                                     text_fg=BUTTON_FG, command=self.main.exit)
         self.exitIsisWorldText.reparentTo(self.menuFrame)
 
 
@@ -130,18 +135,18 @@ class Controller(object, FSM):
                                          pos=(.8, .2, 0), relief=FRAME_RELIEF,
                                          borderWidth=FRAME_BORDER)
                                          
-        def setTaskUsingGUI(self,arg=None):
+        def setTaskUsingGUI(arg=None):
             # only allow this to happen if you're in the scenario state
             if not self.state == 'Scenario':
                 raise Exception("FSM violation, you cannot change a task from the state %s" % self.state)
             else:
-                self.selectedTask = self.scenarioTasks[self.menuTaskOptions.selectedIndex]
-                self.taskNameLabel.setText(str(self.selectedTask))
+                self.selectedTask = self.currentScenario.getTaskByName(scenarioTasks[self.menuTaskOptions.selectedIndex])
+                self.taskDescription.setText(str(self.selectedTask.getDescription()))
 
         self.menuTaskOptions = DirectOptionMenu(text="Tasks:", 
                                                 text_font=self.fonts['normal'], 
                                                 scale=0.06,text_bg = POPUP_BG, text_fg = BUTTON_FG,
-                                                pos=(-.25,0,.6),
+                                                pos=(-.25,0,.6), frameSize=(-1,1,1,1),
                                                 items=self.scenarioTasks,
                                                 textMayChange=1, 
                                                 command=setTaskUsingGUI,
@@ -164,18 +169,18 @@ class Controller(object, FSM):
 
 
         ### Define Task Frame
-        self.taskFrame = DirectFrame(frameColor=FRAME_BG,
+        self.taskFrame = DirectFrame(frameColor=Vec4(0,0,0,-0.3)+FRAME_BG,
                                      frameSize=(-.33,.40,-.35,.75),
                                      pos=(0.8, .2, 0), relief=FRAME_RELIEF,
                                      borderWidth=FRAME_BORDER)
 
-        self.taskNameLabel = OnscreenText(text='tmp', mayChange=1,
-                                         pos=(0, 0.6,-1), scale=(0.05),
+
+        self.taskDescription = OnscreenText(text='tmp', mayChange=1, wordwrap=15,
+                                         pos=(0.1, 0.6,-1), scale=(0.04),
                                          font=self.fonts['mono'],
                                          fg=TEXT_FG)
-        self.taskNameLabel.reparentTo(self.taskFrame)
+        self.taskDescription.reparentTo(self.taskFrame)
         self.toMain = DirectButton(text='Change Task',
-                                   frameSize=(-0.2, 0.2, -0.05, 0.05),
                                    pos=(0, 0, 0), text_scale=(0.05, 0.05),borderWidth=BUTTON_BORDER,
                                    text_fg=BUTTON_FG, text_bg = BUTTON_BG, relief=BUTTON_RELIEF,
                                    command=self.request, extraArgs=['Scenario'])
@@ -189,24 +194,71 @@ class Controller(object, FSM):
         self.goBackFromTaskText.reparentTo(self.taskFrame)
 
         self.menuTrainButton = DirectButton(text = "Start Training", 
-                                            scale=0.05, textMayChange=1,
+                                            scale=0.05, textMayChange=1, pos=(0,0,0.4),
                                             text_font=self.fonts['bold'],borderWidth=BUTTON_BORDER,
                                             text_fg=BUTTON_FG, text_bg = BUTTON_BG, relief=BUTTON_RELIEF,
                                             command=self.request, extraArgs=['TaskTrain'])
-        self.menuTestButton = DirectButton(text = "Start Testing", textMayChange=1,
+        self.menuTestButton = DirectButton(text = "Start Testing", textMayChange=1, pos=(0,0,0.3),
                                             scale=0.05,borderWidth=BUTTON_BORDER,
                                             text_font=self.fonts['bold'],
                                             text_fg=BUTTON_FG, text_bg = BUTTON_BG, relief=BUTTON_RELIEF,
                                             command=self.request, extraArgs=['TaskTest'])
-
         self.menuTrainButton.reparentTo(self.taskFrame)
         self.menuTestButton.reparentTo(self.taskFrame)
         self.request('Menu')
         
 
 
+
+    def load_scenario_environment(self):   
+        # temporary loading text
+        loadingText = OnscreenText('Loading...', mayChange=True,
+                                       pos=(0, -0.9), scale=0.1,
+                                       fg=(1, 1, 1, 1), bg=(0, 0, 0, 0.5))
+        loadingText.setTransparency(1)     
+        self.currentScenario = IsisScenario(self.selectedScenario)
+        # setup world
+        load_objects(self.currentScenario, self.main)
+        # define pointer to base scene.
+        self.room = render.find("**/*kitchen*").getPythonTag("isisobj")
+        
+        # position the camera in the room
+        base.camera.reparentTo(self.room)
+        base.camera.setPos(self.room.getWidth()/2,self.room.getLength()/2,self.room.getHeight())
+        base.camera.setHpr(130,320,0)
+        loadingText.destroy()
+    
+    def unload_scenario_environment(self):
+        #self.main.physics.destroy()
+        self.main.agents = []
+        self.main.agentNum = 0
+        self.main.agentsNamesToID = {}
+
+    def pause_simulation(self,task=None):
+        if self.runningSimulation:
+            self.main.physics.stopSimulation()
+            taskMgr.remove("visual-movingClouds")
+            self.runningSimulation = False
+    
+    def step_simulation(self, stepTime=None):
+        if not self.runningSimulation:
+            if stepTime != None:
+                assert stepTime >= 0.01
+                # Adujust for delays to better approximate the right stopping time
+                if stepTime >= .015:
+                    stepTime -= .005
+                taskMgr.doMethodLater(stepTime, self.pause_simulation, "physics-SimulationStopper", priority=10)
+            self.runningSimulation = True
+            taskMgr.add(self.main.updateSkyTask, "visual-movingClouds")
+            self.main.physics.startSimulation(1.0/60.0)
+    
+    def start_simulation(self):
+        if not self.runningSimulation:
+            self.step_simulation()
+        
+
     def enterMenu(self):
-        if self.world.physics != None: self.world.physics.pause()
+        if self.main.physics != None: self.main.physics.pause()
         self.scenarioFrame.hide()
         # make sure default scenario is selected
         self.selectedScenario = self.scenarioFiles[self.menuScenarioOptions.selectedIndex]
@@ -214,68 +266,37 @@ class Controller(object, FSM):
         self.menuFrame.show()
 
 
-    def loadScenarioEnvironment(self):   
-        # temporary loading text
-        loadingText = OnscreenText('Loading...', mayChange=True,
-                                       pos=(0, -0.9), scale=0.1,
-                                       fg=(1, 1, 1, 1), bg=(0, 0, 0, 0.5))
-        loadingText.setTransparency(1)     
-        # setup world
-        load_objects(self.currentScenario, self.world)
-        # define pointer to base scene.
-        self.room = render.find("**/*kitchen*").getPythonTag("isisobj")
-        
-        # pause it by default
-        self.world.physics.pause()
-        # position the camera in the room
-        base.camera.reparentTo(self.room)
-        base.camera.setPos(self.room.getWidth()/2,self.room.getLength()/2,self.room.getHeight())
-        base.camera.setHpr(130,320,0)
-        loadingText.destroy()
-    
-    def unloadScenarioEnvironment(self):
-        if hasattr(self,'room'):
-            
-            # delete all nodes from the render path
-            self.room.removeNode()
-        self.world.agents = []
-        self.world.agentNum = 0
-        self.world.agentsNamesToID = {}
-        self.currentScenario = IsisScenario(self.selectedScenario)
-
-
-
     def enterScenario(self):
         """ Loads (or resets) the current scenario. """
         self.menuFrame.hide()
         self.taskFrame.hide()
-        self.world.physics.pause()
 
         # only initialize world if you are coming from the menu
         if self.oldState == 'Menu':
-            self.unloadScenarioEnvironment()
-            self.loadScenarioEnvironment()
+            self.unload_scenario_environment()
+            self.load_scenario_environment()
 
         print "Loading from state", self.state
         # add list of tasks to the GUI
-        self.scenarioTasks =  self.currentScenario.getTasks()
+        self.scenarioTasks =  self.currentScenario.getTaskList()
         self.menuTaskOptions['items'] = self.scenarioTasks
         # oddly, you cannot initialize with a font if there are no items in the menu
         self.menuTaskOptions['item_text_font']=self.fonts['normal']
         # make sure some default task is selected
-        self.selectedTask = self.scenarioTasks[self.menuTaskOptions.selectedIndex]
-        self.taskNameLabel.setText(str(self.selectedTask))
+        self.selectedTask = self.currentScenario.getTaskByName(self.scenarioTasks[self.menuTaskOptions.selectedIndex])
+        self.taskDescription.setText(str(self.selectedTask.getDescription()))
 
         self.scenarioFrame.show()
         # display options on the screen
 
     def enterTaskPaused(self):
+        self.pause_simulation()
         self.menuFrame.hide()
-        self.world.physics.resume()
         self.scenarioFrame.hide()
         self.taskFrame.show()
         
     def enterTaskTrain(self):
+        self.start_simulation()
         self.menuTrainButton['text'] = "Training..."
         self.menuTrainButton['state'] = DGG.DISABLED
 
@@ -284,9 +305,11 @@ class Controller(object, FSM):
         self.menuTrainButton['state'] = DGG.NORMAL
 
     def enterTaskTest(self):
+        self.start_simulation()
         self.menuTestButton['text']  = "Testing..."
         self.menuTestButton['state'] = DGG.DISABLED
 
     def exitTaskTest(self):
+        self.start_simulation()
         self.menuTestButton['text'] = "Start testing"
         self.menuTestButton['state'] = DGG.NORMAL

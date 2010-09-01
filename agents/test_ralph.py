@@ -1,6 +1,12 @@
 import xmlrpclib as xml
 # connect to environment via XML-RPC
 e = xml.ServerProxy('http://localhost:8001')
+
+print "Connected to IsisWorld"
+
+scenarios = e.do('meta_list_scenarios')
+print "Listing scenarios: %s" % (scenarios)
+
 e.do('meta_pause')
 
 def sense():

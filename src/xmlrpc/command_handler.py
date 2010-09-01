@@ -17,7 +17,8 @@ class IsisCommandHandler(object):
     
     def __init__(self, simulator):
         self.simulator = simulator
-        self.meta_commands  = ['meta_step','meta_pause','meta_resume','meta_list_actions','step_simulation']
+        self.meta_commands  = ['meta_step','meta_pause','meta_resume','meta_list_actions','meta_list_scenarios',\
+        'meta_load_scenario','meta_list_tasks','meta_load_task','meta_train','meta_test','step_simulation',]
         self.logger = Logger("logs")
         self.logger.createLog(str(int(time.time())), "Test scenario making toast", "Create toast")
         
@@ -84,7 +85,7 @@ class IsisCommandHandler(object):
             seconds = 0.05
             if args.has_key('seconds'):
                 seconds = args['seconds']
-            self.simulator.physicsManager.stepSimulation(seconds)
+            self.simulator.controller.step_simulation(seconds)
             
             #time.sleep(seconds)
             ## dont accept new commands until this has stepped
@@ -98,21 +99,28 @@ class IsisCommandHandler(object):
             seconds = 0.05
             if args.has_key('seconds'):
                 seconds = args['seconds']
-            self.simulator.physicsManager.stepSimulation(seconds)
+            self.simulator.controller.step_simulation(seconds)
             # dont accept new commands until this has stepped
-            while self.simulator.physicsManager.stepping:  self.closed = True
+            #while self.simulator.physicsManager.stepping:  self.closed = True
             self.closed = False
             return 'success'
         elif cmd == 'meta_pause':
-            self.simulator.physicsManager.pause()
+            self.simulator.controller.pause_simulation()
             self.logger.log("pause: Simulation paused")
             return 'success'
         elif cmd == 'meta_resume':
-            self.simulator.physicsManager.resume()
+            self.simulator.controller.start_simulation()
             self.logger.log("resume: Simulation resumed")
             return 'success'
         elif cmd == 'meta_list_actions':
             return self.simulator.actionController.actionMap.keys()+self.meta_commands
+        elif cmd == 'meta_list_scenarios':
+            return self.simulator.controller.scenarioFiles()
+        elif cmd == 'meta_list_tasks':
+            if self.simulator.controller.currentScenario:
+                return self.simulator.controller.currentScenario.getTaskList()
+            else:
+                return "error: no scenario loaded"            
         else:
             self.logger.log("UNKNOWN COMMAND: " + cmd)
             raise "Undefined meta command: %s" % cmd

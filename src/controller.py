@@ -205,6 +205,11 @@ class Controller(object, FSM):
         self.request('Menu')
         
 
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> stable simulation
     def load_scenario_environment(self):   
         # temporary loading text
         loadingText = OnscreenText('Loading...', mayChange=True,
@@ -224,6 +229,7 @@ class Controller(object, FSM):
         loadingText.destroy()
     
     def unload_scenario_environment(self):
+<<<<<<< HEAD
         self.main.physics.destroy()
         if hasattr(self,'room'):
             self.room.removeNode()
@@ -231,6 +237,12 @@ class Controller(object, FSM):
         self.main.agentNum = 0
         self.main.agentsNamesToID = {}
 
+=======
+        #self.main.physics.destroy()
+        self.main.agents = []
+        self.main.agentNum = 0
+        self.main.agentsNamesToID = {}
+>>>>>>> stable simulation
 
     def pause_simulation(self,task=None):
         if self.runningSimulation:
@@ -247,10 +259,16 @@ class Controller(object, FSM):
                     stepTime -= .005
                 taskMgr.doMethodLater(stepTime, self.pause_simulation, "physics-SimulationStopper", priority=10)
             self.runningSimulation = True
+<<<<<<< HEAD
             #self.main.physics.startSimulation(stepTime)
             #taskMgr.add(self.main.cloud_moving_task, "visual-movingClouds")
             self.main.physics.startSimulation(1.0/40.0)
 
+=======
+            taskMgr.add(self.main.updateSkyTask, "visual-movingClouds")
+            self.main.physics.startSimulation(1.0/60.0)
+    
+>>>>>>> stable simulation
     def start_simulation(self):
         """ Starts the simulation, if it is not already running"""
         if not self.runningSimulation:
@@ -274,6 +292,14 @@ class Controller(object, FSM):
 
     def enterMenu(self):
         self.pause_simulation()
+        self.scenarioFrame.hide()
+        # make sure default scenario is selected
+        self.selectedScenario = self.scenarioFiles[self.menuScenarioOptions.selectedIndex]
+        self.taskFrame.hide()
+        self.menuFrame.show()
+
+    def enterMenu(self):
+        if self.main.physics != None: self.main.physics.pause()
         self.scenarioFrame.hide()
         # make sure default scenario is selected
         self.selectedScenario = self.scenarioFiles[self.menuScenarioOptions.selectedIndex]

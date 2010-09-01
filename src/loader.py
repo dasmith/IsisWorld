@@ -37,7 +37,7 @@ def load_objects(scenario, world):
             else:
                 obj.reparentTo(parent)
                 x, y, z = parent.activeModel.getPos(renderParent)
-                obj.setPos(x, y, z+3)
+                obj.setPosition((x, y, z+1))
 
     def put_in(obj, container):
         """Places the object in to the given container"""

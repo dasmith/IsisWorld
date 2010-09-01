@@ -100,7 +100,7 @@ class IsisWorld(DirectObject):
             elif o in ("-D", "--default"):
                 # go to the first scenario
                 self.controller.request('Scenario')
-                time.sleep(0.2) # TODO wait until loaded
+                time.sleep(0.3) # TODO wait until loaded
                 self.controller.request('TaskPaused')
             else:
                 assert False, "unhandled option"
@@ -190,6 +190,7 @@ class IsisWorld(DirectObject):
     
     def cloud_moving_task(self,task):
         self.skydomeNP.skybox.setShaderInput('time', task.time)
+        self.commandHandler.panda3d_thread_process_command_queue()
         return task.cont
     
     def run_xml_command_queue(self,task):
@@ -427,6 +428,5 @@ class IsisWorld(DirectObject):
         sys.exit()
 
 iw = IsisWorld()
-PStatClient.connect()
 run()
 

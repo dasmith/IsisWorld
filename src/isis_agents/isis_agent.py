@@ -60,7 +60,7 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         self.isMoving = False
         
         kinematicCharacterController.__init__(self, IsisAgent.physics, self.actorNodePath)
-        self.setPos(self.actorNodePath.getPos(render))
+        self.setGeomPos(self.actorNodePath.getPos(render))
         """
         Additional Direct Object that I use for convenience.
         """
@@ -583,7 +583,7 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         curSense = time()
         agents = {}
         for k, v in self.getAgentsInFieldOfVision().items():
-            v['actions'] = k.getActions(self.lastSense, curSense)
+            v['actions'] = k.get_other_agents_actions(self.lastSense, curSense)
             agents[k.name] = v
         self.lastSense = curSense
         return agents
@@ -600,12 +600,12 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         text = "Objects in FOV: "+ ", ".join(self.sense__get_objects().keys())
         print text
 
-    def addAction(self, action, args, result = 0):
+    def add_action_to_history(self, action, args, result = 0):
         self.queue.append((time(), action, args, result))
         if len(self.queue) > self.queueSize:
             self.queue.pop(0)
 
-    def getActions(self, start = 0, end = None):
+    def get_other_agents_actions(self, start = 0, end = None):
         if not end:
             end = time()
         actions = []
@@ -621,7 +621,7 @@ class IsisAgent(kinematicCharacterController,DirectObject):
 
     def update(self, stepSize=0.1):
         self.speed = [0.0, 0.0]
-        self.actorNodePath.setPos(self.geom.getPosition()+Vec3(0,0,-0.7))
+        self.actorNodePath.setPos(self.geom.getPosition()+Vec3(0,0,-0.8))
         self.actorNodePath.setQuat(self.getQuat())
         # the values in self.speeds are used as coefficientes for turns and movements
         if (self.controlMap["turn_left"]!=0):        self.addToH(stepSize*self.speeds[0])

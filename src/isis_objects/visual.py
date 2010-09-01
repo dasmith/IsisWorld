@@ -34,6 +34,12 @@ class IsisVisual():
 
         # private flag to lazily recompute properties when necessary
         self._needToRecalculateScalingProperties = False
+    
+    def setPosition(self,pos):
+        # set position of nodepath
+        self.setPos(pos)
+        # set position of physics -- doesn't need argument, it gets it from activeModel
+        self.setGeomPos()
         
     def rescaleModel(self,scale):
         """ Changes the model's dimensions to a given scale"""

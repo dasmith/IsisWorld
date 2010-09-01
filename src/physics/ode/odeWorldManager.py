@@ -131,7 +131,7 @@ class physicalObject(object):
         self.activeModel.setScale(scale)
         
         if pos:
-            self.setPos(pos)
+            self.setGeomPos(pos)
         
         if parent is None:
             pass
@@ -148,7 +148,7 @@ class physicalObject(object):
             self.geom.setPosition(self.activeModel.getPos(render))
             self.geom.setQuaternion(self.activeModel.getQuat(render))
     
-    def setPos(self, pos=None):
+    def setGeomPos(self, pos=None):
         if pos is None:
             pos = self.activeModel.getPos(render)
             self.geom.setPosition(pos)
@@ -161,7 +161,7 @@ class physicalObject(object):
         if self.visualization:
             self.visualization.setPos(pos)
             
-    def getPos(self):
+    def getGeomPos(self):
         return self.geom.getPosition()
     
     def getQuat(self):
@@ -268,7 +268,7 @@ class staticObject(physicalObject):
         if isinstance(model, basestring):
             model = loader.loadModel(model)
         trimeshData = OdeTriMeshData(model, True)
-        self.geom = OdeTriMeshGeom(self.physics.space, trimeshData)
+        self.geom = OdeTriMeshGeom(self.physics.getSpace(), trimeshData)
         if self.activeModel:
             self.geom.setPosition(self.activeModel.getPos(render))
             self.geom.setQuaternion(self.activeModel.getQuat(render))
@@ -737,7 +737,7 @@ class dynamicObjectCCD(dynamicObjectNoCCD):
                     geomCast list and add it, along with it's data,
                     to the World Manager.
                     """
-                    obj.setPos(castPos)
+                    obj.setGeomPos(castPos)
                     obj.setQuat(self.geom.getQuaternion())
                     
                     self.helperObjects.append(obj)
@@ -820,7 +820,7 @@ class explosion(kinematicObject):
         self.collisions = []
         
         self.setSphereGeom(radius)
-        self.setPos(pos)
+        self.setGeomPos(pos)
         
         self.physics.addObject(self)
         

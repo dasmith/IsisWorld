@@ -33,7 +33,7 @@ class Surface(object):
                 elif agent.right_hand_holding_object == obj:
                     agent.control__drop_from_right_hand()
             obj.reparentTo(self)
-            obj.setPos(pos)
+            obj.setPosition(pos)
             obj.setLayout(self.on_layout)
             return "success"
         return "Surface is full"
@@ -93,7 +93,7 @@ class SpatialPickableBall(pickableObject):
         self.setupGeomAndPhysics(self.physics, pos, quat)
 
 class SpatialRoom(staticObject):
-
+    priority = 5
     def __init__(self):
         staticObject.__init__(self,self.physics)
         # Flag to limit setup to once per object
@@ -132,7 +132,7 @@ class SpatialRoom(staticObject):
                     agent.control__drop_from_right_hand()
             obj.reparentTo(self)
             #obj.disableCollisions()
-            obj.setPos(pos)
+            obj.setPosition(pos)
             obj.setLayout(self.in_layout)
             return "success"
         return "container is full"

@@ -79,7 +79,7 @@ class ActionController():
         elif not isinstance(result, str) or result == "success":
             success = 1
 
-        agent.addAction(command, kwargs, success)
+        agent.add_action_to_history(command, kwargs, success)
         return result
 
     def addAction(self,action):

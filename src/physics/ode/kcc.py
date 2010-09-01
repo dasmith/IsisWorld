@@ -164,11 +164,11 @@ class kinematicCharacterController(object):
         del self.geom
         del self.footRay
         
-    def setPos(self, pos):
+    def setGeomPos(self, pos):
         self.geom.setPosition(pos)
         self.currentPos = pos
     
-    def getPos(self):
+    def getGeomPos(self):
         return self.currentPos
     
     """
@@ -348,11 +348,11 @@ class kinematicCharacterController(object):
         self.currentPos = newPos
         self.geom.setPosition(newPos)
         
-        self.envCheckerRay.setPos(newPos)
+        self.envCheckerRay.setGeomPos(newPos)
         
         rayPos = Vec3(newPos)
         rayPos[2] -= self.length/2
-        self.footRay.setPos(rayPos)
+        self.footRay.setGeomPos(rayPos)
         
         npPos = Vec3(newPos)
         npPos[2] -= self.levitation + 0.15
@@ -383,8 +383,8 @@ class kinematicCharacterController(object):
         self.fallSpeed = 0.0
         
         self.state = "ground"
-        
-        newPos[2] = footContact + self.levitation
+        if footContact is not None:
+            newPos[2] = footContact + self.levitation
         
         return newPos
         

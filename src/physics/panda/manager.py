@@ -10,37 +10,7 @@ OBJFLOOR = BitMask32.bit(6)
 OBJPICK = BitMask32.bit(7)
 OBJSIDE = BitMask32.bit(8)
 
-def getOrientedBoundedBox(collObj):
-    ''' get the Oriented Bounding Box '''
-    # save object's parent and transformation
-    parent=collObj.getParent()
-    trans=collObj.getTransform()
-    # ODE need everything in world's coordinate space,
-    # so bring the object directly under render, but keep the transformation
-    collObj.wrtReparentTo(render)
-    # get the tight bounds before any rotation
-    collObj.setHpr(0,0,0)
-    bounds=collObj.getTightBounds()
-    offset=collObj.getBounds().getCenter()-collObj.getPos()
-    # bring object to it's parent and restore it's transformation
-    collObj.reparentTo(parent)
-    collObj.setTransform(trans)
-    # (max - min) bounds
-    box=bounds[1]-bounds[0]
-#        print bounds[0], bounds[1]
-    return [box[0],box[1],box[2]], [offset[0],offset[1],offset[2]]
-    
-def getObjFromNP(np,tag="isisobj"):
-    """ Helper function to get the Python object from a NodePath involved with 
-    a collision entry, using a tag """
-    if np.hasPythonTag(tag):
-        return np.getPythonTag(tag)
-    else:
-        p = np.getParent()
-        if p.hasPythonTag(tag):
-            return p.getPythonTag(tag)
-        else:
-            return np
+from ..utils import *
 
 class PhysicsWorldManager(DirectObject.DirectObject):
     
@@ -166,8 +136,6 @@ class PhysicsWorldManager(DirectObject.DirectObject):
         agentInto = entry.getIntoNodePath().getParent()
         print "Agents collided : %s, %s" % (agentFrom, agentInto) 
 
-    def addAgent(self,agent):
-        self.agents.append(agent)
         
     def stepSimulation(self,stepTime=1):
         if self.paused:
@@ -199,6 +167,7 @@ class PhysicsWorldManager(DirectObject.DirectObject):
             self.pause()
             
     def simulationTask(self, task):
+        self.commandHandler.panda3d_thread_process_command_queue()
         dt = self._GlobalClock.getDt()
         for agent in self.agents:
             agent.update(dt) 

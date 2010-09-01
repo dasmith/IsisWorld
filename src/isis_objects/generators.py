@@ -1,15 +1,17 @@
 from pandac.PandaModules import Vec3
 from visual import *
-from spatial import *
 from functional import *
+from spatial2 import *
 from isisobject import IsisObject
 from layout_manager import SlotLayout
 
 from direct.interval.IntervalGlobal import *
 from random import *
 from ..isis_agents.isis_agent import IsisAgent
+from ..physics.ode.pickables import *
+from ..physics.ode.odeWorldManager import *
 
-class table(IsisObject,IsisVisual,Container,Surface,NoPickup):
+class table(IsisObject,IsisVisual,SpatialStaticBox, NoPickup):
 
     def  __init__(self):
         self.offsetVec = offsetVec=(0,0,0,0,0,0)
@@ -22,7 +24,7 @@ class table(IsisObject,IsisVisual,Container,Surface,NoPickup):
         self.setH(180)
 
 
-class fridge(IsisObject, IsisVisual, Container, NoPickup):
+class fridge(IsisObject, IsisVisual,SpatialPickableBox,  NoPickup):
     
     def  __init__(self):
         self.model={'default':"Fridge/Fridge"}
@@ -59,7 +61,7 @@ class fridge(IsisObject, IsisVisual, Container, NoPickup):
             ).start()
 
 
-class knife(IsisObject, IsisVisual, IsisSpatial, Sharp):
+class knife(IsisObject, IsisVisual, SpatialPickableBox, Sharp):
 
     def  __init__(self): 
         self.offsetVec = (0,0,0.0,0,0,0)
@@ -69,7 +71,7 @@ class knife(IsisObject, IsisVisual, IsisSpatial, Sharp):
         self.density = 25
         IsisObject.__init__(self)
 
-class toaster(IsisObject, IsisVisual, Container, Cooker):
+class toaster(IsisObject, IsisVisual, SpatialPickableBox, Cooker):
     
     def __init__(self):
         ######### Base Variables ##########
@@ -91,7 +93,7 @@ class toaster(IsisObject, IsisVisual, Container, Cooker):
         self.registerState("containsToast", [0,1,2])
         IsisObject.__init__(self)
 
-class bread(IsisObject, IsisVisual, Container, Cookable):
+class bread(IsisObject, IsisVisual, SpatialPickableBox,  Cookable):
 
     def  __init__(self):
         self.offsetVec = (0,0,-.1,0,-120,-20)
@@ -104,7 +106,7 @@ class bread(IsisObject, IsisVisual, Container, Cookable):
         self.cookableCookedModel = "toast"
         IsisObject.__init__(self)
 
-class loaf( IsisObject, IsisVisual, IsisSpatial, Dividable):
+class loaf( IsisObject, IsisVisual, SpatialPickableBox, Dividable):
 
     def  __init__(self): 
         self.offsetVec = (.00144,0,0.0,0,0,0)
@@ -119,7 +121,7 @@ class loaf( IsisObject, IsisVisual, IsisSpatial, Dividable):
         IsisObject.__init__(self)
 
 
-class kitchen(IsisObject,IsisVisual,Room, NoPickup):
+class kitchen(IsisObject,IsisVisual, NoPickup):
 
     def  __init__(self):
         self.offsetVec = offsetVec=(0,0,0,0,0,0)
@@ -138,7 +140,6 @@ class kitchen(IsisObject,IsisVisual,Room, NoPickup):
     def setup(self):
         """ This actual model gets generated after the kitchen is initialized
         to allow for configurations to override the defaults"""
-        self.activeModel.setCollideMask(BitMask32.allOff())
         
         CM=CardMaker('')
 
@@ -152,10 +153,10 @@ class kitchen(IsisObject,IsisVisual,Room, NoPickup):
         self.activeModel.attachNewNode(CM.generate()).setPosHpr(hw, 0, 0, -90, 0, 0)
         self.activeModel.attachNewNode(CM.generate()).setPosHpr(-hw, 0, 0, 90, 0, 0) 
         self.activeModel.setCollideMask(WALLMASK)
-        floorTex=loader.loadTexture("media/maps/grid.rgb")#os.path.join(self.rootDirectory,"media","maps","grid.rgb"))
+        floorTex=loader.loadTexture("media/maps/grid.rgb")
         floorTex.setMinfilter(Texture.FTLinearMipmapLinear) 
         floorTex.setMagfilter(Texture.FTLinearMipmapLinear) 
-        wallTex=loader.loadTexture("media/textures/concrete.jpg")#os.path.join(self.rootDirectory,"media","textures","concrete.jpg"))
+        wallTex=loader.loadTexture("media/textures/concrete.jpg")
         wallTex.setMinfilter(Texture.FTLinearMipmapLinear) 
         for wall in self.activeModel.getChildrenAsList(): 
            wall.setTexture(wallTex) 
@@ -169,3 +170,4 @@ class kitchen(IsisObject,IsisVisual,Room, NoPickup):
         self.activeModel.setTransparency(TransparencyAttrib.MAlpha) 
         self.activeModel.setTwoSided(1) 
         self.activeModel.flattenLight()
+

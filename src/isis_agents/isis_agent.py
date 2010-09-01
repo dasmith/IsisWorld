@@ -1,3 +1,6 @@
+import math, random, os, Image
+from time import time
+
 import direct.directbase.DirectStart 
 from direct.showbase.DirectObject import DirectObject 
 from direct.actor.Actor import Actor 
@@ -13,23 +16,18 @@ from direct.actor.Actor import Actor
 from direct.gui.DirectGui import DirectLabel
 
 from pandac.PandaModules import *# PandaNode,NodePath,Camera
-import math, random, os, Image
-from time import time
+
+from direct.interval.IntervalGlobal import *
+
+import platform
 # project stuff
 from ..actions.actions import *
-from ..physics.panda.manager import *
-
-def frange(x,y,inc):
-    """ Floating point xrange """
-    while x <= y:
-        if x < 0:
-            yield -(abs(x)**2)
-        else:
-            yield x**2
-        x += inc
+from ..physics.ode.kcc import kinematicCharacterController
+from ..physics.ode.odeWorldManager import *
+from ..utils import frange
 
 
-class IsisAgent(DirectObject.DirectObject):
+class IsisAgent(kinematicCharacterController,DirectObject):
     
     @classmethod
     def setPhysics(cls,physics):
@@ -38,6 +36,7 @@ class IsisAgent(DirectObject.DirectObject):
         scenario files) from having to pass around the physics parameter 
         that is required for all IsisObjects """
         cls.physics = physics
+
 
     def __init__(self, name, queueSize = 100):
 
@@ -52,22 +51,69 @@ class IsisAgent(DirectObject.DirectObject):
         self.actorNode = ActorNode('physicsControler-%s' % name)
         self.actorNodePath = NodePath('agent-%s' % name)
         self.actorNodePath.attachNewNode(self.actorNode)
+        self.activeModel = self.actorNodePath
         
         self.actorNodePath.reparentTo(render)
-        self.actor.setPos(self.actorNodePath,0,0,-.2)
+
         self.actor.reparentTo(self.actorNodePath)
-        self.actor.setCollideMask(BitMask32.allOff())
         self.name = name
         self.isMoving = False
         
-        boundingBox, offset = getOrientedBoundedBox(self.actor)
-        self.radius = boundingBox[0]/2.0
-        low, high = self.actor.getTightBounds()
-        self.height = high[0]-low[0]
+        kinematicCharacterController.__init__(self, IsisAgent.physics, self.actorNodePath)
+        self.setPos(self.actorNodePath.getPos(render))
+        """
+        Additional Direct Object that I use for convenience.
+        """
+        self.specialDirectObject = DirectObject()
 
-        DirectObject.DirectObject.__init__(self) 
 
-        self.setupCollisionSpheres()
+        """
+        The place for the held item. You'll probably want to replace this
+        with a more sophisticated inventory system.
+        """
+        self.heldItem = None
+
+        """
+        Set one of two main variants of handling object carrying.
+        See placeObjectInFrontOfCamera method to see what this is for.
+        """
+        self.jiggleHeld = True
+
+        """
+        How high above the center of the capsule you want the camera to be
+        when walking and when crouching. It's related to the values in KCC.
+        """
+        self.walkCamH = 0.7
+        self.crouchCamH = 0.2
+        self.camH = self.walkCamH
+
+        """
+        The variables below are related to mouselook.
+        """
+        self.mouseLookSpeedX = 8.0
+        self.mouseLookSpeedY = 1.2
+
+        self.mousePrevX = 0.0
+        self.mousePrevY = 0.0
+
+        self.hCounter = 0
+        self.h = 0.0
+        self.p = 0.0
+        self.pCounter = 0
+
+        """
+        This tells the Player Controller what we're aiming at.
+        """
+        self.aimed = None
+
+        self.isSitting = False
+        self.isDisabled = False
+
+        """
+        The special direct object is used for trigger messages and the like.
+        """
+        self.specialDirectObject.accept("ladder_trigger_enter", self.setFly, [True])
+        self.specialDirectObject.accept("ladder_trigger_exit", self.setFly, [False])
 
     
         self.actor.makeSubpart("arms", ["LeftShoulder", "RightShoulder"])    
@@ -88,10 +134,6 @@ class IsisAgent(DirectObject.DirectObject):
         self.speeds = [270, 270, 5, 5, 5, 5, 60, 60, 60, 60]
 
         self.originalPos = self.actor.getPos()
-
-        # ray for pointing at things
-        self.aimRay = None
-        self.aimed = None
 
     
         self.right_hand_holding_object = False
@@ -135,20 +177,12 @@ class IsisAgent(DirectObject.DirectObject):
         self.msg = None
         self.actorNodePath.setPythonTag("agent", self)
 
-        """
-        Object used for picking objects in the field of view
-        """
-        self.picker = Picker(self.fov, self)
 
         # Initialize the action queue, with a maximum length of queueSize
         self.queue = []
         self.queueSize = queueSize
         self.lastSense = 0
-        
-        # when you're done, register yourself with physical simulator
-        # so it can call update() at each step of the physics
-        IsisAgent.physics.addAgent(self)
-
+     
     def reparentTo(self, parent):
         self.actorNodePath.reparentTo(parent)
 
@@ -202,12 +236,6 @@ class IsisAgent(DirectObject.DirectObject):
                 agents[a] = agentDict
         return agents
 
-    def setPos(self,*position):
-        self.setPosition(position)
-
-    
-    def setPosition(self,position):
-        self.actorNodePath.setPos(position)
 
     def getObjectsInView(self):
         """ Gets objects through ray tracing.  Slow"""
@@ -589,88 +617,37 @@ class IsisAgent(DirectObject.DirectObject):
                     break
         return actions
 
-    def setupCollisionSpheres(self, bitmask=AGENTMASK):
-        """ This function sets up three separate collision systems:
-          1- cSphereNode handled by cWall traverser, stops agents from
-           walking into other agents and walls 
-          2- cRay handled by cFloor keeps IsisAgent on the ground
-          3- cEvent is a general purpose collision handler that registers
-           and delegates collision callbacks, as defined in the physics/panda/manager.py file """
-        self.cFloor = CollisionHandlerGravity()
-        self.cFloor.setGravity(100) # gravity should be -9.81m/s, but that doesn't quite work
-        self.cFloor.setOffset(.2)
-        self.cFloor.setReach(3)
-        self.cFloor.setMaxVelocity(1)
-        # fluid pusher causes unnecessary vertical motion against walls, so have two -- one for walls+agents
-        cSphereNode = CollisionNode('agent')
-        cSphereNode.addSolid(CollisionSphere(0.0, 0.0, self.height+1, self.radius))
-        cSphereNode.setFromCollideMask(AGENTMASK|WALLMASK)
-        cSphereNode.setIntoCollideMask(AGENTMASK)
-        cSphereNodePath = self.actorNodePath.attachNewNode(cSphereNode)
-        IsisAgent.physics.cWall.addCollider(cSphereNodePath, self.actorNodePath)
-        base.cTrav.addCollider(cSphereNodePath, IsisAgent.physics.cWall)
-        # and another wall collider for going into objects.
-        cSphereNode2 = CollisionNode('agent')
-        cSphereNode2.addSolid(CollisionSphere(0.0, 0.0, self.height, self.radius))
-        cSphereNode2.setFromCollideMask(OBJMASK|OBJPICK)
-        cSphereNode2.setIntoCollideMask(BitMask32.allOff())
-        cSphereNodePath2 = self.actorNodePath.attachNewNode(cSphereNode2)
-        #cSphereNodePath.show()
-        IsisAgent.physics.cWallO.addCollider(cSphereNodePath2, self.actorNodePath)
-        base.cTrav.addCollider(cSphereNodePath2, IsisAgent.physics.cWallO)
-        # add same colliders to cEvent
-        cEventSphereNode = CollisionNode('agent')
-        cEventSphere = CollisionSphere(0.0, 0.0, self.height, self.radius)
-        cEventSphere.setTangible(0)
-        cEventSphereNode.addSolid(cEventSphere)
-        cEventSphereNode.setFromCollideMask(AGENTMASK | OBJMASK)
-        cEventSphereNode.setIntoCollideMask(AGENTMASK | OBJMASK)
-        cEventSphereNodePath = self.actorNodePath.attachNewNode(cEventSphereNode)
-        #cEventSphereNodePath.show()
-        base.cTrav.addCollider(cEventSphereNodePath, base.cEvent)
-
-        # add collision ray to keep ralph on the ground
-        cRay = CollisionRay(0.0, 0.0, CollisionHandlerRayStart, 0.0, 0.0, -1.0)
-        cRayNode = CollisionNode('actor-raynode')
-        cRayNode.addSolid(cRay)
-        cRayNode.setFromCollideMask(FLOORMASK)
-        cRayNode.setIntoCollideMask(BitMask32.allOff()) 
-        self.cRayNodePath = self.actorNodePath.attachNewNode(cRayNode)
-        # add colliders
-        self.cFloor.addCollider(self.cRayNodePath, self.actorNodePath)
-        base.cTrav.addCollider(self.cRayNodePath, self.cFloor)
-
-
-    def addBlastForce(self, vector):
-        self.lifter.addVelocity(vector.length())
-
 
 
     def update(self, stepSize=0.1):
-        self.speedvec = [0.0, 0.0]
-
+        self.speed = [0.0, 0.0]
+        self.actorNodePath.setPos(self.geom.getPosition()+Vec3(0,0,-0.7))
+        self.actorNodePath.setQuat(self.getQuat())
         # the values in self.speeds are used as coefficientes for turns and movements
-        if (self.controlMap["turn_left"]!=0):        self.actorNodePath.setH(self.actorNodePath.getH() + stepSize*self.speeds[0])
-        if (self.controlMap["turn_right"]!=0):       self.actorNodePath.setH(self.actorNodePath.getH() - stepSize*self.speeds[1])
-        if self.cFloor.isOnGround():
-            # these actions require floor contact
-            if (self.controlMap["move_forward"]!=0):     self.speedvec[1] =  self.speeds[2]
-            if (self.controlMap["move_backward"]!=0):    self.speedvec[1] = -self.speeds[3]
-            if (self.controlMap["move_left"]!=0):        self.speedvec[0] = -self.speeds[4]
-            if (self.controlMap["move_right"]!=0):       self.speedvec[0] =  self.speeds[5]
+        if (self.controlMap["turn_left"]!=0):        self.addToH(stepSize*self.speeds[0])
+        if (self.controlMap["turn_right"]!=0):       self.addToH(-stepSize*self.speeds[1])
+        if (self.controlMap["move_forward"]!=0):     self.speed[1] =  self.speeds[2]
+        if (self.controlMap["move_backward"]!=0):    self.speed[1] = -self.speeds[3]
+        if (self.controlMap["move_left"]!=0):        self.speed[0] = -self.speeds[4]
+        if (self.controlMap["move_right"]!=0):       self.speed[0] =  self.speeds[5]
         if (self.controlMap["look_left"]!=0):        self.neck.setR(bound(self.neck.getR(),-60,60)+stepSize*80)
         if (self.controlMap["look_right"]!=0):       self.neck.setR(bound(self.neck.getR(),-60,60)-stepSize*80)
         if (self.controlMap["look_up"]!=0):          self.neck.setP(bound(self.neck.getP(),-60,80)+stepSize*80)
         if (self.controlMap["look_down"]!=0):        self.neck.setP(bound(self.neck.getP(),-60,80)-stepSize*80)
 
-        speedVec = Vec3(self.speedvec[0]*stepSize, self.speedvec[1]*stepSize, 0)
-        quat = self.actor.getQuat(render)
-        # xform applies rotation to the speedVector
-        speedVec = quat.xform(speedVec)
-        # compute the new position
-        newPos = self.actorNodePath.getPos()+speedVec
+        kinematicCharacterController.update(self, stepSize)
 
-        self.actorNodePath.setFluidPos(newPos)
+        """
+        Update the held object
+        """
+        if self.heldItem:
+            self.placeObjectInFrontOfCamera(self.heldItem)
+            if self.heldItem.body:
+                self.heldItem.body.enable()
+
+                self.heldItem.body.setLinearVel(Vec3(*[0.0]*3))
+                self.heldItem.body.setAngularVel(Vec3(*[0.0]*3))
+
 
         # allow dialogue window to gradually decay (changing transparancy) and then disappear
         self.last_spoke += stepSize/2
@@ -679,7 +656,6 @@ class IsisAgent(DirectObject.DirectObject):
         if self.last_spoke > 2:
             self.speech_bubble['text'] = ""
 
-        # update animation
         # If the character is moving, loop the run animation.
         # If he is standing still, stop the animation.
         if (self.controlMap["move_forward"]!=0) or (self.controlMap["move_backward"]!=0) or (self.controlMap["move_left"]!=0) or (self.controlMap["move_right"]!=0):
@@ -701,6 +677,298 @@ class IsisAgent(DirectObject.DirectObject):
             self.actor.pose('idle', 0)
         return Task.cont
         
+    def destroy(self):
+        self.flashlightNP.remove()
+        self.flashlightNP = None
+        self.flashlight = None
+
+        self.disableInput()
+        self.disable()
+        self.specialDirectObject.ignoreAll()
+
+        del self.flashlightNP
+        del self.flashlight
+        del self.specialDirectObject
+
+        kinematicCharacterController.destroy(self)
+
+    def sitOnChair(self, chair):
+        chairQuat = chair.getNodePath().getQuat(render)
+        newPos0 = chair.getNodePath().getPos(render) + chairQuat.xform(Vec3(0, 1.0, 1.8))
+        newPos1 = chair.getNodePath().getPos(render) + chairQuat.xform(Vec3(0, 0.2, 1.1))
+        newHpr = chair.getNodePath().getHpr(render)
+        newHpr[1] = -20.0
+
+        startHpr = base.cam.getHpr(render)
+        startHpr[0] = self.geom.getQuaternion().getHpr().getX()
+
+        Sequence(
+            Func(self.disableInput),
+            Func(self.setSitting, chair),
+            LerpPosHprInterval(base.cam, 1.0, newPos0, newHpr, None, startHpr),
+            LerpPosInterval(base.cam, .5, newPos1),
+            Func(self.enableInput),
+        ).start()
+
+    def standUpFromChair(self):
+        chairQuat = self.isSitting.getNodePath().getQuat(render)
+        newPos0 = self.isSitting.getNodePath().getPos(render) + chairQuat.xform(Vec3(0, 1.0, 1.7))
+        newPos1 = self.geom.getPosition()
+        newPos1.setZ(newPos1.getZ()+self.camH)
+        newHpr = self.geom.getQuaternion().getHpr()
+
+        chair = self.isSitting
+
+        Sequence(
+            Func(self.setSitting, None),
+            LerpPosInterval(base.cam, 0.3, newPos0),
+            LerpPosHprInterval(base.cam, 0.5, newPos1, newHpr),
+            Func(self.enable),
+            Func(chair.setState, "vacant")
+        ).start()
+
+    def setSitting(self, chair):
+        if chair:
+            self.disable()
+        self.isSitting = chair
+
+    def disable(self):
+        self.isDisabled = True
+        self.geom.disable()
+        self.footRay.disable()
+
+    def enable(self):
+        self.footRay.enable()
+        self.geom.enable()
+        self.isDisabled = False
+
+    """
+    Enable/disable flying.
+    """    
+    def setFly(self, value, object, trigger):
+        print "SET FLY", value
+        if object is not self:
+            return
+        if value:
+            self.state = "fly"
+            self.movementParent = base.cam
+        else:
+            self.state = "ground"
+            self.movementParent = self.geom
+
+    """
+    Pick up the item we're aiming at.
+    """
+    def pickUpItem(self, object):
+        if self.heldItem is None:
+            self.heldItem = object
+            return True
+        return False
+
+    """
+    use/start using the item we're holding.
+    """
+    def useHeld(self):
+        if self.heldItem is not None:
+            self.heldItem.useHeld()
+
+    """
+    stop using the item we're holding.
+    """
+    def useHeldStop(self):
+        if self.heldItem is not None:
+            self.heldItem.useHeldStop()
+
+    """
+    Drop the item we're holding.
+    """
+    def dropHeld(self):
+        if self.heldItem is None:
+            return False
+
+        self.placeObjectInFrontOfCamera(self.heldItem)
+
+        dir = render.getRelativeVector(base.cam, Vec3(0, 1.0, 0))
+        pos = base.cam.getPos(render)
+        heldPos = self.heldItem.geom.getPosition()
+
+        """
+        This raycast makes sure we don't drop the item when there's anything
+        between the character and the item (like a wall).
+        """
+        exclude = [self.geom, self.heldItem.geom]
+        l = (pos - heldPos).length()
+        closestEntry, closestGeom = self.map.worldManager.doRaycastNew("kccEnvCheckerRay", l, [pos, dir], exclude)
+
+        if not closestEntry is None:
+            return False
+
+        self.heldItem.drop()
+        self.heldItem = None
+
+    """
+    Drop and then throw the held item in the direction we're aiming at.
+    """
+    def throwHeld(self, force):
+        if self.heldItem is None:
+            return False
+
+        held = self.heldItem
+        self.dropHeld()
+
+        quat = base.cam.getQuat(render)
+        held.getBody().setForce(quat.xform(Vec3(0, force, 0)))
+
+        held = None
+
+    """
+    This is a general method for the right mouse button. The behaviour is contextual
+    and depends on whether you're holding something and what you're aiming at.
+
+    It's just something I use in my game.
+    """
+    def useAimed(self):
+        dir = render.getRelativeVector(self.fov, Vec3(0, 1.0, 0))
+        pos = self.fov.getPos(render)
+
+        exclude = [self.geom]
+        if self.heldItem:
+            exclude.append(self.heldItem.geom)
+
+        closestEntry, closestObject = IsisAgent.physics.doRaycastNew("aimRay", 2.5, [pos, dir], exclude)
+
+        if closestEntry is None:
+            self.dropHeld()
+        else:
+            if closestObject.selectionCallback:
+                closestObject.selectionCallback(self, dir)
+            else:
+                self.dropHeld()
+
+    """
+    Set camera to correct height above the center of the capsule
+    when crouching and when standing up.
+    """
+    def crouch(self):
+        kinematicCharacterController.crouch(self)
+        self.camH = self.crouchCamH
+
+    def crouchStop(self):
+        """
+        Only change the camera's placement when the KCC allows standing up.
+        See the KCC to find out why it might not allow it.
+        """
+        if kinematicCharacterController.crouchStop(self):
+            self.camH = self.walkCamH
+
+    """
+    I do not allow jumping when crouching, but it's not mandatory.
+    """
+    def jump(self):
+        if inputState.isSet("crouch") or self.isCrouching:
+            return
+        kinematicCharacterController.jump(self)
+
+    """
+    This method is used when carrying objects around.
+    """
+    def placeObjectInFrontOfCamera(self, object, curve = None):
+        """
+        Whether to disable the geom's collisions when carrying an object or not.
+        """
+        disable = False
+
+        """
+        Whether to curve the geom's movement when carrying an object or not.
+        That is, whether to place the object directly in front of the camera, or
+        move it just up and down on one axis relative to the capsule.
+
+        The way I use this is as follows:
+
+        For objects like boxes or balls, that they player can carry around and stack I disable curveUp.
+        This makes it easier to stack boxes for example.
+
+        For objects like granades, which are meant to be thrown, I enable curveUp.
+        This allows the object to be thrown from the center of the camera when
+        looking up.
+
+        NOTE that there's no curve down. That's because it would make the player stand
+        on the carried object.
+        """
+        if curve is None:
+            if object.pickableType == "carry":
+                curveUp = False
+                disable = False
+            else:
+                curveUp = True
+                disable = True
+
+        geom = object.geom
+        body = object.body
+
+        if disable:
+            geom.disable()
+            if body:
+                body.disable()
+
+        camQuat = base.cam.getQuat(render)
+        capsuleQuat = self.geom.getQuaternion()
+
+        """
+        Dividing this allows me to control how high the object goes when looking up.
+        Experiment with this value.
+        """
+        z = camQuat.getHpr()[1]/30
+        if z < -1.3:
+            z = -1.3
+
+        if curveUp:
+            zoffset = 0.7
+        else:
+            zoffset = 0.3
+
+        """
+        Get the current position of the geom for manipulating.
+        """
+        currentPos = self.geom.getPosition()
+
+        """
+        Place the geom relative to the capsule or relative to the camera depending
+        on curveUp and z value.
+        """
+        if curveUp and z >= 0.0:
+            newPos = currentPos + camQuat.xform(Vec3(0.0, 1.3 + (0.35 * z), zoffset - (0.2 * z)))
+        else:
+            newPos = currentPos + capsuleQuat.xform(Vec3(0.0, 1.3, zoffset + z))
+
+
+        """
+        This is the "jiggling" mechanics. When the object is kept enabled, this controlls
+        whether and how the other objects and the static environment affect the held object.
+
+        If jiggling is enabled, you will notice that the held item reacts to collisions with
+        other objects. Note however that it doesn't prevent the held object from penetrating
+        other objects, so it might look a little strange.
+
+        I wrote it because it looks funny. You can compare it to the Wobbly windows in Compiz.
+        """
+        if self.jiggleHeld and body and body.getLinearVel().length() > 0.0:
+            newPos += body.getLinearVel() * self.map.worldManager.stepSize * 4.0
+
+        geom.setPosition(newPos)
+        geom.setQuaternion(capsuleQuat)
+
+        """
+        Make sure to disable the gravity for the held object's body
+        """
+        if body:
+            body.setGravityMode(0)
+            body.setPosition(newPos)
+            body.setQuaternion(capsuleQuat)
+
+
+
+
 def map3dToAspect2d(node, point):
     """Maps the indicated 3-d point (a Point3), which is relative to 
     the indicated NodePath, to the corresponding point in the aspect2d 
@@ -719,7 +987,7 @@ def map3dToAspect2d(node, point):
     return a2d
 
 
-class Picker(DirectObject.DirectObject):
+class Picker(DirectObject):
     """Picker class derived from http://www.panda3d.org/phpbb2/viewtopic.php?p=4532&sid=d5ec617d578fbcc4c4db0fc68ee87ac0"""
     def __init__(self, camera, agent, tag = 'pickable', value = 'true'):
         self.camera = camera

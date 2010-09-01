@@ -63,6 +63,4 @@ def load_objects(scenario, world):
 
     locals().update(generators)
     locals().update({'put_in_world':put_in_world,'put_in':put_in,'put_on':put_on, 'store':store})
-    print 'LOCALS', locals()
     exec scenario.environment.__code__ in locals()
-    print 'POST LOCALS', locals()

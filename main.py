@@ -15,11 +15,13 @@ win-size 1024 768
 yield-timeslice 0 
 client-sleep 0 
 multi-sleep 0
-basic-shaders-only #t
-
+basic-shaders-only #f
+want-pstats 1
+task-timer-verbose 1
+pstats-tasks 1
 audio-library-name null""")
 
-from time import ctime
+import time
 import sys
 import os
 import getopt
@@ -34,7 +36,7 @@ from direct.gui.DirectGui import *#DirectEntry, DirectButton, DirectOptionMenu
 from pandac.PandaModules import * # TODO: specialize this import
 
 # local source code
-from src.physics.panda.manager import *
+from src.physics.ode.odeWorldManager import *
 from src.cameras.floating import *
 from src.xmlrpc.command_handler import IsisCommandHandler
 from src.xmlrpc.server import XMLRPCServer
@@ -65,7 +67,8 @@ class IsisWorld(DirectObject):
         DirectObject.__init__(self)
         
         self.isisMessage("Starting Up")
-
+        # initialize Finite State Machine to control UI
+        self.controller = Controller(self)
         self.agentNum = 0
         self.agents = []
         self.agentsNamesToIDs = {}
@@ -100,6 +103,7 @@ class IsisWorld(DirectObject):
             elif o in ("-D", "--default"):
                 # go to the first scenario
                 self.controller.request('Scenario')
+                time.sleep(0.2) # TODO wait until loaded
                 self.controller.request('TaskPaused')
             else:
                 assert False, "unhandled option"
@@ -148,7 +152,7 @@ class IsisWorld(DirectObject):
         """ The world consists of a plane, the "ground" that stretches to infinity
         and a dome, the "sky" that sits concavely on the ground. """
          # setup physics
-        self.physicsManager = PhysicsWorldManager(self)
+        self.physicsManager = ODEWorldManager(self)
         IsisWorld.physics = self.physicsManager
         # setup ground
         cm = CardMaker("ground")
@@ -160,13 +164,24 @@ class IsisWorld(DirectObject):
         groundNP.setPos(0, 0, 0)
         groundNP.lookAt(0, 0, -1)
         groundNP.setTransparency(TransparencyAttrib.MAlpha)
-        collPlane = CollisionPlane(Plane(Vec3(0, 0, 1), Point3(0, 0, 0)))
-        floorCollisionNP = render.attachNewNode(CollisionNode('collisionNode'))
-        floorCollisionNP.node().addSolid(collPlane)
-        # set the bits which items can collide into
-        floorCollisionNP.node().setIntoCollideMask(FLOORMASK)
-        floorCollisionNP.node().setFromCollideMask(FLOORMASK)
+        pos = groundNP.getPos(render)
+        quat = groundNP.getQuat(render)
         
+        obj = staticObject(self)
+        
+        """
+        See the definition of this method for details
+        """
+        obj.geom =  OdePlaneGeom(self.physicsManager.space, Vec4(0, 0, 1, 0))
+        
+        #obj.setPos(pos)
+        #obj.setQuat(quat)
+        
+        obj.setCatColBits("environment")
+        
+        self.physicsManager.addObject(obj)
+        
+        self.mapObjects["static"].append(obj)
         """
         Setup the skydome
         Moving clouds are pretty but computationally expensive """
@@ -177,7 +192,7 @@ class IsisWorld(DirectObject):
             self.skydomeNP.att_skycolor.setColor(Vec4(0.3,0.3,0.3,1))
 
     
-    def updateSkyTask(self,task):
+    def cloud_moving_task(self,task):
         self.skydomeNP.skybox.setShaderInput('time', task.time)
         return task.cont
     
@@ -308,7 +323,11 @@ class IsisWorld(DirectObject):
         self.accept("3",               changeAgent, [])
         self.accept("4",               self.toggleInstructionsWindow, [])
         self.accept("space",           self.controller.step_simulation, [.1]) # argument is amount of second to advance
+<<<<<<< HEAD
         self.accept("p",               self.controller.toggle_paused)
+=======
+        self.accept("p",               self.controller.pause_simulation)
+>>>>>>> early ODE working
         self.accept("s",               self.screenshot, ["snapshot"])
         self.accept("a",               self.screenshot_agent, ["agent_snapshot"])
         #self.accept("r",              self.reset_simulation)
@@ -369,15 +388,10 @@ class IsisWorld(DirectObject):
             w,h = int(room.getWidth()/2), int(room.getLength()/2)
             x = randint(-w,w)
             y = randint(-h,h)
-            newAgent.setPosition(Vec3(x,y,5))
+            newAgent.setPos(Vec3(x,y,5))
         except Exception, e:
-            isisMessage("Could not add agent %s to room. Error: %s" % (newAgent.name, e))
+            self.isisMessage("Could not add agent %s to room. Error: %s" % (newAgent.name, e))
         return newAgent
-
-
-    def step_simulation(self,stepTime=2):
-        """ Relays the command to the physics manager """
-        self.physicsManager.stepSimulation(stepTime)
 
     def toggleInstructionsWindow(self):
         """ Hides the instruction window """
@@ -390,7 +404,7 @@ class IsisWorld(DirectObject):
 
 
     def isisMessage(self,message):
-        print "[IsisWorld] %s %s" % (message, str(ctime()))
+        print "[IsisWorld] %s %s" % (message, str(time.ctime()))
 
     def screenshot(self, name):
         name = os.path.join("screenshots", name+"_")
@@ -418,3 +432,4 @@ class IsisWorld(DirectObject):
 
 iw = IsisWorld()
 run()
+

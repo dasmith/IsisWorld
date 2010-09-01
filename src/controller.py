@@ -27,6 +27,7 @@ class Controller(object, FSM):
             'TaskTest' : ['TaskPaused','TaskTrain','Menu','Scenario'],
         }
         self.runningSimulation = False
+
         self.main = isisworld
         # load a nicer font
         self.fonts = {'bold': base.loader.loadFont('media/fonts/DroidSans-Bold.ttf'), \
@@ -45,7 +46,6 @@ class Controller(object, FSM):
                 
         # display GUI for navigating tasks
         #textObj = OnscreenText(text = "Scenarios:", pos = (1,0.9), scale = 0.05,fg=(1,0.5,0.5,1),align=TextNode.ALeft,mayChange=1)
-                
         # summer theme
         THEME = 0
         if THEME == 0:
@@ -116,7 +116,7 @@ class Controller(object, FSM):
         self.loadScenarioText = DirectButton(text='Load Scenario',
                                       pos=(0, 0, -.3), text_scale=TEXT_LARGE,
                                       text_font=self.fonts['bold'],borderWidth = BUTTON_BORDER,
-                                      text_pos=(0, -0.01),
+                                      text_pos=(0, -0.01), frameSize=(-0.2, 0.2, -0.05, 0.05),
                                       text_fg=BUTTON_FG, text_bg = BUTTON_BG, relief=BUTTON_RELIEF,
                                       command=self.request, extraArgs=['Scenario'])
         self.loadScenarioText.reparentTo(self.menuFrame)
@@ -205,8 +205,6 @@ class Controller(object, FSM):
         self.request('Menu')
         
 
-
-
     def load_scenario_environment(self):   
         # temporary loading text
         loadingText = OnscreenText('Loading...', mayChange=True,
@@ -226,18 +224,18 @@ class Controller(object, FSM):
         loadingText.destroy()
     
     def unload_scenario_environment(self):
-        #self.main.physics.destroy()
+        self.main.physics.destroy()
         if hasattr(self,'room'):
             self.room.removeNode()
         self.main.agents = []
         self.main.agentNum = 0
         self.main.agentsNamesToID = {}
 
+
     def pause_simulation(self,task=None):
-        print "CALLING PAUSE", self.runningSimulation
         if self.runningSimulation:
-            print "PAUSING", self.runningSimulation
             self.main.physics.stopSimulation()
+            #   taskMgr.remove("visual-movingClouds")
             self.runningSimulation = False
     
     def step_simulation(self, stepTime=None):
@@ -249,8 +247,10 @@ class Controller(object, FSM):
                     stepTime -= .005
                 taskMgr.doMethodLater(stepTime, self.pause_simulation, "physics-SimulationStopper", priority=10)
             self.runningSimulation = True
-            self.main.physics.startSimulation(stepTime)
-    
+            #self.main.physics.startSimulation(stepTime)
+            #taskMgr.add(self.main.cloud_moving_task, "visual-movingClouds")
+            self.main.physics.startSimulation(1.0/40.0)
+
     def start_simulation(self):
         """ Starts the simulation, if it is not already running"""
         if not self.runningSimulation:

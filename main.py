@@ -431,5 +431,6 @@ class IsisWorld(DirectObject):
         sys.exit()
 
 iw = IsisWorld()
+PStatClient.connect()
 run()
 

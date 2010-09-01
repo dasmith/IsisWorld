@@ -11,12 +11,12 @@ from ..isis_agents.isis_agent import IsisAgent
 from ..physics.ode.pickables import *
 from ..physics.ode.odeWorldManager import *
 
-class table(IsisObject,IsisVisual,SpatialStaticBox, NoPickup):
+class table(IsisObject,IsisVisual,SpatialStaticBox,Surface, NoPickup):
 
     def  __init__(self):
         self.offsetVec = offsetVec=(0,0,0,0,0,0)
         self.model = "table/table"
-        self.scale=0.006
+        self.scale=10#0.06
         self.density = 4000
 
         IsisObject.__init__(self)
@@ -24,7 +24,7 @@ class table(IsisObject,IsisVisual,SpatialStaticBox, NoPickup):
         self.setH(180)
 
 
-class fridge(IsisObject, IsisVisual,SpatialPickableBox,  NoPickup):
+class fridge(IsisObject, IsisVisual,SpatialStaticBox,  NoPickup):
     
     def  __init__(self):
         self.model={'default':"Fridge/Fridge"}
@@ -121,7 +121,7 @@ class loaf( IsisObject, IsisVisual, SpatialPickableBox, Dividable):
         IsisObject.__init__(self)
 
 
-class kitchen(IsisObject,IsisVisual, NoPickup):
+class kitchen(IsisObject,IsisVisual, NoPickup,SpatialRoom):
 
     def  __init__(self):
         self.offsetVec = offsetVec=(0,0,0,0,0,0)

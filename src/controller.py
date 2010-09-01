@@ -116,7 +116,7 @@ class Controller(object, FSM):
         self.loadScenarioText = DirectButton(text='Load Scenario',
                                       pos=(0, 0, -.3), text_scale=TEXT_LARGE,
                                       text_font=self.fonts['bold'],borderWidth = BUTTON_BORDER,
-                                      text_pos=(0, -0.01), frameSize=(-0.2, 0.2, -0.05, 0.05),
+                                      text_pos=(0, -0.01),
                                       text_fg=BUTTON_FG, text_bg = BUTTON_BG, relief=BUTTON_RELIEF,
                                       command=self.request, extraArgs=['Scenario'])
         self.loadScenarioText.reparentTo(self.menuFrame)

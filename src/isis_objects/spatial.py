@@ -264,14 +264,6 @@ class Room(object):
         self.fullBoxNP.setTag('container','acontainer')
         self.__setup = True
 
-    def enableCollisions(self):
-        self.fullBoxCN.setFromCollideMask(OBJMASK)
-        self.fullBoxCN.setIntoCollideMask(OBJMASK|AGENTMASK)
-
-    def disableCollisions(self):
-        self.fullBoxCN.setFromCollideMask(BitMask32.allOff())
-        self.fullBoxCN.setIntoCollideMask(BitMask32.allOff())
-
     def enterContainer(self,fromObj):
         print "Entering room", self.name
         if fromObj not in self.containerItems:

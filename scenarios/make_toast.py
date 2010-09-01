@@ -7,6 +7,10 @@ def environment():
     k = kitchen()
     put_in_world(k)
 
+    f = fridge()
+    put_in(f, k)
+
+
     ta = table()
     put_in(ta, k)
 
@@ -16,15 +20,15 @@ def environment():
     k = knife()
     put_on(k, ta)
 
-    f = fridge()
-    put_in(f, k)
 
     l = loaf()
     put_in(l, f)
 
-    r = IsisAgent("Ralph")
+    ralph = IsisAgent("Ralph")
+    lauren = IsisAgent("Lauren")
     #r.set_color()
-    put_in(r, k)
+    put_in(ralph,k)
+    put_in(lauren,k)
 
     # required at the end of the environment setup
     store(locals())

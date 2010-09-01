@@ -25,10 +25,10 @@ class IsisTask(object):
 
     def getDescription(self):
         """ Builds the string that is presented in the Task GUI"""
-        s = "<b>Task</b>: %s" % self.name
+        s = "TASK: %s\n" % self.name
         if self.description != None:
             s += self.description
-        s += "Created by: %s" % self._scenario.author 
+        s += "\nAUTHOR: %s" % self._scenario.author 
         return s
 
     def _advanceTask(self, task):

@@ -59,7 +59,6 @@ class IsisCommandHandler(object):
         if args.has_key('agent') and args['agent'] in self.simulator.agentsNamesToIDs.keys():
             # if the name is defined and valid
             agent_to_control = self.simulator.agentsNamesToIDs[args['agent']]
-            print "LIST OF AGENTS",self.simulator.agents, agent_to_control
         elif args.has_key('agent_id') and int(args['agent_id']) < len(self.simulator.agents):
             # if the agent id is defined and valid
             print "trying to control agent with ID", args['agent_id']
@@ -78,8 +77,7 @@ class IsisCommandHandler(object):
         if self.simulator.actionController.hasAction(cmd):
             # not a meta command and agent_to_control is defined
             # TODO: check to see if proper keys are defined for the given command
-            #self.logger.log(cmd+", "+self.simulator.agents[agent_to_control].name+": Relayed to agent")
-            print "LIST OF AGENTS-2",self.simulator.agents, agent_to_control
+            self.logger.log(cmd+", "+self.simulator.agents[agent_to_control].name+": Relayed to agent")
             return self._relayAgentControl(agent_to_control,cmd,args)
         elif cmd == 'meta_step':
             seconds = 0.05
@@ -172,7 +170,6 @@ class IsisCommandHandler(object):
     
     def _relayAgentControl(self, agentID, command, args):
         fullCmd = self.simulator.actionController.actionMap[command]
-        print "LIST OF AGENTS-3",self.simulator.agents, agentID
         return self.simulator.actionController.makeAgentDo(self.simulator.agents[agentID], fullCmd, args)
 
     #obsolete cruft

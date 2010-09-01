@@ -175,7 +175,7 @@ class Controller(object, FSM):
 
 
         self.taskDescription = OnscreenText(text='tmp', mayChange=1, wordwrap=15,
-                                         pos=(0.1, 0.6,-1), scale=(0.04),
+                                         pos=(0.0, 0.6,-1), scale=(0.04),
                                          font=self.fonts['mono'],
                                          fg=TEXT_FG)
         self.taskDescription.reparentTo(self.taskFrame)

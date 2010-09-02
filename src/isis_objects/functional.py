@@ -5,7 +5,6 @@ class IsisFunctional():
     def __init__(self):
         if not hasattr(self,'states'):
             self.states = {}
-        self.layout = None
 
     def registerState(self,stateName,valueDomain):
         if not hasattr(self,'states'):
@@ -15,9 +14,6 @@ class IsisFunctional():
     def retrieveState(self,stateName):
         if self.states.has_key(stateName):
             return self.states[stateName]
-
-    def setLayout(self, l):
-        self.layout = l
 
     def call(self, agent, action, dobject = None):
         """ This is the dispatcher for the action methods """

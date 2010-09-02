@@ -42,7 +42,7 @@ def load_objects(scenario, world):
     def put_in(obj, container):
         """Places the object in to the given container"""
         container = container.getPythonTag('isisobj')
-        if not isinstance(obj,IsisAgent): obj = obj.getPythonTag('isisobj')
+        obj = obj.getPythonTag('isisobj')            
         if container.call(None, "put_in", obj) != "success":
             put_in_world(obj, container)
 
@@ -52,7 +52,7 @@ def load_objects(scenario, world):
         if not isinstance(obj,IsisAgent): obj = obj.getPythonTag('isisobj')
         if surface.call(None, "put_on", obj) != "success":
             put_in_world(obj, surface)
-    
+
     def store(vars):
         """ Stores the local variables defined in the environment
         so that they can later be used by later references in the task, 

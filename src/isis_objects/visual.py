@@ -39,7 +39,7 @@ class IsisVisual():
         # set position of nodepath
         self.setPos(pos)
         # set position of physics -- doesn't need argument, it gets it from activeModel
-        self.setGeomPos()
+        self.setGeomPos(pos)
         
     def rescaleModel(self,scale):
         """ Changes the model's dimensions to a given scale"""

@@ -40,7 +40,7 @@ class IsisAgent(kinematicCharacterController,DirectObject):
 
     def __init__(self, name, queueSize = 100):
 
-        # setup the visual aspects of ralph
+        # load the model and the different animations for the model into an Actor object.
         self.actor= Actor("media/models/boxman",
                           {"walk":"media/models/boxman-walk", 
                            "idle": "media/models/boxman-idle"})
@@ -182,13 +182,21 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         self.queue = []
         self.queueSize = queueSize
         self.lastSense = 0
+        
+    def setLayout(self,layout):
+        """ Dummy method called by spatial methods for use with objects. 
+        Doesn't make sense for an agent that can move around."""
+        pass
 
     def setPos(self,pos):
         """ Wrapper to set the position of the ODE geometry, which in turn 
         sets the visual model's geometry the next time the update() method
         is called. """
         self.setGeomPos(pos)
-     
+    
+    def setPosition(self,pos):
+        self.setPos(pos)
+         
     def reparentTo(self, parent):
         self.actorNodePath.reparentTo(parent)
 

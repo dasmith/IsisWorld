@@ -114,8 +114,8 @@ class HorizontalGridLayout(LayoutManager):
     def add(self, obj):
         if not LayoutManager.add(self, obj):
             return
-        ow = obj.getWidth()+self.padw*2
-        oh = obj.getLength()+self.padh*2
+        ow = obj.getWidth()+self.padw
+        oh = obj.getLength()+self.padh
         if self.px+ow > self.w:
             self.py += self.maxh
             self.px = 0

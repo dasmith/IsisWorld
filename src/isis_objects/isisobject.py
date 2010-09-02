@@ -19,6 +19,9 @@ class IsisObject(NodePath):
         self.phys = self.__class__.physics 
         # generate a unique name for the object, warning, unique id uses GENERATORS ID
         self.name = "IsisObject/"+self.__class__.__name__+"+"+str(id(self))
+        # reference to the layout parent
+        self.layout = None
+        
         NodePath.__init__(self,self.name)
         # store pointer to IsisObject subclass
         self.setPythonTag("isisobj", self)
@@ -54,6 +57,9 @@ class IsisObject(NodePath):
         scenario files) from having to pass around the physics parameter 
         that is required for all IsisObjects """
         cls.physics = physics
+
+    def setLayout(self, l):
+        self.layout = l
 
     def getName(self):
         return self.name[11:]

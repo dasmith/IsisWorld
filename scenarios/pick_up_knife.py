@@ -9,12 +9,12 @@ def environment():
     ta = table()
     put_in(ta, k)
 
-    k = knife()
-    put_on(k, ta)
+    kn = knife()
+    put_on(kn, ta)
 
     r = IsisAgent("Ralph")
     #r.set_color()
-    put_in(r, k)
+    put_in_world(r)
     
     # required at the end of the environment setup
     store(locals())

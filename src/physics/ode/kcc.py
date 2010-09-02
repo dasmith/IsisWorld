@@ -142,6 +142,12 @@ class kinematicCharacterController(object):
         
         self.physics.addObject(self)
     
+    def getWidth(self):
+        return self.radius*2
+    
+    def getLength(self):
+        return self.length
+    
     def getGeom(self):
         return self.geom
     
@@ -383,8 +389,8 @@ class kinematicCharacterController(object):
         self.fallSpeed = 0.0
         
         self.state = "ground"
-        if footContact is not None:
-            newPos[2] = footContact + self.levitation
+        #if footContact is not None:
+        newPos[2] = footContact + self.levitation
         
         return newPos
         

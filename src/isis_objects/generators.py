@@ -16,15 +16,14 @@ class table(IsisObject,IsisVisual,SpatialStaticBox,Surface, NoPickup):
     def  __init__(self):
         self.offsetVec = offsetVec=(0,0,0,0,0,0)
         self.model = "table/table"
-        self.scale=7#0.06
-        self.density = 4000
+        self.scale=7
 
         IsisObject.__init__(self)
 
         self.setH(180)
 
 
-class fridge(IsisObject, IsisVisual,SpatialStaticBox,  NoPickup):
+class fridge(IsisObject, IsisVisual,SpatialStaticBox, Container, NoPickup):
     
     def  __init__(self):
         self.model={'default':"Fridge/Fridge"}
@@ -93,7 +92,7 @@ class toaster(IsisObject, IsisVisual, SpatialPickableBox, Cooker):
         self.registerState("containsToast", [0,1,2])
         IsisObject.__init__(self)
 
-class bread(IsisObject, IsisVisual, SpatialPickableBox,  Cookable):
+class bread(IsisObject, IsisVisual, SpatialPickableBox, Cookable):
 
     def  __init__(self):
         self.offsetVec = (0,0,-.1,0,-120,-20)

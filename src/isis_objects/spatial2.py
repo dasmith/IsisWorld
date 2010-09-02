@@ -7,14 +7,49 @@ from direct.controls.ControlManager import CollisionHandlerRayStart
 from layout_manager import *
 
 
-class Container():
-    
+class Container(object):
+    priority =2
     def __init__(self):
-        pass
+        self.containerItems = []
+    
+    def setup(self):
+        self.in_layout = HorizontalGridLayout((self.getWidth(), self.getLength()), self.getHeight())
+        
+    def enterContainer(self,fromObj):
+        print "Entering container", self.name
+        if fromObj not in self.containerItems:
+
+            self.containerItems.append(fromObj)
+
+    def leaveContainer(self,fromObj):
+        print "Removing %s from container", fromObj
+        if fromObj in self.containerItems:
+            self.containerItems.remove(fromObj)
+
+    def isEmpty(self):
+        return len(self.containerItems) == 0
+
+    def action__put_in(self, agent, obj):
+        # TODO: ensure that object can fit in other object
+        #  1) internal volume is big enough, 2) vol - vol of other things in there
+        pos = self.in_layout.add(obj)
+        print "Putting %s in %s" % (obj, self)
+        if pos:
+            if agent and agent.is_holding(obj.name):
+                if agent.left_hand_holding_object == obj:
+                    agent.control__drop_from_left_hand()
+                elif agent.right_hand_holding_object == obj:
+                    agent.control__drop_from_right_hand()
+            obj.disable()
+            obj.reparentTo(self)
+            obj.setPosition(pos)
+            obj.setLayout(self.in_layout)
+            return "success"
+        return "container is full"
 
 
 class Surface(object):
-    priority = 2
+    priority = 10
     def __init__(self):
         self.surfaceContacts = []
         
@@ -24,17 +59,20 @@ class Surface(object):
 
     def action__put_on(self, agent, obj):
         # TODO: requires that object has an exposed surface
-        obj.disable()  # turn off physics for contained object
+        print "Putting %s on %s" % (obj, self)
         pos = self.on_layout.add(obj)
+        print "POS=", pos
         if pos:
             if agent and agent.is_holding(obj.name):
                 if agent.left_hand_holding_object == obj:
                     agent.control__drop_from_left_hand()
                 elif agent.right_hand_holding_object == obj:
                     agent.control__drop_from_right_hand()
+            obj.disable()
             obj.reparentTo(self)
-            obj.setPosition(pos)
+            obj.setPosition(self.getGeomPos()+pos)
             obj.setLayout(self.on_layout)
+            obj.enable()
             return "success"
         return "Surface is full"
 
@@ -122,6 +160,7 @@ class SpatialRoom(staticObject):
         # TODO: ensure that object can fit in other object
         #  1) internal volume is big enough, 2) vol - vol of other things in there
         pos = self.in_layout.add(obj)
+        print "Putting %s in room %s" % (obj,self)
         #obj.disable() # turn off physics
         if pos:
             if agent and agent.is_holding(obj.name):

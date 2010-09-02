@@ -60,9 +60,10 @@ class IsisWorld(DirectObject):
     
     def __init__(self):
         # MAIN_DIR var is set in direct/showbase/ShowBase.py
+
         self.rootDirectory = ExecutionEnvironment.getEnvironmentVariable("MAIN_DIR")
         DirectObject.__init__(self)
-        
+
         self.isisMessage("Starting Up")
 
         self.agentNum = 0
@@ -123,6 +124,8 @@ class IsisWorld(DirectObject):
         base.camLens.setFov(75)
         base.camLens.setNear(0.1)
         base.disableMouse()
+        base.graphicsEngine.renderFrame()
+        base.graphicsEngine.renderFrame()
         # load a nicer font
         self.fonts = {'bold': base.loader.loadFont('media/fonts/DroidSans-Bold.ttf'), \
                        'mono': base.loader.loadFont('media/fonts/DroidSansMono.ttf'),\
@@ -178,7 +181,7 @@ class IsisWorld(DirectObject):
         """
         Setup the skydome
         Moving clouds are pretty but computationally expensive """
-        if visualizeClouds: 
+        if visualizeClouds and False: 
             self.skydomeNP = SkyDome2(render,visualizeClouds)
             self.skydomeNP.setPos(Vec3(0,0,-500))
             self.skydomeNP.setStandardControl()
@@ -186,7 +189,8 @@ class IsisWorld(DirectObject):
 
     
     def cloud_moving_task(self,task):
-        self.skydomeNP.skybox.setShaderInput('time', task.time)
+        return task.cont
+        self.skydomeNP.skybox.setShaderInput('time', 0)
         self.commandHandler.panda3d_thread_process_command_queue()
         return task.cont
     

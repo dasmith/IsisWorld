@@ -279,9 +279,14 @@ class Controller(object, FSM):
         self.taskFrame.hide()
         self.menuFrame.show()
 
-    def exitMenu(self):
-        print "HIDING MENUFRAME"
-        self.menuFrame.hide()
+    def enterMenu(self):
+        if self.main.physics != None: self.main.physics.pause()
+        self.scenarioFrame.hide()
+        # make sure default scenario is selected
+        self.selectedScenario = self.scenarioFiles[self.menuScenarioOptions.selectedIndex]
+        self.taskFrame.hide()
+        self.menuFrame.show()
+
 
     def enterScenario(self):
         """ Loads (or resets) the current scenario. """

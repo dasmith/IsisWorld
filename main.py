@@ -176,8 +176,8 @@ class IsisWorld(DirectObject):
         
         self.physicsManager.addObject(obj)
         """
-        Setup the skydome. Moving clouds are pretty but computationally expensive 
-        """
+        Setup the skydome
+        Moving clouds are pretty but computationally expensive """
         if visualizeClouds: 
             self.skydomeNP = SkyDome2(render,visualizeClouds)
             self.skydomeNP.setPos(Vec3(0,0,-500))

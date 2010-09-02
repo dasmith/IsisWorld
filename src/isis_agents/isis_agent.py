@@ -184,6 +184,9 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         self.lastSense = 0
 
     def setPos(self,pos):
+        """ Wrapper to set the position of the ODE geometry, which in turn 
+        sets the visual model's geometry the next time the update() method
+        is called. """
         self.setGeomPos(pos)
      
     def reparentTo(self, parent):
@@ -194,7 +197,9 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         self.controlMap[control] = value
     
     def getObjectsInFieldOfVision(self):
-        """ This works in an x-ray vision style. Fast"""
+        """ This works in an x-ray style. Fast. Works best if you listen to
+        http://en.wikipedia.org/wiki/Rock_Art_and_the_X-Ray_Style while
+        you use it."""
         objects = {}
         for obj in base.render.findAllMatches("**/IsisObject*"):
             if not obj.hasPythonTag("isisobj"):
@@ -624,7 +629,7 @@ class IsisAgent(kinematicCharacterController,DirectObject):
 
     def update(self, stepSize=0.1):
         self.speed = [0.0, 0.0]
-        self.actorNodePath.setPos(self.geom.getPosition()+Vec3(0,0,-0.8))
+        self.actorNodePath.setPos(self.geom.getPosition()+Vec3(0,0,-0.70))
         self.actorNodePath.setQuat(self.getQuat())
         # the values in self.speeds are used as coefficientes for turns and movements
         if (self.controlMap["turn_left"]!=0):        self.addToH(stepSize*self.speeds[0])

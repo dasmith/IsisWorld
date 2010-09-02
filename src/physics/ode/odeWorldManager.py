@@ -194,7 +194,7 @@ class physicalObject(object):
         
     def destroy(self):
         print "REMOVING DESTROYING OBJECT", self.objectType
-        self.physics.removeObjectFromWorld(self)
+        self.physics.removeObject(self)
         if self.activeModel:
             self.activeModel.remove()
         if self.visualization:
@@ -1243,28 +1243,6 @@ class ODEWorldManager(object):
         object1.collisionCallback(entry, object1, object2)
         object2.collisionCallback(entry, object2, object1)
         
-    
-    def addObjectToWorld(self, obj, category):
-        self.addObject(obj)
-        self.main.mapObjects[category].append(obj)
-
-    def removeObjectFromWorld(self, obj):
-        for category in self.main.mapObjects.keys():
-            if obj in self.main.mapObjects[category]:
-                self.removeObjectByCategory(obj, category)
-
-    """
-    Remove object from a specified category
-    """
-    def removeObjectByCategory(self, obj, category):
-        self.removeObject(obj)
-        try:
-            idx = self.main.mapObjects[category].index(obj)
-            self.main.mapObjects[category].pop(idx)
-            return True
-        except:
-            return False
-
     
     """
     Add object (*Object class' instance) to the simulation

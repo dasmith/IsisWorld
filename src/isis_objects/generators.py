@@ -16,7 +16,7 @@ class table(IsisObject,IsisVisual,SpatialStaticBox,Surface, NoPickup):
     def  __init__(self):
         self.offsetVec = offsetVec=(0,0,0,0,0,0)
         self.model = "table/table"
-        self.scale=10#0.06
+        self.scale=7#0.06
         self.density = 4000
 
         IsisObject.__init__(self)

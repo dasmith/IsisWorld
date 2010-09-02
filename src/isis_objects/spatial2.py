@@ -93,7 +93,7 @@ class SpatialPickableBall(pickableObject):
         self.setupGeomAndPhysics(self.physics, pos, quat)
 
 class SpatialRoom(staticObject):
-    priority = 5
+    priority = 3
     def __init__(self):
         staticObject.__init__(self,self.physics)
         # Flag to limit setup to once per object
@@ -104,7 +104,6 @@ class SpatialRoom(staticObject):
         self.setTrimeshGeom(self.activeModel)
         self.setCatColBits("environment")
         self.physics.addObject(self)
-        self.physics.main.mapObjects["static"].append(self)
 
     def enterContainer(self,fromObj):
         print "Entering room", self.name
@@ -115,7 +114,7 @@ class SpatialRoom(staticObject):
         print "Removing %s from room %s" % (fromObj, self.name)
         if fromObj in self.containerItems:
             self.containerItems.remove(fromObj)
-    
+
     def isEmpty(self):
         return len(self.containerItems) == 0
 
@@ -132,7 +131,7 @@ class SpatialRoom(staticObject):
                     agent.control__drop_from_right_hand()
             obj.reparentTo(self)
             #obj.disableCollisions()
-            obj.setPosition(pos)
+            obj.setPos(pos)
             obj.setLayout(self.in_layout)
             return "success"
         return "container is full"
@@ -149,17 +148,15 @@ class SpatialStaticBox(staticObject):
         self.setBoxGeomFromNodePath(self.activeModel)
         self.state = "vacant"
         self.physics.addObject(self)
-        self.physics.main.mapObjects["static"].append(self)
+        #self.physics.main.mapObjects["static"].append(self)
 
 class SpatialStaticTriMesh(staticObject):
     priority = 5
     def __init__(self):
         staticObject.__init__(self,self.physics)
-    
+
     def setup(self):
         self.setTrimeshGeom(self.activeModel)
         #self.setCatColBits("environment")
 
         self.physics.addObject(self)
-        self.physics.main.mapObjects["static"].append(self)
-

@@ -64,8 +64,7 @@ class IsisWorld(DirectObject):
         DirectObject.__init__(self)
         
         self.isisMessage("Starting Up")
-        # initialize Finite State Machine to control UI
-        self.controller = Controller(self)
+
         self.agentNum = 0
         self.agents = []
         self.agentsNamesToIDs = {}
@@ -176,11 +175,9 @@ class IsisWorld(DirectObject):
         obj.setCatColBits("environment")
         
         self.physicsManager.addObject(obj)
-        
-        self.mapObjects["static"].append(obj)
         """
-        Setup the skydome
-        Moving clouds are pretty but computationally expensive """
+        Setup the skydome. Moving clouds are pretty but computationally expensive 
+        """
         if visualizeClouds: 
             self.skydomeNP = SkyDome2(render,visualizeClouds)
             self.skydomeNP.setPos(Vec3(0,0,-500))
@@ -320,11 +317,7 @@ class IsisWorld(DirectObject):
         self.accept("3",               changeAgent, [])
         self.accept("4",               self.toggleInstructionsWindow, [])
         self.accept("space",           self.controller.step_simulation, [.1]) # argument is amount of second to advance
-<<<<<<< HEAD
         self.accept("p",               self.controller.toggle_paused)
-=======
-        self.accept("p",               self.controller.pause_simulation)
->>>>>>> early ODE working
         self.accept("s",               self.screenshot, ["snapshot"])
         self.accept("a",               self.screenshot_agent, ["agent_snapshot"])
         #self.accept("r",              self.reset_simulation)

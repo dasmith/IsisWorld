@@ -183,6 +183,9 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         self.queueSize = queueSize
         self.lastSense = 0
      
+    def setPos(self,pos):
+        self.setGeomPos(pos)
+
     def reparentTo(self, parent):
         self.actorNodePath.reparentTo(parent)
 

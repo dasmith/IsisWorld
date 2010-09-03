@@ -42,8 +42,9 @@ class Container(object):
                     agent.control__drop_from_right_hand()
             obj.disable()
             obj.reparentTo(self)
-            obj.setPosition(pos)
+            obj.setPosition(self.getGeomPos()+pos)
             obj.setLayout(self.in_layout)
+            #obj.enable()
             return "success"
         return "container is full"
 

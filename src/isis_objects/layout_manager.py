@@ -34,71 +34,83 @@ class RoomLayout(LayoutManager):
         """Tries to add the object to the current side"""
         if self.side < len(self.sides) and LayoutManager.add(self, obj):
             # There are still some empty walls
+        
             ow = obj.getWidth()+self.padw*2
-            oh = obj.getLength()+self.padh*2
-            coords = self.sides[self.side](obj, ow, oh)
+            ol = obj.getLength()+self.padh*2
+        
+            coords = self.sides[self.side](obj, ow, ol)
             if coords:
                 # Recalculate coordinates returned from the top left point to the object's center
-                return (coords[0]-(self.w-ow)/2.0+self.padw, coords[1]-(self.h-oh)/2.0+self.padh, self.z)
+                return (coords[0]-(self.w-ow)/2.0+self.padw, coords[1]-(self.h-ol)/2.0+self.padh, self.z)
         return
-    def __addn(self, obj, ow, oh):
+    def __addn(self, obj, ow, ol):
+        print "ADD north", ow, ol, "REMAINNG =",self.px+ow, "OF", self.w
         """Tries to add the object along the north side"""
         if self.px+ow > self.w:
             # No more room on this side, prepare coordinates for next wall
             self.side += 1
             self.py = self.maxd
             self.maxd = 0
-            return self.__adde(obj, ow, oh)
+            return self.__adde(obj, ow, ol)
         # Calculate the 2D coordinates for the top left of the object
         x = self.px
         self.px += ow
         # Compute maximum distance from this wall for the starting point of the next
         # Once this wall is full
-        if oh > self.maxd:
-            self.maxd = oh
+        if ol > self.maxd:
+            self.maxd = ol
         return (x, 0)
-    def __adde(self, obj, ow, oh):
+    def __adde(self, obj, ow, ol):
+        print "ADD east", ow, ol
         """Tries to add the object along the east side"""
-        if self.py+oh > self.h:
+        # if length > width, rotate object so longest dimension is against wall.
+        if ow > ol:
+            obj.rotateAlongX(90)
+            t = ow; ow = ol; ol = t
+        if self.py+ol > self.h:
             # No more room on this side, prepare coordinates for next wall
             self.side += 1
             self.px = self.w-self.maxd
             self.maxd = 0
-            return self.__adds(obj, ow, oh)
+            return self.__adds(obj, ow, ol)
         # Calculate the 2D coordinates for the top left of the object
         y = self.py
-        self.py += oh
+        self.py += ol
         # Compute maximum distance from this wall for the starting point of the next
         # Once this wall is full
         if ow > self.maxd:
             self.maxd = ow
-        return (self.w-ow, y)
-    def __adds(self, obj, ow, oh):
+        return (self.w-ow*2, y)  # FIXME: without *2, objects start in the wall.
+    def __adds(self, obj, ow, ol):
         """Tries to add the object along the south side"""
         if self.px-ow < 0:
             # No more room on this side, prepare coordinates for next wall
             self.side += 1
             self.py = self.h-self.maxd
-            return self.__addw(obj, ow, oh)
+            return self.__addw(obj, ow, ol)
         # Calculate the 2D coordinates for the top left of the object
         x = self.px
         self.px -= ow
         # Compute maximum distance from this wall for the starting point of the next
         # Once this wall is full
-        if oh > self.maxd:
-            self.maxd = oh
-        return (x-ow, self.h-oh)
-    def __addw(self, obj, ow, oh):
+        if ol > self.maxd:
+            self.maxd = ol
+        return (x-ow, self.h-ol)
+    def __addw(self, obj, ow, ol):
         """Tries to add the object along the west side"""
-        if self.py-oh < 0:
+        # if length > width, rotate object so longest dimension is against wall.
+        if ow > ol:
+            obj.rotateAlongX(90)
+            t = ow; ow = ol; ol = t
+        if self.py-ol < 0:
             # No more room on this side, room is full
             self.side += 1
             LayoutManager.remove(self, obj)
             return
         # Calculate the 2D coordinates for the top left of the object
         y = self.py
-        self.py -= oh
-        return (0, y-oh)
+        self.py -= ol
+        return (0, y-ol)
 
 
 class HorizontalGridLayout(LayoutManager):
@@ -115,18 +127,18 @@ class HorizontalGridLayout(LayoutManager):
         if not LayoutManager.add(self, obj):
             return
         ow = obj.getWidth()+self.padw
-        oh = obj.getLength()+self.padh
+        ol = obj.getLength()+self.padh
         if self.px+ow > self.w:
             self.py += self.maxh
             self.px = 0
             self.maxh = 0
-            if self.py+oh > self.h:
+            if self.py+ol > self.h:
                 return None
         x = self.px
         self.px += ow
-        if oh > self.maxh:
-            self.maxh = oh
-        return (x-(self.w-ow)/2.0, self.py-(self.h-oh)/2.0, self.z)
+        if ol > self.maxh:
+            self.maxh = ol
+        return (x-(self.w-ow)/2.0, self.py-(self.h-ol)/2.0, self.z)
 
 
 class SlotLayout(LayoutManager):

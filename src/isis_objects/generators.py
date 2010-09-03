@@ -11,23 +11,22 @@ from ..isis_agents.isis_agent import IsisAgent
 from ..physics.ode.pickables import *
 from ..physics.ode.odeWorldManager import *
 
-class table(IsisObject,IsisVisual,SpatialStaticBox,Surface, NoPickup):
+class table(IsisObject,IsisVisual,SpatialStaticBox,Surface,IsisFunctional):
 
     def  __init__(self):
         self.offsetVec = offsetVec=(0,0,0,0,0,0)
         self.model = "table/table"
-        self.scale=7
-
+        self.scale= randint(60,90)/10.0
         IsisObject.__init__(self)
 
         self.setH(180)
 
 
-class fridge(IsisObject, IsisVisual,SpatialStaticBox, Container, NoPickup):
+class fridge(IsisObject, IsisVisual,SpatialStaticBox, Container,IsisFunctional):
     
     def  __init__(self):
         self.model={'default':"Fridge/Fridge"}
-        self.scale=0.17
+        self.scale= randint(16,20)/100.0
         self.density = 4000
         self.registerState("openState", "closed")
 
@@ -43,6 +42,7 @@ class fridge(IsisObject, IsisVisual,SpatialStaticBox, Container, NoPickup):
         self.door.setPos(-0.56, .6, .72)
         #self.door.setCollideMask(BitMask32.allOff())
         self.setH(0)
+        
 
     def action__open(self, agent, directobj):
         print "Select method called"
@@ -120,7 +120,7 @@ class loaf( IsisObject, IsisVisual, SpatialPickableBox, Dividable):
         IsisObject.__init__(self)
 
 
-class kitchen(IsisObject,IsisVisual, NoPickup,SpatialRoom):
+class kitchen(IsisObject,IsisVisual,SpatialRoom,IsisFunctional):
 
     def  __init__(self):
         self.offsetVec = offsetVec=(0,0,0,0,0,0)
@@ -140,7 +140,7 @@ class kitchen(IsisObject,IsisVisual, NoPickup,SpatialRoom):
         """ This actual model gets generated after the kitchen is initialized
         to allow for configurations to override the defaults"""
         
-        CM=CardMaker('')
+        CM=CardMaker('kitchenNode')
 
         hw = self.width/2
         hl = self.length/2
@@ -158,12 +158,14 @@ class kitchen(IsisObject,IsisVisual, NoPickup,SpatialRoom):
         wallTex=loader.loadTexture("media/textures/concrete.jpg")
         wallTex.setMinfilter(Texture.FTLinearMipmapLinear) 
         for wall in self.activeModel.getChildrenAsList(): 
-           wall.setTexture(wallTex) 
-           wall.setTexScale(TextureStage.getDefault(),0.5,self.height*self.roomScale*10)
+           #wall.setTexture(wallTex)
+           wall.setColorScale(0.9,0.9,0.5, 1.0)
+           #wall.setTexScale(TextureStage.getDefault(),0.5,self.height*self.roomScale*100)
         CM.setFrame(-hw,hw,-hl,hl) 
         floor=self.activeModel.attachNewNode(CM.generate()) 
         floor.setTexture(floorTex)
-        floor.setTexScale(TextureStage.getDefault(),10,10,10)
+        floor.setTexScale(TextureStage.getDefault(),8,8,8)
+        floor.setColorScale(1.0,1.0,1.0, 1.0)
         floor.setP(-90)
         floor.setZ(0.01)
         self.activeModel.setTransparency(TransparencyAttrib.MAlpha) 

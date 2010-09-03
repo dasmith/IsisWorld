@@ -136,8 +136,8 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         self.originalPos = self.actor.getPos()
 
     
-        self.right_hand_holding_object = False
-        self.left_hand_holding_object  = False
+        self.right_hand_holding_object = None
+        self.left_hand_holding_object  = None
 
         # speech bubble
         self.last_spoke = 0
@@ -402,83 +402,107 @@ class IsisAgent(kinematicCharacterController,DirectObject):
        self.speech_bubble['text'] = message
        self.last_spoke = 0
        return "success"
+       
 
-    def control__pick_up_with_right_hand(self, target=None):
-        print target
-        if not target:
-            d = self.picker.pick((0, 0))
-            if d:
-                target = d[0]
-            else:
-                print "no target in reach"
-                return
-        else:
-            target = render.find("**/*" + target + "*").getPythonTag("isisobj")
-        print "attempting to pick up " + target.name + " with right hand.\n"
-        if self.right_hand_holding_object:
-            return 'right hand is already holding ' + self.right_hand_holding_object.getName() + '.'
-        if self.can_grasp(target):
-            result = target.call(self, "pick_up",self.player_right_hand)
-            print "Result of trying to pick up %s:" % target.name, result
-            if result == 'success':
-                self.right_hand_holding_object = target 
-            return result
+    def __get_object_in_center_of_view(self):
+       direction = render.getRelativeVector(self.fov, Vec3(0, 1.0, 0))
+       pos = self.fov.getPos(render)
+       exclude = [base.render.find("**/kitchenNode*").geom]
+       closestEntry, closestObject = IsisAgent.physics.doRaycastNew('pickable', 5, [pos, direction], exclude)
+       return closestObject
+    
+    def __pick_up_object_with(self,target,hand_slot,hand_joint):
+        """ Attaches an object to hand_joint and stores the object
+        in hand_slot. Target = IsisObject """
+        if hand_slot != None:
+            return 'right hand is already holding ' + hand_slot.getName() + '.'
+        if self.can_grasp(target): # object within distance        
+            if target.layout:
+                target.layout.remove(target)
+                target.layout = None
+            target.disable() #turn off physics
+            target.setPosHpr(0,0,0,0,0,0)
+            target.reparentTo(hand_joint)
+            target.activeModel.setPosHpr(*target.pickupVec)
+            target.setTag('heldBy', self.name)
+            hand_slot = target
+            return "success"
         else:
             print "that item is not graspable"
             return 'object (' + target.name + ') is not graspable (i.e. in view and close enough).'
+
+    def control__pick_up_with_right_hand(self, target=None):
+        if not target:
+            target = self.__get_object_in_center_of_view()
+            if not target:
+                print "no target in reach"
+                return
+        else:
+            target = render.find("**/*" + target + "*").getPythonTag("isisobj")    
+        print "attempting to pick up " + target.name + " with right hand.\n"
+        return self.__pick_up_object_with(target, self.right_hand_holding_object, self.player_right_hand)
 
     def control__pick_up_with_left_hand(self, target = None):
         if not target:
-            d = self.picker.pick((0, 0))
-            if d:
-                target = d[0]
-            else:
+            target = self.__get_object_in_center_of_view()
+            if not target:
                 print "no target in reach"
                 return
         else:
-            target = render.find("**/*" + target + "*").getPythonTag("isisobj")
-        print "attempting to pick up " + target.name + " with left hand.\n"
-        if self.left_hand_holding_object:
-            return 'left hand is already holding ' + self.left_hand_holding_object.getName() + '.'
-        if self.can_grasp(target):
-            result = target.call(self, "pick_up",self.player_left_hand)
-            print "Result of trying to pick up %s:" % target.name, result
-            if result == 'success':
-                self.left_hand_holding_object = target
-            return result
+            target = render.find("**/*" + target + "*").getPythonTag("isisobj")    
+        print "attempting to pick up " + target.name + " with right hand.\n"
+        return self.__pick_up_object_with(target, self.left_hand_holding_object, self.player_left_hand)
+
+    def action__drop(self, agent, directobject):
+        if not directobject:
+            return "No object to drop"
+        if directobject.getNetTag('heldBy') == agent.name:
+            directobject.enable()
+            directobject.wrtReparentTo(render)
+            self.activeModel.setPosHpr(*self.offsetVec)
+            self.setHpr(self.getH(), 0, 0)
+            self.setPos(self, (0, 1.3, 1.5))
+            self.setTag('heldBy', '')
+            return 'success'
         else:
-            print "that item is not graspable"
-            return 'object (' + target.name + ') is not graspable (i.e. in view and close enough).'
-
-    def control__put_object_in_empty_left_hand(self, object_name):
-        if (self.left_hand_holding_object is not False):
-            return "left hand not empty"
-        world_object = self.agent_simulator.worldObjects[object_name]
-        world_object.reparentTo(self.player_left_hand)
-        world_object.setPos(0, 0, 0)
-        world_object.setHpr(0, 0, 0)
-        self.left_hand_holding_object = world_object
-        return "success"
-
-    def control__put_object_in_empty_right_hand(self, object_name):
-        if (self.right_hand_holding_object is not False):
-            return "right hand not empty"
-        world_object = self.agent_simulator.worldObjects[object_name]
-        world_object.reparentTo(self.player_right_hand)
-        world_object.setPos(0, 0, 0)
-        world_object.setHpr(0, 0, 0)
-        self.right_hand_holding_object = world_object
-        return "success"
-
+            return "Error: not being held by given agent"
+            
+                
     def control__drop_from_right_hand(self):
         print "attempting to drop object from right hand.\n"
+        
+        if self.right_hand_holding_object is None:
+            return False
+            
+        #self.placeObjectInFrontOfCamera(self.heldItem)
+
+        direction = render.getRelativeVector(self.fov, Vec3(0, 1.0, 0))
+        pos = self.getPos(render)
+        heldPos = self.right_hand_holding_object.geom.getPosition()
+
+        #"""
+        #This raycast makes sure we don't drop the item when there's anything
+        #between the character and the item (like a wall).
+        #"""
+        #exclude = [self.geom, self.heldItem.geom]
+        #l = (pos - heldPos).length()
+        #closestEntry, closestGeom = self.map.worldManager.doRaycastNew("kccEnvCheckerRay", l, [pos, dir], exclude)
+
+        #if not closestEntry is None:
+        #    return False
+        
+        
+        # """ Throw objs"""
+        #quat = self.getQuat(render)
+        #held.getBody().setForce(quat.xform(Vec3(0, force, 0)))
+        
         if self.right_hand_holding_object is False:
             return 'right hand is not holding an object.'
         result = self.right_hand_holding_object.call(self, 'drop', render)
         if result == 'success':
             self.right_hand_holding_object = False
         return result
-
+    
     def control__drop_from_left_hand(self):
         print "attempting to drop object from left hand.\n"
         if self.left_hand_holding_object is False:
@@ -489,6 +513,7 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         return result
 
     def control__use_right_hand(self, target = None, action = None):
+        # TODO, rename this to use object with 
         if not action:
             if self.msg:
                 action = self.msg
@@ -532,8 +557,9 @@ class IsisAgent(kinematicCharacterController,DirectObject):
             return str(action) + " not associated with either target or object"
         return "target not within reach"
 
-    def can_grasp(self, object):
-        return object.getDistance(self.fov) < 5.0
+    def can_grasp(self, isisobject):
+        print "distance = ", isisobject.getDistance(self.fov)
+        return isisobject.getDistance(self.fov) < 8.0
 
     def is_holding(self, object_name):
         return ((self.left_hand_holding_object  and (self.left_hand_holding_object.name  == object_name)) \
@@ -794,33 +820,6 @@ class IsisAgent(kinematicCharacterController,DirectObject):
     def useHeldStop(self):
         if self.heldItem is not None:
             self.heldItem.useHeldStop()
-
-    """
-    Drop the item we're holding.
-    """
-    def dropHeld(self):
-        if self.heldItem is None:
-            return False
-
-        self.placeObjectInFrontOfCamera(self.heldItem)
-
-        dir = render.getRelativeVector(base.cam, Vec3(0, 1.0, 0))
-        pos = base.cam.getPos(render)
-        heldPos = self.heldItem.geom.getPosition()
-
-        """
-        This raycast makes sure we don't drop the item when there's anything
-        between the character and the item (like a wall).
-        """
-        exclude = [self.geom, self.heldItem.geom]
-        l = (pos - heldPos).length()
-        closestEntry, closestGeom = self.map.worldManager.doRaycastNew("kccEnvCheckerRay", l, [pos, dir], exclude)
-
-        if not closestEntry is None:
-            return False
-
-        self.heldItem.drop()
-        self.heldItem = None
 
     """
     Drop and then throw the held item in the direction we're aiming at.

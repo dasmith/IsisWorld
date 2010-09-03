@@ -164,10 +164,10 @@ class physicalObject(object):
     def getGeomPos(self):
         return self.geom.getPosition()
     
-    def getQuat(self):
+    def getGeomQuat(self):
         return self.geom.getQuaternion()
     
-    def setQuat(self, quat=None):
+    def setGeomQuat(self, quat=None):
         if quat is None:
             quat = self.activeModel.getQuat(render)
             self.geom.setQuaternion(quat)
@@ -738,7 +738,7 @@ class dynamicObjectCCD(dynamicObjectNoCCD):
                     to the World Manager.
                     """
                     obj.setGeomPos(castPos)
-                    obj.setQuat(self.geom.getQuaternion())
+                    obj.setGeomQuat(self.geom.getQuaternion())
                     
                     self.helperObjects.append(obj)
                     self.physics.addObject(obj)
@@ -1008,6 +1008,8 @@ class ODEWorldManager(object):
         rayCat = ray.getCategoryBits()
         rayCol = ray.getCollideBits()
         
+        
+        
         for idx in range(self.space.getNumGeoms()):
             geom = self.space.getGeom(idx)
             if not geom.isEnabled():
@@ -1057,7 +1059,6 @@ class ODEWorldManager(object):
         return (closestEntry, closestObject)
     
     """
-    Long live long and descriptive method names. Ok, to the point.
     
     This is the main replacement for the odeGeomData stuff here.
     It uses the objectGeomIndexex dictionary, which contains the
@@ -1302,8 +1303,10 @@ class ODEWorldManager(object):
     
     def startSimulation(self, stepSize):
         self.stepSize = stepSize
+        taskMgr.add(self.main.cloud_moving_task, "visual-movingClouds")
         taskMgr.doMethodLater(stepSize, self.simulationTask, "physics-ODESimulation")
         
     def stopSimulation(self):
+        taskMgr.remove("visual-movingClouds")
         taskMgr.remove("physics-ODESimulation")
 

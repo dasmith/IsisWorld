@@ -16,11 +16,21 @@ def environment():
     ta2 = table()
     put_in(ta2, k)
 
+
+    ta3 = table()
+    put_in(ta3, k)
+
     t = toaster()
     put_on(t, ta2)
 
     kn = knife()
     put_on(kn, ta)
+
+    lf = toaster()
+    put_in_world(lf)
+    
+    l = loaf()
+    put_in(l, f)
 
     l = loaf()
     put_on(l, ta2)

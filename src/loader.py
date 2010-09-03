@@ -11,7 +11,7 @@ def load_objects(scenario, world):
     # these functions are globals used by the scenario object
     # to easily and pythonically set up the environment
     
-    renderParent = world.objRender
+    renderParent = world.worldNode
     physics = world.physicsManager
 
     # Parents the object to the world node, must be done to the object or a parent

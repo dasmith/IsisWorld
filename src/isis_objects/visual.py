@@ -41,6 +41,11 @@ class IsisVisual():
         # set position of physics -- doesn't need argument, it gets it from activeModel
         self.setGeomPos(pos)
         
+    def rotateAlongX(self,x):
+        self.setH(self.getH()+x)
+        self.synchPosQuatToNode()
+        self._needToRecalculateScalingProperties = True
+        
     def rescaleModel(self,scale):
         """ Changes the model's dimensions to a given scale"""
         self.activeModel.setScale(scale, scale, scale)

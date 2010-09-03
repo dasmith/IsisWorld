@@ -176,7 +176,7 @@ class SkyDome1(Att_base):
 
 
 class SkyDome2(Att_base):
-    def __init__(self, scene, dynamic=False, rate=Vec4(0.004, 0.002, 0.008, 0.010),
+    def __init__(self, scene, dynamic=True, rate=Vec4(0.004, 0.002, 0.008, 0.010),
         skycolor=Vec4(0.25, 0.5, 1, 0),
         texturescale=Vec4(1,1,1,1),
         scale=(4000,4000,1000),

@@ -3,6 +3,7 @@ from direct.task import Task, TaskManagerGlobal
 class IsisFunctional():
 
     def __init__(self):
+        #self.setTag('pickable','true')
         if not hasattr(self,'states'):
             self.states = {}
 
@@ -22,45 +23,6 @@ class IsisFunctional():
         else:
             print "Error, %s does not respond to action__%s" % (self.name, action)
 
-    ## register actions that are enabled by default in all objects
-    def action__pick_up(self, agent, directobject):
-        if not directobject:
-            return "No object to pick up"
-        if self.getNetTag('heldBy') == '':
-            # this the thing is not current held, OK to pick up
-            if self.layout:
-                self.layout.remove(self)
-                self.layout = None
-            self.disableCollisions()
-            self.setPosHpr(0,0,0,0,0,0)
-            self.reparentTo(directobject)
-            self.activeModel.setPosHpr(*self.pickupVec)
-            self.setTag('heldBy', agent.name)
-            return 'success'
-        else:
-            return "Error: already held by someone"
-
-    def action__drop(self, agent, directobject):
-        if not directobject:
-            return "No object to drop"
-        if self.getNetTag('heldBy') == agent.name:
-            self.enableCollisions()
-            self.wrtReparentTo(directobject)
-            self.activeModel.setPosHpr(*self.offsetVec)
-            self.setHpr(self.getH(), 0, 0)
-            self.setPos(self, (0, 1.3, 1.5))
-            self.setTag('heldBy', '')
-            return 'success'
-        else:
-            return "Error: not being held by given agent"
-
-
-class NoPickup(IsisFunctional):
-    def __init__(self):
-        IsisFunctional.__init__(self)
-  
-    def action__pick_up(self, x,y):
-        return 'failed: cannot pick up this object'
 
 
 class Dividable(IsisFunctional):

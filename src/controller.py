@@ -247,7 +247,6 @@ class Controller(object, FSM):
                 taskMgr.doMethodLater(stepTime, self.pause_simulation, "physics-SimulationStopper", priority=10)
             self.runningSimulation = True
             #self.main.physics.startSimulation(stepTime)
-            #taskMgr.add(self.main.cloud_moving_task, "visual-movingClouds")
             self.main.physics.startSimulation(1.0/40.0)
 
     def start_simulation(self):
@@ -273,14 +272,7 @@ class Controller(object, FSM):
 
     def enterMenu(self):
         self.pause_simulation()
-        self.scenarioFrame.hide()
-        # make sure default scenario is selected
-        self.selectedScenario = self.scenarioFiles[self.menuScenarioOptions.selectedIndex]
-        self.taskFrame.hide()
-        self.menuFrame.show()
-
-    def enterMenu(self):
-        if self.main.physics != None: self.main.physics.pause()
+        taskMgr.add(self.main.cloud_moving_task, "visual-movingClouds")
         self.scenarioFrame.hide()
         # make sure default scenario is selected
         self.selectedScenario = self.scenarioFiles[self.menuScenarioOptions.selectedIndex]
@@ -290,7 +282,7 @@ class Controller(object, FSM):
 
     def enterScenario(self):
         """ Loads (or resets) the current scenario. """
-        self.pause_simulation()
+        #self.pause_simulation()
         self.menuFrame.hide()
         self.taskFrame.hide()
 
@@ -313,7 +305,7 @@ class Controller(object, FSM):
         # display options on the screen
 
     def enterTaskPaused(self):
-        self.pause_simulation()
+        self.start_simulation()
         self.menuFrame.hide()
         self.scenarioFrame.hide()
         self.taskFrame.show()

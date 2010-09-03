@@ -69,6 +69,9 @@ class IsisWorld(DirectObject):
         self.agentNum = 0
         self.agents = []
         self.agentsNamesToIDs = {}
+         # setup physics
+
+        #self.physicsManager.startSimulation(1.0/60)
         
         self._setup_base_environment(debug=False)
         self._setup_ground_and_sky(visualizeClouds=True)
@@ -77,7 +80,6 @@ class IsisWorld(DirectObject):
 
         # initialize Finite State Machine to control UI
         self.controller = Controller(self)
-        
         
         self._setup_actions()
         
@@ -104,10 +106,8 @@ class IsisWorld(DirectObject):
                 self.controller.request('TaskPaused')
             else:
                 assert False, "unhandled option"
-
         
         self._textObjectVisible = True
-        #base.cTrav.showCollisions(self.objRender)
         # turn off main help menu by default
         self.toggleInstructionsWindow()
         base.exitFunc = self.exit
@@ -124,19 +124,21 @@ class IsisWorld(DirectObject):
         base.camLens.setFov(75)
         base.camLens.setNear(0.1)
         base.disableMouse()
+        self.physicsManager = ODEWorldManager(self)
+        IsisWorld.physics = self.physicsManager
         base.graphicsEngine.renderFrame()
         base.graphicsEngine.renderFrame()
+
         # load a nicer font
         self.fonts = {'bold': base.loader.loadFont('media/fonts/DroidSans-Bold.ttf'), \
                        'mono': base.loader.loadFont('media/fonts/DroidSansMono.ttf'),\
                        'normal': base.loader.loadFont('media/fonts/DroidSans.ttf')}
         
         # subnode to hang all objects on
-        self.objRender = base.render.attachNewNode(PandaNode('isisObjects'))
+        self.worldNode = base.render.attachNewNode(PandaNode('isisObjects'))
+
         # debugging stuff
-        if debug:
-            # display all events
-            messenger.toggleVerbose()
+        if debug:  messenger.toggleVerbose()
         # xmlrpc server command handler
         self.commandHandler = IsisCommandHandler(self)
         self.server = XMLRPCServer() 
@@ -150,9 +152,7 @@ class IsisWorld(DirectObject):
     def _setup_ground_and_sky(self, visualizeClouds=False):
         """ The world consists of a plane, the "ground" that stretches to infinity
         and a dome, the "sky" that sits concavely on the ground. """
-         # setup physics
-        self.physicsManager = ODEWorldManager(self)
-        IsisWorld.physics = self.physicsManager
+
         # setup ground
         cm = CardMaker("ground")
         groundTexture = loader.loadTexture(self.make_safe_path("media/textures/env_ground.jpg"))
@@ -167,21 +167,14 @@ class IsisWorld(DirectObject):
         quat = groundNP.getQuat(render)
         
         obj = staticObject(self)
-        
-        """
-        See the definition of this method for details
-        """
         obj.geom =  OdePlaneGeom(self.physicsManager.space, Vec4(0, 0, 1, 0))
-        
-
-        
         obj.setCatColBits("environment")
-        
         self.physicsManager.addObject(obj)
+        
         """
         Setup the skydome
         Moving clouds are pretty but computationally expensive """
-        if visualizeClouds and False: 
+        if visualizeClouds: 
             self.skydomeNP = SkyDome2(render,visualizeClouds)
             self.skydomeNP.setPos(Vec3(0,0,-500))
             self.skydomeNP.setStandardControl()
@@ -189,9 +182,7 @@ class IsisWorld(DirectObject):
 
     
     def cloud_moving_task(self,task):
-        return task.cont
-        self.skydomeNP.skybox.setShaderInput('time', 0)
-        self.commandHandler.panda3d_thread_process_command_queue()
+        self.skydomeNP.skybox.setShaderInput('time', task.time)
         return task.cont
     
     def run_xml_command_queue(self,task):
@@ -201,10 +192,10 @@ class IsisWorld(DirectObject):
     def _setup_cameras(self):
         # Set up the camera 
         ### Set up displays and cameras ###
-        #base.disableMouse()
         base.cam.node().setCameraMask(BitMask32.bit(0))
         base.camera.setPos(0,0,12)
-        base.camera.setP(315)
+        base.camera.setP(0)#315)
+        
 
 
     def _setup_lights(self):
@@ -213,18 +204,20 @@ class IsisWorld(DirectObject):
         alightNP = render.attachNewNode(alight)
 
         dlight = DirectionalLight("directionalLight")
-        dlight.setDirection(Vec3(1, 1, -1))
+        dlight.setDirection(Vec3(self.worldNode.getHpr()))
         dlight.setColor(Vec4(0.2, 0.2, 0.2, 1))
         dlightNP = render.attachNewNode(dlight)
 
         pl = PointLight("light") 
+        pl.setColor(VBase4(0.2, 0.2, 0.2, 1))
         plnp=render.attachNewNode(pl) 
 
         render.clearLight()
-        render.setLight(plnp) 
         render.setShaderAuto()
+        render.setLight(plnp)     
         render.setLight(alightNP)
         render.setLight(dlightNP)
+        
 
 
     def _setup_actions(self):
@@ -324,7 +317,6 @@ class IsisWorld(DirectObject):
         self.accept("p",               self.controller.toggle_paused)
         self.accept("s",               self.screenshot, ["snapshot"])
         self.accept("a",               self.screenshot_agent, ["agent_snapshot"])
-        #self.accept("r",              self.reset_simulation)
         self.accept("escape",          self.exit)
 
         self.teacher_utterances = [] # last message typed

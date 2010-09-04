@@ -142,12 +142,12 @@ class Controller(object, FSM):
 
         self.menuTaskOptions = DirectOptionMenu(text="Tasks:", 
                                                 text_font=self.fonts['normal'], 
-                                                scale=0.06,text_bg = POPUP_BG, text_fg = BUTTON_FG,
+                                                scale=0.06,text_bg = BUTTON_BG, text_fg = BUTTON_FG,
                                                 pos=(-.25,0,.6), frameSize=(-1,1,1,1),
                                                 items=self.scenarioTasks,
                                                 textMayChange=1, 
                                                 command=setTaskUsingGUI,
-                                                highlightColor=(0.65,0.65,0.65,1))
+                                                highlightColor=POPUP_BG)
         self.menuTaskOptions.reparentTo(self.scenarioFrame)
         self.loadTaskText = DirectButton(text='Load Task',
                                       pos=(0, 0,.5), text_scale=(0.05),

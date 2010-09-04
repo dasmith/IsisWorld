@@ -42,6 +42,7 @@ class IsisVisual():
         self.setGeomPos(pos)
         
     def rotateAlongX(self,x):
+        """ Rotates the model and the ODE geom along the X axis"""
         self.setH(self.getH()+x)
         self.synchPosQuatToNode()
         self._needToRecalculateScalingProperties = True

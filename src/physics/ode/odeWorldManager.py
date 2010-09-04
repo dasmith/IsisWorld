@@ -83,6 +83,8 @@ class physicalObject(object):
     def getGeom(self):
         return self.geom
     
+    def isEnabled(self):
+        return self.geom.isEnabled()
     
     def disable(self):
         if self.geom: self.geom.disable()
@@ -1018,6 +1020,9 @@ class ODEWorldManager(object):
                 continue
             geomCat = geom.getCategoryBits()
             geomCol = geom.getCollideBits()
+            # skip environment
+            if geomCat == bitMaskDict['environment'][1]:
+                continue
             calc = (rayCat & geomCol) | (geomCat & rayCol)
             if calc == BitMask32(0):
                 continue
@@ -1030,14 +1035,12 @@ class ODEWorldManager(object):
                 elif depth < closestEntry.getContactGeom(0).getDepth():
                     closestEntry = entry
                     closestGeom = geom
-        
         ray.disable()
         
         if closestGeom:
             closestobject = self.getObjectByGeomSurfaceIndex(closestGeom)
         else:
-            closestobject = None
-        
+            closestobject = None  
         return (closestEntry, closestobject)
     
     """

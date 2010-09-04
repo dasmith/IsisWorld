@@ -20,6 +20,14 @@ def environment():
     ta3 = table()
     put_in(ta3, k)
 
+
+    ta3 = table()
+    put_in(ta3, k)
+
+
+    ta3 = table()
+    put_in(ta3, k)
+
     t = toaster()
     put_on(t, ta2)
 

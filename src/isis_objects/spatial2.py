@@ -14,14 +14,15 @@ class Container(object):
     
     def setup(self):
         self.in_layout = HorizontalGridLayout((self.getWidth(), self.getLength()), self.getHeight())
-        
-    def enterContainer(self,fromObj):
+        self.collisionCallback = self.enterContainer
+
+    def enterContainer(self,entry,fromObj,toObj):
         print "Entering container", self.name
         if fromObj not in self.containerItems:
 
             self.containerItems.append(fromObj)
 
-    def leaveContainer(self,fromObj):
+    def leaveContainer(self,entry,fromObj,toObj):
         print "Removing %s from container", fromObj
         if fromObj in self.containerItems:
             self.containerItems.remove(fromObj)

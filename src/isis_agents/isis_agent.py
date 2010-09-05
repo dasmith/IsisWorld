@@ -66,13 +66,6 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         """
         self.specialDirectObject = DirectObject()
 
-
-        """
-        The place for the held item. You'll probably want to replace this
-        with a more sophisticated inventory system.
-        """
-        self.heldItem = None
-
         """
         Set one of two main variants of handling object carrying.
         See placeObjectInFrontOfCamera method to see what this is for.
@@ -86,20 +79,6 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         self.walkCamH = 0.7
         self.crouchCamH = 0.2
         self.camH = self.walkCamH
-
-        """
-        The variables below are related to mouselook.
-        """
-        self.mouseLookSpeedX = 8.0
-        self.mouseLookSpeedY = 1.2
-
-        self.mousePrevX = 0.0
-        self.mousePrevY = 0.0
-
-        self.hCounter = 0
-        self.h = 0.0
-        self.p = 0.0
-        self.pCounter = 0
 
         """
         This tells the Player Controller what we're aiming at.
@@ -122,22 +101,34 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         self.player_right_hand = self.actor.exposeJoint(None, 'modelRoot', 'Hand.R')
         self.player_left_hand  = self.actor.exposeJoint(None, 'modelRoot', 'Hand.L')
 
+        self.right_hand_holding_object = None
+        self.left_hand_holding_object  = None
+
+        # don't change the color of things you pick up
         self.player_right_hand.setColorScaleOff()
         self.player_left_hand.setColorScaleOff()
+        
         self.player_head  = self.actor.exposeJoint(None, 'modelRoot', 'Head')
         self.neck = self.actor.controlJoint(None, 'modelRoot', 'Head')
 
-        self.controlMap = {"turn_left":0, "turn_right":0, "move_forward":0, "move_backward":0, "move_right":0, "move_left":0,\
-                           "look_up":0, "look_down":0, "look_left":0, "look_right":0, "jump":0}
+        self.controlMap = {"turn_left":0,
+                           "turn_right":0,
+                           "move_forward":0,
+                           "move_backward":0,
+                           "move_right":0, 
+                           "move_left":0,
+                           "look_up":0,
+                           "look_down":0,
+                           "look_left":0,
+                           "look_right":0,
+                           "jump":0}
         # see update method for uses, indices are [turn left, turn right, move_forward, move_back, move_right, move_left, look_up, look_down, look_right, look_left]
         # turns are in degrees per second, moves are in units per second
         self.speeds = [270, 270, 5, 5, 5, 5, 60, 60, 60, 60]
 
         self.originalPos = self.actor.getPos()
 
-    
-        self.right_hand_holding_object = None
-        self.left_hand_holding_object  = None
+ 
 
         # speech bubble
         self.last_spoke = 0
@@ -204,7 +195,7 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         """Set the state of one of the character's movement controls.  """
         self.controlMap[control] = value
     
-    def getObjectsInFieldOfVision(self):
+    def get_objects_in_field_of_vision(self):
         """ This works in an x-ray style. Fast. Works best if you listen to
         http://en.wikipedia.org/wiki/Rock_Art_and_the_X-Ray_Style while
         you use it."""
@@ -253,9 +244,9 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         return agents
 
 
-    def getObjectsInView(self):
+    def get_objects_in_view(self):
         """ Gets objects through ray tracing.  Slow"""
-        return self.picker.getObjectsInView()
+        return self.picker.get_objects_in_view()
             
     def control__turn_left__start(self, speed=None):
         self.setControl("turn_left",  1)
@@ -373,7 +364,7 @@ class IsisAgent(kinematicCharacterController,DirectObject):
 
     def control__view_objects(self):
         """ calls a raytrace to to all objects in view """
-        objects = self.getObjectsInFieldOfVision()
+        objects = self.get_objects_in_field_of_vision()
         print "Objects in view:", objects
         return objects
 
@@ -423,7 +414,7 @@ class IsisAgent(kinematicCharacterController,DirectObject):
                 target.layout.remove(target)
                 target.layout = None
             target.disable() #turn off physics
-            #target.setPosHpr(0,0,0,0,0,0)
+            if target.body: target.body.setGravityMode(0)
             target.reparentTo(hand_joint)
             target.setPosition(hand_joint.getPos(render))
             target.setTag('heldBy', self.name)
@@ -469,6 +460,12 @@ class IsisAgent(kinematicCharacterController,DirectObject):
             self.right_hand_holding_object.synchPosQuatToNode()
             self.right_hand_holding_object.setTag('heldBy', '')
             self.right_hand_holding_object.enable()
+            if self.right_hand_holding_object.body:
+                quat = self.getQuat()
+                # throw object
+                force = 5
+                self.right_hand_holding_object.body.setGravityMode(1)
+                self.right_hand_holding_object.getBody().setForce(quat.xform(Vec3(0, force, 0)))
             self.right_hand_holding_object = None
             return 'success'
         else:
@@ -487,8 +484,7 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         
         
         # """ Throw objs"""
-        #quat = self.getQuat(render)
-        #held.getBody().setForce(quat.xform(Vec3(0, force, 0)))
+
         
 
     
@@ -504,6 +500,12 @@ class IsisAgent(kinematicCharacterController,DirectObject):
             self.left_hand_holding_object.synchPosQuatToNode()
             self.left_hand_holding_object.setTag('heldBy', '')
             self.left_hand_holding_object.enable()
+            if self.left_hand_holding_object.body:
+                quat = self.getQuat()
+                # throw object
+                force = 5
+                self.left_hand_holding_object.body.setGravityMode(1)
+                self.left_hand_holding_object.getBody().setForce(quat.xform(Vec3(0, force, 0)))
             self.left_hand_holding_object = None
             return 'success'
         else:
@@ -613,7 +615,7 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         return image
 
     def sense__get_objects(self):
-        return dict([x.getName(),y] for (x,y) in self.getObjectsInFieldOfVision().items())
+        return dict([x.getName(),y] for (x,y) in self.get_objects_in_field_of_vision().items())
 
     def sense__get_agents(self):
         curSense = time()
@@ -676,13 +678,11 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         """
         Update the held object
         """
-        if self.heldItem:
-            self.placeObjectInFrontOfCamera(self.heldItem)
-            if self.heldItem.body:
-                self.heldItem.body.enable()
+        if self.right_hand_holding_object != None:
+            self.right_hand_holding_object.setPosition(self.player_right_hand.getPos(render))
+        if self.left_hand_holding_object != None:
+            self.left_hand_holding_object.setPosition(self.player_left_hand.getPos(render))
 
-                self.heldItem.body.setLinearVel(Vec3(*[0.0]*3))
-                self.heldItem.body.setAngularVel(Vec3(*[0.0]*3))
 
 
         # allow dialogue window to gradually decay (changing transparancy) and then disappear
@@ -905,7 +905,7 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         on the carried object.
         """
         if curve is None:
-            if object.pickableType == "carry":
+            if hasattr(object,'pickableType'):
                 curveUp = False
                 disable = False
             else:
@@ -920,7 +920,7 @@ class IsisAgent(kinematicCharacterController,DirectObject):
             if body:
                 body.disable()
 
-        camQuat = base.cam.getQuat(render)
+        camQuat = self.fov.getQuat()
         capsuleQuat = self.geom.getQuaternion()
 
         """
@@ -1036,7 +1036,7 @@ class Picker(DirectObject):
         return None
 
 
-    def getObjectsInView(self, xpoints = 20, ypoints = 15):
+    def get_objects_in_view(self, xpoints = 20, ypoints = 15):
         objects = {}
         for x in frange(-1, 1, 2.0/xpoints):
             for y in frange(-1, 1, 2.0/ypoints):

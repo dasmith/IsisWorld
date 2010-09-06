@@ -6,7 +6,7 @@ from direct.gui.DirectGui import DirectSlider
 from direct.fsm.FSM import FSM, RequestDenied
 from direct.gui.OnscreenText import OnscreenText
 from direct.gui.OnscreenImage import OnscreenImage
-from pandac.PandaModules import Vec3, Vec4
+from pandac.PandaModules import Vec3, Vec4, PandaNode
 
 from src.loader import *
 from src.isis_scenario import *
@@ -210,23 +210,27 @@ class Controller(object, FSM):
         loadingText = OnscreenText('Loading...', mayChange=True,
                                        pos=(0, -0.9), scale=0.1,
                                        fg=(1, 1, 1, 1), bg=(0, 0, 0, 0.5))
-        loadingText.setTransparency(1)     
+        loadingText.setTransparency(1)
+        self.main.worldNode.show()
         self.currentScenario = IsisScenario(self.selectedScenario)
         # setup world
         load_objects(self.currentScenario, self.main)
         # define pointer to base scene.
-        self.room = render.find("**/*kitchen*").getPythonTag("isisobj")
-        
+        room = render.find("**/*kitchen*").getPythonTag("isisobj")
         # position the camera in the room
-        base.camera.reparentTo(self.room)
-        base.camera.setPos(self.room.getWidth()/2,self.room.getLength()/2,self.room.getHeight())
+        base.camera.reparentTo(room)
+        base.camera.setPos(room.getWidth()/2,room.getLength()/2,room.getHeight())
         base.camera.setHpr(130,320,0)
         loadingText.destroy()
     
     def unload_scenario_environment(self):
-        #self.main.physics.destroy()
-        if hasattr(self,'room'):
-            self.room.removeNode()
+        """ This method removes all of the objects and agents in the world, keeping only the 
+        ground and sky."""
+        if hasattr(self.main,'worldNode'):
+            self.main.physics.destroyAllObjects()
+            self.main.worldNode.removeNode()
+            for agent in self.main.agents:
+                agent.destroy()
         self.main.agents = []
         self.main.agentNum = 0
         self.main.agentsNamesToID = {}
@@ -272,6 +276,8 @@ class Controller(object, FSM):
 
     def enterMenu(self):
         self.pause_simulation()
+        if hasattr(self.main,'worldNode'):
+            self.main.worldNode.hide()
         taskMgr.add(self.main.cloud_moving_task, "visual-movingClouds")
         self.scenarioFrame.hide()
         # make sure default scenario is selected
@@ -289,6 +295,9 @@ class Controller(object, FSM):
         # only initialize world if you are coming from the menu
         if self.oldState == 'Menu':
             self.unload_scenario_environment()
+        
+            # subnode to hang all objects on
+            self.main.worldNode = base.render.attachNewNode(PandaNode('isisObjects'))
             self.load_scenario_environment()
 
         print "Loading from state", self.state

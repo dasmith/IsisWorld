@@ -63,7 +63,7 @@ class Surface(object):
         # TODO: requires that object has an exposed surface
         print "Putting %s on %s" % (obj, self)
         pos = self.on_layout.add(obj)
-        print "POS=", pos
+        print "SURFACE POSITION:", pos
         if pos:
             if agent and agent.is_holding(obj.name):
                 if agent.left_hand_holding_object == obj:
@@ -73,6 +73,7 @@ class Surface(object):
             obj.disable()
             obj.reparentTo(self)
             obj.setPosition(self.getGeomPos()+pos)
+            obj.setGeomQuat(self.getQuat())
             obj.setLayout(self.on_layout)
             obj.enable()
             return "success"

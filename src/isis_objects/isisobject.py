@@ -15,8 +15,6 @@ class IsisObject(NodePath):
     
     
     def  __init__(self,name=1):
-        # store pointer to physics
-        self.phys = self.__class__.physics 
         # generate a unique name for the object, warning, unique id uses GENERATORS ID
         self.name = "IsisObject/"+self.__class__.__name__+"+"+str(id(self))
         # reference to the layout parent

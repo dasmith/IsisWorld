@@ -125,11 +125,11 @@ class kinematicCharacterController(object):
         State variable which can take one of four values:
         ground, jumping, falling or fly
         """
-        self.state = "ground"
+        self.verticalState = "ground"
         
         """
         Crouching is a special kind of a state. It's not a value of the
-        self.state variable because you can, for example, fall while crouching.
+        self.verticalState variable because you can, for example, fall while crouching.
         """
         self.isCrouching = False
         
@@ -261,11 +261,11 @@ class kinematicCharacterController(object):
             Make sure we don't jump through the ceiling.
             """
             if normal[2] == -1:
-                if self.state == "jumping":
+                if self.verticalState == "jumping":
                     self.fallStartPos = self.geom.getPosition()[2]
                     self.fallSpeed = 0.0
                     self.fallTime = 0.0
-                    self.state = "falling"
+                    self.verticalState = "falling"
     
     """
     Handle a collision involving the environment checker ray.
@@ -324,16 +324,16 @@ class kinematicCharacterController(object):
                 self.crouch()
                 self.footContact = self.prevfootContact
         
-        if self.state == "fly" :
+        if self.verticalState == "fly" :
             pass
             
-        elif self.state == "jumping":
+        elif self.verticalState == "jumping":
             newPos[2] = self.processJump(newPos, stepSize, self.footContact)
         
         elif height is None:
             newPos = self.fall(newPos, stepSize, self.footContact)
             
-        elif height > self.levitation + 0.01 and height < self.levitation + 0.65 and self.state == "ground":
+        elif height > self.levitation + 0.01 and height < self.levitation + 0.65 and self.verticalState == "ground":
             newPos = self.stickToGround(newPos, stepSize, self.footContact)
         
         elif height > self.levitation + 0.01:
@@ -378,7 +378,7 @@ class kinematicCharacterController(object):
         np = self.jumpStartPos + self.fallSpeed
         
         if footContact is not None and np <= footContact + self.levitation:
-            self.state = "ground"
+            self.verticalState = "ground"
             return footContact + self.levitation
         
         return np
@@ -388,18 +388,18 @@ class kinematicCharacterController(object):
             self.fallCallback(self.fallSpeed)
         self.fallSpeed = 0.0
         
-        self.state = "ground"
-        #if footContact is not None:
-        newPos[2] = footContact + self.levitation
+        self.verticalState = "ground"
+        if footContact is not None:
+            newPos[2] = footContact + self.levitation
         
         return newPos
         
     def fall(self, newPos, stepSize, footContact):
-        if self.state != "falling":
+        if self.verticalState != "falling":
             self.fallStartPos = self.geom.getPosition()[2]
             self.fallSpeed = 0.0
             self.fallTime = 0.0
-            self.state = "falling"
+            self.verticalState = "falling"
         else:
             self.fallTime += stepSize
             self.fallSpeed = (-9.81)*(self.fallTime)**2
@@ -421,10 +421,10 @@ class kinematicCharacterController(object):
     Start a jump
     """
     def jump(self):
-        if self.state != "ground":
+        if self.verticalState != "ground":
             return
         self.jumpSpeed = 8.0
         self.jumpStartPos = self.geom.getPosition()[2]
         self.jumpTime = 0.0
-        self.state = "jumping"
+        self.verticalState = "jumping"
         ###print "JUMP"

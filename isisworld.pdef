@@ -8,19 +8,15 @@ from panda3d.core import Filename
 class isisworld(p3d):
     # Metadata of the package
     config(display_name = "IsisWorld")
-    require("morepy")
-    require("panda3d")
-    require("ode")
+    #require("morepy")
+    #require("panda3d")
+    #require("ode")
 
     # Add the data and configuration files
-    loadPrcFile("config.prc")
     dir('media','media')
     dir('src','src')
     dir('scenarios','scenarios')
     dir('media/fonts/')
-    
-    file("config.prc")
-    file("kitchen.isis")
 
     # Pull in the python files
     file("main.py")

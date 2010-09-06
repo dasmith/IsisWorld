@@ -91,8 +91,8 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         """
         The special direct object is used for trigger messages and the like.
         """
-        self.specialDirectObject.accept("ladder_trigger_enter", self.setFly, [True])
-        self.specialDirectObject.accept("ladder_trigger_exit", self.setFly, [False])
+        #self.specialDirectObject.accept("ladder_trigger_enter", self.setFly, [True])
+        #self.specialDirectObject.accept("ladder_trigger_exit", self.setFly, [False])
 
     
         self.actor.makeSubpart("arms", ["LeftShoulder", "RightShoulder"])    
@@ -221,7 +221,7 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         self.control__say("If I were wearing x-ray glasses, I could see %i items"  % len(objects)) 
         return objects
 
-    def getAgentsInFieldOfVision(self):
+    def get_agents_in_field_of_vision(self):
         """ This works in an x-ray vision style as well"""
         agents = {}
         for agent in base.render.findAllMatches("**/agent-*"):
@@ -385,16 +385,46 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         return percepts
  
     def control__say_goal(self, message = "Hello!"):
-       self.speech_bubble['text'] = "GOAL: "+message
-       self.last_spoke = 0
-       return "success"
+        self.speech_bubble['text'] = "GOAL: "+message
+        self.last_spoke = 0
+        return "success"
 
     def control__say(self, message = "Hello!"):
-       self.speech_bubble['text'] = message
-       self.last_spoke = 0
-       return "success"
-       
-
+        self.speech_bubble['text'] = message
+        self.last_spoke = 0
+        return "success"
+      
+    def put_in_front_of(self,isisobj):
+        # find open direction
+        pos = isisobj.getGeomPos()
+        direction = render.getRelativeVector(isisobj, Vec3(0, 1.0, 0))
+        closestEntry, closestObject = IsisAgent.physics.doRaycastNew('aimRay', 5, [pos, direction], [isisobj.geom])   
+        print "CLOSEST",closestEntry, closestObject
+        if closestObject == None:
+            self.setPosition(pos + Vec3(0,2,0))
+        else:
+            print "CANNOT PLACE IN FRONT OF %s BECAUSE %s IS THERE" % (isisobj,closestObject)
+            direction = render.getRelativeVector(isisobj, Vec3(0, -1.0, 0))
+            closestEntry, closestObject = IsisAgent.physics.doRaycastNew('aimRay', 5, [pos, direction], [isisobj.geom])     
+            if closestEntry == None:
+                self.setPosition(pos + Vec3(0,-2,0))
+            else:
+                print "CANNOT PLACE BEHIND %s BECAUSE %s IS THERE" % (isisobj,closestObject)
+                direction = render.getRelativeVector(isisobj, Vec3(1, 0, 0))
+                closestEntry, closestObject = IsisAgent.physics.doRaycastNew('aimRay', 5, [pos, direction], [isisobj.geom])    
+                if closestEntry == None:
+                    self.setPosition(pos + Vec3(2,0,0))
+                else:
+                    print "CANNOT PLACE TO LEFT OF %s BECAUSE %s IS THERE" % (isisobj,closestObject)
+                    # there's only one option left, do it anyway
+                    self.setPosition(pos + Vec3(-2,0,0))
+        # rotate agent to look at it
+        self.actorNodePath.setPos(self.getGeomPos())
+        self.actorNodePath.lookAt(pos)
+        self.setH(self.actorNodePath.getH())
+        
+        
+                    
     def __get_object_in_center_of_view(self):
        direction = render.getRelativeVector(self.fov, Vec3(0, 1.0, 0))
        pos = self.fov.getPos(render)
@@ -402,38 +432,46 @@ class IsisAgent(kinematicCharacterController,DirectObject):
        closestEntry, closestObject = IsisAgent.physics.doRaycastNew('pickable', 5, [pos, direction], exclude)
        return closestObject
     
-    def __pick_up_object_with(self,target,hand_slot,hand_joint):
-        """ Attaches an object to hand_joint and stores the object
-        in hand_slot. Target = IsisObject """
-        print "OBJECT TO PICK UP", target, target.isEnabled()
+    def pick_object_up_with(self,target,hand_slot,hand_joint):
+        """ Attaches an IsisObject, target, to the hand joint.  Does not check anything first,
+        other than the fact that the hand joint is not currently holding something else."""
         if hand_slot != None:
             print 'already holding ' + hand_slot.getName() + '.'
-            return None
-        if self.can_grasp(target): # object within distance        
+            return None  
+        else:
             if target.layout:
                 target.layout.remove(target)
                 target.layout = None
+            # store original position
+            target.originalHpr = target.getHpr(render)
             target.disable() #turn off physics
             if target.body: target.body.setGravityMode(0)
             target.reparentTo(hand_joint)
             target.setPosition(hand_joint.getPos(render))
             target.setTag('heldBy', self.name)
+            if hand_joint == self.player_right_hand:
+                self.right_hand_holding_object = target
+            elif hand_joint == self.player_left_hand:
+                self.left_hand_holding_object = target
+            hand_slot = target
             return target
-        else:
-            print 'object (' + target.name + ') is not graspable (i.e. in view and close enough).'
-            return None
+
 
     def control__pick_up_with_right_hand(self, target=None):
         if not target:
             target = self.__get_object_in_center_of_view()
             if not target:
                 print "no target in reach"
-                return
+                return "error: no target in reach"
         else:
             target = render.find("**/*" + target + "*").getPythonTag("isisobj")    
         print "attempting to pick up " + target.name + " with right hand.\n"
-        self.right_hand_holding_object = self.__pick_up_object_with(target, self.right_hand_holding_object, self.player_right_hand)
-
+        if self.can_grasp(target): # object within distance      
+            return self.pick_object_up_with(target, self.right_hand_holding_object, self.player_right_hand)
+        else:
+            print 'object (' + target.name + ') is not graspable (i.e. in view and close enough).'
+            return 'error: object not graspable'
+            
     def control__pick_up_with_left_hand(self, target = None):
         if not target:
             target = self.__get_object_in_center_of_view()
@@ -443,9 +481,12 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         else:
             target = render.find("**/*" + target + "*").getPythonTag("isisobj")    
         print "attempting to pick up " + target.name + " with left hand.\n"
-        self.left_hand_holding_object =  self.__pick_up_object_with(target, self.left_hand_holding_object, self.player_left_hand)
+        if self.can_grasp(target): # object within distance      
+            return  self.pick_object_up_with(target, self.left_hand_holding_object, self.player_left_hand)
+        else:
+            print 'object (' + target.name + ') is not graspable (i.e. in view and close enough).'
+            return 'error: object not graspable'
 
-                
     def control__drop_from_right_hand(self):
         print "attempting to drop object from right hand.\n"
         
@@ -453,12 +494,13 @@ class IsisAgent(kinematicCharacterController,DirectObject):
             print 'right hand is not holding an object.'
             return False
         if self.right_hand_holding_object.getNetTag('heldBy') == self.name:
-            self.right_hand_holding_object.wrtReparentTo(render)
+            self.right_hand_holding_object.reparentTo(render)
             direction = render.getRelativeVector(self.fov, Vec3(0, 1.0, 0))
             pos = self.player_right_hand.getPos(render)
             heldPos = self.right_hand_holding_object.geom.getPosition()
             self.right_hand_holding_object.synchPosQuatToNode()
             self.right_hand_holding_object.setTag('heldBy', '')
+            self.right_hand_holding_object.setRotation(self.right_hand_holding_object.originalHpr)
             self.right_hand_holding_object.enable()
             if self.right_hand_holding_object.body:
                 quat = self.getQuat()
@@ -471,34 +513,19 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         else:
             return "Error: not being held by agent %s" % (self.name)
 
-        #"""
-        #This raycast makes sure we don't drop the item when there's anything
-        #between the character and the item (like a wall).
-        #"""
-        #exclude = [self.geom, self.heldItem.geom]
-        #l = (pos - heldPos).length()
-        #closestEntry, closestGeom = self.map.worldManager.doRaycastNew("kccEnvCheckerRay", l, [pos, dir], exclude)
-
-        #if not closestEntry is None:
-        #    return False
-        
-        
-        # """ Throw objs"""
-
-        
-
     
     def control__drop_from_left_hand(self):
         print "attempting to drop object from left hand.\n"
         if self.left_hand_holding_object is None:
             return 'left hand is not holding an object.'
         if self.left_hand_holding_object.getNetTag('heldBy') == self.name:
-            self.left_hand_holding_object.wrtReparentTo(render)
+            self.left_hand_holding_object.reparentTo(render)
             direction = render.getRelativeVector(self.fov, Vec3(0, 1.0, 0))
             pos = self.player_left_hand.getPos(render)
             heldPos = self.left_hand_holding_object.geom.getPosition()
             self.left_hand_holding_object.synchPosQuatToNode()
             self.left_hand_holding_object.setTag('heldBy', '')
+            self.left_hand_holding_object.setRotation(self.left_hand_holding_object.originalHpr)
             self.left_hand_holding_object.enable()
             if self.left_hand_holding_object.body:
                 quat = self.getQuat()
@@ -526,6 +553,7 @@ class IsisAgent(kinematicCharacterController,DirectObject):
                 return
         else:
             target = render.find("**/*" + target + "*").getPythonTag('isisobj')
+        print "Trying to use object", target
         if self.can_grasp(target):
             if(target.call(self, action, self.right_hand_holding_object) or
               (self.right_hand_holding_object and self.right_hand_holding_object.call(self, action, target))):
@@ -554,8 +582,9 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         return "target not within reach"
 
     def can_grasp(self, isisobject):
-        print "distance = ", isisobject.getDistance(self.fov)
-        return isisobject.getDistance(self.fov) < 8.0
+        distance = isisobject.activeModel.getDistance(self.fov)
+        print "distance = ", distance
+        return distance < 5.0
 
     def is_holding(self, object_name):
         return ((self.left_hand_holding_object and (self.left_hand_holding_object.getPythonTag('isisobj').name  == object_name)) \
@@ -573,28 +602,13 @@ class IsisAgent(kinematicCharacterController,DirectObject):
 
     def control__use_aimed(self):
         """
-        Try to use the object that we aim at.
-        A similar mechanics can be used to create a gun.
-
-        Note the usage of the doRaycast method from the odeWorldManager.
+        Try to use the object that we aim at, by calling its callback method.
         """
-        dir = render.getRelativeVector(self.fov, Vec3(0, 1.0, 0))
-        pos = self.fov.getPos(render) 
-        print "relative vector", pos
-        # FIXME: work with non-ODE
-        return
-        #self.aimRay.set(pos, dir)
-
-        # raycast
-        closestEntry, closestGeom = IsisAgent.physics.doRaycast(self.aimRay, [self.capsuleGeom])
-        if not closestGeom:
-            return
-        print "Closest geom", closestEntry
-        data = IsisAgent.physics.getGeomData(closestGeom)
-        print data.name
-        if data.selectionCallback:
-            data.selectionCallback(self, dir)
+        target = self.__get_object_in_center_of_view()
+        if target.selectionCallback:
+            target.selectionCallback(self, dir)
         return "success"
+                    
 
     def sense__get_position(self):
         x,y,z = self.actorNodePath.getPos()
@@ -620,7 +634,7 @@ class IsisAgent(kinematicCharacterController,DirectObject):
     def sense__get_agents(self):
         curSense = time()
         agents = {}
-        for k, v in self.getAgentsInFieldOfVision().items():
+        for k, v in self.get_agents_in_field_of_vision().items():
             v['actions'] = k.get_other_agents_actions(self.lastSense, curSense)
             agents[k.name] = v
         self.lastSense = curSense
@@ -664,10 +678,13 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         # the values in self.speeds are used as coefficientes for turns and movements
         if (self.controlMap["turn_left"]!=0):        self.addToH(stepSize*self.speeds[0])
         if (self.controlMap["turn_right"]!=0):       self.addToH(-stepSize*self.speeds[1])
-        if (self.controlMap["move_forward"]!=0):     self.speed[1] =  self.speeds[2]
-        if (self.controlMap["move_backward"]!=0):    self.speed[1] = -self.speeds[3]
-        if (self.controlMap["move_left"]!=0):        self.speed[0] = -self.speeds[4]
-        if (self.controlMap["move_right"]!=0):       self.speed[0] =  self.speeds[5]
+        if self.verticalState == 'ground':
+            # these actions require contact with the ground
+            if (self.controlMap["move_forward"]!=0):     self.speed[1] =  self.speeds[2]
+            if (self.controlMap["move_backward"]!=0):    self.speed[1] = -self.speeds[3]
+            if (self.controlMap["move_left"]!=0):        self.speed[0] = -self.speeds[4]
+            if (self.controlMap["move_right"]!=0):       self.speed[0] =  self.speeds[5]
+            if (self.controlMap["jump"]!=0):             kinematicCharacterController.jump(self)
         if (self.controlMap["look_left"]!=0):        self.neck.setR(bound(self.neck.getR(),-60,60)+stepSize*80)
         if (self.controlMap["look_right"]!=0):       self.neck.setR(bound(self.neck.getR(),-60,60)-stepSize*80)
         if (self.controlMap["look_up"]!=0):          self.neck.setP(bound(self.neck.getP(),-60,80)+stepSize*80)
@@ -676,16 +693,17 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         kinematicCharacterController.update(self, stepSize)
 
         """
-        Update the held object
+        Update the held object position to be in the hands
         """
         if self.right_hand_holding_object != None:
             self.right_hand_holding_object.setPosition(self.player_right_hand.getPos(render))
         if self.left_hand_holding_object != None:
             self.left_hand_holding_object.setPosition(self.player_left_hand.getPos(render))
 
-
-
-        # allow dialogue window to gradually decay (changing transparancy) and then disappear
+        """ 
+        Update the dialog box.
+        This allows dialogue window to gradually decay (changing transparancy) and then disappear
+        """
         self.last_spoke += stepSize/2
         self.speech_bubble['text_bg']=(1,1,1,1/(self.last_spoke+0.01))
         self.speech_bubble['frameColor']=(.6,.2,.1,.5/(self.last_spoke+0.01))
@@ -714,11 +732,6 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         return Task.cont
         
     def destroy(self):
-        self.flashlightNP.remove()
-        self.flashlightNP = None
-        self.flashlight = None
-
-        self.disableInput()
         self.disable()
         self.specialDirectObject.ignoreAll()
 
@@ -727,46 +740,6 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         del self.specialDirectObject
 
         kinematicCharacterController.destroy(self)
-
-    def sitOnChair(self, chair):
-        chairQuat = chair.getNodePath().getQuat(render)
-        newPos0 = chair.getNodePath().getPos(render) + chairQuat.xform(Vec3(0, 1.0, 1.8))
-        newPos1 = chair.getNodePath().getPos(render) + chairQuat.xform(Vec3(0, 0.2, 1.1))
-        newHpr = chair.getNodePath().getHpr(render)
-        newHpr[1] = -20.0
-
-        startHpr = base.cam.getHpr(render)
-        startHpr[0] = self.geom.getQuaternion().getHpr().getX()
-
-        Sequence(
-            Func(self.disableInput),
-            Func(self.setSitting, chair),
-            LerpPosHprInterval(base.cam, 1.0, newPos0, newHpr, None, startHpr),
-            LerpPosInterval(base.cam, .5, newPos1),
-            Func(self.enableInput),
-        ).start()
-
-    def standUpFromChair(self):
-        chairQuat = self.isSitting.getNodePath().getQuat(render)
-        newPos0 = self.isSitting.getNodePath().getPos(render) + chairQuat.xform(Vec3(0, 1.0, 1.7))
-        newPos1 = self.geom.getPosition()
-        newPos1.setZ(newPos1.getZ()+self.camH)
-        newHpr = self.geom.getQuaternion().getHpr()
-
-        chair = self.isSitting
-
-        Sequence(
-            Func(self.setSitting, None),
-            LerpPosInterval(base.cam, 0.3, newPos0),
-            LerpPosHprInterval(base.cam, 0.5, newPos1, newHpr),
-            Func(self.enable),
-            Func(chair.setState, "vacant")
-        ).start()
-
-    def setSitting(self, chair):
-        if chair:
-            self.disable()
-        self.isSitting = chair
 
     def disable(self):
         self.isDisabled = True
@@ -777,83 +750,6 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         self.footRay.enable()
         self.geom.enable()
         self.isDisabled = False
-
-    """
-    Enable/disable flying.
-    """    
-    def setFly(self, value, object, trigger):
-        print "SET FLY", value
-        if object is not self:
-            return
-        if value:
-            self.state = "fly"
-            self.movementParent = base.cam
-        else:
-            self.state = "ground"
-            self.movementParent = self.geom
-
-    """
-    Pick up the item we're aiming at.
-    """
-    def pickUpItem(self, object):
-        if self.heldItem is None:
-            self.heldItem = object
-            return True
-        return False
-
-    """
-    use/start using the item we're holding.
-    """
-    def useHeld(self):
-        if self.heldItem is not None:
-            self.heldItem.useHeld()
-
-    """
-    stop using the item we're holding.
-    """
-    def useHeldStop(self):
-        if self.heldItem is not None:
-            self.heldItem.useHeldStop()
-
-    """
-    Drop and then throw the held item in the direction we're aiming at.
-    """
-    def throwHeld(self, force):
-        if self.heldItem is None:
-            return False
-
-        held = self.heldItem
-        self.dropHeld()
-
-        quat = base.cam.getQuat(render)
-        held.getBody().setForce(quat.xform(Vec3(0, force, 0)))
-
-        held = None
-
-    """
-    This is a general method for the right mouse button. The behaviour is contextual
-    and depends on whether you're holding something and what you're aiming at.
-
-    It's just something I use in my game.
-    """
-    def useAimed(self):
-        dir = render.getRelativeVector(self.fov, Vec3(0, 1.0, 0))
-        pos = self.fov.getPos(render)
-
-        exclude = [self.geom]
-        if self.heldItem:
-            exclude.append(self.heldItem.geom)
-
-        closestEntry, closestObject = IsisAgent.physics.doRaycastNew("aimRay", 2.5, [pos, dir], exclude)
-
-        if closestEntry is None:
-            self.dropHeld()
-        else:
-            if closestObject.selectionCallback:
-                closestObject.selectionCallback(self, dir)
-            else:
-                self.dropHeld()
-
     """
     Set camera to correct height above the center of the capsule
     when crouching and when standing up.
@@ -869,14 +765,6 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         """
         if kinematicCharacterController.crouchStop(self):
             self.camH = self.walkCamH
-
-    """
-    I do not allow jumping when crouching, but it's not mandatory.
-    """
-    def jump(self):
-        if inputState.isSet("crouch") or self.isCrouching:
-            return
-        kinematicCharacterController.jump(self)
 
     """
     This method is used when carrying objects around.

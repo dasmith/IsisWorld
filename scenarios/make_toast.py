@@ -16,17 +16,11 @@ def environment():
     ta2 = table()
     put_in(ta2, k)
 
-
     ta3 = table()
     put_in(ta3, k)
 
-
-    ta3 = table()
-    put_in(ta3, k)
-
-
-    ta3 = table()
-    put_in(ta3, k)
+    ta4 = table()
+    put_in(ta4, k)
 
     t = toaster()
     put_on(t, ta2)
@@ -41,13 +35,14 @@ def environment():
     put_in(l, f)
 
     l = loaf()
-    put_on(l, ta2)
+    put_on(l, ta3)
 
     ralph = IsisAgent("Ralph")
     lauren = IsisAgent("Lauren")
     #r.set_color()
-    put_in_world(ralph)
+    #put_in_world(ralph)
     put_in_world(lauren)
+    put_in_front_of(ralph,kn)
 
     # required at the end of the environment setup
     store(locals())

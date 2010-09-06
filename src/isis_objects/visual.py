@@ -41,6 +41,11 @@ class IsisVisual():
         # set position of physics -- doesn't need argument, it gets it from activeModel
         self.setGeomPos(pos)
         
+        
+    def setRotation(self,hpr):
+        self.setHpr(hpr)
+        self.synchPosQuatToNode()
+
     def rotateAlongX(self,x):
         """ Rotates the model and the ODE geom along the X axis"""
         self.setH(self.getH()+x)

@@ -82,7 +82,7 @@ class toaster(IsisObject, IsisVisual, SpatialPickableBox, Cooker):
         self.model = "toaster"
         self.scale = 0.7
         ######## Spatial Parameters ##############
-        self.density = 100
+        self.density = 1000
         self.on_layout = SlotLayout([(.3, .1, .2), (.3, -.1, .2)])
 
         ######## Functional Parameters ############

@@ -13,7 +13,7 @@ clean:
 	rm -rf osx_i386 osx_ppc linux_amd64 linux_i386 win32
 
 package:
-	ppackage -i . isisworld.pdef
+	python /Developer/Panda3D/lib/direct/p3d/ppackage.py -i . isisworld.pdef
 	pdeploy -N "IsisWorld" -v 0.5 isisworld.p3d standalone
 
 mac:

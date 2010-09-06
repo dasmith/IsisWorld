@@ -6,6 +6,10 @@ class IsisFunctional():
         #self.setTag('pickable','true')
         if not hasattr(self,'states'):
             self.states = {}
+    
+    def list_actions(self):
+        """ Lists all of the action__X methods a particular IsisObject will respond to."""
+        return filter(lambda x: x[0:8] == "action__",dir(self))
 
     def registerState(self,stateName,valueDomain):
         if not hasattr(self,'states'):
@@ -18,6 +22,7 @@ class IsisFunctional():
 
     def call(self, agent, action, dobject = None):
         """ This is the dispatcher for the action methods """
+        print "CALLING %s ON %s WITH %s" % (action,self.name,dobject)
         if hasattr(self, "action__"+action):
             return getattr(self, "action__"+action)(agent, dobject)
         else:
@@ -33,17 +38,13 @@ class Dividable(IsisFunctional):
 
     def action__divide(self, agent, object):
         if object != None and hasattr(object, "action__cut"):
-            if not agent.right_hand_holding_object:
+            if agent.right_hand_holding_object == None:
                 # instantiate a new IsisObject
-                obj = self.piece(self.physics)
-                obj.call(agent, "pick_up", agent.player_right_hand)
-                agent.right_hand_holding_object = obj
-                return "success"
-            elif not agent.left_hand_holding_object:
-                obj = self.piece(self.physics)
-                obj.call(agent, "pick_up", agent.player_left_hand)
-                agent.left_hand_holding_object = obj
-                return "success"
+                obj = self.piece()
+                return agent.pick_object_up_with(obj, agent.right_hand_holding_object, agent.player_right_hand)
+            elif agent.left_hand_holding_object == None:
+                obj = self.piece()
+                return agent.pick_object_up_with(obj, agent.left_hand_holding_object, agent.player_left_hand)
         return None
 
 

@@ -134,8 +134,7 @@ class IsisWorld(DirectObject):
                        'mono': base.loader.loadFont('media/fonts/DroidSansMono.ttf'),\
                        'normal': base.loader.loadFont('media/fonts/DroidSans.ttf')}
         
-        # subnode to hang all objects on
-        self.worldNode = base.render.attachNewNode(PandaNode('isisObjects'))
+
 
         # debugging stuff
         if debug:  messenger.toggleVerbose()
@@ -203,10 +202,10 @@ class IsisWorld(DirectObject):
         alight.setColor(Vec4(.7, .7, .7, 1.0))
         alightNP = render.attachNewNode(alight)
 
-        dlight = DirectionalLight("directionalLight")
-        dlight.setDirection(Vec3(self.worldNode.getHpr()))
-        dlight.setColor(Vec4(0.2, 0.2, 0.2, 1))
-        dlightNP = render.attachNewNode(dlight)
+        #dlight = DirectionalLight("directionalLight")
+        #dlight.setDirection(Vec3(self.worldNode.getHpr()))
+        #dlight.setColor(Vec4(0.2, 0.2, 0.2, 1))
+        #dlightNP = render.attachNewNode(dlight)
 
         pl = PointLight("light") 
         pl.setColor(VBase4(0.2, 0.2, 0.2, 1))
@@ -216,7 +215,7 @@ class IsisWorld(DirectObject):
         render.setShaderAuto()
         render.setLight(plnp)     
         render.setLight(alightNP)
-        render.setLight(dlightNP)
+        #render.setLight(dlightNP)
         
 
 
@@ -370,11 +369,17 @@ class IsisWorld(DirectObject):
         # position the agent randomly
         try: 
             room = render.find("**/*kitchen*").getPythonTag("isisobj")
+            agentPos = newAgent.actorNodePath.getPos(render)
             newAgent.actorNodePath.reparentTo(room)
-            w,h = int(room.getWidth()/2), int(room.getLength()/2)
-            x = randint(-w,w)
-            y = randint(-h,h)
-            newAgent.setPos(Vec3(x,y,5))
+            if agentPos == Vec3(0,0,0):  
+                # get middle
+                roomPos = room.getPos(render)
+                center = room.getBounds().getCenter()
+                w,h = roomPos[0]+center[0], roomPos[1]+center[1]
+                newAgent.setPos(Vec3(w,h+(len(self.agents)*0.5),5))
+            else:
+                agentPos[2] = 5
+                newAgent.setPos(agentPos)
         except Exception, e:
             self.isisMessage("Could not add agent %s to room. Error: %s" % (newAgent.name, e))
         return newAgent

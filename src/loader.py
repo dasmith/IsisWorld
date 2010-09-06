@@ -30,7 +30,8 @@ def load_objects(scenario, world):
         a function that updates cameras and a list of agents for use by 
         XMLRPC."""
         if isinstance(obj,IsisAgent):
-            world.add_agent_to_world(obj)
+            if not obj in world.agents:
+                world.add_agent_to_world(obj)
         else:
             if parent == None: 
                 obj.reparentTo(renderParent)
@@ -52,6 +53,13 @@ def load_objects(scenario, world):
         if not isinstance(obj,IsisAgent): obj = obj.getPythonTag('isisobj')
         if surface.call(None, "put_on", obj) != "success":
             put_in_world(obj, surface)
+            
+    def put_in_front_of(agent, obj):
+        if isinstance(agent,IsisAgent):
+            agent.put_in_front_of(obj)
+            put_in_world(agent)
+        else:
+            print "error: put_in_front_of method only works for agents."
 
     def store(vars):
         """ Stores the local variables defined in the environment
@@ -62,5 +70,9 @@ def load_objects(scenario, world):
         # the environment byte-code to include the "store(locals())" expression as the last line.
 
     locals().update(generators)
-    locals().update({'put_in_world':put_in_world,'put_in':put_in,'put_on':put_on, 'store':store})
+    locals().update({'put_in_world':put_in_world,
+                     'put_in':put_in,
+                     'put_on':put_on,
+                     'store':store,
+                     'put_in_front_of':put_in_front_of})
     exec scenario.environment.__code__ in locals()

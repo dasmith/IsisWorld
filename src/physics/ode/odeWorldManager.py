@@ -220,7 +220,7 @@ class staticObject(physicalObject):
         In the future, it might be moved into some other place,
         so that it can be used by many objects, like bitMasks.
         """
-        self.surfaceFriction = 0.0
+        self.surfaceFriction = 0.2
         self.surfaceBounce = 0.0
         self.surfaceBounceVel = 0.0
         self.surfaceSoftCFM = 0.1
@@ -945,6 +945,15 @@ class ODEWorldManager(object):
     def getSpace(self):
         return self.space
         
+    def destroyAllObjects(self):
+        self.stopSimulation()
+        for object in self.objects:
+            self.removeObject(object)
+            render.removeNode(object)
+        
+        self.contactGroup.empty()
+        return True
+
     def destroy(self):
         self.stopSimulation()
         for object in self.objects:
@@ -962,6 +971,7 @@ class ODEWorldManager(object):
         del self.objects
         
         return True
+        
     
     """
     Collide only one object against the rest of the space. I use it to check
@@ -1082,7 +1092,7 @@ class ODEWorldManager(object):
     
     If you've used 0.9 (and earlier) you will notice, that this time I work on OBJECTS rather than GEOMS. This
     is an important simplification and it allows for some optimization too. That's why I ditched the OdeGeomData
-    class, because without it everything is a lot more straightforward, and it prooved to be pointless, since
+    class, because without it everything is a lot more straightforward, and it proved to be pointless, since
     with the CopperODE design it could not be used by more than one object at the same time anyway.
     
     Additionally, notice that the collision callbacks are now called with the object1 and object2 values, where

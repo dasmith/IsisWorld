@@ -83,6 +83,10 @@ class RoomLayout(LayoutManager):
         return (self.w-ow*2, y)  # FIXME: without *2, objects start in the wall.
     def __adds(self, obj, ow, ol):
         """Tries to add the object along the south side"""
+        if ol > ow:
+            # undo previous change
+            obj.rotateAlongX(-90)
+            t = ow; ow = ol; ol = t
         if self.px-ow < 0:
             # No more room on this side, prepare coordinates for next wall
             self.side += 1

@@ -31,7 +31,6 @@ class pickableObject(dynamicObject):
         self.owner = None
         
         self.friction = 10.1
-        print "INITIALIZED FOR ", name
     
     """
     Automated geom, body and model setup. See map.py to see the usage of

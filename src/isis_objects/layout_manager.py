@@ -80,7 +80,7 @@ class RoomLayout(LayoutManager):
         # Once this wall is full
         if ow > self.maxd:
             self.maxd = ow
-        return (self.w-ow*2, y)  # FIXME: without *2, objects start in the wall.
+        return (self.w-2*ow, y)  # FIXME: without *2, objects start in the wall.
     def __adds(self, obj, ow, ol):
         """Tries to add the object along the south side"""
         if ol > ow:

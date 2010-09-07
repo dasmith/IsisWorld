@@ -30,6 +30,9 @@ class Container(object):
     def isEmpty(self):
         return len(self.containerItems) == 0
 
+    def update(self,x=None):
+        print "Update method called for", self.name, x
+
     def action__put_in(self, agent, obj):
         # TODO: ensure that object can fit in other object
         #  1) internal volume is big enough, 2) vol - vol of other things in there
@@ -57,11 +60,12 @@ class Surface(object):
         
     def setup(self):
         area = (self.getWidth(), self.getLength())
-        self.on_layout = HorizontalGridSlotLayout(area, self.getHeight(), int(self.getWidth()),int(self.getLength()))
+        self.on_layout = HorizontalGridLayout(area, self.getHeight(), int(self.getWidth()),int(self.getLength()))
 
     def action__put_on(self, agent, obj):
         # TODO: requires that object has an exposed surface
         print "Putting %s on %s" % (obj, self)
+        obj.setGeomQuat(self.getQuat())
         pos = self.on_layout.add(obj)
         print "SURFACE POSITION:", pos
         if pos:
@@ -72,8 +76,8 @@ class Surface(object):
                     agent.control__drop_from_right_hand()
             obj.disable()
             obj.reparentTo(self)
+
             obj.setPosition(self.getGeomPos()+pos)
-            obj.setGeomQuat(self.getQuat())
             obj.setLayout(self.on_layout)
             obj.enable()
             return "success"

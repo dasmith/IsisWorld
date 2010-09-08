@@ -132,7 +132,7 @@ class IsisAgent(kinematicCharacterController,DirectObject):
 
         # speech bubble
         self.last_spoke = 0
-        self.speech_bubble=DirectLabel(parent=self.actor, text="", text_wordwrap=10, pad=(3,3),\
+        self.speech_bubble = DirectLabel(parent=self.actor, text="", text_wordwrap=10, pad=(3,3),\
                        relief=None, text_scale=(.3,.3), pos = (0,0,3.6), frameColor=(.6,.2,.1,.5),\
                        textMayChange=1, text_frame=(0,0,0,1), text_bg=(1,1,1,1))
         # stop the speech bubble from being colored like the agent
@@ -732,11 +732,10 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         return Task.cont
         
     def destroy(self):
+        print "DESTROYING", self.name
         self.disable()
         self.specialDirectObject.ignoreAll()
-
-        del self.flashlightNP
-        del self.flashlight
+        self.actorNodePath.removeNode()
         del self.specialDirectObject
 
         kinematicCharacterController.destroy(self)

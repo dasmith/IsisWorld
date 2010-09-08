@@ -48,6 +48,10 @@ class IsisObject(NodePath):
         if hasattr(self,'afterSetup'):
             self.afterSetup()
 
+        # register object in main:  this is used for 
+        # destroying all of the initialized objects later
+        self.physics.main.objects.append(self)
+
     @classmethod
     def setPhysics(cls,physics):
         """ This method is set in src.loader when the generators are loaded
@@ -64,3 +68,13 @@ class IsisObject(NodePath):
         
     def getActiveModel(self):
         return self.activeModel
+        
+    def removeFromWorld(self):
+        #self.physics.removeObject(self)
+        #self.destroy()
+        if self.activeModel:
+            self.activeModel.removeNode()
+            self.removeNode()
+        del self.activeModel
+        # destroy physics component
+        

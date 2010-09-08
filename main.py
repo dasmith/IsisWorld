@@ -31,6 +31,7 @@ from direct.filter.CommonFilters import CommonFilters
 from direct.fsm.FSM import FSM
 from direct.gui.DirectGui import *#DirectEntry, DirectButton, DirectOptionMenu
 from pandac.PandaModules import * # TODO: specialize this import
+from direct.showbase.DirectObject import DirectObject
 
 # local source code
 from src.physics.ode.odeWorldManager import *
@@ -45,12 +46,8 @@ from src.isis_objects.layout_manager import HorizontalGridLayout
 from src.lights.skydome2 import *
 from src.actions.actions import *
 
-from direct.showbase.DirectObject import DirectObject
-
-
 # panda's own threading module
 from direct.stdpy import threading
-from pandac.PandaModules import * # TODO specialize
 
 print "Threads supported?", Thread.isThreadingSupported()
 
@@ -60,21 +57,13 @@ class IsisWorld(DirectObject):
     
     def __init__(self):
         # MAIN_DIR var is set in direct/showbase/ShowBase.py
-
         self.rootDirectory = ExecutionEnvironment.getEnvironmentVariable("MAIN_DIR")
+        
         DirectObject.__init__(self)
 
         self.isisMessage("Starting Up")
-
-        self.agentNum = 0
-        self.agents = []
-        self.agentsNamesToIDs = {}
-         # setup physics
-
-        #self.physicsManager.startSimulation(1.0/60)
         
         self._setup_base_environment(debug=False)
-        self._setup_ground_and_sky(visualizeClouds=True)
         self._setup_lights()
         self._setup_cameras()
 
@@ -101,8 +90,8 @@ class IsisWorld(DirectObject):
                 sys.exit()
             elif o in ("-D", "--default"):
                 # go to the first scenario
+                while not self.controller.loaded: time.sleep(0.0001)
                 self.controller.request('Scenario')
-                time.sleep(0.3) # TODO wait until loaded
                 self.controller.request('TaskPaused')
             else:
                 assert False, "unhandled option"
@@ -116,16 +105,51 @@ class IsisWorld(DirectObject):
     def make_safe_path(self,path):
         """ Working paths across different operating systems."""
         return Filename(self.rootDirectory, path)
-    
+
+    def reset(self):
+        print "RESET MAIN CALLED\n\n"
+        """ Setup the Physics manager as a class variable """ 
+        IsisWorld.physics = ODEWorldManager(self)
+        
+        self.agents = []
+        self.agentNum = 0
+        self.agentsNamesToIDs = {}
+        self.objects = []
+        self.worldNode = base.render.attachNewNode(PandaNode('isisObjects'))
+
+        """ The world consists of a plane, the "ground" that stretches to infinity
+        and a dome, the "sky" that sits concavely on the ground. """
+        cm = CardMaker("ground")
+        groundTexture = loader.loadTexture(self.make_safe_path("media/textures/env_ground.jpg"))
+        cm.setFrame(-100, 100, -100, 100)
+        groundNP = self.worldNode.attachNewNode(cm.generate())
+        groundNP.setTexture(groundTexture)
+        groundNP.setPos(0, 0, 0)
+        groundNP.lookAt(0, 0, -1)
+        groundNP.setTransparency(TransparencyAttrib.MAlpha)
+        
+        obj = staticObject(self)
+        obj.geom =  OdePlaneGeom(IsisWorld.physics.space, Vec4(0, 0, 1, 0))
+        obj.setCatColBits("environment")
+        IsisWorld.physics.addObject(obj)
+        
+        """ Setup the skydome
+        Moving clouds are pretty but computationally expensive """
+        self.skydomeNP = SkyDome2(self.worldNode,True)
+        self.skydomeNP.setPos(Vec3(0,0,-500))
+        self.skydomeNP.setStandardControl()
+        self.skydomeNP.att_skycolor.setColor(Vec4(0.3,0.3,0.3,1))
+
     def _setup_base_environment(self,debug=False):
-        """  Configuration code for basic window stuff.  Everything here is only loaded ONCE."""
+        """  Configuration code for basic window management, and the XML-RPC server.
+        Everything here is only loaded ONCE."""
+       
         base.setFrameRateMeter(True)
         base.setBackgroundColor(.2, .2, .2)
         base.camLens.setFov(75)
         base.camLens.setNear(0.1)
         base.disableMouse()
-        self.physicsManager = ODEWorldManager(self)
-        IsisWorld.physics = self.physicsManager
+        
         base.graphicsEngine.renderFrame()
         base.graphicsEngine.renderFrame()
 
@@ -134,8 +158,6 @@ class IsisWorld(DirectObject):
                        'mono': base.loader.loadFont('media/fonts/DroidSansMono.ttf'),\
                        'normal': base.loader.loadFont('media/fonts/DroidSans.ttf')}
         
-
-
         # debugging stuff
         if debug:  messenger.toggleVerbose()
         # xmlrpc server command handler
@@ -147,40 +169,9 @@ class IsisWorld(DirectObject):
         base.taskMgr.add(self.server.start_serving, 'xmlrpc-server', taskChain='xmlrpc')
         base.taskMgr.add(self.run_xml_command_queue,'xmlrpc-command-queue', priority=1000)
         
-
-    def _setup_ground_and_sky(self, visualizeClouds=False):
-        """ The world consists of a plane, the "ground" that stretches to infinity
-        and a dome, the "sky" that sits concavely on the ground. """
-
-        # setup ground
-        cm = CardMaker("ground")
-        groundTexture = loader.loadTexture(self.make_safe_path("media/textures/env_ground.jpg"))
-        cm.setFrame(-100, 100, -100, 100)
-        groundNP = render.attachNewNode(cm.generate())
-        groundNP.setCollideMask(BitMask32.allOff())
-        groundNP.setTexture(groundTexture)
-        groundNP.setPos(0, 0, 0)
-        groundNP.lookAt(0, 0, -1)
-        groundNP.setTransparency(TransparencyAttrib.MAlpha)
-        pos = groundNP.getPos(render)
-        quat = groundNP.getQuat(render)
-        
-        obj = staticObject(self)
-        obj.geom =  OdePlaneGeom(self.physicsManager.space, Vec4(0, 0, 1, 0))
-        obj.setCatColBits("environment")
-        self.physicsManager.addObject(obj)
-        
-        """
-        Setup the skydome
-        Moving clouds are pretty but computationally expensive """
-        if visualizeClouds: 
-            self.skydomeNP = SkyDome2(render,visualizeClouds)
-            self.skydomeNP.setPos(Vec3(0,0,-500))
-            self.skydomeNP.setStandardControl()
-            self.skydomeNP.att_skycolor.setColor(Vec4(0.3,0.3,0.3,1))
-
     
     def cloud_moving_task(self,task):
+        """ Non-essential visualization to move the clouds around."""
         self.skydomeNP.skybox.setShaderInput('time', task.time)
         return task.cont
     
@@ -194,7 +185,6 @@ class IsisWorld(DirectObject):
         base.cam.node().setCameraMask(BitMask32.bit(0))
         base.camera.setPos(0,0,12)
         base.camera.setP(0)#315)
-        
 
 
     def _setup_lights(self):

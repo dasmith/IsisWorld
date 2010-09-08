@@ -12,7 +12,7 @@ def load_objects(scenario, world):
     # to easily and pythonically set up the environment
     
     renderParent = world.worldNode
-    physics = world.physicsManager
+    physics = world.physics
 
     # Parents the object to the world node, must be done to the object or a parent
     # of the object for the object to be visible

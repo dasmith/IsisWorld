@@ -131,7 +131,7 @@ class pickableObject(dynamicObject):
     """
     def drop(self):
         self.resetPhysics()
-        self.nodePath.reparentTo(render)
+        self.nodePath.reparentTo(self.physics.main.worldNode)
         self.nodePath.setAlphaScale(1.0)
         
         self.body.setGravityMode(1)
@@ -149,7 +149,7 @@ class pickableObject(dynamicObject):
         self.owner.throwHeld(force)
         self.body.setGravityMode(1)
         
-    def destroy(self, task=None):
+    def destroyPhysics(self, task=None):
         if self.owner:
             self.owner.heldItem = None
         dynamicObject.destroy(self)

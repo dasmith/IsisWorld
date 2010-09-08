@@ -14,7 +14,7 @@ bitMaskDict = {
     
     "wifiTrigger": (BitMask32(0b0), BitMask32(0b10)),
     "charTrigger": (BitMask32(0b100), BitMask32(0b10)),
-    
+    "container": (BitMask32(0b10),BitMask32(0b1001)),
     "environment": (BitMask32(0b10), BitMask32(0b111)),
     "aimRay": (BitMask32(0b0), BitMask32(0b011)),
     "kccEnvCheckerRay": (BitMask32(0b0), BitMask32(0b11)),
@@ -195,18 +195,12 @@ class physicalObject(object):
         return
         
     def destroy(self):
-        print "REMOVING DESTROYING OBJECT", self.objectType
-        self.physics.removeObject(self)
-        if self.activeModel:
-            self.activeModel.remove()
-        if self.visualization:
+        if hasattr(self,'visualization') and self.visualization:
             self.visualization.remove()
+            del self.visualization
         self.geom.destroy()
-        del self.visualization
         del self.geom
-        del self.activeModel
         del self.physics
-        print "FINISHED DESTROYING PHYSICAL OBJECT", self.objectType
 
 
 class staticObject(physicalObject):
@@ -271,6 +265,7 @@ class staticObject(physicalObject):
             model = loader.loadModel(model)
         trimeshData = OdeTriMeshData(model, True)
         self.geom = OdeTriMeshGeom(self.physics.getSpace(), trimeshData)
+        print "INITIALIZED GEOM FOR", self, self.geom
         if self.activeModel:
             self.geom.setPosition(self.activeModel.getPos(render))
             self.geom.setQuaternion(self.activeModel.getQuat(render))
@@ -427,6 +422,7 @@ class dynamicObjectNoCCD(staticObject):
         self.body.destroy()
         del self.body
         del self.mass
+        
 
 """
 The more complex version of a dynamic object, featuring
@@ -947,10 +943,15 @@ class ODEWorldManager(object):
         
     def destroyAllObjects(self):
         self.stopSimulation()
-        for object in self.objects:
-            self.removeObject(object)
-            render.removeNode(object)
-        
+        for obj in self.objects:
+            self.removeObject(obj)
+            if hasattr(obj,'removeFromWorld'): 
+                # IsisObject method for destroying the object and model
+                obj.destroy()
+                obj.removeFromWorld()
+            else:
+                obj.destroy()
+        print "remaining objects", self.objects
         self.contactGroup.empty()
         return True
 
@@ -958,7 +959,8 @@ class ODEWorldManager(object):
         self.stopSimulation()
         for object in self.objects:
             self.removeObject(object)
-        
+            object.destroy()
+
         self.contactGroup.empty()
         self.space.destroy()
         self.contactGroup.destroy()
@@ -995,7 +997,6 @@ class ODEWorldManager(object):
             geomCol = geom.getCollideBits()
             if (selCat & geomCol) | (geomCat & selCol) == BitMask32(0):
                 continue
-            
             if not geom.isEnabled():
                 continue
             if geom in exclude:
@@ -1275,7 +1276,6 @@ class ODEWorldManager(object):
         self.objectGeomIndexes[self.lastGeomIndex] = obj
         
         self.objects.append(obj)
-
     
     """
     Remove object from simulation
@@ -1285,7 +1285,10 @@ class ODEWorldManager(object):
     def removeObject(self, object):
         if object not in self.objects:
             return False
-        
+
+        """if not hasattr(object,'geom'):
+            self.objects.pop(idx)
+            return False"""
         geomIndex = self.space.getSurfaceType(object.geom)
         del self.objectGeomIndexes[geomIndex]
         
@@ -1298,10 +1301,6 @@ class ODEWorldManager(object):
     Step the simulation
     """
     def simulationTask(self, task):
-        
-        # run XML commands
-        self.main.commandHandler.panda3d_thread_process_command_queue()
-                
         self.space.collide("", self.handleCollisions)
         self.world.quickStep(self.stepSize)
         self.contactGroup.empty()

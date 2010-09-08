@@ -158,14 +158,13 @@ class kinematicCharacterController(object):
         self.footRay.setCatColBits(name)
     
     def destroy(self):
-        self.map.removeObject(self)
         self.physics.removeObject(self)
         self.geom.destroy()
         
         self.physics.removeObject(self.footRay)
         self.physics.removeObject(self.envCheckerRay)
-        self.footRay.destroy()
-        self.envCheckerRay.destroy()
+        #self.footRay.destroy()
+        #self.envCheckerRay.destroy()
         
         del self.geom
         del self.footRay

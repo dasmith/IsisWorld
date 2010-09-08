@@ -22,7 +22,7 @@ class table(IsisObject,IsisVisual,SpatialStaticBox,Surface,IsisFunctional):
         self.setH(180)
 
 
-class fridge(IsisObject, IsisVisual,SpatialStaticBox, Container,IsisFunctional):
+class fridge(IsisObject, IsisVisual, SpatialStaticBox, Container,IsisFunctional):
     
     def  __init__(self):
         self.model={'default':"Fridge/Fridge"}

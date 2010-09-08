@@ -8,16 +8,17 @@ from layout_manager import *
 
 
 class Container(object):
-    priority =2
+    priority =19
     def __init__(self):
         self.containerItems = []
     
     def setup(self):
         self.in_layout = HorizontalGridLayout((self.getWidth(), self.getLength()), self.getHeight())
         self.collisionCallback = self.enterContainer
+        self.setCatColBits("container")
 
     def enterContainer(self,entry,fromObj,toObj):
-        print "Entering container", self.name
+        print "Entering container", self.name, fromObj, toObj
         if fromObj not in self.containerItems:
 
             self.containerItems.append(fromObj)
@@ -37,7 +38,6 @@ class Container(object):
         # TODO: ensure that object can fit in other object
         #  1) internal volume is big enough, 2) vol - vol of other things in there
         pos = self.in_layout.add(obj)
-        print "Putting %s in %s" % (obj, self)
         if pos:
             if agent and agent.is_holding(obj.name):
                 if agent.left_hand_holding_object == obj:
@@ -45,10 +45,10 @@ class Container(object):
                 elif agent.right_hand_holding_object == obj:
                     agent.control__drop_from_right_hand()
             obj.disable()
-            obj.reparentTo(self)
+            obj.activeModel.reparentTo(self.activeModel)
             obj.setPosition(self.getGeomPos()+pos)
             obj.setLayout(self.in_layout)
-            #obj.enable()
+            obj.enable()
             return "success"
         return "container is full"
 
@@ -64,10 +64,8 @@ class Surface(object):
 
     def action__put_on(self, agent, obj):
         # TODO: requires that object has an exposed surface
-        print "Putting %s on %s" % (obj, self)
         obj.setGeomQuat(self.getQuat())
         pos = self.on_layout.add(obj)
-        print "SURFACE POSITION:", pos
         if pos:
             if agent and agent.is_holding(obj.name):
                 if agent.left_hand_holding_object == obj:
@@ -120,6 +118,7 @@ class SpatialPickableBox(pickableObject):
         pos = self.activeModel.getPos(render)
         quat = self.activeModel.getQuat(render)
         self.setupGeomAndPhysics(self.physics, pos, quat)
+        self.physics.addObject(self)
 
 class SpatialPickableBall(pickableObject):
     def __init__(self):
@@ -136,9 +135,10 @@ class SpatialPickableBall(pickableObject):
         pos = self.activeModel.getPos(render)
         quat = self.activeModel.getQuat(render)
         self.setupGeomAndPhysics(self.physics, pos, quat)
+        self.physics.addObject(self)
 
 class SpatialRoom(staticObject):
-    priority = 5
+    priority = 3
     def __init__(self):
         staticObject.__init__(self,self.physics)
         # Flag to limit setup to once per object
@@ -149,6 +149,7 @@ class SpatialRoom(staticObject):
         self.setTrimeshGeom(self.activeModel)
         self.setCatColBits("environment")
         self.physics.addObject(self)
+        print "\n\n\n KITCHEN GEOM", self.geom
 
     def enterContainer(self,fromObj):
         print "Entering room", self.name
@@ -202,7 +203,5 @@ class SpatialStaticTriMesh(staticObject):
     
     def setup(self):
         self.setTrimeshGeom(self.activeModel)
-        #self.setCatColBits("environment")
-
         self.physics.addObject(self)
 

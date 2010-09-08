@@ -109,7 +109,8 @@ class IsisVisual():
         if self.models.has_key(changeToKey):
             # TODO: blend or play animation depending on kind of transition
             if hasattr(self,'activeModel') and self.activeModel:
-                self.activeModel.detachNode()
+                #self.activeModel.detachNode()
+                self.activeModel.remove()
             self.activeModel = loader.loadModel("media/models/"+self.models[changeToKey])
             self.activeModel.setScale(self.scale)
             self.activeModel.setPosHpr(*self.offsetVec)

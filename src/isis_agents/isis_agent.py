@@ -195,7 +195,7 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         """Set the state of one of the character's movement controls.  """
         self.controlMap[control] = value
     
-    def get_objects_in_field_of_vision(self):
+    def get_objects_in_field_of_vision(self,exclude=[]):
         """ This works in an x-ray style. Fast. Works best if you listen to
         http://en.wikipedia.org/wiki/Rock_Art_and_the_X-Ray_Style while
         you use it."""
@@ -213,12 +213,15 @@ class IsisAgent(kinematicCharacterController,DirectObject):
                 p2 = Point2()
                 self.fov.node().getLens().project(p1, p2)
                 p3 = aspect2d.getRelativePoint(render2d, Point3(p2[0], 0, p2[1]) )
-                object_dict = {'x_pos': p3[0],\
-                               'y_pos': p3[2],\
-                               'distance':o.activeModel.getDistance(self.fov), \
-                               'orientation': o.activeModel.getH(self.fov)}
+                object_dict = {}
+                if 'x_pos' not in exclude: object_dict['x_pos'] = p3[0]
+                if 'y_pos' not in exclude: object_dict['y_pos'] = p3[2]
+                if 'distance' not in exclude: object_dict['distance'] = o.activeModel.getDistance(self.fov)
+                if 'orientation' not in exclude: object_dict['orientation'] = o.activeModel.getH(self.fov)
+                if 'actions' not in exclude: object_dict['actions'] = o.list_actions()
+                if 'isisobject' not in exclude: object_dict['isisobject'] = o
+                # add item to dinctionary
                 objects[o] = object_dict
-        self.control__say("If I were wearing x-ray glasses, I could see %i items"  % len(objects)) 
         return objects
 
     def get_agents_in_field_of_vision(self):
@@ -243,6 +246,9 @@ class IsisAgent(kinematicCharacterController,DirectObject):
                 agents[a] = agentDict
         return agents
 
+    def in_view(self,isisobj):
+        """ Returns true iff a particular isisobject is in view """
+        return len(filter(lambda x: x['isisobject'] == isisobj, self.get_objects_in_field_of_vision().values()))
 
     def get_objects_in_view(self):
         """ Gets objects through ray tracing.  Slow"""
@@ -365,6 +371,7 @@ class IsisAgent(kinematicCharacterController,DirectObject):
     def control__view_objects(self):
         """ calls a raytrace to to all objects in view """
         objects = self.get_objects_in_field_of_vision()
+        self.control__say("If I were wearing x-ray glasses, I could see %i items"  % len(objects)) 
         print "Objects in view:", objects
         return objects
 
@@ -393,7 +400,13 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         self.speech_bubble['text'] = message
         self.last_spoke = 0
         return "success"
-      
+    
+    """
+
+    Methods explicitly for IsisScenario files 
+
+    """
+
     def put_in_front_of(self,isisobj):
         # find open direction
         pos = isisobj.getGeomPos()
@@ -423,8 +436,12 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         self.actorNodePath.lookAt(pos)
         self.setH(self.actorNodePath.getH())
         
-        
+    def put_in_right_hand(self,target):
+        return self.pick_object_up_with(target, self.right_hand_holding_object, self.player_right_hand)
                     
+    def put_in_left_hand(self,target):
+        return self.pick_object_up_with(target, self.left_hand_holding_object, self.player_left_hand)
+
     def __get_object_in_center_of_view(self):
        direction = render.getRelativeVector(self.fov, Vec3(0, 1.0, 0))
        pos = self.fov.getPos(render)
@@ -455,7 +472,6 @@ class IsisAgent(kinematicCharacterController,DirectObject):
                 self.left_hand_holding_object = target
             hand_slot = target
             return target
-
 
     def control__pick_up_with_right_hand(self, target=None):
         if not target:
@@ -732,7 +748,6 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         return Task.cont
         
     def destroy(self):
-        print "DESTROYING", self.name
         self.disable()
         self.specialDirectObject.ignoreAll()
         self.actorNodePath.removeNode()

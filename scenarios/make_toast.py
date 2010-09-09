@@ -55,6 +55,7 @@ def task_toast_in_view():
     def train():
         k.put_in(r) # put ralph in the kitchen
 
-    def goal():
-        goal.name = "toast in view"
-        return r.in_view(t)
+    def goal_toast_in_view():
+        return ralph.in_view(t)
+    
+    store(locals())

@@ -8,12 +8,13 @@ def environment():
 
     ta = table()
     put_in(ta, k)
-
     kn = knife()
     put_on(kn, ta)
 
+    kn2 = knife()
     r = IsisAgent("Ralph")
-    #r.set_color()
+    r.put_in_right_hand(kn2)
+
     put_in_world(r)
     
     # required at the end of the environment setup
@@ -23,12 +24,15 @@ def environment():
 def task_goto_knife():
     task.name = "go to knife"
     
-    def goal():
+    def goal_try():
         return True
-
+    store(locals())
 
 def task_pick_up_knife():
     task.name = "pick up knife"
     
-    def goal():
+    def goal_try():
+        return True
         if task.time > 10: return True
+
+    store(locals())

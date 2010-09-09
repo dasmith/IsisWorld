@@ -2,7 +2,7 @@
 import os
 
 from direct.gui.DirectGui import DGG, DirectFrame, DirectLabel, DirectButton, DirectOptionMenu
-from direct.gui.DirectGui import DirectSlider
+from direct.gui.DirectGui import DirectSlider, RetryCancelDialog
 from direct.fsm.FSM import FSM, RequestDenied
 from direct.gui.OnscreenText import OnscreenText
 from direct.gui.OnscreenImage import OnscreenImage
@@ -22,7 +22,7 @@ class Controller(object, FSM):
         # define the acceptable state transitions
         self.defaultTransitions = {
             'Menu' : ['Scenario'],
-            'Scenario' : ['Menu','TaskPaused'],
+            'Scenario' : ['Menu','TaskPaused','Scenario'],
             'TaskPaused' : ['Menu','TaskTrain','TaskTest','Scenario'],
             'TaskTrain' : ['TaskPaused','TaskTest','Menu','Scenario'],
             'TaskTest' : ['TaskPaused','TaskTrain','Menu','Scenario'],
@@ -275,38 +275,60 @@ class Controller(object, FSM):
 
     def exitMenu(self):
         self.menuFrame.hide()
-        loadingText = OnscreenText('Loading...', mayChange=True,
-                                       pos=(0, -0.9), scale=0.1,
-                                       fg=(1, 1, 1, 1), bg=(0, 0, 0, 0.5))
-        loadingText.setTransparency(1)
-        self.currentScenario = IsisScenario(self.selectedScenario)
-        # setup world
-        load_objects(self.currentScenario, self.main)
-        # define pointer to base scene.
-        room = render.find("**/*kitchen*").getPythonTag("isisobj")
-        # position the camera in the room
-        base.camera.reparentTo(room)
-        base.camera.setPos(room.getWidth()/2,room.getLength()/2,room.getHeight())
-        base.camera.setHpr(130,320,0)
-        loadingText.destroy()
 
     def enterScenario(self):
         print "\nENTER SCENARIO\n"
         """ Loads (or resets) the current scenario. """
+        if self.oldState in ['Menu','Scenario']:
+            # reload the scenario
+            loadingText = OnscreenText('Loading...', mayChange=True,
+                                           pos=(0, -0.9), scale=0.1,
+                                           fg=(1, 1, 1, 1), bg=(0, 0, 0, 0.5))
+            loadingText.setTransparency(1)
 
-        # add list of tasks to the GUI
-        self.scenarioTasks =  self.currentScenario.getTaskList()
-        
-        print "Loading from state", self.oldState
-        print "Scenario Tasks", self.scenarioTasks
+            def parsingProblemDialogCallback(arg):
+                if arg == 1: 
+                    self.request('Scenario')
+                else: # cancel
+                    self.request('Menu')
+                dialogbox.cleanup()
 
-        self.menuTaskOptions['items'] = self.scenarioTasks
-        # oddly, you cannot initialize with a font if there are no items in the menu
-        # self.menuTaskOptions['item_text_font']=self.fonts['normal']
-        # make sure some default task is selected
-        self.selectedTask = self.currentScenario.getTaskByName(self.scenarioTasks[self.menuTaskOptions.selectedIndex])
-        self.taskDescription.setText(str(self.selectedTask.getDescription()))
-        self.scenarioFrame.show()
+            try:
+                self.currentScenario = IsisScenario(self.selectedScenario)
+            except IsisParseProblem as e:
+                dialogbox = RetryCancelDialog(text='There was a problem parsing the scenario file\
+                                  : \n %s.  \n\nLocation %s' % (e.message, e.component),\
+                                 command=parsingProblemDialogCallback)
+            else:
+                # setup world
+                load_objects(self.currentScenario, self.main)
+                # define pointer to base scene.
+                room = render.find("**/*kitchen*").getPythonTag("isisobj")
+                # position the camera in the room
+                base.camera.reparentTo(room)
+                base.camera.setPos(room.getWidth()/2,room.getLength()/2,room.getHeight())
+                base.camera.setHpr(130,320,0)
+                loadingText.destroy()
+                # add list of tasks to the GUI
+                self.scenarioTasks =  self.currentScenario.getTaskList()
+                self.menuTaskOptions['items'] = self.scenarioTasks
+                # oddly, you cannot initialize with a font if there are no items in the menu
+                # self.menuTaskOptions['item_text_font']=self.fonts['normal']
+                # make sure some default task is selected
+                self.selectedTask = self.currentScenario.getTaskByName(self.scenarioTasks[self.menuTaskOptions.selectedIndex])
+                self.taskDescription.setText(str(self.selectedTask.getDescription()))
+                self.scenarioFrame.show()
+        else:
+
+            # add list of tasks to the GUI
+            self.scenarioTasks =  self.currentScenario.getTaskList()
+            self.menuTaskOptions['items'] = self.scenarioTasks
+            # oddly, you cannot initialize with a font if there are no items in the menu
+            # self.menuTaskOptions['item_text_font']=self.fonts['normal']
+            # make sure some default task is selected
+            self.selectedTask = self.currentScenario.getTaskByName(self.scenarioTasks[self.menuTaskOptions.selectedIndex])
+            self.taskDescription.setText(str(self.selectedTask.getDescription()))
+            self.scenarioFrame.show()
 
 
     def exitScenario(self):
@@ -334,6 +356,7 @@ class Controller(object, FSM):
     def enterTaskTest(self):
         self.taskFrame.show()
         self.start_simulation()
+        self.selectedTask.start()
         self.menuTestButton['text']  = "Testing..."
         self.menuTestButton['state'] = DGG.DISABLED
 

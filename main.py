@@ -321,11 +321,18 @@ class IsisWorld(DirectObject):
 
         def accept_message(message,x):
             message = message.strip()
-            if message:
+            if len(message.split()) > 1 and message.split()[0] == 'do':
+                if len(message.split()) > 2 and message.split()[1] == "right":
+                    self.agents[self.agentNum].control__use_right_hand(None," ".join(message.split()[2:]))
+                elif len(message.split()) > 2 and message.split()[1] == "left":
+                    self.agents[self.agentNum].control__use_left_hand(None," ".join(message.split()[2:]))
+                else:
+                    # by default, when no hand is mentioned, use right hand
+                    self.agents[self.agentNum].control__use_right_hand(None," ".join(message.split()[1:]))
+            else:
                 self.agents[self.agentNum].msg = message
                 self.agents[self.agentNum].control__say("Action: " + message)
-            else:
-                self.agents[self.agentNum].msg = None
+                #self.agents[self.agentNum].msg = None
                 return
             x.teacher_utterances.append(message)
             x.command_box.enterText("")

@@ -8,9 +8,7 @@ from direct.gui.OnscreenText import OnscreenText
 from direct.gui.OnscreenImage import OnscreenImage
 from pandac.PandaModules import Vec3, Vec4, PandaNode
 
-from src.loader import *
 from src.isis_scenario import *
-
 
 
 class Controller(object, FSM):
@@ -192,16 +190,27 @@ class Controller(object, FSM):
                                     command=self.request, extraArgs=['Menu'])
         self.goBackFromTaskText.reparentTo(self.taskFrame)
 
+        def clickTestButton():
+            if self.state == 'TaskTest':
+                self.request('TaskPaused')
+            else:
+                self.request('TaskTest')
+
+        def clickTrainButton():
+            if self.state == 'TaskTrain':
+                self.request('TaskPaused')
+            else:
+                self.request('TaskTrain')
         self.menuTrainButton = DirectButton(text = "Start Training", 
                                             scale=0.05, textMayChange=1, pos=(0,0,0.4),
                                             text_font=self.fonts['bold'],borderWidth=BUTTON_BORDER,
                                             text_fg=BUTTON_FG, text_bg = BUTTON_BG, relief=BUTTON_RELIEF,
-                                            command=self.request, extraArgs=['TaskTrain'])
+                                            command=clickTrainButton)
         self.menuTestButton = DirectButton(text = "Start Testing", textMayChange=1, pos=(0,0,0.3),
                                             scale=0.05,borderWidth=BUTTON_BORDER,
                                             text_font=self.fonts['bold'],
                                             text_fg=BUTTON_FG, text_bg = BUTTON_BG, relief=BUTTON_RELIEF,
-                                            command=self.request, extraArgs=['TaskTest'])
+                                            command=clickTestButton)
         self.menuTrainButton.reparentTo(self.taskFrame)
         self.menuTestButton.reparentTo(self.taskFrame)
         self.loaded = True
@@ -246,23 +255,18 @@ class Controller(object, FSM):
             return "error: request to change state denied: %s" % str(e)
 
     def enterMenu(self):
-        print "\nENTER MENU\n"
         self.pause_simulation()
          
         # unload the previous scene if it's there
         if hasattr(self.main,'worldNode'):
             # kitchen 
             for obj in self.main.objects:
-                print "\n \n DESTROYING", obj
                 obj.removeFromWorld()
-            print "OBJECTS", self.main.objects
             for agent in self.main.agents:
                 agent.destroy()
             self.main.physics.destroy() 
             self.main.worldNode.removeNode()
         self.main.reset()
-        print "UNLOAD SCENARIO ENVIRONMENT FINISHED\n"
-
 
         # start the moving clouds
         taskMgr.add(self.main.cloud_moving_task, "visual-movingClouds")
@@ -277,14 +281,13 @@ class Controller(object, FSM):
         self.menuFrame.hide()
 
     def enterScenario(self):
-        print "\nENTER SCENARIO\n"
         """ Loads (or resets) the current scenario. """
+        loadingText = OnscreenText('Loading...', mayChange=True,
+                                       pos=(0, -0.9), scale=0.1,
+                                       fg=(1, 1, 1, 1), bg=(0, 0, 0, 0.5))
+        loadingText.setTransparency(1)
         if self.oldState in ['Menu','Scenario']:
             # reload the scenario
-            loadingText = OnscreenText('Loading...', mayChange=True,
-                                           pos=(0, -0.9), scale=0.1,
-                                           fg=(1, 1, 1, 1), bg=(0, 0, 0, 0.5))
-            loadingText.setTransparency(1)
 
             def parsingProblemDialogCallback(arg):
                 if arg == 1: 
@@ -292,23 +295,22 @@ class Controller(object, FSM):
                 else: # cancel
                     self.request('Menu')
                 dialogbox.cleanup()
-
             try:
+                # load scenario file
                 self.currentScenario = IsisScenario(self.selectedScenario)
+                # setup world
+                self.currentScenario.loadScenario(self.main)
             except IsisParseProblem as e:
                 dialogbox = RetryCancelDialog(text='There was a problem parsing the scenario file\
                                   : \n %s.  \n\nLocation %s' % (e.message, e.component),\
                                  command=parsingProblemDialogCallback)
             else:
-                # setup world
-                load_objects(self.currentScenario, self.main)
                 # define pointer to base scene.
                 room = render.find("**/*kitchen*").getPythonTag("isisobj")
                 # position the camera in the room
                 base.camera.reparentTo(room)
                 base.camera.setPos(room.getWidth()/2,room.getLength()/2,room.getHeight())
                 base.camera.setHpr(130,320,0)
-                loadingText.destroy()
                 # add list of tasks to the GUI
                 self.scenarioTasks =  self.currentScenario.getTaskList()
                 self.menuTaskOptions['items'] = self.scenarioTasks
@@ -318,8 +320,7 @@ class Controller(object, FSM):
                 self.selectedTask = self.currentScenario.getTaskByName(self.scenarioTasks[self.menuTaskOptions.selectedIndex])
                 self.taskDescription.setText(str(self.selectedTask.getDescription()))
                 self.scenarioFrame.show()
-        else:
-
+        elif self.currentScenario == None:
             # add list of tasks to the GUI
             self.scenarioTasks =  self.currentScenario.getTaskList()
             self.menuTaskOptions['items'] = self.scenarioTasks
@@ -328,8 +329,9 @@ class Controller(object, FSM):
             # make sure some default task is selected
             self.selectedTask = self.currentScenario.getTaskByName(self.scenarioTasks[self.menuTaskOptions.selectedIndex])
             self.taskDescription.setText(str(self.selectedTask.getDescription()))
-            self.scenarioFrame.show()
 
+        self.scenarioFrame.show()
+        loadingText.destroy()
 
     def exitScenario(self):
         self.scenarioFrame.hide()
@@ -356,12 +358,16 @@ class Controller(object, FSM):
     def enterTaskTest(self):
         self.taskFrame.show()
         self.start_simulation()
-        self.selectedTask.start()
-        self.menuTestButton['text']  = "Testing..."
-        self.menuTestButton['state'] = DGG.DISABLED
+        self.selectedTask.start(True,self.onGoalMetCallback)
+        self.menuTestButton['text']  = "Stop testing"
+        self.menuTestButton['state'] = DGG.NORMAL
 
     def exitTaskTest(self):
         self.start_simulation()
+        self.selectedTask.stop()
         self.menuTestButton['text'] = "Start testing"
         self.menuTestButton['state'] = DGG.NORMAL
         self.taskFrame.hide()
+
+    def onGoalMetCallback(self):
+        self.request('TaskPaused')

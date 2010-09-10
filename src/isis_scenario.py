@@ -1,7 +1,9 @@
+import time
+
 from pandac.PandaModules import ClockObject
 from direct.gui.DirectGui import OkDialog
 
-import time
+from src.loader import *
 
 class IsisParseProblem(Exception):    
     def __init__(self,message,component='unknown'):
@@ -88,16 +90,18 @@ class IsisTask(object):
             new_goal = IsisGoal(self.__dict__[gf], self._scenario)
             self._goals[gf] = new_goal 
 
-    def start(self,captureMovie=False):
+    def start(self, captureMovie, controllerCallback):
         self.start_time = time.time()
         self.time = 0.0
         for gf in self._goals.values():
             gf.reset()
+        # pointer of method to call in controller to signal
+        # that the Testing phase has ended
+        self.controllerCallback = controllerCallback 
         taskMgr.add(self._goalCheckTask,'goal-checking-task')
   
     def stop(self):
         taskMgr.remove('goal-checking-task')
-
 
     def onCompletion(self):
         """ Ends the testing method and displays the goal statistics in the window"""
@@ -107,7 +111,18 @@ class IsisTask(object):
         def closeDialog(arg):
             goal_dialog.cleanup() # hide window
         goal_dialog = OkDialog(text=self.goal_statement, command=closeDialog)
-    
+        # signal to controller that testing phase has ended
+        self.controllerCallback()
+
+    def onStatus(self):
+        """ Prints out the current status of each goal, without any congratulatory message. """
+        self.goal_statement = "Goal Status:\n"
+        for goal_name, goal_function in self._goals.items():
+            self.goal_statement += "Goal %s: %s"  % (goal_name, goal_function.completionString())
+        def closeDialog(arg):
+            goal_dialog.cleanup() # hide window
+        goal_dialog = OkDialog(text=self.goal_statement, command=closeDialog)
+
     def _goalCheckTask(self,task): 
         all_done = True
         self.time = time.time()-self.start_time
@@ -151,7 +166,6 @@ class IsisScenario(object):
         self.envDict = {}
         self._loadTaskFile(self.name)
     
-    
     def _loadTaskFile(self,fileName):
         print "Loading: %s" % fileName
         try:
@@ -163,11 +177,20 @@ class IsisScenario(object):
         if len(task_functions) == 0:
             raise IsisParseProblem("No tasks defined.",fileName)
 
+        # create IsisTasks for each of the def task_* in the scenario file.
         for tf in task_functions:    
             new_task = IsisTask(self)
             new_task.executeTaskCode(tf,self.__dict__[tf])
             # add the task to the dictionary
             self._taskDict[new_task.name] = new_task
+
+    def loadScenario(self, baseNode):
+        try:
+            load_objects(self, baseNode)
+            return True
+        except Exception, e:
+            raise IsisParseProblem(str(e),"%s in def environment()" % self.name)
+            return False
 
     def getTaskByName(self,taskName):
         return self._taskDict[taskName]

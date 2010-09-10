@@ -70,11 +70,8 @@ class IsisObject(NodePath):
         return self.activeModel
         
     def removeFromWorld(self):
-        #self.physics.removeObject(self)
-        #self.destroy()
         if self.activeModel:
             self.activeModel.removeNode()
             self.removeNode()
         del self.activeModel
-        # destroy physics component
         

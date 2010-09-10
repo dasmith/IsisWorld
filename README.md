@@ -1,21 +1,21 @@
 
 # To Do List
 
-  - exporting screen shots  (there's the beginning of code to do this in Ralph's `get_vision` method -- but it's something I found in a Panda3d forum post)
-  - making the RoomLayout layout manager that puts objects around the walls (right now, it's just a placeholder: a copy of `HorizontalGridLayout`)
-  - parsing of attributes in scenario files. e.g. `kitchen {'width':20, 'color': blue}` in "kitchen.isis".  IsisObject generators specify/randomly select the default values during `__init__()`, but then the defaults can be changed sometime after `__init__` and before `setup()`.
+  - parsing of attributes in scenario files. e.g. `k.width(10)` in scenario files. IsisObject generators specify/randomly select the default values during `__init__()`, but then the defaults can be changed sometime after `__init__` and before `setup()`.
   - Loading and running [IsisScenarios](#IsisScenarios) files:
-    - migrating the `kitchen.isis` into an "scene initialization" section of the "scenario/" files.
-    - a DirectGUI for loading tasks, which is the default screen when the simulator loads.
     - buttons for starting a task, running a training and test scenario
-    - checking for whether the goal state is met
     - recording statistics about the task: how many steps since it started, state of task (failed/completed/ongoing)
     - displaying state of task in the menu
-    - recording state of task/scenario in logging file
+    - ~~checking for whether the goal state is met~~
+    - ~~migrating the `kitchen.isis` into an "scene initialization" section of the "scenario/" files.~~
+    - ~~a DirectGUI for loading tasks, which is the default screen when the simulator loads.~~
+    - ~~recording state of task/scenario in logging file~~
   - specifying scale ranges for some of the common models sizes, the same way the size of the kitchen is chosen from a random range.
-  - fully documenting a skeleton generator file with all possible superclass attributes, so that other people can work on the project by adding / describing models.
+  - documenting a skeleton generator file with all possible superclass attributes, so that other people can work on the project by adding / describing models.
   - working out the kinks in packaging binaries (try by running `make package` on mac)
   - separating actions from the `main.py` as a different data structure in a different file.
+  - ~~exporting screen shots~~
+  - ~~RoomLayout layout manager that puts objects around the walls~~
 
 # IsisScenarios
 
@@ -25,11 +25,14 @@ Isis Scenarios are Python files found in the `scenarios/` directory.
 
  * Sequential or unordered:  does the simulator reset IsisWorld between each task, or are they staged incrementally?
  * Metadata: a string describing the scenario
- 
+
+## Environment function
+
+This specifies how to build an IsisWorld.
+
 ## Tasks
 
-Each isisScenario has one or more **tasks**, defined using the python `def task__name_of_task`.  Each task can contain a  **training** phase and one or more **test** functions.
-Allows you to specify different versions of Actions to use during training/test.
+Each isisScenario has one or more **tasks**, defined using the python `def task__name_of_task`.  Each task can contain a  **training** phase and one or more **test** functions.  Allows you to specify different versions of Actions to use during training/test.
 
 
 ### Training

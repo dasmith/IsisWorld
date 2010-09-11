@@ -7,7 +7,8 @@ SIM_VERSION=0.4
 make: main.py
 	ipython -c "%run main.py -D"
 
-
+doc: main.py
+	apydia -d docs -o -t "IsisWorld v$(SIM_VERSION)" -p markdown src
 clean: 
 	rm -rf **/*.pyc
 	rm -rf osx_i386 osx_ppc linux_amd64 linux_i386 win32

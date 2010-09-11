@@ -9,16 +9,22 @@ from direct.showbase.InputStateGlobal import inputState
 This is a convenient way of handling the most tedious and powerful part of ODE
 
 To come up with other bitmasks, you can use the constraint solver in bitMaskchecker.py
+{'environment': 11, 'container': 19, 'kccEnvCheckerRay': 25, 'generalKCC': 7, 'pickable': 13, 'aimRay': 25}
+
 
 """
+
+
+
 bitMaskDict = {
-    "generalKCC": (BitMask32(29), BitMask32(29)),
-    "pickable": (BitMask32(3), BitMask32(3)),
-    "container": (BitMask32(3),BitMask32(3)),
-    "environment": (BitMask32(1), BitMask32(1)),
-    "aimRay": (BitMask32(25), BitMask32(25)),
-    "kccEnvCheckerRay": (BitMask32(5), BitMask32(5)),
+            "pickable" : (BitMask32(7), BitMask32(6)),
+            "container" : (BitMask32(1), BitMask32(0)),
+            "generalKCC" : (BitMask32(2), BitMask32(1)),
+            "aimRay" : (BitMask32(4), BitMask32(5)),
+            "environment" : (BitMask32(2), BitMask32(3)),
+            "kccEnvCheckerRay" : (BitMask32(6), BitMask32(5)),
 }
+
 
 
 """
@@ -1033,8 +1039,6 @@ class ODEWorldManager(object):
             geomCat = geom.getCategoryBits()
             geomCol = geom.getCollideBits()
             # skip environment
-            if geomCat == bitMaskDict['environment'][1]:
-                continue
             calc = (rayCat & geomCol) | (geomCat & rayCol)
             if calc == BitMask32(0):
                 continue

@@ -1,5 +1,4 @@
-from pandac.PandaModules import *
-#from pandac.PandaModules import Vec3, BitMask32 
+from pandac.PandaModules import Vec3, BitMask32 
 from ..physics.ode.odeWorldManager import *
 from ..physics.ode.pickables import *
 
@@ -48,7 +47,7 @@ class Container(object):
             obj.activeModel.reparentTo(self.activeModel)
             obj.setPosition(self.getGeomPos()+pos)
             obj.setLayout(self.in_layout)
-            obj.enable()
+            #obj.enable()
             return "success"
         return "container is full"
 
@@ -177,7 +176,6 @@ class SpatialRoom(staticObject):
                 elif agent.right_hand_holding_object == obj:
                     agent.control__drop_from_right_hand()
             obj.reparentTo(self)
-            #obj.disableCollisions()
             obj.setPosition(pos)
             obj.setLayout(self.in_layout)
             return "success"

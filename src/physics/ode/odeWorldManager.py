@@ -7,18 +7,19 @@ from direct.showbase.InputStateGlobal import inputState
 
 """
 This is a convenient way of handling the most tedious and powerful part of ODE
+
+To come up with other bitmasks, you can use the constraint solver in bitMaskchecker.py
+
 """
 bitMaskDict = {
-    "generalKCC": (BitMask32(0b110), BitMask32(0b0)),
-    "pickable": (BitMask32(0b1), BitMask32(0b11)),
-    
-    "wifiTrigger": (BitMask32(0b0), BitMask32(0b10)),
-    "charTrigger": (BitMask32(0b100), BitMask32(0b10)),
-    "container": (BitMask32(0b10),BitMask32(0b1001)),
-    "environment": (BitMask32(0b10), BitMask32(0b111)),
-    "aimRay": (BitMask32(0b0), BitMask32(0b011)),
-    "kccEnvCheckerRay": (BitMask32(0b0), BitMask32(0b11)),
+    "generalKCC": (BitMask32(29), BitMask32(29)),
+    "pickable": (BitMask32(3), BitMask32(3)),
+    "container": (BitMask32(3),BitMask32(3)),
+    "environment": (BitMask32(1), BitMask32(1)),
+    "aimRay": (BitMask32(25), BitMask32(25)),
+    "kccEnvCheckerRay": (BitMask32(5), BitMask32(5)),
 }
+
 
 """
 The basic physical object in this framework. It represents static geometry

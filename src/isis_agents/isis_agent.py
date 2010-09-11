@@ -446,7 +446,7 @@ class IsisAgent(kinematicCharacterController,DirectObject):
        direction = render.getRelativeVector(self.fov, Vec3(0, 1.0, 0))
        pos = self.fov.getPos(render)
        exclude = []#[base.render.find("**/kitchenNode*").getPythonTag("isisobj").geom]
-       closestEntry, closestObject = IsisAgent.physics.doRaycastNew('pickable', 5, [pos, direction], exclude)
+       closestEntry, closestObject = IsisAgent.physics.doRaycastNew('aimRay', 5, [pos, direction], exclude)
        return closestObject
     
     def pick_object_up_with(self,target,hand_slot,hand_joint):
@@ -898,51 +898,3 @@ def map3dToAspect2d(node, point):
     return a2d
 
 
-class Picker(DirectObject):
-    """Picker class derived from http://www.panda3d.org/phpbb2/viewtopic.php?p=4532&sid=d5ec617d578fbcc4c4db0fc68ee87ac0"""
-    def __init__(self, camera, agent, tag = 'pickable', value = 'true'):
-        self.camera = camera
-        self.tag = tag
-        self.value = value
-        self.agent = agent
-        self.queue = CollisionHandlerQueue()
-        self.pickerNode = CollisionNode('mouseRay')
-        self.pickerNP = self.camera.attachNewNode(self.pickerNode)
-
-        self.pickerNode.setFromCollideMask(OBJPICK|AGENTMASK)
-        self.pickerNode.setIntoCollideMask(BitMask32.bit(0))
-
-        self.pickerRay = CollisionRay()
-        self.pickerNode.addSolid(self.pickerRay)
-
-        base.cTrav.addCollider(self.pickerNP, self.queue)
-
-    def pick(self, pos):
-        self.pickerRay.setFromLens(self.camera.node(), pos[0], pos[1])
-        base.cTrav.traverse(render)
-        if self.queue.getNumEntries() > 1:
-            self.queue.sortEntries()
-            parent = self.queue.getEntry(1).getIntoNodePath().getParent()
-            point = self.queue.getEntry(1).getSurfacePoint(self.agent.fov)    
-            object_dict = {'x_pos': point.getY(),\
-                           'y_pos': point.getY(),\
-                           'distance':self.queue.getEntry(1).getIntoNodePath().getDistance(self.agent.fov)}
-            while parent != render:
-                if(self.tag == None):
-                    return (parent, object_dict)
-                elif parent.getTag(self.tag) == self.value:
-                    print "FOUND OBJECT:", parent
-                    return (parent.getPythonTag("isisobj"), object_dict)
-                else:
-                    parent = parent.getParent()
-        return None
-
-
-    def get_objects_in_view(self, xpoints = 20, ypoints = 15):
-        objects = {}
-        for x in frange(-1, 1, 2.0/xpoints):
-            for y in frange(-1, 1, 2.0/ypoints):
-                o = self.pick((x, y))
-                if o and (o[0] not in objects or o[1] < objects[o[0]]):
-                    objects[o[0]] = o[1]
-        return objects

@@ -8,6 +8,8 @@ from direct.gui.OnscreenText import OnscreenText
 from direct.gui.OnscreenImage import OnscreenImage
 from pandac.PandaModules import Vec3, Vec4, PandaNode
 
+from panda3d.core import ExecutionEnvironment
+
 from src.isis_scenario import *
 
 
@@ -36,9 +38,13 @@ class Controller(object, FSM):
         self.scenarioFiles = []
         self.scenarioTasks = []
         # load files in the scenario directory
-        print "SCENARIOS: ",
-        for scenarioPath in os.listdir("scenarios"):
-            if scenarioPath[-3:] == ".py":
+        
+        #if not vfs.isDirectory("maps"):
+        #mf = Multifile()
+        #mf.openRead(
+        print "LOADING SCENARIO FILES", base.appRunner.multifileRoot,  os.listdir(base.appRunner.multifileRoot+ "/scenarios/")
+        for scenarioPath in os.listdir(base.appRunner.multifileRoot+ "/scenarios/"):
+            if scenarioPath[-3:] == "pyo":
                 scenarioFile = scenarioPath[scenarioPath.rfind("/")+1:-3]
                 self.scenarioFiles.append(scenarioFile)
                 print scenarioFile, " ",
@@ -101,11 +107,10 @@ class Controller(object, FSM):
             else:
                 self.selectedScenario = self.scenarioFiles[self.menuScenarioOptions.selectedIndex]
 
-
+        #                                            item_text_font=self.fonts['normal'], 
         self.menuScenarioOptions = DirectOptionMenu(text='Scenarios:',
                                                     text_font=self.fonts['normal'],
                                                     text_bg = POPUP_BG, text_fg = BUTTON_FG,
-                                                    item_text_font=self.fonts['normal'], 
                                                     scale=0.1,
                                                     items=self.scenarioFiles,
                                                     textMayChange=1, 
@@ -255,6 +260,8 @@ class Controller(object, FSM):
             return "error: request to change state denied: %s" % str(e)
 
     def enterMenu(self):
+        self.taskFrame.hide()
+        self.scenarioFrame.hide()
         self.pause_simulation()
          
         # unload the previous scene if it's there

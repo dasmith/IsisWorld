@@ -171,7 +171,7 @@ class IsisScenario(object):
         try:
             execfile("scenarios/%s.py" % fileName,{'scenario':self, 's':self},self.__dict__)
         except Exception, e:
-            raise IsisParseProblem(str(e),fileName+".py")
+            raise IsisParseProblem(str(e),fileName+".pyo")
         # load all of the tasks
         task_functions =  filter(lambda x: x[0:4] == "task",dir(self))
         if len(task_functions) == 0:

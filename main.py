@@ -90,6 +90,7 @@ class IsisWorld(DirectObject):
                 sys.exit()
             elif o in ("-D", "--default"):
                 # go to the first scenario
+                time.sleep()
                 while not self.controller.loaded: time.sleep(0.0001)
                 self.controller.request('Scenario')
                 self.controller.request('TaskPaused')
@@ -104,6 +105,7 @@ class IsisWorld(DirectObject):
 
     def make_safe_path(self,path):
         """ Working paths across different operating systems."""
+        return path
         return Filename(self.rootDirectory, path)
 
     def reset(self):

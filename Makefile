@@ -13,13 +13,20 @@ clean:
 	rm -rf **/*.pyc
 	rm -rf osx_i386 osx_ppc linux_amd64 linux_i386 win32
 
+getp3d: /Developer/Panda3D/lib/direct/p3d/ppackage.py
+	wget http://runtime.panda3d.org/ppackage.p3d
+	wget http://runtime.panda3d.org/packp3d.p3d
+	wget http://runtime.panda3d.org/pdeploy.p3d
+
+
 package:
 	python /Developer/Panda3D/lib/direct/p3d/ppackage.py -i . isisworld.pdef
 	pdeploy -N "IsisWorld" -v 0.5 isisworld.p3d standalone
 
 mac:
-	/Developer/Tools/Panda3D/ppackage -i . isisworld.pdef
-	/Developer/Tools/Panda3D/pdeploy -N "IsisWorld" -v 0.5 isisworld.p3d standalone
+	panda3d ppackage.p3d -i . isisworld.pdef
+
+#	/Developer/Tools/Panda3D/pdeploy -N "IsisWorld" -v 0.5 isisworld.p3d standalone
 
 
 build: package 

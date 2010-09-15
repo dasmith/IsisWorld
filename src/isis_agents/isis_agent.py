@@ -1,4 +1,4 @@
-import math, random, os, Image
+import math, random, os
 from time import time
 
 import direct.directbase.DirectStart 

@@ -29,7 +29,6 @@ from direct.gui.OnscreenText import OnscreenText
 from direct.task import Task, TaskManagerGlobal
 from direct.filter.CommonFilters import CommonFilters 
 from direct.fsm.FSM import FSM
-from direct.gui.DirectGui import *#DirectEntry, DirectButton, DirectOptionMenu
 from pandac.PandaModules import * # TODO: specialize this import
 from direct.showbase.DirectObject import DirectObject
 
@@ -47,7 +46,7 @@ from src.lights.skydome2 import *
 from src.actions.actions import *
 
 # panda's own threading module
-from direct.stdpy import threading
+from direct.stdpy import threading, file
 
 print "Threads supported?", Thread.isThreadingSupported()
 
@@ -57,7 +56,27 @@ class IsisWorld(DirectObject):
     
     def __init__(self):
         # MAIN_DIR var is set in direct/showbase/ShowBase.py
-        self.rootDirectory = ExecutionEnvironment.getEnvironmentVariable("MAIN_DIR")
+        
+        def join(*paths): 
+            return reduce(file.join,paths) 
+        listdir=file.listdir 
+        walk=file.walk 
+
+        _vfs=file._vfs 
+
+        def isdir(path): 
+            """ Implements os.path.isdir over vfs. """ 
+            return _vfs.isDirectory(Filename(path)) 
+        def exists(path): 
+            """ Implements os.path.exists over vfs. """ 
+            return _vfs.exists(Filename(path)) 
+        def pathPrefix(): 
+            if base.appRunner != None and hasattr(base,'appRunner'): 
+                return base.appRunner.multifileRoot
+            else: 
+                return os.curdir+"/"
+        print "MAIN DIR", pathPrefix()
+        self.rootDirectory = pathPrefix()
         
         DirectObject.__init__(self)
 
@@ -82,6 +101,7 @@ class IsisWorld(DirectObject):
             sys.exit(2)
             
         self.verbosity = 0
+        self._defaultTask = None
         for o, a in opts:
             if o == "-v":
                 self.verbosity = a
@@ -90,7 +110,7 @@ class IsisWorld(DirectObject):
                 sys.exit()
             elif o in ("-D", "--default"):
                 # go to the first scenario
-                time.sleep()
+                self._defaultTask = a
                 while not self.controller.loaded: time.sleep(0.0001)
                 self.controller.request('Scenario')
                 self.controller.request('TaskPaused')
@@ -113,6 +133,8 @@ class IsisWorld(DirectObject):
         """ Setup the Physics manager as a class variable """ 
         IsisWorld.physics = ODEWorldManager(self)
         
+        self.teacher_utterances = [] # last message typed
+        # main dialogue box
         self.agents = []
         self.agentNum = 0
         self.agentsNamesToIDs = {}
@@ -310,36 +332,8 @@ class IsisWorld(DirectObject):
         self.accept("a",               self.screenshot_agent, ["agent_snapshot"])
         self.accept("escape",          self.exit)
 
-        self.teacher_utterances = [] # last message typed
-        # main dialogue box
-        def disable_keys(x):
-            x.command_box.enterText("")
-            x.command_box.suppressKeys=True
-            x.command_box["frameColor"]=(0.631, 0.219, 0.247,1)
 
-        def enable_keys(x):
-            x.command_box["frameColor"]=(0.631, 0.219, 0.247,.25)
-            x.command_box.suppressKeys=False
 
-        def accept_message(message,x):
-            message = message.strip()
-            if len(message.split()) > 1 and message.split()[0] == 'do':
-                if len(message.split()) > 2 and message.split()[1] == "right":
-                    self.agents[self.agentNum].control__use_right_hand(None," ".join(message.split()[2:]))
-                elif len(message.split()) > 2 and message.split()[1] == "left":
-                    self.agents[self.agentNum].control__use_left_hand(None," ".join(message.split()[2:]))
-                else:
-                    # by default, when no hand is mentioned, use right hand
-                    self.agents[self.agentNum].control__use_right_hand(None," ".join(message.split()[1:]))
-            else:
-                self.agents[self.agentNum].msg = message
-                self.agents[self.agentNum].control__say("Action: " + message)
-                #self.agents[self.agentNum].msg = None
-                return
-            x.teacher_utterances.append(message)
-            x.command_box.enterText("")
-
-        self.command_box = DirectEntry(pos=(-1.2,-0.95,-0.95), text_fg=(0.282, 0.725, 0.850,1), frameColor=(0.631, 0.219, 0.247,0.25), suppressKeys=1, initialText="enter text and hit return", enableEdit=0,scale=0.07, focus=0, focusInCommand=disable_keys, focusOutCommand=enable_keys, focusInExtraArgs=[self], focusOutExtraArgs=[self], command=accept_message, extraArgs=[self],  width=15, numLines=1)
         base.win.setClearColor(Vec4(0,0,0,1))
 
 

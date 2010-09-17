@@ -1,7 +1,7 @@
 
 import os
 
-from direct.gui.DirectGui import DGG, DirectFrame, DirectLabel, DirectButton, DirectOptionMenu
+from direct.gui.DirectGui import DGG, DirectFrame, DirectLabel, DirectButton, DirectOptionMenu, DirectEntry
 from direct.gui.DirectGui import DirectSlider, RetryCancelDialog
 from direct.fsm.FSM import FSM, RequestDenied
 from direct.gui.OnscreenText import OnscreenText
@@ -38,13 +38,9 @@ class Controller(object, FSM):
         self.scenarioFiles = []
         self.scenarioTasks = []
         # load files in the scenario directory
-        
-        #if not vfs.isDirectory("maps"):
-        #mf = Multifile()
-        #mf.openRead(
-        print "LOADING SCENARIO FILES", base.appRunner.multifileRoot,  os.listdir(base.appRunner.multifileRoot+ "/scenarios/")
-        for scenarioPath in os.listdir(base.appRunner.multifileRoot+ "/scenarios/"):
-            if scenarioPath[-3:] == "pyo":
+        print "LOADING SCENARIO FILES"
+        for scenarioPath in os.listdir(self.main.rootDirectory+"scenarios/"):
+            if scenarioPath[-3:] == ".py":
                 scenarioFile = scenarioPath[scenarioPath.rfind("/")+1:-3]
                 self.scenarioFiles.append(scenarioFile)
                 print scenarioFile, " ",
@@ -218,6 +214,35 @@ class Controller(object, FSM):
                                             command=clickTestButton)
         self.menuTrainButton.reparentTo(self.taskFrame)
         self.menuTestButton.reparentTo(self.taskFrame)
+        
+        def disable_keys(x):
+            x.testCommandBox.enterText("")
+            x.testCommandBox.suppressKeys=True
+            x.testCommandBox["frameColor"]=(0.631, 0.219, 0.247,1)
+
+        def enable_keys(x):
+            x.testCommandBox["frameColor"]=(0.631, 0.219, 0.247,.25)
+            x.testCommandBox.suppressKeys=False
+
+        def accept_message(message,x):
+            message = message.strip()
+            if len(message.split()) > 1 and message.split()[0] == 'do':
+                if len(message.split()) > 2 and message.split()[1] == "right":
+                    self.main.agents[self.main.agentNum].control__use_right_hand(None," ".join(message.split()[2:]))
+                elif len(message.split()) > 2 and message.split()[1] == "left":
+                    self.main.agents[self.main.agentNum].control__use_left_hand(None," ".join(message.split()[2:]))
+                else:
+                    # by default, when no hand is mentioned, use right hand
+                    self.main.agents[self.main.agentNum].control__use_right_hand(None," ".join(message.split()[1:]))
+            else:
+                self.main.agents[self.main.agentNum].msg = message
+                self.main.agents[self.main.agentNum].control__say("Action: " + message)
+                return
+            x.main.teacher_utterances.append(message)
+            x.testCommandBox.enterText("")
+
+        self.testCommandBox = DirectEntry(pos=(-1.2,-0.95,-0.95), text_fg=(0.282, 0.725, 0.850,1), frameColor=(0.631, 0.219, 0.247,0.25), suppressKeys=1, initialText="enter text and hit return", enableEdit=0,scale=0.07, focus=0, focusInCommand=disable_keys, focusOutCommand=enable_keys, focusInExtraArgs=[self], focusOutExtraArgs=[self], command=accept_message, extraArgs=[self],  width=15, numLines=1)
+        self.testCommandBox.reparentTo(self.taskFrame)
         self.loaded = True
         self.request('Menu')
 

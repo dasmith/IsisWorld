@@ -258,7 +258,7 @@ class IsisAgent(kinematicCharacterController,DirectObject):
 
     def in_view(self,isisobj):
         """ Returns true iff a particular isisobject is in view """
-        return len(filter(lambda x: x['isisobject'] == isisobj, self.get_objects_in_field_of_vision().values()))
+        return len(filter(lambda x: x['isisobject'] == isisobj, self.get_objects_in_field_of_vision(exclude=[]).values()))
 
     def get_objects_in_view(self):
         """ Gets objects through ray tracing.  Slow"""

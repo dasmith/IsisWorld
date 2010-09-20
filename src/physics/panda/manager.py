@@ -10,7 +10,7 @@ OBJFLOOR = BitMask32.bit(6)
 OBJPICK = BitMask32.bit(7)
 OBJSIDE = BitMask32.bit(8)
 
-from ..utils import *
+#from ..utils import *
 
 class PhysicsWorldManager(DirectObject.DirectObject):
     

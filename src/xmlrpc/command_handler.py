@@ -50,8 +50,13 @@ class IsisCommandHandler(object):
     def handle_next_command(self, cmd, args):
         """ This is called by the panda3d_thread_process_command_queue, issued by a separate
         thread defined in IsisTask. """
-        # if command is a meta-command, it doesn't require an agent
-        if cmd not in self.meta_commands and not self.simulator.actionController.hasAction(cmd):
+
+        if len(self.simulator.agents) ==0:
+            print 'No agents in simulator. Cannot run xml command: %s' % cmd
+            self.logger.log("COMMAND WITHOUT AGENT: "+cmd)
+            return 'failure'
+            # if command is a meta-command, it doesn't require an agent
+        elif cmd not in self.meta_commands and not self.simulator.actionController.hasAction(cmd):
             # don't know about this command
             print 'Unknown command: %s' % cmd
             print self.simulator.actionController.actionMap.values()

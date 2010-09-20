@@ -56,7 +56,7 @@ class IsisWorld(DirectObject):
     
     def __init__(self):
         # MAIN_DIR var is set in direct/showbase/ShowBase.py
-        self.rootDirectory = ExecutionEnvironment.getEnvironmentVariable("ISISWORLD_SCENARIO_PATH")
+        self.rootDirectory = ""#ExecutionEnvironment.getEnvironmentVariable("ISISWORLD_SCENARIO_PATH")
         
         DirectObject.__init__(self)
 

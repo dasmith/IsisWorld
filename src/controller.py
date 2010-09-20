@@ -38,8 +38,8 @@ class Controller(object, FSM):
         self.scenarioFiles = []
         self.scenarioTasks = []
         # load files in the scenario directory
-        print "LOADING SCENARIO FILES"
-        for scenarioPath in os.listdir(self.main.rootDirectory+"scenarios/"):
+        print "LOADING SCENARIO FILES", self.main.rootDirectory
+        for scenarioPath in os.listdir(self.main.rootDirectory+"scenarios"):
             if scenarioPath[-3:] == ".py":
                 scenarioFile = scenarioPath[scenarioPath.rfind("/")+1:-3]
                 self.scenarioFiles.append(scenarioFile)

@@ -56,27 +56,7 @@ class IsisWorld(DirectObject):
     
     def __init__(self):
         # MAIN_DIR var is set in direct/showbase/ShowBase.py
-        
-        def join(*paths): 
-            return reduce(file.join,paths) 
-        listdir=file.listdir 
-        walk=file.walk 
-
-        _vfs=file._vfs 
-
-        def isdir(path): 
-            """ Implements os.path.isdir over vfs. """ 
-            return _vfs.isDirectory(Filename(path)) 
-        def exists(path): 
-            """ Implements os.path.exists over vfs. """ 
-            return _vfs.exists(Filename(path)) 
-        def pathPrefix(): 
-            if base.appRunner != None and hasattr(base,'appRunner'): 
-                return base.appRunner.multifileRoot
-            else: 
-                return os.curdir+"/"
-        print "MAIN DIR", pathPrefix()
-        self.rootDirectory = pathPrefix()
+        self.rootDirectory = ExecutionEnvironment.getEnvironmentVariable("ISISWORLD_SCENARIO_PATH")
         
         DirectObject.__init__(self)
 

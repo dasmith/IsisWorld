@@ -20,7 +20,8 @@ getp3d: /Developer/Panda3D/lib/direct/p3d/ppackage.py
 
 
 package:
-	python /Developer/Panda3D/lib/direct/p3d/ppackage.py -i . isisworld.pdef
+	export ISISWORLD_SCENARIO_PATH=$(cd scenarios; pwd)
+	python /Developer/Panda3D/lib/direct/p3d/ppackage.py -i . isisworld.pdef -start_dir=scenarios
 	pdeploy -N "IsisWorld" -v 0.5 isisworld.p3d standalone
 
 mac:

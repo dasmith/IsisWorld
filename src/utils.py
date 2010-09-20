@@ -34,7 +34,7 @@ def getObjFromNP(np,tag="isisobj"):
             return np
 
 def frange(x,y,inc):
-    """ Floating point xrange """
+    """ floating point xrange """
     while x <= y:
         if x < 0:
             yield -(abs(x)**2)

@@ -24,8 +24,15 @@ import platform
 from ..actions.actions import *
 from ..physics.ode.kcc import kinematicCharacterController
 from ..physics.ode.odeWorldManager import *
-from ..utils import frange
 
+def frange(x,y,inc):
+    """ floating point xrange """
+    while x <= y:
+        if x < 0:
+            yield -(abs(x)**2)
+        else:
+            yield x**2
+        x += inc
 
 class IsisAgent(kinematicCharacterController,DirectObject):
     

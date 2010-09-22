@@ -53,11 +53,9 @@ class IsisAgent(kinematicCharacterController,DirectObject):
                            "idle": "media/models/boxman-idle"})
         self.actor.setScale(1.0)
         self.actor.setH(0)
-
+        #self.actor.setLODAnimation(10,5,2) # slows animation framerate when actor is far from camera, if you can figure out reasonable params
         self.actor.setColorScale(random.random(), random.random(), random.random(), 1.0)
-        self.actorNode = ActorNode('physicsControler-%s' % name)
         self.actorNodePath = NodePath('agent-%s' % name)
-        self.actorNodePath.attachNewNode(self.actorNode)
         self.activeModel = self.actorNodePath
         
         self.actorNodePath.reparentTo(render)

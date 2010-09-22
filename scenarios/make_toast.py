@@ -50,15 +50,15 @@ def environment():
     store(locals())
 
 
-def task_toast_in_view():
-    task.name = "toast is in view"
+def task_toaster_in_view():
+    task.name = "toaster is in view"
     # define which environment to use (if not the default)
     task.environment = "first"
 
     def train():
         k.put_in(r) # put ralph in the kitchen
 
-    def goal_toast_in_view():
+    def goal_toaster_in_view():
         return ralph.in_view(t)
 
     store(locals())

@@ -15,6 +15,7 @@ win-size 1024 768
 yield-timeslice 0 
 client-sleep 0 
 multi-sleep 0
+want-pstats 1
 basic-shaders-only #f
 audio-library-name null""")
 
@@ -30,7 +31,7 @@ from direct.task import Task, TaskManagerGlobal
 from direct.filter.CommonFilters import CommonFilters 
 from direct.fsm.FSM import FSM
 from pandac.PandaModules import * # TODO: specialize this import
-from direct.showbase.DirectObject import DirectObject
+from direct.showbase.ShowBase import ShowBase
 
 # local source code
 from src.physics.ode.odeWorldManager import *
@@ -47,18 +48,17 @@ from src.actions.actions import *
 
 # panda's own threading module
 from direct.stdpy import threading, file
-
 print "Threads supported?", Thread.isThreadingSupported()
 
 
-class IsisWorld(DirectObject):
+class IsisWorld(ShowBase):
     physics = None
     
     def __init__(self):
         # MAIN_DIR var is set in direct/showbase/ShowBase.py
         self.rootDirectory = ""#ExecutionEnvironment.getEnvironmentVariable("ISISWORLD_SCENARIO_PATH")
         
-        DirectObject.__init__(self)
+        ShowBase.__init__(self)
 
         self.isisMessage("Starting Up")
         
@@ -169,10 +169,10 @@ class IsisWorld(DirectObject):
         self.server = XMLRPCServer() 
         self.server.register_function(self.commandHandler.handler,'do')
         # some hints on threading: https://www.panda3d.org/forums/viewtopic.php?t=7345
-        base.taskMgr.setupTaskChain('xmlrpc',numThreads=1)
-        base.taskMgr.add(self.server.start_serving, 'xmlrpc-server', taskChain='xmlrpc')
-        base.taskMgr.add(self.run_xml_command_queue,'xmlrpc-command-queue', priority=1000)
-        
+        base.taskMgr.setupTaskChain('xmlrpc',numThreads=0)
+        base.taskMgr.add(self.server.start_serving, 'xmlrpc-server', taskChain='xmlrpc',priority=1000)
+        base.taskMgr.add(self.run_xml_command_queue,'xmlrpc-command-queue', taskChain='xmlrpc', priority=1000)
+        #base.taskMgr.popupControls() 
     
     def cloud_moving_task(self,task):
         """ Non-essential visualization to move the clouds around."""
@@ -349,7 +349,7 @@ class IsisWorld(DirectObject):
                 roomPos = room.getPos(render)
                 center = room.getBounds().getCenter()
                 w,h = roomPos[0]+center[0], roomPos[1]+center[1]
-                newAgent.setPos(Vec3(w,h+(len(self.agents)*0.5),5))
+                newAgent.setPos(Vec3(w,h+(len(self.agents)*1),5))
             else:
                 agentPos[2] = 5
                 newAgent.setPos(agentPos)
@@ -395,5 +395,4 @@ class IsisWorld(DirectObject):
         sys.exit()
 
 iw = IsisWorld()
-run()
-
+iw.run()

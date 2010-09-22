@@ -59,7 +59,6 @@ class IsisCommandHandler(object):
                 # if the agent id is defined and valid
                 agent_to_control = int(args['agent_id'])
             else:
-                print "No agent available with ID = %i" % (agent_to_control)
                 # maybe the simulator has not loaded any agents
                 if len(self.simulator.agents) == 0:
                     self.logger.log("Error - Agent command issued when no agent is in simulator")

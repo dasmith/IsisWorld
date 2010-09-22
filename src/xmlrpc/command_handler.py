@@ -18,7 +18,7 @@ class IsisCommandHandler(object):
     def __init__(self, simulator):
         self.simulator = simulator
         self.meta_commands  = ['meta_step','meta_pause','meta_resume','meta_list_actions','meta_list_scenarios',\
-        'meta_load_scenario','meta_list_tasks','meta_load_task','meta_train','meta_test','step_simulation',]
+        'meta_load_scenario','meta_list_tasks','meta_load_task','meta_train','meta_test','meta_setup_thought_layers','step_simulation',]
         self.logger = Logger("logs")
         self.logger.createLog(str(int(time.time())), "Test scenario making toast", "Create toast")
         
@@ -154,6 +154,13 @@ class IsisCommandHandler(object):
         elif cmd == "meta_test":
             """ Enters testing mode """
             return self.simulator.controller.safe_request('TaskTest')
+        elif cmd == "meta_setup_thought_layers":
+            """ initializes the GUI and components with which kinds of thoughts
+            exist in the agent and which ones should be visualized. """
+            if len(args.keys()) != 0:
+                return self.simulator.controller.setup_thought_filters(args)
+            else:
+                return "error: you need to send a dictionary defining the thought layers"
         else:
             # command is in neither meta_commands or the agent_controller
             print 'Unknown command: %s' % cmd

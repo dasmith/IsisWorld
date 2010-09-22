@@ -1,8 +1,9 @@
 
 import os
+import operator
 
 from direct.gui.DirectGui import DGG, DirectFrame, DirectLabel, DirectButton, DirectOptionMenu, DirectEntry
-from direct.gui.DirectGui import DirectSlider, RetryCancelDialog
+from direct.gui.DirectGui import DirectSlider, RetryCancelDialog, DirectCheckButton
 from direct.fsm.FSM import FSM, RequestDenied
 from direct.gui.OnscreenText import OnscreenText
 from direct.gui.OnscreenImage import OnscreenImage
@@ -172,49 +173,50 @@ class Controller(object, FSM):
                                      pos=(0.8, .2, 0), relief=FRAME_RELIEF,
                                      borderWidth=FRAME_BORDER)
 
-
         self.taskDescription = OnscreenText(text='tmp', mayChange=1, wordwrap=15,
-                                         pos=(0.0, 0.6,-1), scale=(0.04),
+                                         pos=(0.0, 0.7), scale=(0.04),
                                          font=self.fonts['mono'],
                                          fg=TEXT_FG)
         self.taskDescription.reparentTo(self.taskFrame)
-        self.toMenu = DirectButton(text='Change Task',
-                                   pos=(0, 0, 0), text_scale=(0.05, 0.05),borderWidth=BUTTON_BORDER,
+        self.toMenu = DirectButton(text='Change Task', pos=(0.0, 0.0, 0.3), text_scale=(0.05, 0.05),borderWidth=BUTTON_BORDER,
                                    text_fg=BUTTON_FG, text_bg = BUTTON_BG, relief=BUTTON_RELIEF,
                                    command=self.request, extraArgs=['Scenario'])
         self.toMenu.reparentTo(self.taskFrame)
         self.goBackFromTaskText = DirectButton(text='Change Scenario',
-                                    pos=(0,0,-.1), text_scale=(0.05),
+                                    pos=(0,0,0.2), text_scale=(0.05),
                                     text_font=self.fonts['normal'],
                                     text_pos=(0, -0.01),borderWidth=BUTTON_BORDER,
                                     text_fg=BUTTON_FG, text_bg = BUTTON_BG, relief=BUTTON_RELIEF,
                                     command=self.request, extraArgs=['Menu'])
         self.goBackFromTaskText.reparentTo(self.taskFrame)
 
-        def clickTestButton():
+        def click_test_button():
             if self.state == 'TaskTest':
                 self.request('TaskPaused')
             else:
                 self.request('TaskTest')
 
-        def clickTrainButton():
+        def click_reset_button():
             if self.state == 'TaskTrain':
                 self.request('TaskPaused')
             else:
                 self.request('TaskTrain')
-        self.menuTrainButton = DirectButton(text = "Start Training", 
+    
+        self.menuResetTrainingButton = DirectButton(text = "Reset", 
                                             scale=0.05, textMayChange=1, pos=(0,0,0.4),
                                             text_font=self.fonts['bold'],borderWidth=BUTTON_BORDER,
                                             text_fg=BUTTON_FG, text_bg = BUTTON_BG, relief=BUTTON_RELIEF,
-                                            command=clickTrainButton)
-        self.menuTestButton = DirectButton(text = "Start Testing", textMayChange=1, pos=(0,0,0.3),
+                                            command=click_reset_button)
+        self.menuTestButton = DirectButton(text = "Start Testing", textMayChange=1, pos=(0,0,0.5),
                                             scale=0.05,borderWidth=BUTTON_BORDER,
                                             text_font=self.fonts['bold'],
                                             text_fg=BUTTON_FG, text_bg = BUTTON_BG, relief=BUTTON_RELIEF,
-                                            command=clickTestButton)
-        self.menuTrainButton.reparentTo(self.taskFrame)
+                                            command=click_test_button)
+        self.menuResetTrainingButton.hide()
+        self.menuResetTrainingButton.reparentTo(self.taskFrame)
         self.menuTestButton.reparentTo(self.taskFrame)
         
+
         def disable_keys(x):
             x.testCommandBox.enterText("")
             x.testCommandBox.suppressKeys=True
@@ -244,8 +246,85 @@ class Controller(object, FSM):
         self.testCommandBox = DirectEntry(pos=(-1.2,-0.95,-0.95), text_fg=(0.282, 0.725, 0.850,1), frameColor=(0.631, 0.219, 0.247,0.25), suppressKeys=1, initialText="enter text and hit return", enableEdit=0,scale=0.07, focus=0, focusInCommand=disable_keys, focusOutCommand=enable_keys, focusInExtraArgs=[self], focusOutExtraArgs=[self], command=accept_message, extraArgs=[self],  width=15, numLines=1)
         self.testCommandBox.reparentTo(self.taskFrame)
         self.loaded = True
+        
+        self.thought_buttons = {}
+        self.thought_filter = []
+        self.setup_thought_filters({0: {'name': 'Reactive'}, 1:{'name':'Deliberative'}, 2: {'name':'Reflective'}})
+
         self.request('Menu')
 
+    def _censorAgents(self):
+        """ Updates the kinds of thoughts that the agents display. """
+        if hasattr(self.main,'agents'):
+            for agent in self.main.agents:
+                agent.thought_filter = dict(map(lambda x: (x,self.thought_buttons[x].component('text0').textNode.getFrameColor()),self.thought_filter))
+        
+
+
+    def setup_thought_filters(self, config):
+        """ This functions sets up the GUI which can be used to display the 
+        agents' thoughts. It is given a dictionary of """
+        
+        # first disable old ones:
+        for button in self.thought_buttons.values():
+            button.destroy()
+        # reset old thought buttons
+        self.thought_buttons = {}
+        self.thought_filter = []
+        # go through the keys in the first one, sorted by the key values, which
+        # should be numeric.
+        offset = 0.1
+        
+        def update_thought_filter_checkbox(checked):
+            self.thought_filter = []
+            for key, button in self.thought_buttons.items():
+                if button["indicatorValue"]:
+                    self.thought_filter.append(key)
+            # update agents
+            self._censorAgents()
+        
+        for key, opts in sorted(config.iteritems(), key=operator.itemgetter(0)):
+            # extract name:
+            if opts.has_key('name'):
+                name = opts['name']
+            else:
+                name = 'Layer %s' % key
+            
+            # extract color
+            if opts.has_key('color') and len(opts['color']) == 4:
+                color = opts['color']
+            else:
+                color = (0.8,0.5,0.6,1)
+                
+            # extract default state
+            if opts.has_key('checked'):
+                checked = opts['checked']
+            else:
+                checked = True
+            
+            if checked: 
+                self.thought_filter.append(key)
+            
+            newButton = DirectCheckButton(text = name,
+                                          scale=0.05, 
+                                          textMayChange=1,
+                                          indicatorValue = checked,
+                                          pos=(0,0,.1-offset),
+                                          text_font=self.fonts['normal'],
+                                          borderWidth=(0.02,0.02),
+                                          text_fg=color,
+                                          text_bg =(0.74,1.00,0.94,1),
+                                          relief=DGG.RAISED,
+                                          command=update_thought_filter_checkbox)
+            newButton.reparentTo(self.taskFrame)
+            offset += 0.1
+            # add to list
+            self.thought_buttons[key] = newButton
+            
+        # update the agents
+        self._censorAgents()
+        return True
+        
     def pause_simulation(self,task=None):
         if self.runningSimulation:
             self.main.physics.stopSimulation()
@@ -327,6 +406,7 @@ class Controller(object, FSM):
                 else: # cancel
                     self.request('Menu')
                 dialogbox.cleanup()
+            
             try:
                 # load scenario file
                 self.currentScenario = IsisScenario(self.selectedScenario)
@@ -379,13 +459,13 @@ class Controller(object, FSM):
     def enterTaskTrain(self):
         self.taskFrame.show()
         self.start_simulation()
-        self.menuTrainButton['text'] = "Training..."
-        self.menuTrainButton['state'] = DGG.DISABLED
+        self.menuResetTrainingButton['text'] = "Training..."
+        self.menuResetTrainingButton['state'] = DGG.DISABLED
 
     def exitTaskTrain(self):
         self.taskFrame.hide()
-        self.menuTrainButton['text'] = "Start training"
-        self.menuTrainButton['state'] = DGG.NORMAL
+        self.menuResetTrainingButton['text'] = "Start training"
+        self.menuResetTrainingButton['state'] = DGG.NORMAL
 
     def enterTaskTest(self):
         self.taskFrame.show()

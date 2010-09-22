@@ -44,7 +44,6 @@ class RoomLayout(LayoutManager):
                 return (coords[0]-(self.w-ow)/2.0+self.padw, coords[1]-(self.h-ol)/2.0+self.padh, self.z)
         return
     def __addn(self, obj, ow, ol):
-        print "ADD north", ow, ol, "REMAINNG =",self.px+ow, "OF", self.w
         """Tries to add the object along the north side"""
         if self.px+ow > self.w:
             # No more room on this side, prepare coordinates for next wall
@@ -61,7 +60,6 @@ class RoomLayout(LayoutManager):
             self.maxd = ol
         return (x, 0)
     def __adde(self, obj, ow, ol):
-        print "ADD east", ow, ol
         """Tries to add the object along the east side"""
         # if length > width, rotate object so longest dimension is against wall.
         if ow > ol:

@@ -157,7 +157,7 @@ class kitchen(IsisObject,IsisVisual,SpatialRoom,IsisFunctional):
         floorTex.setMagfilter(Texture.FTLinearMipmapLinear) 
         wallTex=loader.loadTexture("media/textures/concrete.jpg")
         wallTex.setMinfilter(Texture.FTLinearMipmapLinear) 
-        for wall in self.activeModel.getChildrenAsList(): 
+        for wall in self.activeModel.getChildren(): 
            #wall.setTexture(wallTex)
            wall.setColorScale(0.9,0.9,0.5, 1.0)
            #wall.setTexScale(TextureStage.getDefault(),0.5,self.height*self.roomScale*100)

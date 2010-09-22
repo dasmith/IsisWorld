@@ -50,43 +50,28 @@ class IsisCommandHandler(object):
     def handle_next_command(self, cmd, args):
         """ This is called by the panda3d_thread_process_command_queue, issued by a separate
         thread defined in IsisTask. """
-
-        # This doesn't allow us to meta_list_scenarios or choose a task. -Bo
-        #
-        #if len(self.simulator.agents) == 0:
-        #    print 'No agents in simulator. Cannot run xml command: %s' % cmd
-        #    self.logger.log("COMMAND WITHOUT AGENT: "+cmd)
-        #    return 'failure'
-        #    # if command is a meta-command, it doesn't require an agent
-        #el
-        if cmd not in self.meta_commands and not self.simulator.actionController.hasAction(cmd):
-            # don't know about this command
-            print 'Unknown command: %s' % cmd
-            print self.simulator.actionController.actionMap.values()
-            self.logger.log("UNKNOWN COMMAND: "+cmd)
-            return 'failure'
-        agent_to_control = 0
-        # trying to figure out the agent to control
-        if args.has_key('agent') and args['agent'] in self.simulator.agentsNamesToIDs.keys():
-            # if the name is defined and valid
-            agent_to_control = self.simulator.agentsNamesToIDs[args['agent']]
-        elif args.has_key('agent_id') and int(args['agent_id']) < len(self.simulator.agents):
-            # if the agent id is defined and valid
-            print "trying to control agent with ID", args['agent_id']
-            agent_to_control = int(args['agent_id'])
-            print agent_to_control
-
-        elif cmd != "sense" and cmd not in self.meta_commands:
-            # otherse, and if the commands require arguments (e.g., they are not meta-commands)
-            print "Error: you must supply an agent either through 'agent'= name or 'agent_id' = id argument\n"
-            print "Available agents:"
-            for agent,id in self.simulator.agentsNamesToIDs.items():
-                print "\t (%i)  %s\n" % (id,agent)
-            self.logger.log(cmd + ": Error - No agent specified")
-            return 'failure'
-
         if self.simulator.actionController.hasAction(cmd):
-            # not a meta command and agent_to_control is defined
+            # this command belongs to an agent, figure out which
+            if args.has_key('agent') and args['agent'] in self.simulator.agentsNamesToIDs.keys():
+                # if the name is defined and valid
+                agent_to_control = self.simulator.agentsNamesToIDs[args['agent']]
+            elif args.has_key('agent_id') and int(args['agent_id']) < len(self.simulator.agents):
+                # if the agent id is defined and valid
+                agent_to_control = int(args['agent_id'])
+            else:
+                print "No agent available with ID = %i" % (agent_to_control)
+                # maybe the simulator has not loaded any agents
+                if len(self.simulator.agents) == 0:
+                    self.logger.log("Error - Agent command issued when no agent is in simulator")
+                    print "Error: there are no agents in the simulator!  Load a valid scene!"
+                else:
+                    self.logger.log("Error - Agent command issued when no agent is in simulator")
+                    print "Error: you must supply an agent either through 'agent'= name or 'agent_id' = id argument\n"
+                    print "\nAvailable agents:"
+                    for agent,id in self.simulator.agentsNamesToIDs.items():
+                        print "\t (%i)  %s\n" % (id,agent)
+                return 'failure'
+            # Now we can relay teh command to the agent 
             # TODO: check to see if proper keys are defined for the given command
             self.logger.log(cmd+", "+self.simulator.agents[agent_to_control].name+": Relayed to agent")
             return self._relayAgentControl(agent_to_control,cmd,args)
@@ -171,6 +156,11 @@ class IsisCommandHandler(object):
             """ Enters testing mode """
             return self.simulator.controller.safe_request('TaskTest')
         else:
+            # command is in neither meta_commands or the agent_controller
+            print 'Unknown command: %s' % cmd
+            print self.simulator.actionController.actionMap.values()
+            self.logger.log("UNKNOWN COMMAND: "+cmd)
+            return 'failure'
             self.logger.log("UNKNOWN COMMAND: " + cmd)
             raise "Undefined meta command: %s" % cmd
         
@@ -185,23 +175,6 @@ class IsisCommandHandler(object):
     #obsolete cruft
     def _handle_perception(self,args):
         raise NotImplementedError, "_handle_perception has moved to Ralph.control__sense"
-    
-    def handle_move_action(self,args):
-        raise NotImplementedError, "handle_move_action through xmlrpc not implemented"
-
-    def handle_pickup_action(pickup_array):
-        raise NotImplementedError, "handle_pickup_action through xmlrpc not implemented"
-
-    # teraforming methods
-    def handle_object(self, args):
-        """ Do appropriate thing with object type command """
-        def handle_add_object(object_array):
-
-            raise NotImplementedError, "handle_add_object through xmlrpc not implemented"
-
-        def handle_remove_object(object_name):
-            ''' Remove object from world using object_name '''
-            raise NotImplementedError, "handle_remove_object through xmlrpc not implemented"
 
 
 class Logger(object):

@@ -272,7 +272,6 @@ class staticObject(physicalObject):
             model = loader.loadModel(model)
         trimeshData = OdeTriMeshData(model, True)
         self.geom = OdeTriMeshGeom(self.physics.getSpace(), trimeshData)
-        print "INITIALIZED GEOM FOR", self, self.geom
         if self.activeModel:
             self.geom.setPosition(self.activeModel.getPos(render))
             self.geom.setQuaternion(self.activeModel.getQuat(render))

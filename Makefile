@@ -29,6 +29,9 @@ mac:
 
 #	/Developer/Tools/Panda3D/pdeploy -N "IsisWorld" -v 0.5 isisworld.p3d standalone
 
+profile:
+	python -m cProfile -o stats.prof main.py
+	# then run runsnake stats.prof
 
 build: package 
 	echo "Packaging isis_world.p3d"

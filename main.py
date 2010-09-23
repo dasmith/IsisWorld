@@ -70,7 +70,6 @@ class IsisWorld(DirectObject):
         self.controller = Controller(self)
         
         self._setup_actions()
-        
         # parse command line options
         try:
             opts, args = getopt.getopt(sys.argv[1:], "ho:vD", ["help", "output=","Default"])
@@ -193,20 +192,23 @@ class IsisWorld(DirectObject):
         alight = AmbientLight("ambientLight")
         alight.setColor(Vec4(.7, .7, .7, 1.0))
         alightNP = render.attachNewNode(alight)
+        
 
-        #dlight = DirectionalLight("directionalLight")
-        #dlight.setDirection(Vec3(self.worldNode.getHpr()))
-        #dlight.setColor(Vec4(0.2, 0.2, 0.2, 1))
-        #dlightNP = render.attachNewNode(dlight)
+        dlight = DirectionalLight("directionalLight")
+        dlight.setDirection(Vec3(0,0,-8))
+        dlight.setColor(Vec4(0.2, 0.2, 0.2, 1))
+        dlightNP = render.attachNewNode(dlight)
 
         pl = PointLight("light") 
-        pl.setColor(VBase4(0.2, 0.2, 0.2, 1))
+        pl.setColor(VBase4(0.5, 0.5, 0.5, 1))
         plnp=render.attachNewNode(pl) 
 
         render.clearLight()
         render.setShaderAuto()
         render.setLight(plnp)     
         render.setLight(alightNP)
+
+        #self.pl.
         #render.setLight(dlightNP)
         
 
@@ -310,6 +312,8 @@ class IsisWorld(DirectObject):
         self.accept("p",               self.controller.toggle_paused)
         self.accept("s",               self.screenshot, ["snapshot"])
         self.accept("a",               self.screenshot_agent, ["agent_snapshot"])
+        self.accept("d",               lambda: base.camera.setP(base.camera.getP()-1), [])
+        self.accept("f",               lambda: base.camera.setP(base.camera.getP()+1), [])
         self.accept("escape",          self.exit)
 
 

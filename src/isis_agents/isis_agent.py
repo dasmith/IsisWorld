@@ -53,6 +53,7 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         self.actorNodePath = NodePath('agent-%s' % name)
         self.activeModel = self.actorNodePath
         
+        
         self.actorNodePath.reparentTo(render)
 
         self.actor.reparentTo(self.actorNodePath)

@@ -1,0 +1,13 @@
+salespitch=
+textures=guy.png 
+rigged-models=guy 
+name=Guy
+license=CCA 2.0
+other-files=guy.mb 
+id=guy1
+date=2004-12-09
+keywords=human
+animations=guyani 
+modeler=Fangwei Lee
+painter=Asaf Burak
+animator=Fangwei Lee

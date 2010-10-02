@@ -37,6 +37,10 @@ def environment():
     l = loaf()
     put_on(l, ta3)
 
+    # adding the oven
+    ov = oven()
+    put_in(ov, k)
+
     ralph = IsisAgent("Ralph")
     lauren = IsisAgent("Lauren")
     lauren2 = IsisAgent("Lauren2")

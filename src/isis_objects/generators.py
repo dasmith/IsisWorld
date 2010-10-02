@@ -11,6 +11,16 @@ from ..isis_agents.isis_agent import IsisAgent
 from ..physics.ode.pickables import *
 from ..physics.ode.odeWorldManager import *
 
+class oven(IsisObject, IsisVisual, SpatialStaticBox, Surface, IsisFunctional):
+
+    def __init__(self):
+        self.offsetVec = offsetVec = (0,0,0,0,0,0)
+        self.model = "oven/oven"
+        self.scale = randint(60,90) / 10.0
+        IsisObject.__init__(self)
+
+        self.setH(0)
+
 class table(IsisObject,IsisVisual,SpatialStaticBox,Surface,IsisFunctional):
 
     def  __init__(self):

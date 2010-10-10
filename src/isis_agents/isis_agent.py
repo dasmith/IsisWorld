@@ -6,16 +6,18 @@ from direct.showbase.DirectObject import DirectObject
 from direct.actor.Actor import Actor 
 from direct.task import Task 
 
+from direct.gui.OnscreenImage import OnscreenImage
+
+
 from direct.controls.ControlManager import CollisionHandlerRayStart
 from pandac.PandaModules import CollisionTraverser 
 from pandac.PandaModules import ActorNode
 
-from direct.showbase import DirectObject
+#from direct.showbase import DirectObject
 from direct.interval.IntervalGlobal import *
-from direct.actor.Actor import Actor
 from direct.gui.DirectGui import DirectLabel
 
-from pandac.PandaModules import *# PandaNode,NodePath,Camera
+from pandac.PandaModules import PandaNode, NodePath, TransparencyAttrib
 
 from direct.interval.IntervalGlobal import *
 
@@ -24,15 +26,8 @@ import platform
 from ..actions.actions import *
 from ..physics.ode.kcc import kinematicCharacterController
 from ..physics.ode.odeWorldManager import *
+from ..utilities import frange
 
-def frange(x,y,inc):
-    """ floating point xrange """
-    while x <= y:
-        if x < 0:
-            yield -(abs(x)**2)
-        else:
-            yield x**2
-        x += inc
 
 class IsisAgent(kinematicCharacterController,DirectObject):
     
@@ -58,24 +53,20 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         self.actorNodePath = NodePath('agent-%s' % name)
         self.activeModel = self.actorNodePath
         
+        
         self.actorNodePath.reparentTo(render)
 
         self.actor.reparentTo(self.actorNodePath)
         self.name = name
         self.isMoving = False
         
+        # initialize ODE controller
         kinematicCharacterController.__init__(self, IsisAgent.physics, self.actorNodePath)
         self.setGeomPos(self.actorNodePath.getPos(render))
         """
         Additional Direct Object that I use for convenience.
         """
         self.specialDirectObject = DirectObject()
-
-        """
-        Set one of two main variants of handling object carrying.
-        See placeObjectInFrontOfCamera method to see what this is for.
-        """
-        self.jiggleHeld = True
 
         """
         How high above the center of the capsule you want the camera to be
@@ -99,7 +90,6 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         #self.specialDirectObject.accept("ladder_trigger_enter", self.setFly, [True])
         #self.specialDirectObject.accept("ladder_trigger_exit", self.setFly, [False])
 
-    
         self.actor.makeSubpart("arms", ["LeftShoulder", "RightShoulder"])    
         
         # Expose agent's right hand joint to attach objects to
@@ -133,19 +123,36 @@ class IsisAgent(kinematicCharacterController,DirectObject):
 
         self.originalPos = self.actor.getPos()
 
- 
-
-        # speech bubble
-        self.last_spoke = 0
-        self.speech_bubble = DirectLabel(parent=self.actor, text="", text_wordwrap=10, pad=(3,3),\
-                       relief=None, text_scale=(.3,.3), pos = (0,0,3.6), frameColor=(.6,.2,.1,.5),\
-                       textMayChange=1, text_frame=(0,0,0,1), text_bg=(1,1,1,1))
+                
+        bubble = loader.loadTexture("media/textures/thought_bubble.png")
+        #bubble.setTransparency(TransparencyAttrib.MAlpha)
+    
+        self.speech_bubble =DirectLabel(parent=self.actor, text="", text_wordwrap=10, pad=(3,3), relief=None, text_scale=(.3,.3), pos = (0,0,3.6), frameColor=(.6,.2,.1,.5), textMayChange=1, text_frame=(0,0,0,1), text_bg=(1,1,1,1))
+        #self.myImage=
+        self.speech_bubble.setTransparency(TransparencyAttrib.MAlpha)
         # stop the speech bubble from being colored like the agent
         self.speech_bubble.setColorScaleOff()
         self.speech_bubble.component('text0').textNode.setCardDecal(1)
         self.speech_bubble.setBillboardAxis()
         # hide the speech bubble from IsisAgent's own camera
         self.speech_bubble.hide(BitMask32.bit(1))
+        
+        
+        self.thought_bubble =DirectLabel(parent=self.actor, text="", text_wordwrap=9, text_frame=(1,0,-2,1), text_pos=(0,.5), text_bg=(1,1,1,0), relief=None, frameSize=(0,1.5,-2,3), text_scale=(.18,.18), pos = (0,0.2,3.6), textMayChange=1, image=bubble, image_pos=(0,0.1,0), sortOrder=5)
+        self.thought_bubble.setTransparency(TransparencyAttrib.MAlpha)
+        # stop the speech bubble from being colored like the agent
+        self.thought_bubble.setColorScaleOff()
+        self.thought_bubble.component('text0').textNode.setFrameColor(1, 1, 1, 0)
+        self.thought_bubble.component('text0').textNode.setFrameAsMargin(0.1, 0.1, 0.1, 0.1)
+        self.thought_bubble.component('text0').textNode.setCardDecal(1)
+        self.thought_bubble.setBillboardAxis()
+        # hide the thought bubble from IsisAgent's own camera
+        self.thought_bubble.hide(BitMask32.bit(1))
+        # disable by default
+        self.thought_bubble.hide()
+        self.thought_filter = {}  # only show thoughts whose values are in here
+        self.last_spoke = 0 # timers to keep track of last thought/speech and 
+        self.last_thought =0 # hide visualizations
         
         # put a camera on ralph
         self.fov = NodePath(Camera('RaphViz'))
@@ -167,12 +174,10 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         self.prevtime = 0
         self.current_frame_count = 0
 
-        #self.name = "IsisAgent"
         self.isSitting = False
         self.isDisabled = False
         self.msg = None
         self.actorNodePath.setPythonTag("agent", self)
-
 
         # Initialize the action queue, with a maximum length of queueSize
         self.queue = []
@@ -399,9 +404,15 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         print percepts
         return percepts
  
-    def control__say_goal(self, message = "Hello!"):
-        self.speech_bubble['text'] = "GOAL: "+message
-        self.last_spoke = 0
+    def control__think(self, message, layer=0):
+        """ Changes the contents of an agent's thought bubble"""
+        # only say things that are checked in the controller
+        if self.thought_filter.has_key(layer):
+            self.thought_bubble.show()
+            self.thought_bubble['text'] = message
+            #self.thought_bubble.component('text0').textNode.setShadow(0.05, 0.05)
+            #self.thought_bubble.component('text0').textNode.setShadowColor(self.thought_filter[layer])
+            self.last_thought = 0
         return "success"
 
     def control__say(self, message = "Hello!"):
@@ -729,15 +740,16 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         if self.left_hand_holding_object != None:
             self.left_hand_holding_object.setPosition(self.player_left_hand.getPos(render))
 
-        """ 
-        Update the dialog box.
-        This allows dialogue window to gradually decay (changing transparancy) and then disappear
-        """
+        #Update the dialog box and thought windows
+        #This allows dialogue window to gradually decay (changing transparancy) and then disappear
         self.last_spoke += stepSize/2
+        self.last_thought += stepSize/2
         self.speech_bubble['text_bg']=(1,1,1,1/(self.last_spoke+0.01))
         self.speech_bubble['frameColor']=(.6,.2,.1,.5/(self.last_spoke+0.01))
         if self.last_spoke > 2:
             self.speech_bubble['text'] = ""
+        if self.last_thought > 1:
+            self.thought_bubble.hide()
 
         # If the character is moving, loop the run animation.
         # If he is standing still, stop the animation.
@@ -792,103 +804,6 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         """
         if kinematicCharacterController.crouchStop(self):
             self.camH = self.walkCamH
-
-    """
-    This method is used when carrying objects around.
-    """
-    def placeObjectInFrontOfCamera(self, object, curve = None):
-        """
-        Whether to disable the geom's collisions when carrying an object or not.
-        """
-        disable = False
-
-        """
-        Whether to curve the geom's movement when carrying an object or not.
-        That is, whether to place the object directly in front of the camera, or
-        move it just up and down on one axis relative to the capsule.
-
-        The way I use this is as follows:
-
-        For objects like boxes or balls, that they player can carry around and stack I disable curveUp.
-        This makes it easier to stack boxes for example.
-
-        For objects like granades, which are meant to be thrown, I enable curveUp.
-        This allows the object to be thrown from the center of the camera when
-        looking up.
-
-        NOTE that there's no curve down. That's because it would make the player stand
-        on the carried object.
-        """
-        if curve is None:
-            if hasattr(object,'pickableType'):
-                curveUp = False
-                disable = False
-            else:
-                curveUp = True
-                disable = True
-
-        geom = object.geom
-        body = object.body
-
-        if disable:
-            geom.disable()
-            if body:
-                body.disable()
-
-        camQuat = self.fov.getQuat()
-        capsuleQuat = self.geom.getQuaternion()
-
-        """
-        Dividing this allows me to control how high the object goes when looking up.
-        Experiment with this value.
-        """
-        z = camQuat.getHpr()[1]/30
-        if z < -1.3:
-            z = -1.3
-
-        if curveUp:
-            zoffset = 0.7
-        else:
-            zoffset = 0.3
-
-        """
-        Get the current position of the geom for manipulating.
-        """
-        currentPos = self.geom.getPosition()
-
-        """
-        Place the geom relative to the capsule or relative to the camera depending
-        on curveUp and z value.
-        """
-        if curveUp and z >= 0.0:
-            newPos = currentPos + camQuat.xform(Vec3(0.0, 1.3 + (0.35 * z), zoffset - (0.2 * z)))
-        else:
-            newPos = currentPos + capsuleQuat.xform(Vec3(0.0, 1.3, zoffset + z))
-
-
-        """
-        This is the "jiggling" mechanics. When the object is kept enabled, this controlls
-        whether and how the other objects and the static environment affect the held object.
-
-        If jiggling is enabled, you will notice that the held item reacts to collisions with
-        other objects. Note however that it doesn't prevent the held object from penetrating
-        other objects, so it might look a little strange.
-
-        I wrote it because it looks funny. You can compare it to the Wobbly windows in Compiz.
-        """
-        if self.jiggleHeld and body and body.getLinearVel().length() > 0.0:
-            newPos += body.getLinearVel() * self.map.worldManager.stepSize * 4.0
-
-        geom.setPosition(newPos)
-        geom.setQuaternion(capsuleQuat)
-
-        """
-        Make sure to disable the gravity for the held object's body
-        """
-        if body:
-            body.setGravityMode(0)
-            body.setPosition(newPos)
-            body.setQuaternion(capsuleQuat)
 
 
 

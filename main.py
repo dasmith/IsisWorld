@@ -15,7 +15,7 @@ win-size 1024 768
 yield-timeslice 0 
 client-sleep 0 
 multi-sleep 0
-want-pstats 1
+#want-pstats 1
 basic-shaders-only #f
 audio-library-name null""")
 
@@ -31,7 +31,7 @@ from direct.task import Task, TaskManagerGlobal
 from direct.filter.CommonFilters import CommonFilters 
 from direct.fsm.FSM import FSM
 from pandac.PandaModules import * # TODO: specialize this import
-from direct.showbase.ShowBase import ShowBase
+from direct.showbase.DirectObject import DirectObject
 
 # local source code
 from src.physics.ode.odeWorldManager import *
@@ -51,14 +51,14 @@ from direct.stdpy import threading, file
 print "Threads supported?", Thread.isThreadingSupported()
 
 
-class IsisWorld(ShowBase):
+class IsisWorld(DirectObject):
     physics = None
     
     def __init__(self):
-        # MAIN_DIR var is set in direct/showbase/ShowBase.py
+        # MAIN_DIR var is set in direct/showbase/DirectObject.py
         self.rootDirectory = ""#ExecutionEnvironment.getEnvironmentVariable("ISISWORLD_SCENARIO_PATH")
         
-        ShowBase.__init__(self)
+        DirectObject.__init__(self)
 
         self.isisMessage("Starting Up")
         
@@ -70,7 +70,6 @@ class IsisWorld(ShowBase):
         self.controller = Controller(self)
         
         self._setup_actions()
-        
         # parse command line options
         try:
             opts, args = getopt.getopt(sys.argv[1:], "ho:vD", ["help", "output=","Default"])
@@ -109,7 +108,6 @@ class IsisWorld(ShowBase):
         return Filename(self.rootDirectory, path)
 
     def reset(self):
-        print "RESET MAIN CALLED\n\n"
         """ Setup the Physics manager as a class variable """ 
         IsisWorld.physics = ODEWorldManager(self)
         
@@ -169,7 +167,7 @@ class IsisWorld(ShowBase):
         self.server = XMLRPCServer() 
         self.server.register_function(self.commandHandler.handler,'do')
         # some hints on threading: https://www.panda3d.org/forums/viewtopic.php?t=7345
-        base.taskMgr.setupTaskChain('xmlrpc',numThreads=0)
+        base.taskMgr.setupTaskChain('xmlrpc',numThreads=1,frameSync=True)
         base.taskMgr.add(self.server.start_serving, 'xmlrpc-server', taskChain='xmlrpc',priority=1000)
         base.taskMgr.add(self.run_xml_command_queue,'xmlrpc-command-queue', taskChain='xmlrpc', priority=1000)
         base.taskMgr.add(self.rest_a_little,'rest-a-little', taskChain='xmlrpc', priority=1000)
@@ -181,6 +179,7 @@ class IsisWorld(ShowBase):
         return task.cont
     
     def run_xml_command_queue(self,task):
+        """ Executes all of the XML-RPC commands in the queue"""
         self.commandHandler.panda3d_thread_process_command_queue()
         return task.cont
 
@@ -189,31 +188,32 @@ class IsisWorld(ShowBase):
         return task.cont
 
     def _setup_cameras(self):
-        # Set up the camera 
-        ### Set up displays and cameras ###
+        """" Set up displays and cameras """
         base.cam.node().setCameraMask(BitMask32.bit(0))
         base.camera.setPos(0,0,12)
         base.camera.setP(0)#315)
-
 
     def _setup_lights(self):
         alight = AmbientLight("ambientLight")
         alight.setColor(Vec4(.7, .7, .7, 1.0))
         alightNP = render.attachNewNode(alight)
+        
 
-        #dlight = DirectionalLight("directionalLight")
-        #dlight.setDirection(Vec3(self.worldNode.getHpr()))
-        #dlight.setColor(Vec4(0.2, 0.2, 0.2, 1))
-        #dlightNP = render.attachNewNode(dlight)
+        dlight = DirectionalLight("directionalLight")
+        dlight.setDirection(Vec3(0,0,-8))
+        dlight.setColor(Vec4(0.2, 0.2, 0.2, 1))
+        dlightNP = render.attachNewNode(dlight)
 
         pl = PointLight("light") 
-        pl.setColor(VBase4(0.2, 0.2, 0.2, 1))
+        pl.setColor(VBase4(0.5, 0.5, 0.5, 1))
         plnp=render.attachNewNode(pl) 
 
         render.clearLight()
         render.setShaderAuto()
         render.setLight(plnp)     
         render.setLight(alightNP)
+
+        #self.pl.
         #render.setLight(dlightNP)
         
 
@@ -233,7 +233,8 @@ class IsisWorld(ShowBase):
                     self.isisMessage("relayAgentControl: %s command not found in action controller" % (command))
                     raise self.actionController
             else:
-                self.isisMessage("Cannot relay command '%s' when there is no agent in the scenario!" % command) 
+                self.isisMessage("Cannot relay command '%s' when there is no agent in the scenario!" % command)
+            return
 
         text = "\n"
         text += "IsisWorld v%s\n" % (ISIS_VERSION)
@@ -260,7 +261,8 @@ class IsisWorld(ShowBase):
         self.actionController.addAction(IsisAction(commandName="look_up",intervalAction=True,argList=['speed'],keyboardBinding="k"))
         self.actionController.addAction(IsisAction(commandName="look_down",intervalAction=True,argList=['speed'],keyboardBinding="j"))
         self.actionController.addAction(IsisAction(commandName="jump",intervalAction=False,keyboardBinding="g"))
-        self.actionController.addAction(IsisAction(commandName="say",intervalAction=False,argList=['message'],keyboardBinding="t"))
+        self.actionController.addAction(IsisAction(commandName="say",intervalAction=False,argList=['message']))
+        self.actionController.addAction(IsisAction(commandName="think",intervalAction=False,argList=['message','layer']))
         self.actionController.addAction(IsisAction(commandName="sense",intervalAction=False,keyboardBinding='y'))
         self.actionController.addAction(IsisAction(commandName="use_aimed",intervalAction=False,keyboardBinding="u"))
         self.actionController.addAction(IsisAction(commandName="view_objects",intervalAction=False,keyboardBinding="o"))
@@ -315,6 +317,8 @@ class IsisWorld(ShowBase):
         self.accept("p",               self.controller.toggle_paused)
         self.accept("s",               self.screenshot, ["snapshot"])
         self.accept("a",               self.screenshot_agent, ["agent_snapshot"])
+        self.accept("d",               lambda: base.camera.setP(base.camera.getP()-1), [])
+        self.accept("f",               lambda: base.camera.setP(base.camera.getP()+1), [])
         self.accept("escape",          self.exit)
 
 
@@ -396,8 +400,7 @@ class IsisWorld(ShowBase):
     
     def __exit__(self):
         self.server.stop()
-        #self.server_thread.join()
         sys.exit()
 
 iw = IsisWorld()
-iw.run()
+run()

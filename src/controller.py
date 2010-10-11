@@ -294,7 +294,7 @@ class Controller(object, FSM):
             if opts.has_key('color') and len(opts['color']) == 4:
                 color = opts['color']
             else:
-                color = (0.8,0.5,0.6,1)
+                color = (0.1,0.1,0.1,1)
                 
             # extract default state
             if opts.has_key('checked'):

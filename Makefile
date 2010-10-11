@@ -4,6 +4,7 @@ SIM_VERSION=0.4
 # /Developer/Panda3D/lib/direct/p3d/packp3d.py
 #panda3d makescripts/packp3d.p3d
 
+
 make: main.py
 	ipython -c "%run main.py -D"
 
@@ -55,3 +56,4 @@ deploy: build
 
 
 
+include Makefile.sphinx

@@ -28,8 +28,6 @@ def environment():
     kn = knife()
     put_on(kn, ta)
 
-    lf = toaster()
-    put_in_world(lf)
     
     l = loaf()
     put_in(l, f)

@@ -5,21 +5,14 @@ import direct.directbase.DirectStart
 from direct.showbase.DirectObject import DirectObject 
 from direct.actor.Actor import Actor 
 from direct.task import Task 
-
 from direct.gui.OnscreenImage import OnscreenImage
-
-
 from direct.controls.ControlManager import CollisionHandlerRayStart
 from pandac.PandaModules import CollisionTraverser 
 from pandac.PandaModules import ActorNode
 
-#from direct.showbase import DirectObject
 from direct.interval.IntervalGlobal import *
 from direct.gui.DirectGui import DirectLabel
-
 from pandac.PandaModules import PandaNode, NodePath, TransparencyAttrib
-
-from direct.interval.IntervalGlobal import *
 
 import platform
 # project stuff

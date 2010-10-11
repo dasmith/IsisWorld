@@ -170,6 +170,7 @@ class IsisWorld(DirectObject):
         base.taskMgr.setupTaskChain('xmlrpc',numThreads=1,frameSync=True)
         base.taskMgr.add(self.server.start_serving, 'xmlrpc-server', taskChain='xmlrpc',priority=1000)
         base.taskMgr.add(self.run_xml_command_queue,'xmlrpc-command-queue', taskChain='xmlrpc', priority=1000)
+        base.taskMgr.add(self.rest_a_little,'rest-a-little', priority=1000)
         #base.taskMgr.popupControls() 
     
     def cloud_moving_task(self,task):
@@ -180,6 +181,10 @@ class IsisWorld(DirectObject):
     def run_xml_command_queue(self,task):
         """ Executes all of the XML-RPC commands in the queue"""
         self.commandHandler.panda3d_thread_process_command_queue()
+        return task.cont
+
+    def rest_a_little(self,task):
+        time.sleep(1.0/30.0) # set maximum FPS
         return task.cont
 
     def _setup_cameras(self):

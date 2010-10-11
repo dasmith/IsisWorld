@@ -184,7 +184,7 @@ class IsisWorld(DirectObject):
         return task.cont
 
     def rest_a_little(self,task):
-        time.sleep(1.0/30.0) # set maximum FPS
+        time.sleep(1.0/30.0) # forces rendering thread to sleep.
         return task.cont
 
     def _setup_cameras(self):

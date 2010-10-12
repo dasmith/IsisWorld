@@ -40,10 +40,10 @@ def environment():
 
     ralph = IsisAgent("Ralph")
     lauren = IsisAgent("Lauren")
-    lauren2 = IsisAgent("Lauren2")
+    #XSlauren2 = IsisAgent("Lauren2")
     #r.set_color()
     #put_in_world(ralph)
-    put_in_world(lauren2)
+    #put_in_world(lauren2)
     put_in_world(lauren)
     put_in_front_of(ralph,kn)
 

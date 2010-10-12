@@ -105,6 +105,18 @@ class bread(IsisObject, IsisVisual, SpatialPickableBox, Cookable):
         self.cookableCookedModel = "toast"
         IsisObject.__init__(self)
 
+class butter(IsisObject, IsisVisual, SpatialPickableBox, IsisFunctional ):
+
+    def  __init__(self):
+        self.offsetVec = (0,0,-.1,0,-120,-20)
+        self.pickupVec=(-.125,.225,0,0,-125,0)
+        self.model={"default":"butter"}
+        self.scale = 0.03
+        
+        self.density = 200
+        
+        IsisObject.__init__(self)
+
 class loaf( IsisObject, IsisVisual, SpatialPickableBox, Dividable):
 
     def  __init__(self): 

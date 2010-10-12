@@ -10,6 +10,9 @@ def environment():
     f = fridge()
     put_in(f, k)
 
+    b = butter()
+    put_in(b, k)
+
     ta = table()
     put_in(ta, k)
 

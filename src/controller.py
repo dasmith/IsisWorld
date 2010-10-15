@@ -113,7 +113,8 @@ class Controller(object, FSM):
                                                     textMayChange=1, 
                                                     highlightColor=(0.65,0.65,0.65,1),
                                                     command=setScenarioUsingGUI,
-                                                    pos=(-.3, 0, -0.1))
+                                                    pos=(-.3, 0, -0.1),
+                                                    frameSize = (-.8, -.6, -.3, .3))
         self.menuScenarioOptions.reparentTo(self.menuFrame)
         self.loadScenarioText = DirectButton(text='Load Scenario',
                                       pos=(0, 0, -.3), text_scale=TEXT_LARGE,

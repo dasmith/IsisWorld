@@ -4,7 +4,7 @@ IsisWorld is a 3D virtual simulator for evaluating commonsense reasoning AI agen
 
 For more information, visit the project's website:  http://mmp.mit.edu/isisworld
 
-IsisWorld Developers:  Dustin Smith, Chris M. Jones, Bo Morgan, Gleb Kuznetsov
+5IsisWorld Developers:  Dustin Smith, Chris M. Jones, Bo Morgan, Gleb Kuznetsov
 
 """
 # parameters
@@ -67,7 +67,7 @@ class IsisWorld(DirectObject):
         self._setup_cameras()
 
         # initialize Finite State Machine to control UI
-        self.controller = Controller(self)
+        self.controller = Controller(self, base)
         
         self._setup_actions()
         # parse command line options
@@ -250,10 +250,17 @@ class IsisWorld(DirectObject):
         self.actionController.addAction(IsisAction(commandName="move_left",intervalAction=True))
         self.actionController.addAction(IsisAction(commandName="move_right",intervalAction=True))
         self.actionController.addAction(IsisAction(commandName="open_fridge",intervalAction=False,keyboardBinding="p"))
+        
+        #Can move with arrow keys or with w,a,s,d
         self.actionController.addAction(IsisAction(commandName="turn_left",intervalAction=True,argList=['speed'],keyboardBinding="arrow_left"))
+        self.actionController.addAction(IsisAction(commandName="turn_left",intervalAction=True,argList=['speed'],keyboardBinding="a"))        
         self.actionController.addAction(IsisAction(commandName="turn_right",intervalAction=True,argList=['speed'],keyboardBinding="arrow_right"))
+        self.actionController.addAction(IsisAction(commandName="turn_right",intervalAction=True,argList=['speed'],keyboardBinding="d"))
         self.actionController.addAction(IsisAction(commandName="move_forward",intervalAction=True,argList=['speed'],keyboardBinding="arrow_up"))
+        self.actionController.addAction(IsisAction(commandName="move_forward",intervalAction=True,argList=['speed'],keyboardBinding="w"))
         self.actionController.addAction(IsisAction(commandName="move_backward",intervalAction=True,argList=['speed'],keyboardBinding="arrow_down"))
+        self.actionController.addAction(IsisAction(commandName="move_backward",intervalAction=True,argList=['speed'],keyboardBinding="s"))       
+        
         self.actionController.addAction(IsisAction(commandName="move_right",intervalAction=True,argList=['speed']))
         self.actionController.addAction(IsisAction(commandName="move_left",intervalAction=True,argList=['speed']))
         self.actionController.addAction(IsisAction(commandName="look_right",intervalAction=True,argList=['speed'],keyboardBinding="l"))
@@ -315,10 +322,10 @@ class IsisWorld(DirectObject):
         self.accept("4",               self.toggleInstructionsWindow, [])
         self.accept("space",           self.controller.step_simulation, [.1]) # argument is amount of second to advance
         self.accept("p",               self.controller.toggle_paused)
-        self.accept("s",               self.screenshot, ["snapshot"])
-        self.accept("a",               self.screenshot_agent, ["agent_snapshot"])
-        self.accept("d",               lambda: base.camera.setP(base.camera.getP()-1), [])
-        self.accept("f",               lambda: base.camera.setP(base.camera.getP()+1), [])
+        #self.accept("s",               self.screenshot, ["snapshot"])
+        #self.accept("a",               self.screenshot_agent, ["agent_snapshot"])
+        #self.accept("d",               lambda: base.camera.setP(base.camera.getP()-1), [])
+        #self.accept("f",               lambda: base.camera.setP(base.camera.getP()+1), [])
         self.accept("escape",          self.exit)
 
 
@@ -364,6 +371,7 @@ class IsisWorld(DirectObject):
                 newAgent.setPos(agentPos)
         except Exception, e:
             self.isisMessage("Could not add agent %s to room. Error: %s" % (newAgent.name, e))
+        self.controller.setAgentCamera(self.agentCamera)
         return newAgent
 
     def toggleInstructionsWindow(self):

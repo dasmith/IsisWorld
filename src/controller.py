@@ -16,9 +16,10 @@ from src.isis_scenario import *
 
 class Controller(object, FSM):
 
-    def __init__(self, isisworld):
+    def __init__(self, isisworld, base):
         """ This configures all of the GUI states."""
         self.loaded = True
+        self.base = base
         FSM.__init__(self, 'MainMenuFSM')
         # define the acceptable state transitions
         self.defaultTransitions = {
@@ -190,6 +191,39 @@ class Controller(object, FSM):
                                     text_fg=BUTTON_FG, text_bg = BUTTON_BG, relief=BUTTON_RELIEF,
                                     command=self.request, extraArgs=['Menu'])
         self.goBackFromTaskText.reparentTo(self.taskFrame)
+
+        #Add a toolbar
+        self.toolbarFrame = DirectFrame(frameColor=Vec4(0, 0, 0, -0.3) + FRAME_BG,
+                                        frameSize = (-1.4, -0.2, 0.86, 1.0),
+                                        pos=(.2, 0, -.03), relief=FRAME_RELIEF,
+                                        borderWidth=FRAME_BORDER)
+        #Add button to take a screenshot
+        self.screenShotButton = DirectButton(text='Take Screenshot', pos=(-1.15, 0, .92), text_scale=(0.05, 0.05),
+                                             borderWidth=BUTTON_BORDER,
+                                               text_fg=BUTTON_FG, text_bg = BUTTON_BG, relief=BUTTON_RELIEF,
+                                            command = self.screenshot, extraArgs=['snapshot'])
+        self.screenShotButton.reparentTo(self.toolbarFrame)
+        
+        #Add a button to take an agent screenshot
+        self.getAgentScreenshot = DirectButton(text = 'Agent Screenshot', pos = (-.7, 0 ,.92),text_scale=(0.05, 0.05),
+                                            borderWidth = BUTTON_BORDER,
+                                              text_fg=BUTTON_FG, text_bg = BUTTON_BG, relief=BUTTON_RELIEF,
+                                              command = self.screenshot_agent, extraArgs=['agent_snapshot'])
+        self.getAgentScreenshot.reparentTo(self.toolbarFrame);
+        
+        #Add a button to move camera up
+        self.upCamera = DirectButton(text = '+', pos = (-.4, 0, .92), text_scale = (0.05, 0.05),
+                                     borderWidth = BUTTON_BORDER,
+                                    text_fg=BUTTON_FG, text_bg = BUTTON_BG, relief=BUTTON_RELIEF,
+                                    command = lambda: base.camera.setP(base.camera.getP()+1))
+        self.upCamera.reparentTo(self.toolbarFrame)
+        
+        #Add button to move camera down
+        self.downCamera = DirectButton(text = '-', pos = (-.3, 0, .92), text_scale = (0.05, 0.05),
+                                     borderWidth = BUTTON_BORDER,
+                                    text_fg=BUTTON_FG, text_bg = BUTTON_BG, relief=BUTTON_RELIEF,
+                                    command = lambda: base.camera.setP(base.camera.getP()-1))
+        self.downCamera.reparentTo(self.toolbarFrame)
 
         def click_test_button():
             if self.state == 'TaskTest':
@@ -367,6 +401,7 @@ class Controller(object, FSM):
     def enterMenu(self):
         self.taskFrame.hide()
         self.scenarioFrame.hide()
+        self.toolbarFrame.hide()
         self.pause_simulation()
          
         # unload the previous scene if it's there
@@ -444,6 +479,7 @@ class Controller(object, FSM):
             self.taskDescription.setText(str(self.selectedTask.getDescription()))
 
         self.scenarioFrame.show()
+        self.toolbarFrame.show()
         loadingText.destroy()
 
     def exitScenario(self):
@@ -484,3 +520,21 @@ class Controller(object, FSM):
 
     def onGoalMetCallback(self):
         self.request('TaskPaused')
+
+    def screenshot(self, name):
+        name = os.path.join("screenshots", name+"_")
+        num = 0
+        while os.path.exists(name+str(num)+".jpg"):
+            num += 1
+        self.base.camNode.getDisplayRegion(0).saveScreenshot(name+str(num)+".jpg")
+        
+    def screenshot_agent(self, name):
+        name = os.path.join("screenshots", name+"_")
+        num = 0
+        while os.path.exists(name+str(num)+".jpg"):
+            num += 1
+        self.agent_camera.saveScreenshot(name+str(num)+".jpg")
+        print "Saved to ", name, '.jpg'
+        
+    def setAgentCamera(self, camera):
+        self.agent_camera = camera

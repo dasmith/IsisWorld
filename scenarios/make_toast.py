@@ -39,7 +39,6 @@ def environment():
 
     # adding the oven
     # doesn't appear to have shown up in the world
-    print "added oven"
     ov = oven()
     put_in(ov, k)
 

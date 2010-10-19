@@ -16,7 +16,7 @@ class oven(IsisObject, IsisVisual, SpatialStaticBox, Surface, IsisFunctional):
     def __init__(self):
         self.offsetVec = offsetVec = (0,0,0,0,0,0)
         self.model = "oven/oven"
-        self.scale = randint(60,90) / 10.0
+        self.scale = randint(60,90) / 110.0
         IsisObject.__init__(self)
 
         self.setH(0)

@@ -38,7 +38,6 @@ def environment():
     put_on(l, ta3)
 
     # adding the oven
-    # doesn't appear to have shown up in the world
     ov = oven()
     put_in(ov, k)
 

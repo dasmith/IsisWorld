@@ -20,6 +20,11 @@ class oven(IsisObject, IsisVisual, SpatialStaticBox, Surface, IsisFunctional):
         IsisObject.__init__(self)
 
         self.setH(0)
+        # set the orientation vector: The oven has a "back" which should always
+        # be facing the wall
+        self.orientationVector = (-1, 0, 0) # I'm not sure which side is the back, so I'm experimenting
+        # x = -1 -> west, x = 1 -> east, y = -1 -> south, y = 1 -> north
+        # TODO If this isn't consistent with other coordinate systems, change this code!        
 
 class table(IsisObject,IsisVisual,SpatialStaticBox,Surface,IsisFunctional):
 

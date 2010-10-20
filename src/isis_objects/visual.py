@@ -1,5 +1,6 @@
 from pandac.PandaModules import Vec3, BitMask32 
 from ..physics.panda.manager import *
+import pdb
 
 class IsisVisual():
     priority = 2
@@ -34,13 +35,15 @@ class IsisVisual():
 
         # private flag to lazily recompute properties when necessary
         self._needToRecalculateScalingProperties = False
+        
+        # Some types of objects may have an orientation vector (populate this in its subclass)
+        self.orientationVector = None
     
     def setPosition(self,pos):
         # set position of nodepath
         self.setPos(pos)
         # set position of physics -- doesn't need argument, it gets it from activeModel
         self.setGeomPos(pos)
-        
         
     def setRotation(self,hpr):
         self.setHpr(hpr)

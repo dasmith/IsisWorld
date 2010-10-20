@@ -1,7 +1,7 @@
 """  Objects defined by the IsisWorld simulator """
 from math import sin, cos, pi
 from pandac.PandaModules import NodePath, Quat
-
+import pdb
 # Various layout managers used to generate coordinates for placing objects
 
 class LayoutManager():
@@ -32,6 +32,8 @@ class RoomLayout(LayoutManager):
         self.sides = [self.__addn, self.__adde, self.__adds, self.__addw]
     def add(self, obj):
         """Tries to add the object to the current side"""
+        if obj.model == "oven/oven":
+            pdb.set_trace()
         if self.side < len(self.sides) and LayoutManager.add(self, obj):
             # There are still some empty walls
         
@@ -62,7 +64,8 @@ class RoomLayout(LayoutManager):
     def __adde(self, obj, ow, ol):
         """Tries to add the object along the east side"""
         # if length > width, rotate object so longest dimension is against wall.
-        if ow > ol:
+        if ow > ol and obj.orientationVector is None:
+            #pdb.set_trace()
             obj.rotateAlongX(90)
             t = ow; ow = ol; ol = t
         if self.py+ol > self.h:
@@ -81,7 +84,7 @@ class RoomLayout(LayoutManager):
         return (self.w-2*ow, y)  # FIXME: without *2, objects start in the wall.
     def __adds(self, obj, ow, ol):
         """Tries to add the object along the south side"""
-        if ol > ow:
+        if ol > ow and obj.orientationVector is None:
             # undo previous change
             obj.rotateAlongX(-90)
             t = ow; ow = ol; ol = t
@@ -101,7 +104,7 @@ class RoomLayout(LayoutManager):
     def __addw(self, obj, ow, ol):
         """Tries to add the object along the west side"""
         # if length > width, rotate object so longest dimension is against wall.
-        if ow > ol:
+        if ow > ol and obj.orientationVector is None:
             obj.rotateAlongX(90)
             t = ow; ow = ol; ol = t
         if self.py-ol < 0:

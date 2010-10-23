@@ -74,7 +74,7 @@ class RoomLayout(LayoutManager):
                 return 0 # Don't need to change it
             elif obj.orientationVector[1] == 1: # Orientation vector points north
                 return 270 # Now it will point west when rotated
-             elif obj.orientationVector[1] == -1: # Orientation vector points south
+            elif obj.orientationVector[1] == -1: # Orientation vector points south
                 return 90 # Now it will point west when rotated
         elif desiredVec == (0, 1): # north
             if obj.orientationVector[0] == 1: # Orientation vector points east

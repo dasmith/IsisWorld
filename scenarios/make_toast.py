@@ -4,9 +4,10 @@ scenario.version = "1"
 
 
 def environment():
+    
     k = kitchen()
     put_in_world(k)
-
+    
     f = fridge()
     put_in(f, k)
 
@@ -36,7 +37,7 @@ def environment():
 
     l = loaf()
     put_on(l, ta3)
-
+    
     # adding the oven
     ov = oven()
     put_in(ov, k)

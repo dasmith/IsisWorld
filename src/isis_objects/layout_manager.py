@@ -32,8 +32,8 @@ class RoomLayout(LayoutManager):
         self.sides = [self.__addn, self.__adde, self.__adds, self.__addw]
     def add(self, obj):
         """Tries to add the object to the current side"""
-        if obj.model == "oven/oven":
-            pdb.set_trace()
+        #if obj.model == "oven/oven":
+            #pdb.set_trace()
         if self.side < len(self.sides) and LayoutManager.add(self, obj):
             # There are still some empty walls
         
@@ -45,8 +45,34 @@ class RoomLayout(LayoutManager):
                 # Recalculate coordinates returned from the top left point to the object's center
                 return (coords[0]-(self.w-ow)/2.0+self.padw, coords[1]-(self.h-ol)/2.0+self.padh, self.z)
         return
+    
+    def rotateValForOrientationVector(self, obj, desiredVec):
+        # Returns the value by which obj should be rotated along X such that 
+        # obj's orientation vector will be pointing in the direction of desiredVec
+        if desiredVec == (0, -1): # south
+            if obj.orientationVector[0] == 1: # Orientation vector points east
+                obj.rotateAlongX(90) # Now it points south, away from the wall
+            elif obj.orientationVector[0] == -1: # Orientation vector points west
+                obj.rotateAlongX(270) # Now it points south
+            elif obj.orientationVector[1] == 1: # Orientation vector points north
+                obj.rotateAlongX(180) # Now it points south
+            elif obj.orientationVector[1] == -1: # Orientation vector points south
+                obj.rotateAlongX(0) # Don't need to do anything
+    
     def __addn(self, obj, ow, ol):
         """Tries to add the object along the north side"""
+        if obj.orientationVector is not None:
+            print "Added oven to north side"
+            # Position the object as per its orientation vector
+            # We don't need to worry about the z-axis, just examine the x and y axes
+            if obj.orientationVector[0] == 1: # Orientation vector points east
+                obj.rotateAlongX(90) # Now it points south, away from the wall
+            elif obj.orientationVector[0] == -1: # Orientation vector points west
+                obj.rotateAlongX(270) # Now it points south
+            elif obj.orientationVector[1] == 1: # Orientation vector points north
+                obj.rotateAlongX(180) # Now it points south
+            elif obj.orientationVector[1] == -1: # Orientation vector points south
+                obj.rotateAlongX(0) # Don't need to do anything
         if self.px+ow > self.w:
             # No more room on this side, prepare coordinates for next wall
             self.side += 1
@@ -64,6 +90,19 @@ class RoomLayout(LayoutManager):
     def __adde(self, obj, ow, ol):
         """Tries to add the object along the east side"""
         # if length > width, rotate object so longest dimension is against wall.
+        if obj.orientationVector is not None:
+            print "Added oven to east side"
+            # Position the object as per its orientation vector, we want it to point west
+            # We don't need to worry about the z-axis, just examine the x and y axes
+            if obj.orientationVector[0] == 1: # Orientation vector points east
+                obj.rotateAlongX(180) # Now it points west, away from the wall
+                #obj.rotateAlongX(0)
+            elif obj.orientationVector[0] == -1: # Orientation vector points west
+                obj.rotateAlongX(0) # Don't need to change it
+            elif obj.orientationVector[1] == 1: # Orientation vector points north
+                obj.rotateAlongX(270) # Now it points west
+            elif obj.orientationVector[1] == -1: # Orientation vector points south
+                obj.rotateAlongX(90)
         if ow > ol and obj.orientationVector is None:
             #pdb.set_trace()
             obj.rotateAlongX(90)
@@ -84,6 +123,19 @@ class RoomLayout(LayoutManager):
         return (self.w-2*ow, y)  # FIXME: without *2, objects start in the wall.
     def __adds(self, obj, ow, ol):
         """Tries to add the object along the south side"""
+        if obj.orientationVector is not None:
+            print "Added oven to south side"
+            # Position the object as per its orientation vector
+            # We don't need to worry about the z-axis, just examine the x and y axes
+            # We want the orientation vector to point north at the end of this branch
+            if obj.orientationVector[0] == 1: # Orientation vector points east
+                obj.rotateAlongX(270) # Now it points north, away from the wall
+            elif obj.orientationVector[0] == -1: # Orientation vector points west
+                obj.rotateAlongX(90) # Now it points north
+            elif obj.orientationVector[1] == 1: # Orientation vector points north
+                obj.rotateAlongX(0) # Don't need to change it
+            elif obj.orientationVector[1] == -1: # Orientation vector points south
+                obj.rotateAlongX(180) # Now it points north
         if ol > ow and obj.orientationVector is None:
             # undo previous change
             obj.rotateAlongX(-90)
@@ -103,6 +155,19 @@ class RoomLayout(LayoutManager):
         return (x-ow, self.h-ol)
     def __addw(self, obj, ow, ol):
         """Tries to add the object along the west side"""
+        if obj.orientationVector is not None:
+            print "Added oven to west side"
+            # Position the object as per its orientation vector
+            # We don't need to worry about the z-axis, just examine the x and y axes
+            # We want the orientation vector to point east at the end of this branch
+            if obj.orientationVector[0] == 1: # Orientation vector points east
+                obj.rotateAlongX(0) # Don't need to change it
+            elif obj.orientationVector[0] == -1: # Orientation vector points west
+                obj.rotateAlongX(180) # Now it points east
+            elif obj.orientationVector[1] == 1: # Orientation vector points north
+                obj.rotateAlongX(90) # Now it points east
+            elif obj.orientationVector[1] == -1: # Orientation vector points south
+                obj.rotateAlongX(270) # Now it points east
         # if length > width, rotate object so longest dimension is against wall.
         if ow > ol and obj.orientationVector is None:
             obj.rotateAlongX(90)

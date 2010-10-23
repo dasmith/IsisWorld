@@ -49,15 +49,54 @@ class RoomLayout(LayoutManager):
     def rotateValForOrientationVector(self, obj, desiredVec):
         # Returns the value by which obj should be rotated along X such that 
         # obj's orientation vector will be pointing in the direction of desiredVec
+        # Does NOT actually rotate the object, that is the job of the calling function
+        # The reason for this is because the calling function can change its mind as to which
+        # wall to put the object against.
+        
+        # TODO It may be possible to determine a mathematical formula to set the rotation
+        # value; that might be more elegant than this enumeration of all the possiblities.
+        # I wrote down all the possibilities on paper, I don't quite see a formula, but I
+        # can't claim to be great at geometry.
+        
         if desiredVec == (0, -1): # south
             if obj.orientationVector[0] == 1: # Orientation vector points east
-                obj.rotateAlongX(90) # Now it points south, away from the wall
+                return 90 # Now it will point south, away from the wall (when rotated by this value)
             elif obj.orientationVector[0] == -1: # Orientation vector points west
-                obj.rotateAlongX(270) # Now it points south
+                return 270 # Now it will point south when rotated
             elif obj.orientationVector[1] == 1: # Orientation vector points north
-                obj.rotateAlongX(180) # Now it points south
+                return 180 # Now it will point south when rotated
             elif obj.orientationVector[1] == -1: # Orientation vector points south
-                obj.rotateAlongX(0) # Don't need to do anything
+                return 0 # Don't need to do anything
+        elif desiredVec == (-1, 0): # west
+            if obj.orientationVector[0] == 1: # Orientation vector points east
+                return 180 # Now it will point west, away from the wall, when rotated
+            elif obj.orientationVector[0] == -1: # Orientation vector points west
+                return 0 # Don't need to change it
+            elif obj.orientationVector[1] == 1: # Orientation vector points north
+                return 270 # Now it will point west when rotated
+             elif obj.orientationVector[1] == -1: # Orientation vector points south
+                return 90 # Now it will point west when rotated
+        elif desiredVec == (0, 1): # north
+            if obj.orientationVector[0] == 1: # Orientation vector points east
+                return 270 # Now it points north, away from the wall, when rotated
+            elif obj.orientationVector[0] == -1: # Orientation vector points west
+                return 90 # Now it will point north when rotated
+            elif obj.orientationVector[1] == 1: # Orientation vector points north
+                return 0 # Don't need to change it
+            elif obj.orientationVector[1] == -1: # Orientation vector points south
+                return 180 # Now it points north when rotated
+        elif desiredVec == (1, 0): # east
+            if obj.orientationVector[0] == 1: # Orientation vector points east
+                return 0 # Don't need to change it
+            elif obj.orientationVector[0] == -1: # Orientation vector points west
+                return 180 # Now it points east when rotated
+            elif obj.orientationVector[1] == 1: # Orientation vector points north
+                return 90 # Now it points east when rotated
+            elif obj.orientationVector[1] == -1: # Orientation vector points south
+                return 270 # Now it points east when rotated
+        
+        # TODO add functionality when the orientation vector is different (is this possible?)
+        return 0 # For now, just don't make any possibly harmful changes
     
     def __addn(self, obj, ow, ol):
         """Tries to add the object along the north side"""

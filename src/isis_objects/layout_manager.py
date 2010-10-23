@@ -47,6 +47,13 @@ class RoomLayout(LayoutManager):
         return
     
     def rotateValForOrientationVector(self, obj, desiredVec):
+        
+        # NOTE: When I integrated this method into the add methods, the code stopped working
+        # as intended. I'm still trying to investigate the cause of this bug. I made this a separate
+        # branch so I could preserve the previous, mostly working, copy in the branch fix_orientation.
+        # I put a more detailed set of comments in the fix_orientation branch's version of this method
+        # explaining what happened and my thoughts on it.
+        
         # Returns the value by which obj should be rotated along X such that 
         # obj's orientation vector will be pointing in the direction of desiredVec
         # Does NOT actually rotate the object, that is the job of the calling function

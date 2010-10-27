@@ -198,13 +198,15 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         """Set the state of one of the character's movement controls.  """
         self.controlMap[control] = value
     
-    def get_objects_in_field_of_vision(self,exclude=['isisobject']):
+    def get_objects_in_field_of_vision(self,exclude=None):
         """ This works in an x-ray style. Fast. Works best if you listen to
         http://en.wikipedia.org/wiki/Rock_Art_and_the_X-Ray_Style while
         you use it.
-        
+       
         needs to exclude isisobjects since they cannot be serialized  
         """
+        if exclude == None:
+            exclude = ['isisobject']
         objects = {}
         for obj in base.render.findAllMatches("**/IsisObject*"):
             if not obj.hasPythonTag("isisobj"):

@@ -22,7 +22,7 @@ class oven(IsisObject, IsisVisual, SpatialStaticBox, Surface, IsisFunctional):
         self.setH(0)
         # set the orientation vector: The oven has a "back" which should always
         # be facing the wall
-        self.orientationVector = (1, 0, 0)
+        self.orientationVector = (0, -1, 0)
         # According to the Panda3D manual, x axis points to right, y axis points forward, and z is up
         # Also, by experimentation, when H = 0, the oven is positioned such that its door faces the right
         # We want the door to face the room, away from the wall. So the orientation vector should point
@@ -38,6 +38,7 @@ class table(IsisObject,IsisVisual,SpatialStaticBox,Surface,IsisFunctional):
         self.scale= randint(60,90)/10.0
         IsisObject.__init__(self)
 
+        self.orientationVector = (0, 1, 0)
         self.setH(180)
 
 

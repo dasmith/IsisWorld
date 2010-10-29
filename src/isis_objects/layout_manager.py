@@ -114,13 +114,13 @@ class RoomLayout(LayoutManager):
             self.maxd = 0
             return self.__adde(obj, ow, ol)
         if obj.orientationVector is not None:
-            pdb.set_trace()
+            #pdb.set_trace()
             # Desired vector is (0, -1), the object should face south
             desiredVec = (0, -1)
             rotateVal = self.rotateValForOrientationVector(obj, desiredVec)
             # We should now rotate the object so it faces south
             obj.rotateAlongX(rotateVal)
-            print "Added oven along north side"
+            print "- Added %s along north side" % (obj)
         # Calculate the 2D coordinates for the top left of the object
         x = self.px
         self.px += ow
@@ -131,10 +131,6 @@ class RoomLayout(LayoutManager):
         return (x, 0)
     def __adde(self, obj, ow, ol):
         """Tries to add the object along the east side"""
-        # if length > width, rotate object so longest dimension is against wall.
-        if ow > ol and obj.orientationVector is None:
-            obj.rotateAlongX(90)
-            t = ow; ow = ol; ol = t
         if self.py+ol > self.h:
             # No more room on this side, prepare coordinates for next wall
             self.side += 1
@@ -146,7 +142,11 @@ class RoomLayout(LayoutManager):
             rotateVal = self.rotateValForOrientationVector(obj, desiredVec)
             # We should now rotate the object so it faces west
             obj.rotateAlongX(rotateVal)
-            print "Added oven along east side"
+            print "Added %s along east side" % (obj)
+        elif ol > ow:
+            # undo previous change
+            obj.rotateAlongX(90)
+            ol, ow = ow, ol
         # Calculate the 2D coordinates for the top left of the object
         y = self.py
         self.py += ol
@@ -157,10 +157,6 @@ class RoomLayout(LayoutManager):
         return (self.w-2*ow, y)  # FIXME: without *2, objects start in the wall.
     def __adds(self, obj, ow, ol):
         """Tries to add the object along the south side"""
-        if ol > ow and obj.orientationVector is None:
-            # undo previous change
-            obj.rotateAlongX(-90)
-            t = ow; ow = ol; ol = t
         if self.px-ow < 0:
             # No more room on this side, prepare coordinates for next wall
             self.side += 1
@@ -172,6 +168,9 @@ class RoomLayout(LayoutManager):
             # We should now rotate the object so it faces north
             obj.rotateAlongX(rotateVal)
             print "Added oven along south side"
+        elif ol > ow:
+            # undo previous change
+            obj.rotateAlongX(-90)
         # Calculate the 2D coordinates for the top left of the object
         x = self.px
         self.px -= ow

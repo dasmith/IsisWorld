@@ -101,7 +101,6 @@ class RoomLayout(LayoutManager):
                 return 90 # Now it points east when rotated
             elif obj.orientationVector[1] == -1: # Orientation vector points south
                 return 270 # Now it points east when rotated
-        
         # TODO add functionality when the orientation vector is different (is this possible?)
         return 0 # For now, just don't make any possibly harmful changes
     
@@ -114,13 +113,13 @@ class RoomLayout(LayoutManager):
             self.maxd = 0
             return self.__adde(obj, ow, ol)
         if obj.orientationVector is not None:
-            pdb.set_trace()
+            #pdb.set_trace()
             # Desired vector is (0, -1), the object should face south
             desiredVec = (0, -1)
             rotateVal = self.rotateValForOrientationVector(obj, desiredVec)
             # We should now rotate the object so it faces south
             obj.rotateAlongX(rotateVal)
-            print "Added oven along north side"
+            print "Added %s along north side" % (obj)
         # Calculate the 2D coordinates for the top left of the object
         x = self.px
         self.px += ow

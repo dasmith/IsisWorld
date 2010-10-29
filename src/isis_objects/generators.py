@@ -38,6 +38,7 @@ class table(IsisObject,IsisVisual,SpatialStaticBox,Surface,IsisFunctional):
         self.scale= randint(60,90)/10.0
         IsisObject.__init__(self)
 
+        self.orientationVector = (0, 1, 0)
         self.setH(180)
 
 

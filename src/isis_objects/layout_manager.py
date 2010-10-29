@@ -47,12 +47,18 @@ class RoomLayout(LayoutManager):
         return
     
     def rotateValForOrientationVector(self, obj, desiredVec):
-        
-        # NOTE: When I integrated this method into the add methods, the code stopped working
-        # as intended. I'm still trying to investigate the cause of this bug. I made this a separate
-        # branch so I could preserve the previous, mostly working, copy in the branch fix_orientation.
-        # I put a more detailed set of comments in the fix_orientation branch's version of this method
-        # explaining what happened and my thoughts on it.
+        # NOTE: This method is only actually called in branch fix_layout2 of the git repository
+        # I originally wasn't planning on making 2 branches, but when I integrated this method into
+        # the add methods to make the code cleaner, it stopped working as intended, so I made 
+        # that a separate branch. 
+        # I was also intending to fix something which I thought might be the source of a bug.
+        # Let's say we end up adding the obj to the south wall. The way the add methods are organized,
+        # we will first try the north and east walls. The code in here would rotate the obj once
+        # for the north wall, and again for the east wall. When writing the rotate code I assumed
+        # H would be 0, but it's not in this case, which was an oversight on my part.
+        # The odd thing was that this code appears to work if you compare the orientation of the
+        # oven to the wall we put it against (using the report from the print statements). However,
+        # the code in fix_layout2, despite attempting to fix this bug, doesn't work. Interesting.
         
         # Returns the value by which obj should be rotated along X such that 
         # obj's orientation vector will be pointing in the direction of desiredVec

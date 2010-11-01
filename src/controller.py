@@ -1,6 +1,7 @@
 
 import os
 import operator
+import imp
 
 from direct.gui.DirectGui import DGG, DirectFrame, DirectLabel, DirectButton, DirectOptionMenu, DirectEntry
 from direct.gui.DirectGui import DirectSlider, RetryCancelDialog, DirectCheckButton
@@ -8,7 +9,6 @@ from direct.fsm.FSM import FSM, RequestDenied
 from direct.gui.OnscreenText import OnscreenText
 from direct.gui.OnscreenImage import OnscreenImage
 from pandac.PandaModules import Vec3, Vec4, PandaNode
-
 from panda3d.core import ExecutionEnvironment
 
 from src.isis_scenario import *
@@ -39,15 +39,14 @@ class Controller(object, FSM):
         self.currentScenario = None
         self.scenarioFiles = []
         self.scenarioTasks = []
+        
+        
         # load files in the scenario directory
         print "LOADING SCENARIO FILES", self.main.rootDirectory
         for scenarioPath in os.listdir(self.main.rootDirectory+"scenarios"):
-            if scenarioPath[-3:] == ".py":
-                scenarioFile = scenarioPath[scenarioPath.rfind("/")+1:-3]
+            scenarioFile = scenarioPath[scenarioPath.rfind("/")+1:]
+            if "__init__" not in scenarioFile:
                 self.scenarioFiles.append(scenarioFile)
-                print scenarioFile, " ",
-        print "\n" 
-
         # display GUI for navigating tasks
         #textObj = OnscreenText(text = "Scenarios:", pos = (1,0.9), scale = 0.05,fg=(1,0.5,0.5,1),align=TextNode.ALeft,mayChange=1)
         # summer theme
@@ -403,9 +402,11 @@ class Controller(object, FSM):
         self.scenarioFrame.hide()
         self.toolbarFrame.hide()
         self.pause_simulation()
-         
+        
         # unload the previous scene if it's there
         if hasattr(self.main,'worldNode'):
+            del self.currentScenario
+            self.currentScenario = None
             # kitchen 
             for obj in self.main.objects:
                 obj.removeFromWorld()
@@ -444,8 +445,19 @@ class Controller(object, FSM):
                 dialogbox.cleanup()
             
             try:
-                # load scenario file
-                self.currentScenario = IsisScenario(self.selectedScenario)
+                print "Selected Scenario", self.selectedScenario
+                if self.selectedScenario.lower()[-3:] == '.py':
+                    print "NAME", self.selectedScenario[:-3]
+                    print "OPENING", "scenario/"+self.selectedScenario
+                    py_mod = imp.load_source(self.selectedScenario[:-3], "scenarios/"+self.selectedScenario)
+                elif self.selectedScenario.lower()[-4:] == '.pyc':
+                    py_mod = imp.load_compiled(self.selectedScenario[:-4], "scenarios/"+self.selectedScenario)
+                else:
+                    raise Exception("Invalid file extension for %s " % (self.selectedScenario))
+                if 'Scenario' in dir(py_mod):
+                    self.currentScenario = py_mod.Scenario(self.selectedScenario) 
+                    
+                print "Current scenario methods", dir(self.currentScenario)
                 # setup world
                 self.currentScenario.loadScenario(self.main)
             except IsisParseProblem as e:

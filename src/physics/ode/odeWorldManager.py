@@ -1304,22 +1304,24 @@ class ODEWorldManager(object):
     """
     Step the simulation
     """
-    def simulationTask(self, task):
+    def step_simulation_once(self, step_size):
         self.space.collide("", self.handleCollisions)
-        self.world.quickStep(self.stepSize)
+        self.world.quickStep(step_size)
         self.contactGroup.empty()
         
         """
         Update the objects in the simulation
         """
         for object in self.objects:
-            object.update(self.stepSize)
+            object.update(step_size)
                 
+    
+    def simulationTask(self, task):
+        self.step_simulation_once(self.stepSize)
         return task.again
     
     def startSimulation(self, stepSize):
         self.stepSize = stepSize
-        taskMgr.add(self.main.cloud_moving_task, "visual-movingClouds")
         taskMgr.doMethodLater(stepSize, self.simulationTask, "physics-ODESimulation")
         
     def stopSimulation(self):

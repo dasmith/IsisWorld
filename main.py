@@ -69,7 +69,7 @@ class IsisWorld(DirectObject):
         
         self.current_physics_time = 0.0
         self.desired_physics_time = None # simulation unpaused
-        self.physics_time_step    = 1.0/20.0
+        self.physics_time_step    = 1.0/40.0
         
         self._setup_base_environment(debug=False)
         self._setup_lights()
@@ -199,7 +199,7 @@ class IsisWorld(DirectObject):
         
         if self.simulation_is_running():
             #print "stepping simulation:", self.current_physics_time, "seconds"
-            self.physics.step_simulation_once(self.physics_time_step)
+            self.physics.step_simulation(self.physics_time_step)
             self.current_physics_time += self.physics_time_step
         
         return task.cont

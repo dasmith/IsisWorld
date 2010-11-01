@@ -361,25 +361,18 @@ class Controller(object, FSM):
         
     def pause_simulation(self,task=None):
         if self.runningSimulation:
-            self.main.physics.stopSimulation()
-            #   taskMgr.remove("visual-movingClouds")
+            #self.main.physics.stopSimulation()
+            self.main.pause_simulation()
             self.runningSimulation = False
     
-    def step_simulation(self, stepTime=None):
-        if not self.runningSimulation:
-            if stepTime != None:
-                assert stepTime >= 0.01
-                # Adjust for delays to better approximate the right stopping time
-                if stepTime >= .015:
-                    stepTime -= .005
-                taskMgr.doMethodLater(stepTime, self.pause_simulation, "physics-SimulationStopper", priority=10)
-            self.runningSimulation = True
-            self.main.physics.startSimulation(1.0/40.0)
+    def step_simulation(self, step_time):
+        self.main.step_simulation(step_time)
 
     def start_simulation(self):
         """ Starts the simulation, if it is not already running"""
         if not self.runningSimulation:
-            self.step_simulation()
+            self.main.resume_simulation()
+            self.runningSimulation = True
     
     def toggle_paused(self):
         """ Starts or Pauses the simulation, depending on the current state"""
@@ -415,10 +408,10 @@ class Controller(object, FSM):
             self.main.physics.destroy() 
             self.main.worldNode.removeNode()
         self.main.reset()
-
+        
         # start the moving clouds
         taskMgr.add(self.main.cloud_moving_task, "visual-movingClouds")
-
+        
         # reveal the correct GUI
         self.menuFrame.show()
 

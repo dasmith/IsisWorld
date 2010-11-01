@@ -70,7 +70,11 @@ class IsisWorld(DirectObject):
         self._setup_base_environment(debug=False)
         self._setup_lights()
         self._setup_cameras()
-
+        
+        self.current_physics_time = 0.0
+        self.desired_physics_time = None # simulation unpaused
+        self.physics_time_step    = 1.0/40.0
+        
         # initialize Finite State Machine to control UI
         self.controller = Controller(self, base)
         
@@ -123,7 +127,7 @@ class IsisWorld(DirectObject):
         self.agentsNamesToIDs = {}
         self.objects = []
         self.worldNode = base.render.attachNewNode(PandaNode('isisObjects'))
-
+        
         """ The world consists of a plane, the "ground" that stretches to infinity
         and a dome, the "sky" that sits concavely on the ground. """
         cm = CardMaker("ground")
@@ -146,11 +150,11 @@ class IsisWorld(DirectObject):
         self.skydomeNP.setPos(Vec3(0,0,-500))
         self.skydomeNP.setStandardControl()
         self.skydomeNP.att_skycolor.setColor(Vec4(0.3,0.3,0.3,1))
-
+    
     def _setup_base_environment(self,debug=False):
         """  Configuration code for basic window management, and the XML-RPC server.
         Everything here is only loaded ONCE."""
-       
+        
         base.setFrameRateMeter(True)
         base.setBackgroundColor(.2, .2, .2)
         base.camLens.setFov(75)
@@ -173,16 +177,48 @@ class IsisWorld(DirectObject):
         self.server.register_function(self.commandHandler.handler,'do')
         # some hints on threading: https://www.panda3d.org/forums/viewtopic.php?t=7345
         base.taskMgr.setupTaskChain('xmlrpc',numThreads=1,frameSync=True)
-        base.taskMgr.add(self.server.start_serving, 'xmlrpc-server', taskChain='xmlrpc',priority=1000)
-        base.taskMgr.add(self.run_xml_command_queue,'xmlrpc-command-queue', taskChain='xmlrpc', priority=1000)
-        base.taskMgr.add(self.rest_a_little,'rest-a-little', priority=1000)
+        base.taskMgr.add(self.server.start_serving,  'xmlrpc-server',           taskChain='xmlrpc', priority=1000)
+        base.taskMgr.add(self.run_xml_command_queue, 'xmlrpc-command-queue',    taskChain='xmlrpc', priority=1000)
+        base.taskMgr.add(self.rest_a_little,         'rest-a-little',           priority=1000)
+        base.taskMgr.add(self.tick_simulation_task,  'physics-step_simulation', priority=1000)
+        base.taskMgr.add(self.cloud_moving_task,     'visual-movingClouds',     priority=1000)
+        
         #base.taskMgr.popupControls() 
     
     def cloud_moving_task(self,task):
         """ Non-essential visualization to move the clouds around."""
-        self.skydomeNP.skybox.setShaderInput('time', task.time)
+        self.skydomeNP.skybox.setShaderInput('time', self.current_physics_time)
         return task.cont
     
+    # this can be used to check if the sky should be animated, etc.
+    def simulation_is_running(self):
+        return (self.desired_physics_time == None) or (self.current_physics_time < self.desired_physics_time - self.physics_time_step)
+
+    # this is executed in order to move the physics time to the desired physics time.
+    def tick_simulation_task(self,task):
+        """ Steps the simulation to the desired time step in physics time. """
+        
+        if self.simulation_is_running():
+            #print "stepping simulation:", self.current_physics_time, "seconds"
+            self.physics.step_simulation_once(self.physics_time_step)
+            self.current_physics_time += self.physics_time_step
+        
+        return task.cont
+    
+    # this is used to increment the desired physics time (the tick
+    # function above will handle ticking actual physics time to match
+    # desired time)
+    def step_simulation(self, time_step):
+        self.desired_physics_time += time_step
+    
+    # this is used to pause the simulation.
+    def pause_simulation(self):
+        self.desired_physics_time = self.current_physics_time
+
+    # this is used to unpause the simulation (runs freely).
+    def resume_simulation(self):
+        self.desired_physics_time = None
+        
     def run_xml_command_queue(self,task):
         """ Executes all of the XML-RPC commands in the queue"""
         self.commandHandler.panda3d_thread_process_command_queue()

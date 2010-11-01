@@ -1305,6 +1305,7 @@ class ODEWorldManager(object):
     Step the simulation
     """
     def step_simulation_once(self, step_size):
+        assert (step_size >= (1.0 / 40.0) - 0.0001)
         self.space.collide("", self.handleCollisions)
         self.world.quickStep(step_size)
         self.contactGroup.empty()
@@ -1315,6 +1316,14 @@ class ODEWorldManager(object):
         for object in self.objects:
             object.update(step_size)
                 
+    def step_simulation(self, step_size):
+        maximum_step_size = 1.0/40.0
+        while (step_size > 0.0001):
+            current_step_size = step_size
+            if (current_step_size > maximum_step_size):
+                current_step_size = maximum_step_size
+            self.step_simulation_once(current_step_size)
+            step_size -= current_step_size
     
     #def simulationTask(self, task):
     #    self.step_simulation_once(self.stepSize)

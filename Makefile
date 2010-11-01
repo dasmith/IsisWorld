@@ -10,6 +10,7 @@ make: main.py
 
 doc: main.py
 	apydia -d docs -o -t "IsisWorld v$(SIM_VERSION)" -p markdown src
+
 clean: 
 	rm -rf **/*.pyc
 	rm -rf osx_i386 osx_ppc linux_amd64 linux_i386 win32
@@ -18,17 +19,18 @@ getp3d: /Developer/Panda3D/lib/direct/p3d/ppackage.py
 	wget http://runtime.panda3d.org/ppackage.p3d
 	wget http://runtime.panda3d.org/packp3d.p3d
 	wget http://runtime.panda3d.org/pdeploy.p3d
-
+	panda3d ppackage.p3d -i . isisworld.pdef
+	panda3d pdeploy.p3d -i . isisworld.pdef
 
 package:
 	export ISISWORLD_SCENARIO_PATH=$(cd scenarios; pwd)
 	python /Developer/Panda3D/lib/direct/p3d/ppackage.py -i . isisworld.pdef -start_dir=scenarios
 	pdeploy -N "IsisWorld" -v 0.5 isisworld.p3d standalone
 
-mac:
-	panda3d ppackage.p3d -i . isisworld.pdef
+package2:
+	ppackage -i . isisworld.pdef
+	pdeploy -N "IsisWorld" -v $(SIM_VERSION) isisworld.p3d standalone
 
-#	/Developer/Tools/Panda3D/pdeploy -N "IsisWorld" -v 0.5 isisworld.p3d standalone
 
 profile:
 	python -m cProfile -o stats.prof main.py

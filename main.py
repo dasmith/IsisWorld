@@ -68,7 +68,7 @@ class IsisWorld(DirectObject):
         self.isisMessage("Starting Up")
         
         self.current_physics_time = 0.0
-        self.desired_physics_time = 0.0 # simulation paused
+        self.desired_physics_time = None # simulation unpaused
         self.physics_time_step    = 1.0/20.0
         
         self._setup_base_environment(debug=False)

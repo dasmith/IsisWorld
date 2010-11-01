@@ -516,7 +516,11 @@ class IsisAgent(kinematicCharacterController,DirectObject):
             target = render.find("**/*" + target + "*").getPythonTag("isisobj")    
         print "attempting to pick up " + target.name + " with right hand.\n"
         if self.can_grasp(target): # object within distance      
-            return self.pick_object_up_with(target, self.right_hand_holding_object, self.player_right_hand)
+            target = self.pick_object_up_with(target, self.right_hand_holding_object, self.player_right_hand)
+            if target != None:
+                return 'success'
+            else:
+                return 'failure'
         else:
             print 'object (' + target.name + ') is not graspable (i.e. in view and close enough).'
             return 'error: object not graspable'
@@ -531,7 +535,11 @@ class IsisAgent(kinematicCharacterController,DirectObject):
             target = render.find("**/*" + target + "*").getPythonTag("isisobj")    
         print "attempting to pick up " + target.name + " with left hand.\n"
         if self.can_grasp(target): # object within distance      
-            return  self.pick_object_up_with(target, self.left_hand_holding_object, self.player_left_hand)
+            target = self.pick_object_up_with(target, self.left_hand_holding_object, self.player_left_hand)
+            if target != None:
+                return 'success'
+            else:
+                return 'failure'
         else:
             print 'object (' + target.name + ') is not graspable (i.e. in view and close enough).'
             return 'error: object not graspable'

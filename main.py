@@ -59,16 +59,16 @@ class IsisWorld(DirectObject):
         self.rootDirectory = ""#ExecutionEnvironment.getEnvironmentVariable("ISISWORLD_SCENARIO_PATH")
         
         DirectObject.__init__(self)
-
+        
         self.isisMessage("Starting Up")
+        
+        self.current_physics_time = 0.0
+        self.desired_physics_time = 0.0 # simulation paused
+        self.physics_time_step    = 1.0/20.0
         
         self._setup_base_environment(debug=False)
         self._setup_lights()
         self._setup_cameras()
-        
-        self.current_physics_time = 0.0
-        self.desired_physics_time = None # simulation unpaused
-        self.physics_time_step    = 1.0/40.0
         
         # initialize Finite State Machine to control UI
         self.controller = Controller(self, base)
@@ -185,10 +185,9 @@ class IsisWorld(DirectObject):
         self.skydomeNP.skybox.setShaderInput('time', self.current_physics_time)
         return task.cont
     
-    # this can be used to check if the sky should be animated, etc.
     def simulation_is_running(self):
         return (self.desired_physics_time == None) or (self.current_physics_time < self.desired_physics_time - self.physics_time_step)
-
+    
     # this is executed in order to move the physics time to the desired physics time.
     def tick_simulation_task(self,task):
         """ Steps the simulation to the desired time step in physics time. """

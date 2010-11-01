@@ -1316,15 +1316,15 @@ class ODEWorldManager(object):
             object.update(step_size)
                 
     
-    def simulationTask(self, task):
-        self.step_simulation_once(self.stepSize)
-        return task.again
-    
-    def startSimulation(self, stepSize):
-        self.stepSize = stepSize
-        taskMgr.doMethodLater(stepSize, self.simulationTask, "physics-ODESimulation")
-        
-    def stopSimulation(self):
-        taskMgr.remove("visual-movingClouds")
-        taskMgr.remove("physics-ODESimulation")
+    #def simulationTask(self, task):
+    #    self.step_simulation_once(self.stepSize)
+    #    return task.again
+    #
+    #def startSimulation(self, stepSize):
+    #    self.stepSize = stepSize
+    #    taskMgr.doMethodLater(stepSize, self.simulationTask, "physics-ODESimulation")
+    #    
+    #def stopSimulation(self):
+    #    taskMgr.remove("visual-movingClouds")
+    #    taskMgr.remove("physics-ODESimulation")
 

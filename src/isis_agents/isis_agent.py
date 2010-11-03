@@ -228,6 +228,7 @@ class IsisAgent(kinematicCharacterController,DirectObject):
                 if 'orientation' not in exclude: object_dict['orientation'] = o.activeModel.getH(self.fov)
                 if 'actions' not in exclude: object_dict['actions'] = o.list_actions()
                 if 'isisobject' not in exclude: object_dict['isisobject'] = o
+                if 'class' not in exclude: object_dict['class'] = o.getClassName()
                 # add item to dinctionary
                 objects[o] = object_dict
         return objects

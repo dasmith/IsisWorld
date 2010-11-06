@@ -233,6 +233,9 @@ class IsisAgent(kinematicCharacterController,DirectObject):
                 objects[o] = object_dict
         return objects
 
+    def getClassName(self):
+        return self.__class__.__name__
+
     def get_agents_in_field_of_vision(self):
         """ This works in an x-ray vision style as well"""
         agents = {}
@@ -251,7 +254,8 @@ class IsisAgent(kinematicCharacterController,DirectObject):
                 agentDict = {'x_pos': p3[0],\
                              'y_pos': p3[2],\
                              'distance':a.actorNodePath.getDistance(self.fov),\
-                             'orientation': a.actorNodePath.getH(self.fov)}
+                             'orientation': a.actorNodePath.getH(self.fov),\
+                             'class': a.getClassName()}
                 agents[a] = agentDict
         return agents
 
@@ -694,7 +698,7 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         print text
 
     def add_action_to_history(self, action, args, result = 0):
-        self.queue.append((time(), action, args, result))
+        self.queue.append({'time':time(), 'action':action, 'args':args, 'result':result})
         if len(self.queue) > self.queueSize:
             self.queue.pop(0)
 
@@ -703,8 +707,8 @@ class IsisAgent(kinematicCharacterController,DirectObject):
             end = time()
         actions = []
         for act in self.queue:
-            if act[0] >= start:
-                if act[0] < end:
+            if act['time'] >= start:
+                if act['time'] < end:
                     actions.append(act)
                 else:
                     break

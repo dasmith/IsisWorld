@@ -54,6 +54,11 @@ class IsisVisual():
         self.setH(self.getH()+x)
         self.synchPosQuatToNode()
         self._needToRecalculateScalingProperties = True
+        # reset width and length if the object was rotated by a multiple of 90 degrees
+        margin = 10 # might change experimentally
+        if abs(x % 180) < margin:
+            self.length, self.width = self.width, self.length
+        # TODO test this code and see if it works properly
         
     def rescaleModel(self,scale):
         """ Changes the model's dimensions to a given scale"""

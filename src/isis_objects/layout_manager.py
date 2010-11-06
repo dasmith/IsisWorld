@@ -32,8 +32,6 @@ class RoomLayout(LayoutManager):
         self.sides = [self.__addn, self.__adde, self.__adds, self.__addw]
     def add(self, obj):
         """Tries to add the object to the current side"""
-        #if obj.model == "oven/oven":
-            #pdb.set_trace()
         if self.side < len(self.sides) and LayoutManager.add(self, obj):
             # There are still some empty walls
         

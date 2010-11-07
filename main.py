@@ -55,8 +55,13 @@ class IsisWorld(DirectObject):
     physics = None
     
     def __init__(self):
+        
+        # TODO, read args http://www.panda3d.org/apiref.php?page=ExecutionEnvironment#getBinaryName
+        print "ARGS", 
         # MAIN_DIR var is set in direct/showbase/DirectObject.py
         self.rootDirectory = ""#ExecutionEnvironment.getEnvironmentVariable("ISISWORLD_SCENARIO_PATH")
+        for arg in xrange(ExecutionEnvironment.getNumArgs()):
+            print arg, ExecutionEnvironment.getArg(arg)
         
         DirectObject.__init__(self)
 

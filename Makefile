@@ -11,25 +11,30 @@ make: main.py
 doc: main.py
 	apydia -d docs -o -t "IsisWorld v$(SIM_VERSION)" -p markdown src
 
-clean: 
+clean:
 	rm -rf **/*.pyc
 	rm -rf osx_i386 osx_ppc linux_amd64 linux_i386 win32
+	rm packp3d.p3d.*
+	rm pdeploy.p3d.*
 
-getp3d: /Developer/Panda3D/lib/direct/p3d/ppackage.py
+getp3d: ppackage.p3d pdeploy.p3d
 	wget http://runtime.panda3d.org/ppackage.p3d
 	wget http://runtime.panda3d.org/packp3d.p3d
 	wget http://runtime.panda3d.org/pdeploy.p3d
 	panda3d ppackage.p3d -i . isisworld.pdef
 	panda3d pdeploy.p3d -i . isisworld.pdef
 
-package:
-	export ISISWORLD_SCENARIO_PATH=$(cd scenarios; pwd)
-	python /Developer/Panda3D/lib/direct/p3d/ppackage.py -i . isisworld.pdef -start_dir=scenarios
-	pdeploy -N "IsisWorld" -v 0.5 isisworld.p3d standalone
+package: getp3d
+	panda3d ppackage.p3d -i . isisworld.pdef
+	panda3d pdeploy.p3d -N "IsisWorld" -n isisworld -t width=800 -t height=600 -P osx_i386 -v $(SIM_VERSION) isisworld.0.5.p3d standalone
 
 package2:
 	ppackage -i . isisworld.pdef
 	pdeploy -N "IsisWorld" -v $(SIM_VERSION) isisworld.p3d standalone
+
+package3:
+	panda3d ppackage.p3d -D -i .  isisworld.pdef
+	panda3d pdeploy.p3d -N "IsisWorld" -n isisworld -t width=800 -t height=600 -P osx_i386 -v $(SIM_VERSION) isisworld.0.5.p3d standalone
 
 
 profile:
@@ -58,4 +63,3 @@ deploy: build
 
 
 
-include Makefile.sphinx

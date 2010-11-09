@@ -1,6 +1,7 @@
 
 import os
 import operator
+import struct
 
 from direct.gui.DirectGui import DGG, DirectFrame, DirectLabel, DirectButton, DirectOptionMenu, DirectEntry
 from direct.gui.DirectGui import DirectSlider, RetryCancelDialog, DirectCheckButton
@@ -12,6 +13,33 @@ from pandac.PandaModules import Vec3, Vec4, PandaNode, PNMImage
 from panda3d.core import ExecutionEnvironment, Filename
 
 from src.isis_scenario import *
+
+def pnm_image__as__rgb_string_image(source_pnm_image):
+    source_x_size = source_pnm_image.getReadXSize()
+    source_y_size = source_pnm_image.getReadYSize()
+    x_size = source_x_size
+    y_size = source_y_size
+    if x_size > 256:
+        y_size = y_size * 256 / x_size
+        x_size = 256
+    if y_size > 256:
+        x_size = x_size * 256 / y_size
+        y_size = 256
+    #print 'pnm_image__as__rgb_string_image: beginning rgb scan.  x_size =', x_size, 'y_size =', y_size
+    x_size_string = struct.pack('Q', x_size)
+    y_size_string = struct.pack('Q', y_size)
+    rgb_string_image = x_size_string + y_size_string
+    for y in range(y_size):
+        source_y = y * source_y_size / y_size
+        for x in range(x_size):
+            source_x = x * source_x_size / x_size
+            red   = 255 * source_pnm_image.getRed(  source_x, source_y)
+            green = 255 * source_pnm_image.getGreen(source_x, source_y)
+            blue  = 255 * source_pnm_image.getBlue( source_x, source_y)
+            rgb_string = struct.pack('BBB', red, green, blue)
+            rgb_string_image += rgb_string
+    #print 'pnm_image__as__rgb_string_image: done with rgb scan.  length =', len(rgb_string_image)
+    return rgb_string_image
 
 
 class Controller(object, FSM):
@@ -516,22 +544,34 @@ class Controller(object, FSM):
     def onGoalMetCallback(self):
         self.request('TaskPaused')
     
-    def capture_agent_screenshot(self):
+    def capture_agent_screenshot_pnm_image(self):
         pnm_image = PNMImage()
         success = self.agent_camera.getScreenshot(pnm_image)
         if not success:
             return None
         return pnm_image
         
-    def capture_screenshot(self):
+    def capture_screenshot_pnm_image(self):
         pnm_image = PNMImage()
         success = self.base.camNode.getDisplayRegion(0).getScreenshot(pnm_image)
         if not success:
             return None
         return pnm_image
         
+    def capture_screenshot_rgb_string_image(self):
+        pnm_image = self.capture_screenshot_pnm_image()
+        if pnm_image is None:
+            return None
+        return pnm_image__as__rgb_string_image(pnm_image)
+
+    def capture_agent_screenshot_rgb_string_image(self):
+        pnm_image = self.capture_agent_screenshot_pnm_image()
+        if pnm_image is None:
+            return None
+        return pnm_image__as__rgb_string_image(pnm_image)
+
     def screenshot(self, name):
-        pnm_image = self.capture_screenshot()
+        pnm_image = self.capture_screenshot_pnm_image()
         if pnm_image is None:
             print 'Failed to save screenshot.  :('
             return None
@@ -546,7 +586,7 @@ class Controller(object, FSM):
             print "Failed to saved to ", filename
         
     def screenshot_agent(self, name):
-        pnm_image = self.capture_agent_screenshot()
+        pnm_image = self.capture_agent_screenshot_pnm_image()
         if pnm_image is None:
             print 'Failed to save screenshot.  :('
             return None

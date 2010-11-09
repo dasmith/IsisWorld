@@ -917,10 +917,10 @@ class ODEWorldManager(object):
         base.accept("unpause", self.unpause)
     
     def pause(self):
-        self.stopSimulation()
+        self.main.pause_simulation()
         
     def unpause(self):
-        self.startSimulation(self.stepSize)
+        self.main.resume_simulation()
     
     """
     This function gets the size of a Node's bounding box. It's used to create OdeBoxGeoms
@@ -948,7 +948,7 @@ class ODEWorldManager(object):
         return self.space
         
     def destroyAllObjects(self):
-        self.stopSimulation()
+        self.pause()
         for obj in self.objects:
             self.removeObject(obj)
             if hasattr(obj,'removeFromWorld'): 
@@ -962,7 +962,7 @@ class ODEWorldManager(object):
         return True
 
     def destroy(self):
-        self.stopSimulation()
+        self.pause()
         for object in self.objects:
             self.removeObject(object)
             object.destroy()
@@ -1302,10 +1302,11 @@ class ODEWorldManager(object):
         return True
     
     """
-    Step the simulation
+    Step the simulation must be for less than 1/30th of a second.
+    Use step_simulation below to specify any step size.
     """
     def step_simulation_once(self, step_size):
-        assert (step_size >= (1.0 / 40.0) - 0.0001)
+        assert (step_size <= (1.0 / 30.0) + 0.0001)
         self.space.collide("", self.handleCollisions)
         self.world.quickStep(step_size)
         self.contactGroup.empty()
@@ -1316,6 +1317,9 @@ class ODEWorldManager(object):
         for object in self.objects:
             object.update(step_size)
                 
+    """
+    Step the simulation for any given amount of physical time.
+    """
     def step_simulation(self, step_size):
         maximum_step_size = 1.0/40.0
         while (step_size > 0.0001):
@@ -1325,15 +1329,4 @@ class ODEWorldManager(object):
             self.step_simulation_once(current_step_size)
             step_size -= current_step_size
     
-    #def simulationTask(self, task):
-    #    self.step_simulation_once(self.stepSize)
-    #    return task.again
-    #
-    #def startSimulation(self, stepSize):
-    #    self.stepSize = stepSize
-    #    taskMgr.doMethodLater(stepSize, self.simulationTask, "physics-ODESimulation")
-    #    
-    #def stopSimulation(self):
-    #    taskMgr.remove("visual-movingClouds")
-    #    taskMgr.remove("physics-ODESimulation")
 

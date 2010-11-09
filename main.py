@@ -63,7 +63,7 @@ class IsisWorld(DirectObject):
         self.isisMessage("Starting Up")
         
         self.current_physics_time = 0.0
-        self.desired_physics_time = None # simulation unpaused
+        self.desired_physics_time = None # simulation unpaused (warning: must be paused while initializing IsisAgents and IsisObjects)
         self.physics_time_step    = 1.0/40.0
         
         self._setup_base_environment(debug=False)
@@ -179,6 +179,9 @@ class IsisWorld(DirectObject):
         base.taskMgr.add(self.cloud_moving_task,     'visual-movingClouds',     priority=1000)
         
         #base.taskMgr.popupControls() 
+    
+    def get_current_physics_time(self):
+        return self.current_physics_time
     
     def cloud_moving_task(self,task):
         """ Non-essential visualization to move the clouds around."""

@@ -32,9 +32,8 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         that is required for all IsisObjects """
         cls.physics = physics
 
-
     def __init__(self, name, queueSize = 100):
-
+        print 'initializing IsisAgent: 0'
         # load the model and the different animations for the model into an Actor object.
         self.actor= Actor("media/models/boxman",
                           {"walk":"media/models/boxman-walk", 
@@ -47,8 +46,9 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         self.activeModel = self.actorNodePath
         
         
+        print 'initializing IsisAgent: 1'
         self.actorNodePath.reparentTo(render)
-
+        
         self.actor.reparentTo(self.actorNodePath)
         self.name = name
         self.isMoving = False
@@ -82,23 +82,23 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         """
         #self.specialDirectObject.accept("ladder_trigger_enter", self.setFly, [True])
         #self.specialDirectObject.accept("ladder_trigger_exit", self.setFly, [False])
-
+        
         self.actor.makeSubpart("arms", ["LeftShoulder", "RightShoulder"])    
         
         # Expose agent's right hand joint to attach objects to
         self.player_right_hand = self.actor.exposeJoint(None, 'modelRoot', 'Hand.R')
         self.player_left_hand  = self.actor.exposeJoint(None, 'modelRoot', 'Hand.L')
-
+        
         self.right_hand_holding_object = None
         self.left_hand_holding_object  = None
-
+        
         # don't change the color of things you pick up
         self.player_right_hand.setColorScaleOff()
         self.player_left_hand.setColorScaleOff()
         
         self.player_head  = self.actor.exposeJoint(None, 'modelRoot', 'Head')
         self.neck = self.actor.controlJoint(None, 'modelRoot', 'Head')
-
+        
         self.controlMap = {"turn_left":0,
                            "turn_right":0,
                            "move_forward":0,
@@ -113,13 +113,14 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         # see update method for uses, indices are [turn left, turn right, move_forward, move_back, move_right, move_left, look_up, look_down, look_right, look_left]
         # turns are in degrees per second, moves are in units per second
         self.speeds = [270, 270, 5, 5, 5, 5, 60, 60, 60, 60]
-
+        
         self.originalPos = self.actor.getPos()
-
+        
                 
         bubble = loader.loadTexture("media/textures/thought_bubble.png")
         #bubble.setTransparency(TransparencyAttrib.MAlpha)
     
+        print 'initializing IsisAgent: 2'
         self.speech_bubble =DirectLabel(parent=self.actor, text="", text_wordwrap=10, pad=(3,3), relief=None, text_scale=(.3,.3), pos = (0,0,3.6), frameColor=(.6,.2,.1,.5), textMayChange=1, text_frame=(0,0,0,1), text_bg=(1,1,1,1))
         #self.myImage=
         self.speech_bubble.setTransparency(TransparencyAttrib.MAlpha)
@@ -131,6 +132,7 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         self.speech_bubble.hide(BitMask32.bit(1))
         
         
+        print 'initializing IsisAgent: 3'
         self.thought_bubble =DirectLabel(parent=self.actor, text="", text_wordwrap=9, text_frame=(1,0,-2,1), text_pos=(0,.5), text_bg=(1,1,1,0), relief=None, frameSize=(0,1.5,-2,3), text_scale=(.18,.18), pos = (0,0.2,3.6), textMayChange=1, image=bubble, image_pos=(0,0.1,0), sortOrder=5)
         self.thought_bubble.setTransparency(TransparencyAttrib.MAlpha)
         # stop the speech bubble from being colored like the agent
@@ -147,6 +149,7 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         self.last_spoke = 0 # timers to keep track of last thought/speech and 
         self.last_thought =0 # hide visualizations
         
+        print 'initializing IsisAgent: 4'
         # put a camera on ralph
         self.fov = NodePath(Camera('RaphViz'))
         self.fov.node().setCameraMask(BitMask32.bit(1))
@@ -677,7 +680,7 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         return dict([x.getName(),y] for (x,y) in self.get_objects_in_field_of_vision().items())
 
     def sense__get_agents(self):
-        curSense = time()
+        curSense = self.physics.main.get_current_physics_time()
         agents = {}
         for k, v in self.get_agents_in_field_of_vision().items():
             v['actions'] = k.get_other_agents_actions(self.lastSense, curSense)
@@ -698,13 +701,13 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         print text
 
     def add_action_to_history(self, action, args, result = 0):
-        self.queue.append({'time':time(), 'action':action, 'args':args, 'result':result})
+        self.queue.append({'time':self.physics.main.get_current_physics_time(), 'action':action, 'args':args, 'result':result})
         if len(self.queue) > self.queueSize:
             self.queue.pop(0)
 
     def get_other_agents_actions(self, start = 0, end = None):
         if not end:
-            end = time()
+            end = self.physics.main.get_current_physics_time()
         actions = []
         for act in self.queue:
             if act['time'] >= start:

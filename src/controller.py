@@ -7,9 +7,9 @@ from direct.gui.DirectGui import DirectSlider, RetryCancelDialog, DirectCheckBut
 from direct.fsm.FSM import FSM, RequestDenied
 from direct.gui.OnscreenText import OnscreenText
 from direct.gui.OnscreenImage import OnscreenImage
-from pandac.PandaModules import Vec3, Vec4, PandaNode
+from pandac.PandaModules import Vec3, Vec4, PandaNode, PNMImage
 
-from panda3d.core import ExecutionEnvironment
+from panda3d.core import ExecutionEnvironment, Filename
 
 from src.isis_scenario import *
 
@@ -439,8 +439,10 @@ class Controller(object, FSM):
             try:
                 # load scenario file
                 self.currentScenario = IsisScenario(self.selectedScenario)
+                self.main.pause_simulation()
                 # setup world
                 self.currentScenario.loadScenario(self.main)
+                self.main.resume_simulation()
             except IsisParseProblem as e:
                 dialogbox = RetryCancelDialog(text='There was a problem parsing the scenario file\
                                   : \n %s.  \n\nLocation %s' % (e.message, e.component),\
@@ -513,21 +515,72 @@ class Controller(object, FSM):
 
     def onGoalMetCallback(self):
         self.request('TaskPaused')
-
+    
+    def capture_agent_screenshot(self):
+        pnm_image = PNMImage()
+        success = self.agent_camera.getScreenshot(pnm_image)
+        if not success:
+            return None
+        return pnm_image
+        
+    def capture_screenshot(self):
+        pnm_image = PNMImage()
+        success = self.base.camNode.getDisplayRegion(0).getScreenshot(pnm_image)
+        if not success:
+            return None
+        return pnm_image
+        
     def screenshot(self, name):
+        pnm_image = self.capture_screenshot()
+        if pnm_image is None:
+            print 'Failed to save screenshot.  :('
+            return None
         name = os.path.join("screenshots", name+"_")
         num = 0
         while os.path.exists(name+str(num)+".jpg"):
             num += 1
-        self.base.camNode.getDisplayRegion(0).saveScreenshot(name+str(num)+".jpg")
+        filename = name+str(num)+".jpg"
+        if pnm_image.write(Filename(filename)):
+            print "Saved to ", filename
+        else:
+            print "Failed to saved to ", filename
         
     def screenshot_agent(self, name):
+        pnm_image = self.capture_agent_screenshot()
+        if pnm_image is None:
+            print 'Failed to save screenshot.  :('
+            return None
         name = os.path.join("screenshots", name+"_")
         num = 0
         while os.path.exists(name+str(num)+".jpg"):
             num += 1
-        self.agent_camera.saveScreenshot(name+str(num)+".jpg")
-        print "Saved to ", name, '.jpg'
+        filename = name+str(num)+".jpg"
+        if pnm_image.write(Filename(filename)):
+            print "Saved to ", filename
+        else:
+            print "Failed to saved to ", filename
+        
+    # Changed these to use capture_screenshot and
+    # capture_agent_screenshot above.  This is so that we can retrieve
+    # PNMImages over XML-RPC without saving anything to disk.  --Bo
+    #
+    #def screenshot(self, name):
+    #    name = os.path.join("screenshots", name+"_")
+    #    num = 0
+    #    while os.path.exists(name+str(num)+".jpg"):
+    #        num += 1
+    #    filename = name+str(num)+".jpg"
+    #    self.base.camNode.getDisplayRegion(0).saveScreenshot(filename)
+    #    print "Saved to ", filename
+    #
+    #def screenshot_agent(self, name):
+    #    name = os.path.join("screenshots", name+"_")
+    #    num = 0
+    #    while os.path.exists(name+str(num)+".jpg"):
+    #        num += 1
+    #    filename = name+str(num)+".jpg"
+    #    self.agent_camera.saveScreenshot(filename)
+    #    print "Saved to ", filename
         
     def setAgentCamera(self, camera):
         self.agent_camera = camera

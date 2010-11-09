@@ -7,6 +7,7 @@ By Gleb Kuznetsov (glebk@mit.edu)
 from pandac.PandaModules import VBase3
 import time
 import os
+import xmlrpclib
 from direct.stdpy.file import  *
 from multiprocessing import Queue
 
@@ -111,6 +112,8 @@ class IsisCommandHandler(object):
             self.simulator.controller.start_simulation()
             self.logger.log("resume: Simulation resumed")
             return 'success'
+        elif cmd == 'meta_screenshot':
+            return xmlrpclib.Binary(self.simulator.controller.capture_screenshot_rgb_string_image())
         elif cmd == 'meta_list_actions':
             return self.simulator.actionController.actionMap.keys()+self.meta_commands
         elif cmd == 'meta_list_scenarios':

@@ -55,5 +55,3 @@ deploy: build
 	rsync -a builds dustin@ml.media.mit.edu:public_html/6.868/
 
 
-
-include Makefile.sphinx

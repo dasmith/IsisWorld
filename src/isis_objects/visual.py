@@ -57,8 +57,8 @@ class IsisVisual():
         # reset width and length if the object was rotated by a multiple of 90 degrees
         margin = 10 # might change experimentally
         if abs(x % 180) < margin:
-            self.length, self.width = self.width, self.length
-        # TODO test this code and see if it works properly
+            #self.length, self.width = self.width, self.length
+            self.height, self.width = self.width, self.height
         
     def rescaleModel(self,scale):
         """ Changes the model's dimensions to a given scale"""

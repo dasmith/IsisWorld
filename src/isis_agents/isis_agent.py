@@ -295,19 +295,24 @@ class IsisAgent(kinematicCharacterController,DirectObject):
     # capture retina image functions
     
     def initialize_retina(self):
-        self.retina_buffer  = base.win.makeTextureBuffer("retina-buffer", 256, 256)
+        self.retina_buffer  = base.win.makeTextureBuffer("retina-buffer", 256, 256, tex=Texture('retina-texture'), to_ram=True)
         self.retina_texture = self.retina_buffer.getTexture()
         self.retina_buffer.setSort(-100)
         self.retina_camera  = base.makeCamera(self.retina_buffer)
-        #self.retina_scene   = NodePath("retina scene")
-        #self.retina_camera.node().setScene(self.retina_scene)
-        self.retina_camera.reparentTo(self.fov)        
+        self.retina_camera.node().getLens().setFov(60)
+        self.retina_camera.node().getLens().setNear(0.2)
+        self.retina_camera.node().setCameraMask(BitMask32.bit(1))
+        self.retina_camera.reparentTo(self.player_head)
+        self.retina_camera.setPos(0, 0.2, 0)
+        self.retina_camera.setHpr(0,-90,0)
+        
+ 
+
 
     def capture_retina_pnm_image(self):
-        
-        #retina_camera    = self.fov.node();
         pnm_image = PNMImage()
         success   = self.retina_buffer.getScreenshot(pnm_image)
+        self.retina_buffer.saveScreenshot(Filename('retina.jpg'))
         if not success:
             return None
         return pnm_image

@@ -295,7 +295,11 @@ class IsisAgent(kinematicCharacterController,DirectObject):
     # capture retina image functions
     
     def initialize_retina(self):
-        self.retina_buffer  = base.win.makeTextureBuffer("retina-buffer", 256, 256, tex=Texture('retina-texture'), to_ram=True)
+
+        fbp=FrameBufferProperties(FrameBufferProperties.getDefault())
+        self.retina_buffer  = base.win.makeTextureBuffer("retina-buffer", 256, 256, tex=Texture('retina-texture'), to_ram=True,fbp=fbp)
+        return
+        print "made Texture Buffer"
         self.retina_texture = self.retina_buffer.getTexture()
         self.retina_buffer.setSort(-100)
         self.retina_camera  = base.makeCamera(self.retina_buffer)
@@ -313,6 +317,7 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         pnm_image = PNMImage()
         success   = self.retina_buffer.getScreenshot(pnm_image)
         self.retina_buffer.saveScreenshot(Filename('retina.jpg'))
+        pnm_image.write(Filename('retina_pnm.jpg'))
         if not success:
             return None
         return pnm_image
@@ -760,6 +765,7 @@ class IsisAgent(kinematicCharacterController,DirectObject):
 
 
     def update(self, stepSize=0.1):
+        
         self.speed = [0.0, 0.0]
         self.actorNodePath.setPos(self.geom.getPosition()+Vec3(0,0,-0.70))
         self.actorNodePath.setQuat(self.getQuat())

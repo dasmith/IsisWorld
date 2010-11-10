@@ -20,7 +20,7 @@ from ..actions.actions import *
 from ..physics.ode.kcc import kinematicCharacterController
 from ..physics.ode.odeWorldManager import *
 from ..utilities import frange
-
+from ..utilities import pnm_image__as__xmlrpc_image
 
 class IsisAgent(kinematicCharacterController,DirectObject):
     
@@ -179,6 +179,8 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         self.queue = []
         self.queueSize = queueSize
         self.lastSense = 0
+
+        self.initialize_retina()
         
     def setLayout(self,layout):
         """ Dummy method called by spatial methods for use with objects. 
@@ -288,7 +290,36 @@ class IsisAgent(kinematicCharacterController,DirectObject):
     def get_objects_in_view(self):
         """ Gets objects through ray tracing.  Slow"""
         return self.picker.get_objects_in_view()
-            
+    
+    
+    # capture retina image functions
+    
+    def initialize_retina(self):
+        self.retina_buffer  = base.win.makeTextureBuffer("retina-buffer", 256, 256)
+        self.retina_texture = self.retina_buffer.getTexture()
+        self.retina_buffer.setSort(-100)
+        self.retina_camera  = base.makeCamera(self.retina_buffer)
+        #self.retina_scene   = NodePath("retina scene")
+        #self.retina_camera.node().setScene(self.retina_scene)
+        self.retina_camera.reparentTo(self.fov)        
+
+    def capture_retina_pnm_image(self):
+        
+        #retina_camera    = self.fov.node();
+        pnm_image = PNMImage()
+        success   = self.retina_buffer.getScreenshot(pnm_image)
+        if not success:
+            return None
+        return pnm_image
+        
+    def capture_retina_xmlrpc_image(self):
+        pnm_image = self.capture_retina_pnm_image()
+        if pnm_image is None:
+            return None
+        return pnm_image__as__xmlrpc_image(pnm_image)
+    
+    # control functions
+    
     def control__turn_left__start(self, speed=None):
         self.setControl("turn_left",  1)
         self.setControl("turn_right", 0)
@@ -425,7 +456,10 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         percepts['agents'] = self.sense__get_agents()
         print percepts
         return percepts
- 
+    
+    def control__sense_retina_image(self):
+        return self.capture_retina_xmlrpc_image()
+    
     def control__think(self, message, layer=0):
         """ Changes the contents of an agent's thought bubble"""
         # only say things that are checked in the controller

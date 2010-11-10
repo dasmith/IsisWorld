@@ -113,7 +113,7 @@ class IsisCommandHandler(object):
             self.logger.log("resume: Simulation resumed")
             return 'success'
         elif cmd == 'meta_screenshot':
-            return xmlrpclib.Binary(self.simulator.controller.capture_screenshot_rgb_string_image())
+            return self.simulator.controller.capture_screenshot_xmlrpc_image()
         elif cmd == 'meta_list_actions':
             return self.simulator.actionController.actionMap.keys()+self.meta_commands
         elif cmd == 'meta_list_scenarios':

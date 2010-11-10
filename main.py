@@ -314,6 +314,7 @@ class IsisWorld(DirectObject):
         self.actionController.addAction(IsisAction(commandName="say",intervalAction=False,argList=['message']))
         self.actionController.addAction(IsisAction(commandName="think",intervalAction=False,argList=['message','layer']))
         self.actionController.addAction(IsisAction(commandName="sense",intervalAction=False,keyboardBinding='y'))
+        self.actionController.addAction(IsisAction(commandName="sense_retina_image",intervalAction=False))
         self.actionController.addAction(IsisAction(commandName="use_aimed",intervalAction=False,keyboardBinding="u"))
         self.actionController.addAction(IsisAction(commandName="view_objects",intervalAction=False,keyboardBinding="o"))
         self.actionController.addAction(IsisAction(commandName="pick_up_with_left_hand",intervalAction=False,argList=['target'],keyboardBinding="v"))

@@ -1,5 +1,7 @@
 """ Misc. utility functions"""
 
+import struct
+import xmlrpclib
 
 def getOrientedBoundedBox(collObj):
     ''' get the Oriented Bounding Box '''
@@ -41,3 +43,28 @@ def frange(x,y,inc):
         else:
             yield x**2
         x += inc
+
+def pnm_image__as__xmlrpc_image(source_pnm_image, max_x=256, max_y=256):
+    source_x_size = source_pnm_image.getReadXSize()
+    source_y_size = source_pnm_image.getReadYSize()
+    x_size = source_x_size
+    y_size = source_y_size
+    if x_size > max_x:
+        y_size = y_size * max_x / x_size
+        x_size = max_x
+    if y_size > max_y:
+        x_size = x_size * max_y / y_size
+        y_size = max_y
+    rgb_string_image = ''
+    for y in range(y_size):
+        source_y = y * source_y_size / y_size
+        for x in range(x_size):
+            source_x = x * source_x_size / x_size
+            red   = 255 * source_pnm_image.getRed(  source_x, source_y)
+            green = 255 * source_pnm_image.getGreen(source_x, source_y)
+            blue  = 255 * source_pnm_image.getBlue( source_x, source_y)
+            rgb_string = struct.pack('BBB', red, green, blue)
+            rgb_string_image += rgb_string
+    return {'width':x_size, 'height':y_size, 'rgb_data':xmlrpclib.Binary(rgb_string_image)}
+
+

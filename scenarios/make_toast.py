@@ -43,7 +43,7 @@ class Scenario(IsisScenario):
 
         ralph = IsisAgent("Ralph")
         lauren = IsisAgent("Lauren")
-        #XSlauren2 = IsisAgent("Lauren2")
+        #lauren2 = IsisAgent("Lauren2")
         #r.set_color()
         #put_in_world(ralph)
         #put_in_world(lauren2)

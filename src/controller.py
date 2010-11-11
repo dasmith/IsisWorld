@@ -464,13 +464,19 @@ class Controller(object, FSM):
             
             try:
                 print "Selected Scenario", self.selectedScenario
+                print sys.path[0] 
+                print os.getcwd()
+                os.chdir(os.path.dirname(__file__))
+                print sys.path[0] 
+                print os.getcwd()
+                print "NAME", self.selectedScenario[:-3]
+                print "OPENING", "scenarios/"+self.selectedScenario
                 if self.selectedScenario.lower()[-3:] == '.py':
-                    print "NAME", self.selectedScenario[:-3]
-                    print "OPENING", "scenario/"+self.selectedScenario
-                    py_mod = imp.load_source(self.selectedScenario[:-3], "scenarios/"+self.selectedScenario)
+                    py_mod = imp.load_source(self.selectedScenario[:-3], "../scenarios/"+self.selectedScenario)
                 elif self.selectedScenario.lower()[-4:] == '.pyo':
                     # these files are loaded within the packaged P3D files
-                    py_mod = imp.load_compiled(self.selectedScenario[:-4], "scenarios/"+self.selectedScenario)
+                    
+                    py_mod = imp.load_compiled(self.selectedScenario[:-4], "../scenarios/"+self.selectedScenario)
                 else:
                     raise Exception("Invalid file extension for %s " % (self.selectedScenario))
                 if 'Scenario' in dir(py_mod):
@@ -522,7 +528,7 @@ class Controller(object, FSM):
     def enterTaskPaused(self):
         #self.main.worldNode.show()
         self.start_simulation()
-        self.taskFrame.show()
+        self.taskFrame.hide()
         self.taskBarControl.show()
        
     def exitTaskPaused(self):

@@ -246,12 +246,12 @@ class Controller(object, FSM):
         self.unpauseButton.hide()
 
         #Button to toggle task frames
-        self.scenarioBarControl = DirectButton(text = 'Toggle Scenario Options', pos=(0.45, 0, .92), text_scale=(0.05, 0.05),
+        self.scenarioBarControl = DirectButton(text = 'Toggle Scenario Options', pos=(0.35, 0, .92), text_scale=(0.05, 0.05),
                                             borderWidth = BUTTON_BORDER,
                                               text_fg=BUTTON_FG, text_bg = BUTTON_BG, relief=BUTTON_RELIEF,
                                            command = self.scenarioBarControlPress)
 
-        self.taskBarControl = DirectButton(text = 'Toggle Taskbar', pos=(.45, 0, .92), text_scale=(0.05, 0.05),
+        self.taskBarControl = DirectButton(text = 'Toggle Taskbar', pos=(.35, 0, .92), text_scale=(0.05, 0.05),
                                             borderWidth = BUTTON_BORDER,
                                               text_fg=BUTTON_FG, text_bg = BUTTON_BG, relief=BUTTON_RELIEF,
                                            command = self.taskBarControlPress)

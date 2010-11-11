@@ -487,19 +487,17 @@ class Controller(object, FSM):
             
             try:
                 print "Selected Scenario", self.selectedScenario
-                print sys.path[0] 
-                print os.getcwd()
-                os.chdir(os.path.dirname(__file__))
-                print sys.path[0] 
-                print os.getcwd()
+                os.chdir(self.main.rootDirectory+"scenarios")
+                #print sys.path[0] 
+                #print os.getcwd()
                 print "NAME", self.selectedScenario[:-3]
                 print "OPENING", "scenarios/"+self.selectedScenario
                 if self.selectedScenario.lower()[-3:] == '.py':
-                    py_mod = imp.load_source(self.selectedScenario[:-3], "../scenarios/"+self.selectedScenario)
+                    py_mod = imp.load_source(self.selectedScenario[:-3], self.selectedScenario)
                 elif self.selectedScenario.lower()[-4:] == '.pyo':
                     # these files are loaded within the packaged P3D files
                     
-                    py_mod = imp.load_compiled(self.selectedScenario[:-4], "../scenarios/"+self.selectedScenario)
+                    py_mod = imp.load_compiled(self.selectedScenario[:-4], self.selectedScenario)
                 else:
                     raise Exception("Invalid file extension for %s " % (self.selectedScenario))
                 if 'Scenario' in dir(py_mod):

@@ -21,6 +21,7 @@ from ..physics.ode.kcc import kinematicCharacterController
 from ..physics.ode.odeWorldManager import *
 from ..utilities import frange
 from ..utilities import pnm_image__as__xmlrpc_image
+from ..utilities import rgb_ram_image__as__xmlrpc_image
 
 class IsisAgent(kinematicCharacterController,DirectObject):
     
@@ -263,7 +264,7 @@ class IsisAgent(kinematicCharacterController,DirectObject):
                              'class': a.getClassName()}
                 agents[a] = agentDict
         return agents
-
+    
     def in_view(self,isisobj):
         """ Returns true iff a particular isisobject is in view """
         return len(filter(lambda x: x['isisobject'] == isisobj, self.get_objects_in_field_of_vision(exclude=[]).values()))
@@ -277,11 +278,13 @@ class IsisAgent(kinematicCharacterController,DirectObject):
     
     def initialize_retina(self):
         fbp=FrameBufferProperties(FrameBufferProperties.getDefault())
-        self.retina_buffer  = base.win.makeTextureBuffer("retina-buffer-%s" % (self.name), 256, 256, tex=Texture('retina-texture'), to_ram=True,fbp=fbp)
+        self.retina_buffer  = base.win.makeTextureBuffer("retina-buffer-%s" % (self.name), 320, 240, tex=Texture('retina-texture'), to_ram=True, fbp=fbp)
         print "made Texture Buffer"
-        self.retina_texture = self.retina_buffer.getTexture()
+        #self.retina_texture = self.retina_buffer.getTexture()
+        self.retina_texture = Texture('tex')
+        self.retina_buffer.addRenderTexture(self.retina_texture, GraphicsOutput.RTMCopyRam)
         self.retina_buffer.setSort(-100)
-        self.retina_camera  = base.makeCamera(self.retina_buffer)
+        self.retina_camera = base.makeCamera(self.retina_buffer)
         self.retina_camera.node().getLens().setFov(60)
         self.retina_camera.node().getLens().setNear(0.2)
         self.retina_camera.node().setCameraMask(BitMask32.bit(1))
@@ -289,21 +292,19 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         self.retina_camera.setPos(0, 0.2, 0)
         self.retina_camera.setHpr(0,-90,0)
         
-
-    def capture_retina_pnm_image(self):
-        pnm_image = PNMImage()
-        success   = self.retina_buffer.getScreenshot(pnm_image)
-        self.retina_buffer.saveScreenshot(Filename('retina.jpg'))
-        pnm_image.write(Filename('retina_pnm.jpg'))
-        if not success:
+    def capture_retina_rgb_ram_image(self):
+        ram_image_data = self.retina_texture.getRamImageAs('RGB')
+        if (not ram_image_data) or (ram_image_data is None):
+            print 'Failed to get ram image from retina texture.'
             return None
-        return pnm_image
-        
+        rgb_ram_image = {'dict_type':'rgb_ram_image', 'width':self.retina_texture.getXSize(), 'height':self.retina_texture.getYSize(), 'rgb_data':ram_image_data}
+        return rgb_ram_image
+    
     def capture_retina_xmlrpc_image(self):
-        pnm_image = self.capture_retina_pnm_image()
-        if pnm_image is None:
+        rgb_ram_image = self.capture_retina_rgb_ram_image()
+        if rgb_ram_image is None:
             return None
-        return pnm_image__as__xmlrpc_image(pnm_image)
+        return rgb_ram_image__as__xmlrpc_image(rgb_ram_image)
     
     # control functions
     

@@ -14,18 +14,14 @@ To come up with other bitmasks, you can use the constraint solver in bitMaskchec
 
 """
 
-
-
 bitMaskDict = {
-            "pickable" : (BitMask32(7), BitMask32(6)),
-            "container" : (BitMask32(1), BitMask32(0)),
-            "generalKCC" : (BitMask32(2), BitMask32(1)),
-            "aimRay" : (BitMask32(4), BitMask32(5)),
-            "environment" : (BitMask32(2), BitMask32(3)),
-            "kccEnvCheckerRay" : (BitMask32(6), BitMask32(5)),
+            "pickable" : (BitMask32(7), BitMask32(4)),
+            "container" : (BitMask32(3), BitMask32(0)),
+            "generalKCC" : (BitMask32(6), BitMask32(6)),
+            "aimRay" : (BitMask32(0), BitMask32(1)),
+            "environment" : (BitMask32(6), BitMask32(7)),
+            "kccEnvCheckerRay" : (BitMask32(1), BitMask32(1)),
 }
-
-
 
 """
 The basic physical object in this framework. It represents static geometry

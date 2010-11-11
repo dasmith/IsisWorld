@@ -44,9 +44,9 @@ def frange(x,y,inc):
             yield x**2
         x += inc
 
-def pnm_image__as__xmlrpc_image(source_pnm_image, max_x=256, max_y=256):
-    source_x_size = source_pnm_image.getReadXSize()
-    source_y_size = source_pnm_image.getReadYSize()
+def pnm_image__as__xmlrpc_image(source_pnm_image, max_x=320, max_y=240):
+    source_x_size = source_pnm_image.getXSize()
+    source_y_size = source_pnm_image.getYSize()
     x_size = source_x_size
     y_size = source_y_size
     if x_size > max_x:
@@ -65,6 +65,31 @@ def pnm_image__as__xmlrpc_image(source_pnm_image, max_x=256, max_y=256):
             blue  = 255 * source_pnm_image.getBlue( source_x, source_y)
             rgb_string = struct.pack('BBB', red, green, blue)
             rgb_string_image += rgb_string
-    return {'width':x_size, 'height':y_size, 'rgb_data':xmlrpclib.Binary(rgb_string_image)}
+    return {'dict_type':'xmlrpc_image', 'width':x_size, 'height':y_size, 'rgb_data':xmlrpclib.Binary(rgb_string_image)}
 
 
+def rgb_ram_image__as__xmlrpc_image(source_rgb_ram_image, max_x=320, max_y=240):
+    source_x_size   = source_rgb_ram_image['width']
+    source_y_size   = source_rgb_ram_image['height']
+    source_rgb_data = source_rgb_ram_image['rgb_data']
+    x_size = source_x_size
+    y_size = source_y_size
+    if x_size > max_x:
+        y_size = y_size * max_x / x_size
+        x_size = max_x
+    if y_size > max_y:
+        x_size = x_size * max_y / y_size
+        y_size = max_y
+    rgb_string_image = ''
+    for y in range(y_size):
+        source_y = (source_y_size - 1) - (y * source_y_size / y_size)
+        for x in range(x_size):
+            source_x = x * source_x_size / x_size
+            pixel_index = ((source_y * x_size) + source_x) * 3
+            red   = source_rgb_data[pixel_index + 0]
+            green = source_rgb_data[pixel_index + 1]
+            blue  = source_rgb_data[pixel_index + 2]
+            rgb_string = struct.pack('BBB', red, green, blue)
+            rgb_string_image += rgb_string
+    return {'dict_type':'xmlrpc_image', 'width':x_size, 'height':y_size, 'rgb_data':xmlrpclib.Binary(rgb_string_image)}
+    

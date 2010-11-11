@@ -278,7 +278,7 @@ class IsisAgent(kinematicCharacterController,DirectObject):
     
     def initialize_retina(self):
         fbp=FrameBufferProperties(FrameBufferProperties.getDefault())
-        self.retina_buffer  = base.win.makeTextureBuffer("retina-buffer", 320, 240, tex=Texture('retina-texture'), to_ram=True, fbp=fbp)
+        self.retina_buffer  = base.win.makeTextureBuffer("retina-buffer-%s" % (self.name), 320, 240, tex=Texture('retina-texture'), to_ram=True, fbp=fbp)
         print "made Texture Buffer"
         #self.retina_texture = self.retina_buffer.getTexture()
         self.retina_texture = Texture('tex')
@@ -830,7 +830,6 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         self.specialDirectObject.ignoreAll()
         self.actorNodePath.removeNode()
         del self.specialDirectObject
-
         kinematicCharacterController.destroy(self)
 
     def disable(self):

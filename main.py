@@ -115,8 +115,7 @@ class IsisWorld(DirectObject):
         """ Setup the Physics manager as a class variable """ 
         IsisWorld.physics = ODEWorldManager(self)
         
-        self.teacher_utterances = [] # last message typed
-        # main dialogue box
+        self.teacher_utterances = [] # last messages typed into dialog box
         self.agents = []
         self.agentNum = 0
         self.agentsNamesToIDs = {}
@@ -139,8 +138,7 @@ class IsisWorld(DirectObject):
         obj.setCatColBits("environment")
         IsisWorld.physics.addObject(obj)
         
-        """ Setup the skydome
-        Moving clouds are pretty but computationally expensive """
+        """ Setup the skydome and moving clouds """
         self.skydomeNP = SkyDome2(self.worldNode,True)
         self.skydomeNP.setPos(Vec3(0,0,-500))
         self.skydomeNP.setStandardControl()
@@ -189,12 +187,11 @@ class IsisWorld(DirectObject):
         return task.cont
     
     def simulation_is_running(self):
+        """ Returns True if the physics simulation is running."""
         return (self.desired_physics_time == None) or (self.current_physics_time < self.desired_physics_time - self.physics_time_step)
     
-    # this is executed in order to move the physics time to the desired physics time.
     def tick_simulation_task(self,task):
-        """ Steps the simulation to the desired time step in physics time. """
-        
+        """ this is executed in order to move the physics time to the desired physics time.""" 
         if self.simulation_is_running():
             #print "stepping simulation:", self.current_physics_time, "seconds"
             self.physics.step_simulation(self.physics_time_step)
@@ -202,18 +199,21 @@ class IsisWorld(DirectObject):
         
         return task.cont
     
-    # this is used to increment the desired physics time (the tick
-    # function above will handle ticking actual physics time to match
-    # desired time)
     def step_simulation(self, time_step):
-        self.desired_physics_time += time_step
-    
-    # this is used to pause the simulation.
+        """ this is used to increment the desired physics time (the tick
+        function above will handle ticking actual physics time to match
+        desired time)"""
+        if self.desired_physics_time != None:
+            self.desired_physics_time += time_step
+        else:
+            print "Cannot step the simulator when it is running freely"
+
     def pause_simulation(self):
+        """ this is used to pause the simulation."""
         self.desired_physics_time = self.current_physics_time
 
-    # this is used to unpause the simulation (runs freely).
     def resume_simulation(self):
+        """ this is used to unpause the simulation (runs freely)."""
         self.desired_physics_time = None
         
     def run_xml_command_queue(self,task):
@@ -222,21 +222,21 @@ class IsisWorld(DirectObject):
         return task.cont
 
     def rest_a_little(self,task):
-        time.sleep(1.0/30.0) # forces rendering thread to sleep.
+        """ Forces the rendering thread to sleep."""
+        time.sleep(1.0/30.0)
         return task.cont
 
     def _setup_cameras(self):
         """" Set up displays and cameras """
-        base.cam.node().setCameraMask(BitMask32.bit(0))
+        base.cam.node().setCameraMask(BitMask32.bit(0)) # show everything
         base.camera.setPos(0,0,12)
-        base.camera.setP(0)#315)
+        base.camera.setP(0)
 
     def _setup_lights(self):
         alight = AmbientLight("ambientLight")
         alight.setColor(Vec4(.7, .7, .7, 1.0))
         alightNP = render.attachNewNode(alight)
         
-
         dlight = DirectionalLight("directionalLight")
         dlight.setDirection(Vec3(0,0,-8))
         dlight.setColor(Vec4(0.2, 0.2, 0.2, 1))
@@ -251,10 +251,7 @@ class IsisWorld(DirectObject):
         render.setLight(plnp)     
         render.setLight(alightNP)
 
-        #self.pl.
-        #render.setLight(dlightNP)
         
-
 
     def _setup_actions(self):
         """ Initializes commands that are related to the XML-Server and
@@ -359,8 +356,8 @@ class IsisWorld(DirectObject):
         self.accept("2",               base.toggleTexture, [])
         self.accept("3",               changeAgent, [])
         self.accept("4",               self.toggleInstructionsWindow, [])
-        self.accept("space",           self.controller.step_simulation, [.1]) # argument is amount of second to advance
-        self.accept("p",               self.controller.toggle_paused)
+        self.accept("space",           self.step_simulation, [.1]) # argument is amount of second to advance
+        self.accept("p",               self.controller.toggle_paused, [])
         #self.accept("s",               self.screenshot, ["snapshot"])
         #self.accept("a",               self.screenshot_agent, ["agent_snapshot"])
         #self.accept("d",               lambda: base.camera.setP(base.camera.getP()-1), [])

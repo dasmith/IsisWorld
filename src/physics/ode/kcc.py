@@ -258,7 +258,6 @@ class kinematicCharacterController(object):
         """
         Ignore collisions with following object types...
         """
-        print "Collision callback", object2.objectType, object2
         if not entry.getNumContacts() or object2.objectType in ["trigger", "ray", "ccd"]:
             return
         

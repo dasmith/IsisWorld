@@ -34,6 +34,11 @@ class Controller(object, FSM):
         }
         self.runningSimulation = False
 
+        #Convenience fields.
+        self.taskBarShown = True
+        self.scenarioBarShown = True
+
+
         self.main = isisworld
         # load a nicer font
         self.fonts = {'bold': base.loader.loadFont('media/fonts/DroidSans-Bold.ttf'), \
@@ -196,8 +201,8 @@ class Controller(object, FSM):
 
         #Add a toolbar
         self.toolbarFrame = DirectFrame(frameColor=Vec4(0, 0, 0, -0.3) + FRAME_BG,
-                                        frameSize = (-1.4, -0.2, 0.86, 1.0),
-                                        pos=(.2, 0, -.03), relief=FRAME_RELIEF,
+                                        frameSize = (-1.4, 0.8, 0.86, 1.0),
+                                        pos=(.07, 0, -.008), relief=FRAME_RELIEF,
                                         borderWidth=FRAME_BORDER)
         #Add button to take a screenshot
         self.screenShotButton = DirectButton(text='Take Screenshot', pos=(-1.15, 0, .92), text_scale=(0.05, 0.05),
@@ -226,6 +231,21 @@ class Controller(object, FSM):
                                     text_fg=BUTTON_FG, text_bg = BUTTON_BG, relief=BUTTON_RELIEF,
                                     command = lambda: base.camera.setP(base.camera.getP()-1))
         self.downCamera.reparentTo(self.toolbarFrame)
+
+        self.scenarioBarControl = DirectButton(text = 'Toggle Scenario Options', pos=(0.45, 0, .92), text_scale=(0.05, 0.05),
+                                            borderWidth = BUTTON_BORDER,
+                                              text_fg=BUTTON_FG, text_bg = BUTTON_BG, relief=BUTTON_RELIEF,
+                                           command = self.scenarioBarControlPress)
+
+        self.taskBarControl = DirectButton(text = 'Toggle Taskbar', pos=(.45, 0, .92), text_scale=(0.05, 0.05),
+                                            borderWidth = BUTTON_BORDER,
+                                              text_fg=BUTTON_FG, text_bg = BUTTON_BG, relief=BUTTON_RELIEF,
+                                           command = self.taskBarControlPress)
+        
+        self.scenarioBarControl.reparentTo(self.toolbarFrame)
+        self.taskBarControl.reparentTo(self.toolbarFrame)                                       
+        self.taskBarControl.hide()
+        self.scenarioBarControl.hide()
 
         def click_test_button():
             if self.state == 'TaskTest':
@@ -395,6 +415,8 @@ class Controller(object, FSM):
 
     def enterMenu(self):
         self.taskFrame.hide()
+        self.taskBarControl.hide()
+        self.scenarioBarControl.hide()
         self.scenarioFrame.hide()
         self.toolbarFrame.hide()
         self.pause_simulation()
@@ -489,32 +511,39 @@ class Controller(object, FSM):
 
         self.scenarioFrame.show()
         self.toolbarFrame.show()
+        self.scenarioBarControl.show()
         loadingText.destroy()
 
     def exitScenario(self):
         self.scenarioFrame.hide()
+        self.scenarioBarControl.hide()
 
     def enterTaskPaused(self):
         #self.main.worldNode.show()
         self.start_simulation()
         self.taskFrame.show()
+        self.taskBarControl.show()
        
     def exitTaskPaused(self):
         self.taskFrame.hide()
+        self.taskBarControl.hide()
 
     def enterTaskTrain(self):
         self.taskFrame.show()
+        self.taskBarControl.show()
         self.start_simulation()
         self.menuResetTrainingButton['text'] = "Training..."
         self.menuResetTrainingButton['state'] = DGG.DISABLED
 
     def exitTaskTrain(self):
         self.taskFrame.hide()
+        self.taskBarControl.hide()
         self.menuResetTrainingButton['text'] = "Start training"
         self.menuResetTrainingButton['state'] = DGG.NORMAL
 
     def enterTaskTest(self):
         self.taskFrame.show()
+        self.taskBarControl.show()
         self.start_simulation()
         self.selectedTask.start(True,self.onGoalMetCallback)
         self.menuTestButton['text']  = "Stop testing"
@@ -610,3 +639,21 @@ class Controller(object, FSM):
         
     def setAgentCamera(self, camera):
         self.agent_camera = camera
+
+    def taskBarControlPress(self):
+        if self.taskBarShown:
+            self.taskFrame.hide()
+            #self.taskBarControl.text = 'Show Taskbar'
+        else:
+            self.taskFrame.show()
+            #self.taskBarControl.text = 'Hide Taskbar'
+        self.taskBarShown = not self.taskBarShown
+
+    def scenarioBarControlPress(self):
+        if self.scenarioBarShown:
+            self.scenarioFrame.hide()
+            #self.scenarioBarControl.text = 'Show Scenario Options'
+        else:
+            self.scenarioFrame.show()
+            #self.scenarioBarControl.text = 'Hide Scenario Options'
+        self.scenarioBarShown = not self.scenarioBarShown

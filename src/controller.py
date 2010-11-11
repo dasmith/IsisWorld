@@ -231,6 +231,21 @@ class Controller(object, FSM):
                                     command = lambda: base.camera.setP(base.camera.getP()-1))
         self.downCamera.reparentTo(self.toolbarFrame)
 
+        #Pause button
+        self.pauseButton = DirectButton(text = 'Pause', pos=(-0.10, 0, .92), text_scale=(0.05, 0.05),
+                                            borderWidth = BUTTON_BORDER,
+                                              text_fg=BUTTON_FG, text_bg = BUTTON_BG, relief=BUTTON_RELIEF,
+                                           command = self.toggle_paused)
+        self.pauseButton.reparentTo(self.toolbarFrame)
+
+        self.unpauseButton = DirectButton(text = 'Unpause', pos=(-0.10, 0, .92), text_scale=(0.05, 0.05),
+                                            borderWidth = BUTTON_BORDER,
+                                              text_fg=BUTTON_FG, text_bg = BUTTON_BG, relief=BUTTON_RELIEF,
+                                           command = self.toggle_paused)
+        self.unpauseButton.reparentTo(self.toolbarFrame)
+        self.unpauseButton.hide()
+
+        #Button to toggle task frames
         self.scenarioBarControl = DirectButton(text = 'Toggle Scenario Options', pos=(0.45, 0, .92), text_scale=(0.05, 0.05),
                                             borderWidth = BUTTON_BORDER,
                                               text_fg=BUTTON_FG, text_bg = BUTTON_BG, relief=BUTTON_RELIEF,
@@ -299,8 +314,12 @@ class Controller(object, FSM):
             x.main.teacher_utterances.append(message)
             x.testCommandBox.enterText("")
 
-        self.testCommandBox = DirectEntry(pos=(-1.2,-0.95,-0.95), text_fg=(0.282, 0.725, 0.850,1), frameColor=(0.631, 0.219, 0.247,0.25), suppressKeys=1, initialText="enter text and hit return", enableEdit=0,scale=0.07, focus=0, focusInCommand=disable_keys, focusOutCommand=enable_keys, focusInExtraArgs=[self], focusOutExtraArgs=[self], command=accept_message, extraArgs=[self],  width=15, numLines=1)
-        self.testCommandBox.reparentTo(self.taskFrame)
+        self.testCommandBox = DirectEntry(pos=(-1.2,-0.95,-0.95), text_fg=(0.282, 0.725, 0.850,1), frameColor=(0.631, 0.219, 0.247,0.25),
+                                          suppressKeys=1, initialText="enter text and hit return", enableEdit=0,scale=0.07, focus=0,
+                                          focusInCommand=disable_keys, focusOutCommand=enable_keys, focusInExtraArgs=[self],
+                                          focusOutExtraArgs=[self], command=accept_message, extraArgs=[self],  width=15, numLines=1)
+        
+        self.testCommandBox.reparentTo(self.toolbarFrame)
         self.loaded = True
         
         self.thought_buttons = {}
@@ -400,8 +419,12 @@ class Controller(object, FSM):
         """ Starts or Pauses the simulation, depending on the current state"""
         if self.runningSimulation:
             self.pause_simulation()
+            self.pauseButton.hide()
+            self.unpauseButton.show()
         else:
             self.start_simulation()
+            self.unpauseButton.hide()
+            self.pauseButton.show()
 
 
     def safe_request(self,newState):

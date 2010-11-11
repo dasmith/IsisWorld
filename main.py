@@ -357,7 +357,7 @@ class IsisWorld(DirectObject):
         self.accept("3",               changeAgent, [])
         self.accept("4",               self.toggleInstructionsWindow, [])
         self.accept("space",           self.step_simulation, [.1]) # argument is amount of second to advance
-        self.accept("p",               self.controller.toggle_paused, [])
+        #self.accept("p",               self.controller.toggle_paused, [])
         #self.accept("s",               self.screenshot, ["snapshot"])
         #self.accept("a",               self.screenshot_agent, ["agent_snapshot"])
         #self.accept("d",               lambda: base.camera.setP(base.camera.getP()-1), [])

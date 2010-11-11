@@ -258,6 +258,7 @@ class kinematicCharacterController(object):
         """
         Ignore collisions with following object types...
         """
+        print "Collision callback", object2.objectType, object2
         if not entry.getNumContacts() or object2.objectType in ["trigger", "ray", "ccd"]:
             return
         
@@ -291,9 +292,8 @@ class kinematicCharacterController(object):
     def envCheckerCollision(self, entry, object1, object2):
         if not entry.getNumContacts():
             return
-        if object2 is self:
+        if object2 is self or object2.objectType == 'kinematic':
             return
-        
         """
         Get the lowest contact.
         """

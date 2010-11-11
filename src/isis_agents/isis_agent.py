@@ -258,6 +258,25 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         """ Returns true iff a particular isisobject is in view """
         return len(filter(lambda x: x['isisobject'] == isisobj, self.get_objects_in_field_of_vision(exclude=[]).values()))
 
+    def can_grasp(self, isisobject):
+        distance = isisobject.activeModel.getDistance(self.fov)
+        print "distance = ", distance
+        return distance < 5.0
+
+    def is_holding(self, object_name):
+        return ((self.left_hand_holding_object and (self.left_hand_holding_object.getPythonTag('isisobj').name  == object_name)) \
+             or (self.right_hand_holding_object and (self.right_hand_holding_object.getPythonTag('isisobj').name == object_name)))
+
+    def empty_hand(self):
+        if (self.left_hand_holding_object is None):
+            return self.player_left_hand
+        elif (self.right_hand_holding_object is None):
+            return self.player_right_hand
+        return False
+
+    def has_empty_hand(self):
+        return (self.empty_hand() is not False)
+
     def get_objects_in_view(self):
         """ Gets objects through ray tracing.  Slow"""
         return self.picker.get_objects_in_view()
@@ -613,24 +632,6 @@ class IsisAgent(kinematicCharacterController,DirectObject):
             return str(action) + " not associated with either target or object"
         return "target not within reach"
 
-    def can_grasp(self, isisobject):
-        distance = isisobject.activeModel.getDistance(self.fov)
-        print "distance = ", distance
-        return distance < 5.0
-
-    def is_holding(self, object_name):
-        return ((self.left_hand_holding_object and (self.left_hand_holding_object.getPythonTag('isisobj').name  == object_name)) \
-             or (self.right_hand_holding_object and (self.right_hand_holding_object.getPythonTag('isisobj').name == object_name)))
-
-    def empty_hand(self):
-        if (self.left_hand_holding_object is None):
-            return self.player_left_hand
-        elif (self.right_hand_holding_object is None):
-            return self.player_right_hand
-        return False
-
-    def has_empty_hand(self):
-        return (self.empty_hand() is not False)
 
     def control__use_aimed(self):
         """

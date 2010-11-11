@@ -24,7 +24,7 @@ getp3d: ppackage.p3d pdeploy.p3d
 	panda3d ppackage.p3d -i . isisworld.pdef
 	panda3d pdeploy.p3d -i . isisworld.pdef
 
-package: getp3d
+package:
 	panda3d ppackage.p3d -i . isisworld.pdef
 	panda3d pdeploy.p3d -N "IsisWorld" -n isisworld -t width=800 -t height=600 -P osx_i386 -v $(SIM_VERSION) isisworld.0.5.p3d standalone
 

@@ -551,7 +551,7 @@ class Controller(object, FSM):
     def enterTaskPaused(self):
         #self.main.worldNode.show()
         self.start_simulation()
-        self.taskFrame.hide()
+        self.taskFrame.show()
         self.taskBarControl.show()
        
     def exitTaskPaused(self):

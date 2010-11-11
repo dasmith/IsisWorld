@@ -496,8 +496,13 @@ class Controller(object, FSM):
                     py_mod = imp.load_source(self.selectedScenario[:-3], self.selectedScenario)
                 elif self.selectedScenario.lower()[-4:] == '.pyo':
                     # these files are loaded within the packaged P3D files
-                    
-                    py_mod = imp.load_compiled(self.selectedScenario[:-4], self.selectedScenario)
+                    import marshal
+                    def loadPYbyte(path): 
+                        # read module file 
+                        marshal_data= VFS.readFile(Filename(path),1)[8:] 
+                        # unmarshal the data 
+                        return marshal.loads(marshal_data)
+                    py_mod = imp.load_compiled(self.selectedScenario[:-4], loadPYbyte(self.selectedScenario))
                 else:
                     raise Exception("Invalid file extension for %s " % (self.selectedScenario))
                 if 'Scenario' in dir(py_mod):

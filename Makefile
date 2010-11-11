@@ -1,6 +1,6 @@
-
+SIM_NAME=IsisWorld
 #cp COPYING $(SIM_NAME)_$(SIM_VERSION)/
-SIM_VERSION=0.4
+SIM_VERSION=0.5
 # /Developer/Panda3D/lib/direct/p3d/packp3d.py
 #panda3d makescripts/packp3d.p3d
 

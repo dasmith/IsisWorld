@@ -309,12 +309,12 @@ class IsisWorld(DirectObject):
         self.actionController.addAction(IsisAction(commandName="sense_retina_image",intervalAction=False))
         self.actionController.addAction(IsisAction(commandName="use_aimed",intervalAction=False,keyboardBinding="u"))
         self.actionController.addAction(IsisAction(commandName="view_objects",intervalAction=False,keyboardBinding="o"))
-        self.actionController.addAction(IsisAction(commandName="pick_up_with_left_hand",intervalAction=False,argList=['target'],keyboardBinding="v"))
-        self.actionController.addAction(IsisAction(commandName="pick_up_with_right_hand",intervalAction=False,argList=['target'],keyboardBinding="b"))
+        self.actionController.addAction(IsisAction(commandName="pick_up_with_left_hand",intervalAction=False,argList=['target'],keyboardBinding="z"))
+        self.actionController.addAction(IsisAction(commandName="pick_up_with_right_hand",intervalAction=False,argList=['target'],keyboardBinding="c"))
         self.actionController.addAction(IsisAction(commandName="drop_from_left_hand",intervalAction=False,keyboardBinding="n"))
         self.actionController.addAction(IsisAction(commandName="drop_from_right_hand",intervalAction=False,keyboardBinding="m"))
-        self.actionController.addAction(IsisAction(commandName="use_left_hand",intervalAction=False,argList=['target','action'],keyboardBinding=","))
-        self.actionController.addAction(IsisAction(commandName="use_right_hand",intervalAction=False,argList=['target','action'],keyboardBinding="."))
+        self.actionController.addAction(IsisAction(commandName="use_left_hand",intervalAction=False,argList=['target','action'],keyboardBinding="q"))
+        self.actionController.addAction(IsisAction(commandName="use_right_hand",intervalAction=False,argList=['target','action'],keyboardBinding="e"))
 
         # initialze keybindings
         for keybinding, command in self.actionController.keyboardMap.items():
@@ -357,7 +357,7 @@ class IsisWorld(DirectObject):
         self.accept("3",               changeAgent, [])
         self.accept("4",               self.toggleInstructionsWindow, [])
         self.accept("space",           self.step_simulation, [.1]) # argument is amount of second to advance
-        #self.accept("p",               self.controller.toggle_paused, [])
+        self.accept("p",               self.controller.toggle_paused, [])
         #self.accept("s",               self.screenshot, ["snapshot"])
         #self.accept("a",               self.screenshot_agent, ["agent_snapshot"])
         #self.accept("d",               lambda: base.camera.setP(base.camera.getP()-1), [])

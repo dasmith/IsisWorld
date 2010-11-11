@@ -17,10 +17,10 @@ clean:
 	rm packp3d.p3d.*
 	rm pdeploy.p3d.*
 
-getp3d: ppackage.p3d pdeploy.p3d
-	wget http://runtime.panda3d.org/ppackage.p3d
-	wget http://runtime.panda3d.org/packp3d.p3d
-	wget http://runtime.panda3d.org/pdeploy.p3d
+p3d:
+	wget http://runtime-dev.panda3d.org/ppackage.p3d
+	wget http://runtime-dev.panda3d.org/packp3d.p3d
+	wget http://runtime-dev.panda3d.org/pdeploy.p3d
 	panda3d ppackage.p3d -i . isisworld.pdef
 	panda3d pdeploy.p3d -i . isisworld.pdef
 

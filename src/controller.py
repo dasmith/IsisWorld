@@ -468,7 +468,8 @@ class Controller(object, FSM):
                     print "NAME", self.selectedScenario[:-3]
                     print "OPENING", "scenario/"+self.selectedScenario
                     py_mod = imp.load_source(self.selectedScenario[:-3], "scenarios/"+self.selectedScenario)
-                elif self.selectedScenario.lower()[-4:] == '.pyc':
+                elif self.selectedScenario.lower()[-4:] == '.pyo':
+                    # these files are loaded within the packaged P3D files
                     py_mod = imp.load_compiled(self.selectedScenario[:-4], "scenarios/"+self.selectedScenario)
                 else:
                     raise Exception("Invalid file extension for %s " % (self.selectedScenario))

@@ -58,7 +58,12 @@ class IsisVisual():
         margin = 10 # might change experimentally
         if abs(x % 180) < margin:
             #self.length, self.width = self.width, self.length
+            print "rotated by ", x, " degrees."
+            print "before: length was %d, width was %d, height was %d" \
+                   % (self.length, self.width, self.height)
             self.height, self.width = self.width, self.height
+            print "after: length is %d, width is %d, height is %d" \
+                   % (self.length, self.width, self.height)
         
     def rescaleModel(self,scale):
         """ Changes the model's dimensions to a given scale"""

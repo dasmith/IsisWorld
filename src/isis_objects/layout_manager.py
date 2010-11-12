@@ -117,11 +117,13 @@ class RoomLayout(LayoutManager):
             desiredVec = (0, -1)
             rotateVal = self.rotateValForOrientationVector(obj, desiredVec)
             # We should now rotate the object so it faces south
-            print "before rotating ", obj.activeModel.getTightBounds()
+            #print "before rotating ", obj.activeModel.getTightBounds()
+            origH = obj.getH()
             obj.rotateAlongX(rotateVal)
-            print "after rotating ", obj.activeModel.getTightBounds()
+            #print "after rotating ", obj.activeModel.getTightBounds()
             print "- Added %s along north side" % (obj)
             print "It was rotated by ", rotateVal, " degrees"
+            print "H changed from ", origH, " to ", obj.getH()
         # Calculate the 2D coordinates for the top left of the object
         x = self.px
         self.px += ow
@@ -142,10 +144,12 @@ class RoomLayout(LayoutManager):
             desiredVec = (-1, 0) # West
             rotateVal = self.rotateValForOrientationVector(obj, desiredVec)
             # We should now rotate the object so it faces west
-            print "before rotating ", obj.activeModel.getTightBounds()
+            origH = obj.getH()
+            #print "before rotating ", obj.activeModel.getTightBounds()
             obj.rotateAlongX(rotateVal)
-            print "after rotating ", obj.activeModel.getTightBounds()
+            #print "after rotating ", obj.activeModel.getTightBounds()
             print "It was rotated by ", rotateVal, " degrees"
+            print "H changed from ", origH, " to ", obj.getH()
             print "Added %s along east side" % (obj)
         elif ol > ow:
             # undo previous change
@@ -170,10 +174,12 @@ class RoomLayout(LayoutManager):
             desiredVec = (0, 1) # North
             rotateVal = self.rotateValForOrientationVector(obj, desiredVec)
             # We should now rotate the object so it faces north
-            print "before rotating ", obj.activeModel.getTightBounds()
+            #print "before rotating ", obj.activeModel.getTightBounds()
+            origH = obj.getH()
             obj.rotateAlongX(rotateVal)
-            print "after rotating ", obj.activeModel.getTightBounds()
+            #print "after rotating ", obj.activeModel.getTightBounds()
             print "It was rotated by ", rotateVal, " degrees"
+            print "H changed from ", origH, " to ", obj.getH()
             print "Added %s along south side" % (obj)
         elif ol > ow:
             # undo previous change
@@ -201,10 +207,12 @@ class RoomLayout(LayoutManager):
             desiredVec = (1, 0) # East
             rotateVal = self.rotateValForOrientationVector(obj, desiredVec)
             # We should now rotate the object so it faces east
-            print "before rotating ", obj.activeModel.getTightBounds()
+            #print "before rotating ", obj.activeModel.getTightBounds()
+            origH = obj.getH()
             obj.rotateAlongX(rotateVal)
-            print "after rotating ", obj.activeModel.getTightBounds()
+            #print "after rotating ", obj.activeModel.getTightBounds()
             print "It was rotated by ", rotateVal, " degrees"
+            print "H changed from ", origH, " to ", obj.getH()
             print "Added %s along west side" % (obj)
         # Calculate the 2D coordinates for the top left of the object
         y = self.py

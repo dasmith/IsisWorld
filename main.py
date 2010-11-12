@@ -45,6 +45,7 @@ from src.controller import *
 from src.isis_objects.layout_manager import HorizontalGridLayout
 from src.lights.skydome2 import *
 from src.actions.actions import *
+from src.utilities import rgb_ram_image__as__xmlrpc_image
 
 # panda's own threading module
 from direct.stdpy import threading, file
@@ -69,6 +70,7 @@ class IsisWorld(DirectObject):
         self._setup_base_environment(debug=False)
         self._setup_lights()
         self._setup_cameras()
+        self._setup_offscreen_texture()
         
         # initialize Finite State Machine to control UI
         self.controller = Controller(self, base)
@@ -156,7 +158,10 @@ class IsisWorld(DirectObject):
         
         base.graphicsEngine.renderFrame()
         base.graphicsEngine.renderFrame()
-
+        
+        self.main_window_texture = Texture("main_window-texture")
+        base.win.addRenderTexture(self.main_window_texture, GraphicsOutput.RTMCopyRam)
+        
         # load a nicer font
         self.fonts = {'bold': base.loader.loadFont('media/fonts/DroidSans-Bold.ttf'), \
                        'mono': base.loader.loadFont('media/fonts/DroidSansMono.ttf'),\
@@ -207,31 +212,64 @@ class IsisWorld(DirectObject):
             self.desired_physics_time += time_step
         else:
             print "Cannot step the simulator when it is running freely"
-
+    
     def pause_simulation(self):
         """ this is used to pause the simulation."""
         self.desired_physics_time = self.current_physics_time
-
+    
     def resume_simulation(self):
         """ this is used to unpause the simulation (runs freely)."""
         self.desired_physics_time = None
         
+    def capture_rgb_ram_image(self):
+        #ram_image_data = self.main_window_texture.getRamImageAs('RGB')
+        ram_image_data = self.offscreen_render_texture.getRamImageAs('RGB')
+        if (not ram_image_data) or (ram_image_data is None):
+            print 'Failed to get ram image from main window texture.'
+            return None
+        rgb_ram_image = {'dict_type':'rgb_ram_image', 'width':self.offscreen_render_texture.getXSize(), 'height':self.offscreen_render_texture.getYSize(), 'rgb_data':ram_image_data}
+        return rgb_ram_image
+    
+    def capture_xmlrpc_image(self, max_x=None, max_y=None, x_offset=0, y_offset=0):
+        rgb_ram_image = self.capture_rgb_ram_image()
+        if rgb_ram_image is None:
+            return None
+        xmlrpc_image = rgb_ram_image__as__xmlrpc_image(rgb_ram_image, max_x=max_x, max_y=max_y, x_offset=x_offset, y_offset=y_offset)
+        return xmlrpc_image
+    
     def run_xml_command_queue(self,task):
         """ Executes all of the XML-RPC commands in the queue"""
         self.commandHandler.panda3d_thread_process_command_queue()
         return task.cont
-
+    
     def rest_a_little(self,task):
         """ Forces the rendering thread to sleep."""
         time.sleep(1.0/30.0)
         return task.cont
-
+    
     def _setup_cameras(self):
         """" Set up displays and cameras """
         base.cam.node().setCameraMask(BitMask32.bit(0)) # show everything
         base.camera.setPos(0,0,12)
         base.camera.setP(0)
+    
+    def _setup_offscreen_texture(self):
+        fbp=FrameBufferProperties(FrameBufferProperties.getDefault())
+        self.offscreen_render_buffer  = base.win.makeTextureBuffer("offscreen_render-buffer", 640, 480, tex=Texture('offscreen_render-texture'), to_ram=True, fbp=fbp)
+        print "made Texture Buffer"
+        #self.offscreen_render_texture = self.offscreen_render_buffer.getTexture()
+        self.offscreen_render_texture = Texture("offscreen_render-texture")
+        self.offscreen_render_buffer.addRenderTexture(self.offscreen_render_texture, GraphicsOutput.RTMCopyRam)
+        self.offscreen_render_buffer.setSort(-100)
+        self.offscreen_render_camera = base.makeCamera(self.offscreen_render_buffer)
+        self.offscreen_render_camera.node().setCameraMask(BitMask32.bit(0)) # show everything
+        self.offscreen_render_camera.node().getLens().setFov(75)
+        self.offscreen_render_camera.node().getLens().setNear(0.1)
+        self.offscreen_render_camera.reparentTo(base.camera)
+        self.offscreen_render_camera.setPos(0, 0, 0)
+        self.offscreen_render_camera.setHpr(0, 0, 0)
 
+    
     def _setup_lights(self):
         alight = AmbientLight("ambientLight")
         alight.setColor(Vec4(.7, .7, .7, 1.0))

@@ -475,8 +475,8 @@ class Controller(object, FSM):
                 room = render.find("**/*kitchen*").getPythonTag("isisobj")
                 # position the camera in the room
                 base.camera.reparentTo(room)
-                base.camera.setPos(room.getWidth()/2,room.getLength()/2,room.getHeight())
-                base.camera.setHpr(130,320,0)
+                base.camera.setPos(room.getWidth()/4,room.getLength()/4,room.getHeight()*3/4)
+                base.camera.setHpr(145,-30,0)
                 # add list of tasks to the GUI
                 self.scenarioTasks =  self.currentScenario.getTaskList()
                 self.menuTaskOptions['items'] = self.scenarioTasks
@@ -560,11 +560,14 @@ class Controller(object, FSM):
             return None
         return pnm_image
         
-    def capture_screenshot_xmlrpc_image(self):
-        pnm_image = self.capture_screenshot_pnm_image()
-        if pnm_image is None:
-            return None
-        return pnm_image__as__xmlrpc_image(pnm_image)
+    #def capture_screenshot_xmlrpc_image(self):
+    #    pnm_image = self.capture_screenshot_pnm_image()
+    #    if pnm_image is None:
+    #        return None
+    #    return pnm_image__as__xmlrpc_image(pnm_image)
+
+    def capture_screenshot_xmlrpc_image(self, max_x=None, max_y=None, x_offset=0, y_offset=0):
+        return self.main.capture_xmlrpc_image(max_x=max_x, max_y=max_y, x_offset=x_offset, y_offset=y_offset)
 
     def capture_agent_screenshot_xmlrpc_image(self):
         pnm_image = self.capture_agent_screenshot_pnm_image()

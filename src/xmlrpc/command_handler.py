@@ -113,7 +113,22 @@ class IsisCommandHandler(object):
             self.logger.log("resume: Simulation resumed")
             return 'success'
         elif cmd == 'meta_screenshot':
-            return self.simulator.controller.capture_screenshot_xmlrpc_image()
+            max_x = None
+            if args.has_key('max_x'):
+                max_x = args['max_x']
+            max_y = None
+            if args.has_key('max_y'):
+                max_y = args['max_y']
+            x_offset = 0
+            if args.has_key('x_offset'):
+                x_offset = args['x_offset']
+            y_offset = 0
+            if args.has_key('y_offset'):
+                y_offset = args['y_offset']
+            xmlrpc_image = self.simulator.controller.capture_screenshot_xmlrpc_image(max_x=max_x, max_y=max_y, x_offset=x_offset, y_offset=y_offset)
+            if xmlrpc_image is None:
+                return 'failure'
+            return xmlrpc_image
         elif cmd == 'meta_list_actions':
             return self.simulator.actionController.actionMap.keys()+self.meta_commands
         elif cmd == 'meta_list_scenarios':

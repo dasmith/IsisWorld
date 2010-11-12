@@ -281,7 +281,7 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         self.retina_buffer  = base.win.makeTextureBuffer("retina-buffer-%s" % (self.name), 320, 240, tex=Texture('retina-texture'), to_ram=True, fbp=fbp)
         print "made Texture Buffer"
         #self.retina_texture = self.retina_buffer.getTexture()
-        self.retina_texture = Texture('tex')
+        self.retina_texture = Texture("retina-texture-%s" % (self.name))
         self.retina_buffer.addRenderTexture(self.retina_texture, GraphicsOutput.RTMCopyRam)
         self.retina_buffer.setSort(-100)
         self.retina_camera = base.makeCamera(self.retina_buffer)

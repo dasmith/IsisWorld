@@ -1,3 +1,5 @@
+import imp
+
 from pandac.PandaModules import *
 #from pandac.PandaModules import NodePath, Vec3
 from layout_manager import *

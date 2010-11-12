@@ -1,21 +1,34 @@
 
 # To Do List
-
+ 
+  - fix object dropping semantics:  
+  - fix object pick up semantics:  objects in containers get moved, objects on surfaces have physics reinstated
   - parsing of attributes in scenario files. e.g. `k.width(10)` in scenario files. IsisObject generators specify/randomly select the default values during `__init__()`, but then the defaults can be changed sometime after `__init__` and before `setup()`.
   - Loading and running [IsisScenarios](#IsisScenarios) files:
     - buttons for starting a task, running a training and test scenario
     - recording statistics about the task: how many steps since it started, state of task (failed/completed/ongoing)
     - displaying state of task in the menu
-    - ~~checking for whether the goal state is met~~
-    - ~~migrating the `kitchen.isis` into an "scene initialization" section of the "scenario/" files.~~
-    - ~~a DirectGUI for loading tasks, which is the default screen when the simulator loads.~~
-    - ~~recording state of task/scenario in logging file~~
   - specifying scale ranges for some of the common models sizes, the same way the size of the kitchen is chosen from a random range.
   - documenting a skeleton generator file with all possible superclass attributes, so that other people can work on the project by adding / describing models.
   - working out the kinks in packaging binaries (try by running `make package` on mac)
   - separating actions from the `main.py` as a different data structure in a different file.
-  - ~~exporting screen shots~~
-  - ~~RoomLayout layout manager that puts objects around the walls~~
+  - IsisEvent class
+  - Storing and resuming game states
+  - UI overhaul
+  - XMLRPC test cases: ensure loading scenarios and tasks is bugfree
+
+
+## Has Been Done List
+
+GitHub does not appear to interpret Markdown's ~~strikethrough~~ operator, so here's the list of changes that have been made since the last version:
+ 
+  - objects can have "front" orientation that is used to place objects around a room, with their backs to the wall
+  - checking for whether the goal state is met
+  - migrating the `kitchen.isis` into an "scene initialization" section of the "scenario/" files.
+  - a DirectGUI for loading tasks, which is the default screen when the simulator loads.
+  - recording state of task/scenario in logging file
+  - exporting screen shots
+  - RoomLayout layout manager that puts objects around the walls
 
 # IsisScenarios
 

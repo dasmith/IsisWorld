@@ -1,6 +1,8 @@
 
 import os
 import operator
+import imp
+import struct
 
 from direct.gui.DirectGui import DGG, DirectFrame, DirectLabel, DirectButton, DirectOptionMenu, DirectEntry
 from direct.gui.DirectGui import DirectSlider, RetryCancelDialog, DirectCheckButton
@@ -45,15 +47,14 @@ class Controller(object, FSM):
         self.currentScenario = None
         self.scenarioFiles = []
         self.scenarioTasks = []
+        
+        
         # load files in the scenario directory
         print "LOADING SCENARIO FILES", self.main.rootDirectory
         for scenarioPath in os.listdir(self.main.rootDirectory+"scenarios"):
-            if scenarioPath[-3:] == ".py":
-                scenarioFile = scenarioPath[scenarioPath.rfind("/")+1:-3]
+            scenarioFile = scenarioPath[scenarioPath.rfind("/")+1:]
+            if "__init__" not in scenarioFile:
                 self.scenarioFiles.append(scenarioFile)
-                print scenarioFile, " ",
-        print "\n" 
-
         # display GUI for navigating tasks
         #textObj = OnscreenText(text = "Scenarios:", pos = (1,0.9), scale = 0.05,fg=(1,0.5,0.5,1),align=TextNode.ALeft,mayChange=1)
         # summer theme
@@ -231,12 +232,27 @@ class Controller(object, FSM):
                                     command = lambda: base.camera.setP(base.camera.getP()-1))
         self.downCamera.reparentTo(self.toolbarFrame)
 
-        self.scenarioBarControl = DirectButton(text = 'Toggle Scenario Options', pos=(0.45, 0, .92), text_scale=(0.05, 0.05),
+        #Pause button
+        self.pauseButton = DirectButton(text = 'Pause', pos=(-0.10, 0, .92), text_scale=(0.05, 0.05),
+                                            borderWidth = BUTTON_BORDER,
+                                              text_fg=BUTTON_FG, text_bg = BUTTON_BG, relief=BUTTON_RELIEF,
+                                           command = self.toggle_paused)
+        self.pauseButton.reparentTo(self.toolbarFrame)
+
+        self.unpauseButton = DirectButton(text = 'Unpause', pos=(-0.10, 0, .92), text_scale=(0.05, 0.05),
+                                            borderWidth = BUTTON_BORDER,
+                                              text_fg=BUTTON_FG, text_bg = BUTTON_BG, relief=BUTTON_RELIEF,
+                                           command = self.toggle_paused)
+        self.unpauseButton.reparentTo(self.toolbarFrame)
+        self.unpauseButton.hide()
+
+        #Button to toggle task frames
+        self.scenarioBarControl = DirectButton(text = 'Toggle Scenario Options', pos=(0.35, 0, .92), text_scale=(0.05, 0.05),
                                             borderWidth = BUTTON_BORDER,
                                               text_fg=BUTTON_FG, text_bg = BUTTON_BG, relief=BUTTON_RELIEF,
                                            command = self.scenarioBarControlPress)
 
-        self.taskBarControl = DirectButton(text = 'Toggle Taskbar', pos=(.45, 0, .92), text_scale=(0.05, 0.05),
+        self.taskBarControl = DirectButton(text = 'Toggle Taskbar', pos=(.35, 0, .92), text_scale=(0.05, 0.05),
                                             borderWidth = BUTTON_BORDER,
                                               text_fg=BUTTON_FG, text_bg = BUTTON_BG, relief=BUTTON_RELIEF,
                                            command = self.taskBarControlPress)
@@ -299,8 +315,12 @@ class Controller(object, FSM):
             x.main.teacher_utterances.append(message)
             x.testCommandBox.enterText("")
 
-        self.testCommandBox = DirectEntry(pos=(-1.2,-0.95,-0.95), text_fg=(0.282, 0.725, 0.850,1), frameColor=(0.631, 0.219, 0.247,0.25), suppressKeys=1, initialText="enter text and hit return", enableEdit=0,scale=0.07, focus=0, focusInCommand=disable_keys, focusOutCommand=enable_keys, focusInExtraArgs=[self], focusOutExtraArgs=[self], command=accept_message, extraArgs=[self],  width=15, numLines=1)
-        self.testCommandBox.reparentTo(self.taskFrame)
+        self.testCommandBox = DirectEntry(pos=(-1.2,-0.95,-0.95), text_fg=(0.282, 0.725, 0.850,1), frameColor=(0.631, 0.219, 0.247,0.25),
+                                          suppressKeys=1, initialText="enter text and hit return", enableEdit=0,scale=0.07, focus=0,
+                                          focusInCommand=disable_keys, focusOutCommand=enable_keys, focusInExtraArgs=[self],
+                                          focusOutExtraArgs=[self], command=accept_message, extraArgs=[self],  width=15, numLines=1)
+        
+        self.testCommandBox.reparentTo(self.toolbarFrame)
         self.loaded = True
         
         self.thought_buttons = {}
@@ -400,8 +420,12 @@ class Controller(object, FSM):
         """ Starts or Pauses the simulation, depending on the current state"""
         if self.runningSimulation:
             self.pause_simulation()
+            self.pauseButton.hide()
+            self.unpauseButton.show()
         else:
             self.start_simulation()
+            self.unpauseButton.hide()
+            self.pauseButton.show()
 
 
     def safe_request(self,newState):
@@ -419,9 +443,11 @@ class Controller(object, FSM):
         self.scenarioFrame.hide()
         self.toolbarFrame.hide()
         self.pause_simulation()
-         
+        
         # unload the previous scene if it's there
         if hasattr(self.main,'worldNode'):
+            del self.currentScenario
+            self.currentScenario = None
             # kitchen 
             for obj in self.main.objects:
                 obj.removeFromWorld()
@@ -460,12 +486,32 @@ class Controller(object, FSM):
                 dialogbox.cleanup()
             
             try:
-                # load scenario file
-                self.currentScenario = IsisScenario(self.selectedScenario)
-                self.main.pause_simulation()
+                print "Selected Scenario", self.selectedScenario
+                #os.chdir(self.main.rootDirectory+"scenarios")
+                #print sys.path[0] 
+                #print os.getcwd()
+                print "NAME", self.selectedScenario[:-3]
+                print "OPENING", "scenarios/"+self.selectedScenario
+                if self.selectedScenario.lower()[-3:] == '.py':
+                    py_mod = imp.load_source(self.selectedScenario[:-3], "scenarios/"+self.selectedScenario)
+                elif self.selectedScenario.lower()[-4:] == '.pyo':
+                    # these files are loaded within the packaged P3D files
+                    import marshal
+                    def loadPYbyte(path): 
+                        # read module file 
+                        marshal_data= VFS.readFile(Filename(path),1)[8:] 
+                        # unmarshal the data 
+                        return marshal.loads(marshal_data)
+                    py_mod = imp.load_compiled(self.selectedScenario[:-4], loadPYbyte(self.selectedScenario))
+                else:
+                    raise Exception("Invalid file extension for %s " % (self.selectedScenario))
+                if 'Scenario' in dir(py_mod):
+                    self.currentScenario = py_mod.Scenario(self.selectedScenario) 
+                    
+                print "Current scenario methods", dir(self.currentScenario)
                 # setup world
                 self.currentScenario.loadScenario(self.main)
-                self.main.resume_simulation()
+                self.main.pause_simulation()
             except IsisParseProblem as e:
                 dialogbox = RetryCancelDialog(text='There was a problem parsing the scenario file\
                                   : \n %s.  \n\nLocation %s' % (e.message, e.component),\

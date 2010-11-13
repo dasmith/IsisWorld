@@ -40,18 +40,29 @@ class Spreadable(IsisFunctional):
         # object is the other object that this is spreading on, such as a knife or piece of bread
         # TODO write code to spread self onto object
         print "in action__spread"
+        if object != None and hasattr(object, 'action__surface'):
+            object.action__surface(agent, self) # the surface will then put this object on itself
+            # TODO confirm that this is the right pattern to follow, or if it needs changing
+            return "success"
+        return None
 
 class SurfaceForSpreadable(IsisFunctional):
     # This superclass should be inherited by objects on which Spreadable objects can be spread
     # e.g. knife, bread, toast
     def __init__(self):
         IsisFunctional.__init__(self)
-        # TODO implement attribute for the Spreadable object on this surface
+        # It's possible that it might be better design to initialize this objecth here
+        # instead of leaving it up to the subclass?
+        if not hasattr(self, 'spreadableOnSelf'):
+            print "Warning: no spreadableOnSelf object defined for SurfaceForSpreadable object", self.name
         
     def action__surface(self, agent, object):
         # agent is the 'person' and object should be the Spreadable thing going on this surface
-        # TODO implement this
         print "in action__surface"
+        if object != None and hasattr(object, 'action__spread'):
+            self.spreadableOnSelf = object
+            return "success"
+        return None
 
 class Dividable(IsisFunctional):
     def __init__(self):

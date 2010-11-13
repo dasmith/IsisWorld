@@ -53,15 +53,23 @@ class SurfaceForSpreadable(IsisFunctional):
         IsisFunctional.__init__(self)
         # It's possible that it might be better design to initialize this objecth here
         # instead of leaving it up to the subclass?
-        if not hasattr(self, 'spreadableOnSelf'):
-            print "Warning: no spreadableOnSelf object defined for SurfaceForSpreadable object", self.name
+        # The following is what other classes in this module did
+        #if not hasattr(self, 'spreadableOnSelf'):
+         #   print "Warning: no spreadableOnSelf object defined for SurfaceForSpreadable object", self.name
+        self.spreadableOnSelf = None     
         
     def action__surface(self, agent, object):
         # agent is the 'person' and object should be the Spreadable thing going on this surface
         print "in action__surface"
         if object != None and hasattr(object, 'action__spread'):
-            self.spreadableOnSelf = object
-            return "success"
+            if self.spreadableOnSelf == None:
+                self.spreadableOnSelf = object
+                return "success"
+            else:
+                # There is already something spread on this object
+                # TODO decide what to implement in this case
+                print "tried to spread ", object, " onto surface ", self.name, \
+                      " but it already has ", self.spreadableOnSelf
         return None
 
 class Dividable(IsisFunctional):

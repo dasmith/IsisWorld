@@ -32,7 +32,7 @@ class table(IsisObject,IsisVisual,SpatialStaticBox,Surface,IsisFunctional):
         self.setH(180)
 
 
-class fridge(IsisObject, IsisVisual, SpatialStaticBox, Container,IsisFunctional):
+class fridge(IsisObject, IsisVisual, SpatialStaticBox, Container, IsisFunctional):
     
     def  __init__(self):
         self.model={'default':"Fridge/Fridge"}
@@ -113,6 +113,18 @@ class bread(IsisObject, IsisVisual, SpatialPickableBox, Cookable):
         self.density = 200
         
         self.cookableCookedModel = "toast"
+        IsisObject.__init__(self)
+
+class butter(IsisObject, IsisVisual, SpatialPickableBox, IsisFunctional ):
+
+    def  __init__(self):
+        self.offsetVec = (-0.8,0.3,0.0,90,0,180)
+        self.pickupVec=(-.125,.225,0,0,-125,0)
+        self.model={"default":"butter"}
+        self.scale = 0.05
+        
+        self.density = 200
+        
         IsisObject.__init__(self)
 
 class loaf( IsisObject, IsisVisual, SpatialPickableBox, Dividable):

@@ -1,0 +1,885 @@
+<CoordinateSystem> { Y-Up }
+
+<Comment> {
+  "vrml2egg -ui in -uo m butter.wrl -o butter.egg"
+}
+<Group> {
+  <VertexPool> vpool1 {
+    <Vertex> 0 {
+      -1.13594 -0.461797 6.98403
+    }
+    <Vertex> 1 {
+      -1.13594 -0.412013 4.67952
+    }
+    <Vertex> 2 {
+      -1.13594 6.64754 4.83207
+    }
+    <Vertex> 3 {
+      -1.13594 6.59775 7.13659
+    }
+  }
+  <Polygon> {
+    <Normal> { 1 0 0 }
+    <RGBA> { 0.969 1 0.278 1 }
+    <VertexRef> { 0 1 2 3 <Ref> { vpool1 } }
+  }
+}
+<Group> {
+  <VertexPool> vpool2 {
+    <Vertex> 0 {
+      -1.13594 6.59775 7.13659
+    }
+    <Vertex> 1 {
+      -1.13594 6.64754 4.83207
+    }
+    <Vertex> 2 {
+      -1.13594 -0.412013 4.67952
+    }
+    <Vertex> 3 {
+      -1.13594 -0.461797 6.98403
+    }
+  }
+  <Polygon> {
+    <Normal> { -1 0 0 }
+    <RGBA> { 0.671 0.69 0.8 1 }
+    <VertexRef> { 0 1 2 3 <Ref> { vpool2 } }
+  }
+}
+<Group> {
+  <VertexPool> vpool3 {
+    <Vertex> 0 {
+      -1.13594 6.64754 4.83207
+    }
+    <Vertex> 1 {
+      -1.17236 6.64675 4.86849
+    }
+    <Vertex> 2 {
+      -1.13594 6.59775 7.13659
+    }
+  }
+  <Polygon> {
+    <Normal> { -1.50535e-05 0.999767 0.0215978 }
+    <RGBA> { 0.969 1 0.278 1 }
+    <VertexRef> { 0 1 2 <Ref> { vpool3 } }
+  }
+}
+<Group> {
+  <VertexPool> vpool4 {
+    <Vertex> 0 {
+      -1.13594 6.64754 4.83207
+    }
+    <Vertex> 1 {
+      -4.11409 6.64754 4.83207
+    }
+    <Vertex> 2 {
+      -1.17236 6.64675 4.86849
+    }
+  }
+  <Polygon> {
+    <Normal> { 0 0.999766 0.0216128 }
+    <RGBA> { 0.969 1 0.278 1 }
+    <VertexRef> { 0 1 2 <Ref> { vpool4 } }
+  }
+}
+<Group> {
+  <VertexPool> vpool5 {
+    <Vertex> 0 {
+      -4.11409 6.64754 4.83207
+    }
+    <Vertex> 1 {
+      -1.13594 6.64754 4.83207
+    }
+    <Vertex> 2 {
+      -4.07599 6.64754 4.83207
+    }
+  }
+}
+<Group> {
+  <VertexPool> vpool6 {
+    <Vertex> 0 {
+      -4.07599 6.64754 4.83207
+    }
+    <Vertex> 1 {
+      -1.13594 6.64754 4.83207
+    }
+    <Vertex> 2 {
+      -4.11409 6.64754 4.83207
+    }
+  }
+}
+<Group> {
+  <VertexPool> vpool7 {
+    <Vertex> 0 {
+      -1.13594 -0.412013 4.67952
+    }
+    <Vertex> 1 {
+      -4.11409 -0.412013 4.67952
+    }
+    <Vertex> 2 {
+      -4.11409 6.64754 4.83207
+    }
+    <Vertex> 3 {
+      -4.07599 6.64754 4.83207
+    }
+    <Vertex> 4 {
+      -1.13594 6.64754 4.83207
+    }
+  }
+  <Polygon> {
+    <Normal> { 0 0.0216043 -0.999767 }
+    <RGBA> { 0.969 1 0.278 1 }
+    <VertexRef> { 0 1 2 3 4 <Ref> { vpool7 } }
+  }
+}
+<Group> {
+  <VertexPool> vpool8 {
+    <Vertex> 0 {
+      -1.13594 -0.412013 4.67952
+    }
+    <Vertex> 1 {
+      -1.13594 -0.461797 6.98403
+    }
+    <Vertex> 2 {
+      -4.11409 -0.461797 6.98403
+    }
+    <Vertex> 3 {
+      -4.11409 -0.412013 4.67952
+    }
+  }
+  <Polygon> {
+    <Normal> { 0 -0.999767 -0.0215978 }
+    <RGBA> { 0.969 1 0.278 1 }
+    <VertexRef> { 0 1 2 3 <Ref> { vpool8 } }
+  }
+}
+<Group> {
+  <VertexPool> vpool9 {
+    <Vertex> 0 {
+      -4.11409 -0.412013 4.67952
+    }
+    <Vertex> 1 {
+      -4.11409 -0.461797 6.98403
+    }
+    <Vertex> 2 {
+      -1.13594 -0.461797 6.98403
+    }
+    <Vertex> 3 {
+      -1.13594 -0.412013 4.67952
+    }
+  }
+  <Polygon> {
+    <Normal> { 0 0.999767 0.0215978 }
+    <RGBA> { 0.671 0.69 0.8 1 }
+    <VertexRef> { 0 1 2 3 <Ref> { vpool9 } }
+  }
+}
+<Group> {
+  <VertexPool> vpool10 {
+    <Vertex> 0 {
+      -4.11409 -0.412013 4.67952
+    }
+    <Vertex> 1 {
+      -4.11409 -0.461797 6.98403
+    }
+    <Vertex> 2 {
+      -4.11409 6.59775 7.13659
+    }
+    <Vertex> 3 {
+      -4.11409 6.64754 4.83207
+    }
+  }
+  <Polygon> {
+    <Normal> { -1 0 0 }
+    <RGBA> { 0.969 1 0.278 1 }
+    <VertexRef> { 0 1 2 3 <Ref> { vpool10 } }
+  }
+}
+<Group> {
+  <VertexPool> vpool11 {
+    <Vertex> 0 {
+      -4.11409 6.64754 4.83207
+    }
+    <Vertex> 1 {
+      -4.11409 6.59775 7.13659
+    }
+    <Vertex> 2 {
+      -4.11409 -0.461797 6.98403
+    }
+    <Vertex> 3 {
+      -4.11409 -0.412013 4.67952
+    }
+  }
+  <Polygon> {
+    <Normal> { 1 0 0 }
+    <RGBA> { 0.671 0.69 0.8 1 }
+    <VertexRef> { 0 1 2 3 <Ref> { vpool11 } }
+  }
+}
+<Group> {
+  <VertexPool> vpool12 {
+    <Vertex> 0 {
+      -4.07767 6.64675 4.86849
+    }
+    <Vertex> 1 {
+      -4.11409 6.64754 4.83207
+    }
+    <Vertex> 2 {
+      -4.11409 6.59775 7.13659
+    }
+  }
+  <Polygon> {
+    <Normal> { 1.50535e-05 0.999767 0.0215978 }
+    <RGBA> { 0.969 1 0.278 1 }
+    <VertexRef> { 0 1 2 <Ref> { vpool12 } }
+  }
+}
+<Group> {
+  <VertexPool> vpool13 {
+    <Vertex> 0 {
+      -4.11409 6.64754 4.83207
+    }
+    <Vertex> 1 {
+      -4.07767 6.64675 4.86849
+    }
+    <Vertex> 2 {
+      -1.17236 6.64675 4.86849
+    }
+  }
+  <Polygon> {
+    <Normal> { 0 0.999766 0.0216128 }
+    <RGBA> { 0.969 1 0.278 1 }
+    <VertexRef> { 0 1 2 <Ref> { vpool13 } }
+  }
+}
+<Group> {
+  <VertexPool> vpool14 {
+    <Vertex> 0 {
+      -1.17236 6.64675 4.86849
+    }
+    <Vertex> 1 {
+      -4.07767 6.64675 4.86849
+    }
+    <Vertex> 2 {
+      -4.11409 6.64754 4.83207
+    }
+  }
+  <Polygon> {
+    <Normal> { 0 -0.999766 -0.0216128 }
+    <RGBA> { 0.671 0.69 0.8 1 }
+    <VertexRef> { 0 1 2 <Ref> { vpool14 } }
+  }
+}
+<Group> {
+  <VertexPool> vpool15 {
+    <Vertex> 0 {
+      -4.07767 6.64675 4.86849
+    }
+    <Vertex> 1 {
+      -4.07767 6.59854 7.10019
+    }
+    <Vertex> 2 {
+      -1.17236 6.59854 7.10019
+    }
+    <Vertex> 3 {
+      -1.17236 6.64675 4.86849
+    }
+  }
+  <Polygon> {
+    <Normal> { 0 0.999767 0.021597 }
+    <RGBA> { 0.969 1 0.278 1 }
+    <VertexRef> { 0 1 2 3 <Ref> { vpool15 } }
+  }
+}
+<Group> {
+  <VertexPool> vpool16 {
+    <Vertex> 0 {
+      -4.07767 6.64675 4.86849
+    }
+    <Vertex> 1 {
+      -4.11409 6.59775 7.13659
+    }
+    <Vertex> 2 {
+      -4.07767 6.59854 7.10019
+    }
+  }
+  <Polygon> {
+    <Normal> { -3.08514e-05 0.999767 0.021597 }
+    <RGBA> { 0.969 1 0.278 1 }
+    <VertexRef> { 0 1 2 <Ref> { vpool16 } }
+  }
+}
+<Group> {
+  <VertexPool> vpool17 {
+    <Vertex> 0 {
+      -4.11409 6.59775 7.13659
+    }
+    <Vertex> 1 {
+      -4.11409 6.64754 4.83207
+    }
+    <Vertex> 2 {
+      -4.07767 6.64675 4.86849
+    }
+  }
+  <Polygon> {
+    <Normal> { -1.50535e-05 -0.999767 -0.0215978 }
+    <RGBA> { 0.671 0.69 0.8 1 }
+    <VertexRef> { 0 1 2 <Ref> { vpool17 } }
+  }
+}
+<Group> {
+  <VertexPool> vpool18 {
+    <Vertex> 0 {
+      -4.07767 6.59854 7.10019
+    }
+    <Vertex> 1 {
+      -4.11409 6.59775 7.13659
+    }
+    <Vertex> 2 {
+      -4.07767 6.64675 4.86849
+    }
+  }
+  <Polygon> {
+    <Normal> { 3.08514e-05 -0.999767 -0.021597 }
+    <RGBA> { 0.671 0.69 0.8 1 }
+    <VertexRef> { 0 1 2 <Ref> { vpool18 } }
+  }
+}
+<Group> {
+  <VertexPool> vpool19 {
+    <Vertex> 0 {
+      -4.07767 6.59854 7.10019
+    }
+    <Vertex> 1 {
+      -4.11409 6.59775 7.13659
+    }
+    <Vertex> 2 {
+      -1.13594 6.59775 7.13659
+    }
+  }
+  <Polygon> {
+    <Normal> { 0 0.999766 0.0216279 }
+    <RGBA> { 0.969 1 0.278 1 }
+    <VertexRef> { 0 1 2 <Ref> { vpool19 } }
+  }
+}
+<Group> {
+  <VertexPool> vpool20 {
+    <Vertex> 0 {
+      -1.13594 6.59775 7.13659
+    }
+    <Vertex> 1 {
+      -4.11409 6.59775 7.13659
+    }
+    <Vertex> 2 {
+      -4.07767 6.59854 7.10019
+    }
+  }
+  <Polygon> {
+    <Normal> { 0 -0.999766 -0.0216279 }
+    <RGBA> { 0.671 0.69 0.8 1 }
+    <VertexRef> { 0 1 2 <Ref> { vpool20 } }
+  }
+}
+<Group> {
+  <VertexPool> vpool21 {
+    <Vertex> 0 {
+      -4.11409 -0.461797 6.98403
+    }
+    <Vertex> 1 {
+      -1.13594 -0.461797 6.98403
+    }
+    <Vertex> 2 {
+      -1.13594 6.59775 7.13659
+    }
+    <Vertex> 3 {
+      -4.11409 6.59775 7.13659
+    }
+  }
+  <Polygon> {
+    <Normal> { 0 -0.0216043 0.999767 }
+    <RGBA> { 0.969 1 0.278 1 }
+    <VertexRef> { 0 1 2 3 <Ref> { vpool21 } }
+  }
+}
+<Group> {
+  <VertexPool> vpool22 {
+    <Vertex> 0 {
+      -4.11409 6.59775 7.13659
+    }
+    <Vertex> 1 {
+      -1.13594 6.59775 7.13659
+    }
+    <Vertex> 2 {
+      -1.13594 -0.461797 6.98403
+    }
+    <Vertex> 3 {
+      -4.11409 -0.461797 6.98403
+    }
+  }
+  <Polygon> {
+    <Normal> { 0 0.0216043 -0.999767 }
+    <RGBA> { 0.671 0.69 0.8 1 }
+    <VertexRef> { 0 1 2 3 <Ref> { vpool22 } }
+  }
+}
+<Group> {
+  <VertexPool> vpool23 {
+    <Vertex> 0 {
+      -1.13594 6.59775 7.13659
+    }
+    <Vertex> 1 {
+      -1.17236 6.59854 7.10019
+    }
+    <Vertex> 2 {
+      -4.07767 6.59854 7.10019
+    }
+  }
+  <Polygon> {
+    <Normal> { 0 0.999766 0.0216279 }
+    <RGBA> { 0.969 1 0.278 1 }
+    <VertexRef> { 0 1 2 <Ref> { vpool23 } }
+  }
+}
+<Group> {
+  <VertexPool> vpool24 {
+    <Vertex> 0 {
+      -1.13594 6.59775 7.13659
+    }
+    <Vertex> 1 {
+      -1.17236 6.64675 4.86849
+    }
+    <Vertex> 2 {
+      -1.17236 6.59854 7.10019
+    }
+  }
+  <Polygon> {
+    <Normal> { 3.08514e-05 0.999767 0.021597 }
+    <RGBA> { 0.969 1 0.278 1 }
+    <VertexRef> { 0 1 2 <Ref> { vpool24 } }
+  }
+}
+<Group> {
+  <VertexPool> vpool25 {
+    <Vertex> 0 {
+      -1.13594 6.59775 7.13659
+    }
+    <Vertex> 1 {
+      -1.17236 6.64675 4.86849
+    }
+    <Vertex> 2 {
+      -1.13594 6.64754 4.83207
+    }
+  }
+  <Polygon> {
+    <Normal> { 1.50535e-05 -0.999767 -0.0215978 }
+    <RGBA> { 0.671 0.69 0.8 1 }
+    <VertexRef> { 0 1 2 <Ref> { vpool25 } }
+  }
+}
+<Group> {
+  <VertexPool> vpool26 {
+    <Vertex> 0 {
+      -1.17236 6.59854 7.10019
+    }
+    <Vertex> 1 {
+      -1.17236 6.64675 4.86849
+    }
+    <Vertex> 2 {
+      -1.13594 6.59775 7.13659
+    }
+  }
+  <Polygon> {
+    <Normal> { -3.08514e-05 -0.999767 -0.021597 }
+    <RGBA> { 0.671 0.69 0.8 1 }
+    <VertexRef> { 0 1 2 <Ref> { vpool26 } }
+  }
+}
+<Group> {
+  <VertexPool> vpool27 {
+    <Vertex> 0 {
+      -1.17236 6.64675 4.86849
+    }
+    <Vertex> 1 {
+      -1.17236 6.59854 7.10019
+    }
+    <Vertex> 2 {
+      -4.07767 6.59854 7.10019
+    }
+    <Vertex> 3 {
+      -4.07767 6.64675 4.86849
+    }
+  }
+  <Polygon> {
+    <Normal> { 0 -0.999767 -0.021597 }
+    <RGBA> { 0.671 0.69 0.8 1 }
+    <VertexRef> { 0 1 2 3 <Ref> { vpool27 } }
+  }
+}
+<Group> {
+  <VertexPool> vpool28 {
+    <Vertex> 0 {
+      -4.07767 6.59854 7.10019
+    }
+    <Vertex> 1 {
+      -1.17236 6.59854 7.10019
+    }
+    <Vertex> 2 {
+      -1.13594 6.59775 7.13659
+    }
+  }
+  <Polygon> {
+    <Normal> { 0 -0.999766 -0.0216279 }
+    <RGBA> { 0.671 0.69 0.8 1 }
+    <VertexRef> { 0 1 2 <Ref> { vpool28 } }
+  }
+}
+<Group> {
+  <VertexPool> vpool29 {
+    <Vertex> 0 {
+      -1.17236 6.64675 4.86849
+    }
+    <Vertex> 1 {
+      -4.11409 6.64754 4.83207
+    }
+    <Vertex> 2 {
+      -1.13594 6.64754 4.83207
+    }
+  }
+  <Polygon> {
+    <Normal> { 0 -0.999766 -0.0216128 }
+    <RGBA> { 0.671 0.69 0.8 1 }
+    <VertexRef> { 0 1 2 <Ref> { vpool29 } }
+  }
+}
+<Group> {
+  <VertexPool> vpool30 {
+    <Vertex> 0 {
+      -1.13594 6.64754 4.83207
+    }
+    <Vertex> 1 {
+      -4.07599 6.64754 4.83207
+    }
+    <Vertex> 2 {
+      -4.11409 6.64754 4.83207
+    }
+    <Vertex> 3 {
+      -4.11409 -0.412013 4.67952
+    }
+    <Vertex> 4 {
+      -1.13594 -0.412013 4.67952
+    }
+  }
+  <Polygon> {
+    <Normal> { 0 -0.0216043 0.999767 }
+    <RGBA> { 0.671 0.69 0.8 1 }
+    <VertexRef> { 0 1 2 3 4 <Ref> { vpool30 } }
+  }
+}
+<Group> {
+  <VertexPool> vpool31 {
+    <Vertex> 0 {
+      -1.13594 8.97799 4.83207
+    }
+    <Vertex> 1 {
+      -1.13594 6.64754 4.83207
+    }
+    <Vertex> 2 {
+      -4.07599 6.64754 4.83207
+    }
+    <Vertex> 3 {
+      -4.07599 8.97799 4.83207
+    }
+  }
+  <Polygon> {
+    <Normal> { 0 0 -1 }
+    <RGBA> { 0.969 1 0.278 1 }
+    <VertexRef> { 0 1 2 3 <Ref> { vpool31 } }
+  }
+}
+<Group> {
+  <VertexPool> vpool32 {
+    <Vertex> 0 {
+      -4.07599 8.97799 4.83207
+    }
+    <Vertex> 1 {
+      -4.07599 6.64754 4.83207
+    }
+    <Vertex> 2 {
+      -1.13594 6.64754 4.83207
+    }
+    <Vertex> 3 {
+      -1.13594 8.97799 4.83207
+    }
+  }
+  <Polygon> {
+    <Normal> { 0 0 1 }
+    <RGBA> { 0.671 0.69 0.8 1 }
+    <VertexRef> { 0 1 2 3 <Ref> { vpool32 } }
+  }
+}
+<Group> {
+  <VertexPool> vpool33 {
+    <Vertex> 0 {
+      -4.07599 8.97799 4.83207
+    }
+    <Vertex> 1 {
+      -4.07599 6.64754 4.83207
+    }
+    <Vertex> 2 {
+      -4.07599 6.64754 5.13687
+    }
+    <Vertex> 3 {
+      -4.07599 8.97799 5.13687
+    }
+  }
+  <Polygon> {
+    <Normal> { -1 0 0 }
+    <RGBA> { 0.969 1 0.278 1 }
+    <VertexRef> { 0 1 2 3 <Ref> { vpool33 } }
+  }
+}
+<Group> {
+  <VertexPool> vpool34 {
+    <Vertex> 0 {
+      -4.07599 8.97799 5.13687
+    }
+    <Vertex> 1 {
+      -4.07599 6.64754 5.13687
+    }
+    <Vertex> 2 {
+      -4.07599 6.64754 4.83207
+    }
+    <Vertex> 3 {
+      -4.07599 8.97799 4.83207
+    }
+  }
+  <Polygon> {
+    <Normal> { 1 0 0 }
+    <RGBA> { 0.671 0.69 0.8 1 }
+    <VertexRef> { 0 1 2 3 <Ref> { vpool34 } }
+  }
+}
+<Group> {
+  <VertexPool> vpool35 {
+    <Vertex> 0 {
+      -1.13594 6.64754 5.13687
+    }
+    <Vertex> 1 {
+      -1.13594 8.97799 5.13687
+    }
+    <Vertex> 2 {
+      -4.07599 8.97799 5.13687
+    }
+    <Vertex> 3 {
+      -4.07599 6.64754 5.13687
+    }
+  }
+  <Polygon> {
+    <Normal> { 0 0 1 }
+    <RGBA> { 0.969 1 0.278 1 }
+    <VertexRef> { 0 1 2 3 <Ref> { vpool35 } }
+  }
+}
+<Group> {
+  <VertexPool> vpool36 {
+    <Vertex> 0 {
+      -4.07599 6.64754 5.13687
+    }
+    <Vertex> 1 {
+      -4.07599 8.97799 5.13687
+    }
+    <Vertex> 2 {
+      -1.13594 8.97799 5.13687
+    }
+    <Vertex> 3 {
+      -1.13594 6.64754 5.13687
+    }
+  }
+  <Polygon> {
+    <Normal> { 0 0 -1 }
+    <RGBA> { 0.671 0.69 0.8 1 }
+    <VertexRef> { 0 1 2 3 <Ref> { vpool36 } }
+  }
+}
+<Group> {
+  <VertexPool> vpool37 {
+    <Vertex> 0 {
+      -1.13594 8.97799 4.83207
+    }
+    <Vertex> 1 {
+      -4.07599 8.97799 4.83207
+    }
+    <Vertex> 2 {
+      -4.07599 8.97799 5.13687
+    }
+    <Vertex> 3 {
+      -1.13594 8.97799 5.13687
+    }
+  }
+  <Polygon> {
+    <Normal> { 0 1 0 }
+    <RGBA> { 0.969 1 0.278 1 }
+    <VertexRef> { 0 1 2 3 <Ref> { vpool37 } }
+  }
+}
+<Group> {
+  <VertexPool> vpool38 {
+    <Vertex> 0 {
+      -1.13594 8.97799 5.13687
+    }
+    <Vertex> 1 {
+      -4.07599 8.97799 5.13687
+    }
+    <Vertex> 2 {
+      -4.07599 8.97799 4.83207
+    }
+    <Vertex> 3 {
+      -1.13594 8.97799 4.83207
+    }
+  }
+  <Polygon> {
+    <Normal> { 0 -1 0 }
+    <RGBA> { 0.671 0.69 0.8 1 }
+    <VertexRef> { 0 1 2 3 <Ref> { vpool38 } }
+  }
+}
+<Group> {
+  <VertexPool> vpool39 {
+    <Vertex> 0 {
+      -1.13594 6.64754 4.83207
+    }
+    <Vertex> 1 {
+      -1.13594 8.97799 4.83207
+    }
+    <Vertex> 2 {
+      -1.13594 8.97799 5.13687
+    }
+    <Vertex> 3 {
+      -1.13594 6.64754 5.13687
+    }
+  }
+  <Polygon> {
+    <Normal> { 1 0 0 }
+    <RGBA> { 0.969 1 0.278 1 }
+    <VertexRef> { 0 1 2 3 <Ref> { vpool39 } }
+  }
+}
+<Group> {
+  <VertexPool> vpool40 {
+    <Vertex> 0 {
+      -1.13594 6.64754 5.13687
+    }
+    <Vertex> 1 {
+      -1.13594 8.97799 5.13687
+    }
+    <Vertex> 2 {
+      -1.13594 8.97799 4.83207
+    }
+    <Vertex> 3 {
+      -1.13594 6.64754 4.83207
+    }
+  }
+  <Polygon> {
+    <Normal> { -1 0 0 }
+    <RGBA> { 0.671 0.69 0.8 1 }
+    <VertexRef> { 0 1 2 3 <Ref> { vpool40 } }
+  }
+}
+<Group> {
+  <VertexPool> vpool41 {
+    <Vertex> 0 {
+      -4.07599 6.64754 4.83207
+    }
+    <Vertex> 1 {
+      -1.13594 6.64754 4.83207
+    }
+    <Vertex> 2 {
+      -1.13594 6.64754 5.13687
+    }
+    <Vertex> 3 {
+      -4.07599 6.64754 5.13687
+    }
+  }
+  <Polygon> {
+    <Normal> { 0 -1 0 }
+    <RGBA> { 0.969 1 0.278 1 }
+    <VertexRef> { 0 1 2 3 <Ref> { vpool41 } }
+  }
+}
+<Group> {
+  <VertexPool> vpool42 {
+    <Vertex> 0 {
+      -4.07599 6.64754 5.13687
+    }
+    <Vertex> 1 {
+      -1.13594 6.64754 5.13687
+    }
+    <Vertex> 2 {
+      -1.13594 6.64754 4.83207
+    }
+    <Vertex> 3 {
+      -4.07599 6.64754 4.83207
+    }
+  }
+  <Polygon> {
+    <Normal> { 0 1 0 }
+    <RGBA> { 0.671 0.69 0.8 1 }
+    <VertexRef> { 0 1 2 3 <Ref> { vpool42 } }
+  }
+}
+<Group> {
+}
+<Group> {
+}
+<Group> {
+}
+<Group> {
+}
+<Group> {
+}
+<Group> {
+}
+<Group> {
+}
+<Group> {
+}
+<Group> {
+}
+<Group> {
+}
+<Group> {
+}
+<Group> {
+}
+<Group> {
+}
+<Group> {
+}
+<Group> {
+}
+<Group> {
+}
+<Group> {
+}
+<Group> {
+}
+<Group> {
+}
+<Group> {
+}
+<Group> {
+}
+<Group> {
+}
+<Group> {
+}
+<Group> {
+}
+<Group> {
+}
+<Group> {
+}
+<Group> {
+}
+<Group> {
+}

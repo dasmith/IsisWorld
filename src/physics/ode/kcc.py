@@ -291,9 +291,8 @@ class kinematicCharacterController(object):
     def envCheckerCollision(self, entry, object1, object2):
         if not entry.getNumContacts():
             return
-        if object2 is self:
+        if object2 is self or object2.objectType == 'kinematic':
             return
-        
         """
         Get the lowest contact.
         """

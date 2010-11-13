@@ -14,18 +14,14 @@ To come up with other bitmasks, you can use the constraint solver in bitMaskchec
 
 """
 
-
-
 bitMaskDict = {
-            "pickable" : (BitMask32(7), BitMask32(6)),
-            "container" : (BitMask32(1), BitMask32(0)),
-            "generalKCC" : (BitMask32(2), BitMask32(1)),
-            "aimRay" : (BitMask32(4), BitMask32(5)),
-            "environment" : (BitMask32(2), BitMask32(3)),
-            "kccEnvCheckerRay" : (BitMask32(6), BitMask32(5)),
+            "pickable" : (BitMask32(7), BitMask32(4)),
+            "container" : (BitMask32(3), BitMask32(0)),
+            "generalKCC" : (BitMask32(6), BitMask32(6)),
+            "aimRay" : (BitMask32(0), BitMask32(1)),
+            "environment" : (BitMask32(6), BitMask32(7)),
+            "kccEnvCheckerRay" : (BitMask32(1), BitMask32(1)),
 }
-
-
 
 """
 The basic physical object in this framework. It represents static geometry
@@ -917,10 +913,10 @@ class ODEWorldManager(object):
         base.accept("unpause", self.unpause)
     
     def pause(self):
-        self.stopSimulation()
+        self.main.pause_simulation()
         
     def unpause(self):
-        self.startSimulation(self.stepSize)
+        self.main.resume_simulation()
     
     """
     This function gets the size of a Node's bounding box. It's used to create OdeBoxGeoms
@@ -948,7 +944,7 @@ class ODEWorldManager(object):
         return self.space
         
     def destroyAllObjects(self):
-        self.stopSimulation()
+        self.pause()
         for obj in self.objects:
             self.removeObject(obj)
             if hasattr(obj,'removeFromWorld'): 
@@ -962,7 +958,7 @@ class ODEWorldManager(object):
         return True
 
     def destroy(self):
-        self.stopSimulation()
+        self.pause()
         for object in self.objects:
             self.removeObject(object)
             object.destroy()
@@ -1302,27 +1298,31 @@ class ODEWorldManager(object):
         return True
     
     """
-    Step the simulation
+    Step the simulation must be for less than 1/30th of a second.
+    Use step_simulation below to specify any step size.
     """
-    def simulationTask(self, task):
+    def step_simulation_once(self, step_size):
+        assert (step_size <= (1.0 / 30.0) + 0.0001)
         self.space.collide("", self.handleCollisions)
-        self.world.quickStep(self.stepSize)
+        self.world.quickStep(step_size)
         self.contactGroup.empty()
         
         """
         Update the objects in the simulation
         """
         for object in self.objects:
-            object.update(self.stepSize)
+            object.update(step_size)
                 
-        return task.again
+    """
+    Step the simulation for any given amount of physical time.
+    """
+    def step_simulation(self, step_size):
+        maximum_step_size = 1.0/40.0
+        while (step_size > 0.0001):
+            current_step_size = step_size
+            if (current_step_size > maximum_step_size):
+                current_step_size = maximum_step_size
+            self.step_simulation_once(current_step_size)
+            step_size -= current_step_size
     
-    def startSimulation(self, stepSize):
-        self.stepSize = stepSize
-        taskMgr.add(self.main.cloud_moving_task, "visual-movingClouds")
-        taskMgr.doMethodLater(stepSize, self.simulationTask, "physics-ODESimulation")
-        
-    def stopSimulation(self):
-        taskMgr.remove("visual-movingClouds")
-        taskMgr.remove("physics-ODESimulation")
 

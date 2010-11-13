@@ -17,6 +17,7 @@ def do(command, args = None):
     
     
 layer_config = {'0': {'name': 'Reactive'}, '1':{'name':'Deliberative','color':[0.9,0.8,0.3,1]}, '2': {'name':'Reflective'}}
+#layer_config = {'0': {'name': 'ID'}, '1':{'name':'Ego'}}#,'color':[0.9,0.8,0.3,1]}, '2': {'name':'Reflective'}}
 
 print "Connected to IsisWorld"
 scenarios = e.do('meta_list_scenarios')

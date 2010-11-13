@@ -1,3 +1,5 @@
+import imp
+
 from pandac.PandaModules import *
 #from pandac.PandaModules import NodePath, Vec3
 from layout_manager import *
@@ -66,6 +68,9 @@ class IsisObject(NodePath):
     def getName(self):
         return self.name[11:]
         
+    def getClassName(self):
+        return self.__class__.__name__
+
     def getActiveModel(self):
         return self.activeModel
         

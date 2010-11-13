@@ -45,6 +45,9 @@ print e.do('meta_pause')
 
 print "pausing"
 print e.do('meta_pause')
+print e.do('sense_retina_image')
+
+
 
 p = None
 fridge = None
@@ -52,6 +55,7 @@ do('turn_right-start', {'speed':180})
 while fridge == None:
     step(.1)
     p = sense()
+    print e.do('sense_retina_image')
     for obj in p['objects'].keys():
         if obj.find("fridge") > -1:
             fridge = obj

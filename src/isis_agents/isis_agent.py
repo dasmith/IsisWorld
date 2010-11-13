@@ -5,21 +5,14 @@ import direct.directbase.DirectStart
 from direct.showbase.DirectObject import DirectObject 
 from direct.actor.Actor import Actor 
 from direct.task import Task 
-
 from direct.gui.OnscreenImage import OnscreenImage
-
-
 from direct.controls.ControlManager import CollisionHandlerRayStart
 from pandac.PandaModules import CollisionTraverser 
 from pandac.PandaModules import ActorNode
 
-#from direct.showbase import DirectObject
 from direct.interval.IntervalGlobal import *
 from direct.gui.DirectGui import DirectLabel
-
 from pandac.PandaModules import PandaNode, NodePath, TransparencyAttrib
-
-from direct.interval.IntervalGlobal import *
 
 import platform
 # project stuff
@@ -27,7 +20,8 @@ from ..actions.actions import *
 from ..physics.ode.kcc import kinematicCharacterController
 from ..physics.ode.odeWorldManager import *
 from ..utilities import frange
-
+from ..utilities import pnm_image__as__xmlrpc_image
+from ..utilities import rgb_ram_image__as__xmlrpc_image
 
 class IsisAgent(kinematicCharacterController,DirectObject):
     
@@ -39,9 +33,8 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         that is required for all IsisObjects """
         cls.physics = physics
 
-
     def __init__(self, name, queueSize = 100):
-
+        print 'initializing IsisAgent: 0'
         # load the model and the different animations for the model into an Actor object.
         self.actor= Actor("media/models/boxman",
                           {"walk":"media/models/boxman-walk", 
@@ -54,8 +47,9 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         self.activeModel = self.actorNodePath
         
         
+        print 'initializing IsisAgent: 1'
         self.actorNodePath.reparentTo(render)
-
+        
         self.actor.reparentTo(self.actorNodePath)
         self.name = name
         self.isMoving = False
@@ -89,23 +83,23 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         """
         #self.specialDirectObject.accept("ladder_trigger_enter", self.setFly, [True])
         #self.specialDirectObject.accept("ladder_trigger_exit", self.setFly, [False])
-
+        
         self.actor.makeSubpart("arms", ["LeftShoulder", "RightShoulder"])    
         
         # Expose agent's right hand joint to attach objects to
         self.player_right_hand = self.actor.exposeJoint(None, 'modelRoot', 'Hand.R')
         self.player_left_hand  = self.actor.exposeJoint(None, 'modelRoot', 'Hand.L')
-
+        
         self.right_hand_holding_object = None
         self.left_hand_holding_object  = None
-
+        
         # don't change the color of things you pick up
         self.player_right_hand.setColorScaleOff()
         self.player_left_hand.setColorScaleOff()
         
         self.player_head  = self.actor.exposeJoint(None, 'modelRoot', 'Head')
         self.neck = self.actor.controlJoint(None, 'modelRoot', 'Head')
-
+        
         self.controlMap = {"turn_left":0,
                            "turn_right":0,
                            "move_forward":0,
@@ -120,13 +114,14 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         # see update method for uses, indices are [turn left, turn right, move_forward, move_back, move_right, move_left, look_up, look_down, look_right, look_left]
         # turns are in degrees per second, moves are in units per second
         self.speeds = [270, 270, 5, 5, 5, 5, 60, 60, 60, 60]
-
+        
         self.originalPos = self.actor.getPos()
-
+        
                 
         bubble = loader.loadTexture("media/textures/thought_bubble.png")
         #bubble.setTransparency(TransparencyAttrib.MAlpha)
     
+        print 'initializing IsisAgent: 2'
         self.speech_bubble =DirectLabel(parent=self.actor, text="", text_wordwrap=10, pad=(3,3), relief=None, text_scale=(.3,.3), pos = (0,0,3.6), frameColor=(.6,.2,.1,.5), textMayChange=1, text_frame=(0,0,0,1), text_bg=(1,1,1,1))
         #self.myImage=
         self.speech_bubble.setTransparency(TransparencyAttrib.MAlpha)
@@ -138,6 +133,7 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         self.speech_bubble.hide(BitMask32.bit(1))
         
         
+        print 'initializing IsisAgent: 3'
         self.thought_bubble =DirectLabel(parent=self.actor, text="", text_wordwrap=9, text_frame=(1,0,-2,1), text_pos=(0,.5), text_bg=(1,1,1,0), relief=None, frameSize=(0,1.5,-2,3), text_scale=(.18,.18), pos = (0,0.2,3.6), textMayChange=1, image=bubble, image_pos=(0,0.1,0), sortOrder=5)
         self.thought_bubble.setTransparency(TransparencyAttrib.MAlpha)
         # stop the speech bubble from being colored like the agent
@@ -154,6 +150,7 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         self.last_spoke = 0 # timers to keep track of last thought/speech and 
         self.last_thought =0 # hide visualizations
         
+        print 'initializing IsisAgent: 4'
         # put a camera on ralph
         self.fov = NodePath(Camera('RaphViz'))
         self.fov.node().setCameraMask(BitMask32.bit(1))
@@ -183,6 +180,8 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         self.queue = []
         self.queueSize = queueSize
         self.lastSense = 0
+
+        self.initialize_retina()
         
     def setLayout(self,layout):
         """ Dummy method called by spatial methods for use with objects. 
@@ -205,13 +204,15 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         """Set the state of one of the character's movement controls.  """
         self.controlMap[control] = value
     
-    def get_objects_in_field_of_vision(self,exclude=['isisobject']):
+    def get_objects_in_field_of_vision(self,exclude=None):
         """ This works in an x-ray style. Fast. Works best if you listen to
         http://en.wikipedia.org/wiki/Rock_Art_and_the_X-Ray_Style while
         you use it.
-        
+       
         needs to exclude isisobjects since they cannot be serialized  
         """
+        if exclude == None:
+            exclude = ['isisobject']
         objects = {}
         for obj in base.render.findAllMatches("**/IsisObject*"):
             if not obj.hasPythonTag("isisobj"):
@@ -233,9 +234,13 @@ class IsisAgent(kinematicCharacterController,DirectObject):
                 if 'orientation' not in exclude: object_dict['orientation'] = o.activeModel.getH(self.fov)
                 if 'actions' not in exclude: object_dict['actions'] = o.list_actions()
                 if 'isisobject' not in exclude: object_dict['isisobject'] = o
+                if 'class' not in exclude: object_dict['class'] = o.getClassName()
                 # add item to dinctionary
                 objects[o] = object_dict
         return objects
+
+    def getClassName(self):
+        return self.__class__.__name__
 
     def get_agents_in_field_of_vision(self):
         """ This works in an x-ray vision style as well"""
@@ -255,10 +260,11 @@ class IsisAgent(kinematicCharacterController,DirectObject):
                 agentDict = {'x_pos': p3[0],\
                              'y_pos': p3[2],\
                              'distance':a.actorNodePath.getDistance(self.fov),\
-                             'orientation': a.actorNodePath.getH(self.fov)}
+                             'orientation': a.actorNodePath.getH(self.fov),\
+                             'class': a.getClassName()}
                 agents[a] = agentDict
         return agents
-
+    
     def in_view(self,isisobj):
         """ Returns true iff a particular isisobject is in view """
         return len(filter(lambda x: x['isisobject'] == isisobj, self.get_objects_in_field_of_vision(exclude=[]).values()))
@@ -266,7 +272,42 @@ class IsisAgent(kinematicCharacterController,DirectObject):
     def get_objects_in_view(self):
         """ Gets objects through ray tracing.  Slow"""
         return self.picker.get_objects_in_view()
-            
+    
+    
+    # capture retina image functions
+    
+    def initialize_retina(self):
+        fbp=FrameBufferProperties(FrameBufferProperties.getDefault())
+        self.retina_buffer  = base.win.makeTextureBuffer("retina-buffer-%s" % (self.name), 320, 240, tex=Texture('retina-texture'), to_ram=True, fbp=fbp)
+        print "made Texture Buffer"
+        #self.retina_texture = self.retina_buffer.getTexture()
+        self.retina_texture = Texture("retina-texture-%s" % (self.name))
+        self.retina_buffer.addRenderTexture(self.retina_texture, GraphicsOutput.RTMCopyRam)
+        self.retina_buffer.setSort(-100)
+        self.retina_camera = base.makeCamera(self.retina_buffer)
+        self.retina_camera.node().getLens().setFov(60)
+        self.retina_camera.node().getLens().setNear(0.2)
+        self.retina_camera.node().setCameraMask(BitMask32.bit(1))
+        self.retina_camera.reparentTo(self.player_head)
+        self.retina_camera.setPos(0, 0.2, 0)
+        self.retina_camera.setHpr(0,-90,0)
+        
+    def capture_retina_rgb_ram_image(self):
+        ram_image_data = self.retina_texture.getRamImageAs('RGB')
+        if (not ram_image_data) or (ram_image_data is None):
+            print 'Failed to get ram image from retina texture.'
+            return None
+        rgb_ram_image = {'dict_type':'rgb_ram_image', 'width':self.retina_texture.getXSize(), 'height':self.retina_texture.getYSize(), 'rgb_data':ram_image_data}
+        return rgb_ram_image
+    
+    def capture_retina_xmlrpc_image(self):
+        rgb_ram_image = self.capture_retina_rgb_ram_image()
+        if rgb_ram_image is None:
+            return None
+        return rgb_ram_image__as__xmlrpc_image(rgb_ram_image)
+    
+    # control functions
+    
     def control__turn_left__start(self, speed=None):
         self.setControl("turn_left",  1)
         self.setControl("turn_right", 0)
@@ -403,7 +444,10 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         percepts['agents'] = self.sense__get_agents()
         print percepts
         return percepts
- 
+    
+    def control__sense_retina_image(self):
+        return self.capture_retina_xmlrpc_image()
+    
     def control__think(self, message, layer=0):
         """ Changes the contents of an agent's thought bubble"""
         # only say things that are checked in the controller
@@ -502,7 +546,11 @@ class IsisAgent(kinematicCharacterController,DirectObject):
             target = render.find("**/*" + target + "*").getPythonTag("isisobj")    
         print "attempting to pick up " + target.name + " with right hand.\n"
         if self.can_grasp(target): # object within distance      
-            return self.pick_object_up_with(target, self.right_hand_holding_object, self.player_right_hand)
+            target = self.pick_object_up_with(target, self.right_hand_holding_object, self.player_right_hand)
+            if target != None:
+                return 'success'
+            else:
+                return 'failure'
         else:
             print 'object (' + target.name + ') is not graspable (i.e. in view and close enough).'
             return 'error: object not graspable'
@@ -517,7 +565,11 @@ class IsisAgent(kinematicCharacterController,DirectObject):
             target = render.find("**/*" + target + "*").getPythonTag("isisobj")    
         print "attempting to pick up " + target.name + " with left hand.\n"
         if self.can_grasp(target): # object within distance      
-            return  self.pick_object_up_with(target, self.left_hand_holding_object, self.player_left_hand)
+            target = self.pick_object_up_with(target, self.left_hand_holding_object, self.player_left_hand)
+            if target != None:
+                return 'success'
+            else:
+                return 'failure'
         else:
             print 'object (' + target.name + ') is not graspable (i.e. in view and close enough).'
             return 'error: object not graspable'
@@ -669,7 +721,7 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         return dict([x.getName(),y] for (x,y) in self.get_objects_in_field_of_vision().items())
 
     def sense__get_agents(self):
-        curSense = time()
+        curSense = self.physics.main.get_current_physics_time()
         agents = {}
         for k, v in self.get_agents_in_field_of_vision().items():
             v['actions'] = k.get_other_agents_actions(self.lastSense, curSense)
@@ -690,17 +742,17 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         print text
 
     def add_action_to_history(self, action, args, result = 0):
-        self.queue.append((time(), action, args, result))
+        self.queue.append({'time':self.physics.main.get_current_physics_time(), 'action':action, 'args':args, 'result':result})
         if len(self.queue) > self.queueSize:
             self.queue.pop(0)
 
     def get_other_agents_actions(self, start = 0, end = None):
         if not end:
-            end = time()
+            end = self.physics.main.get_current_physics_time()
         actions = []
         for act in self.queue:
-            if act[0] >= start:
-                if act[0] < end:
+            if act['time'] >= start:
+                if act['time'] < end:
                     actions.append(act)
                 else:
                     break
@@ -709,6 +761,7 @@ class IsisAgent(kinematicCharacterController,DirectObject):
 
 
     def update(self, stepSize=0.1):
+        
         self.speed = [0.0, 0.0]
         self.actorNodePath.setPos(self.geom.getPosition()+Vec3(0,0,-0.70))
         self.actorNodePath.setQuat(self.getQuat())
@@ -777,7 +830,6 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         self.specialDirectObject.ignoreAll()
         self.actorNodePath.removeNode()
         del self.specialDirectObject
-
         kinematicCharacterController.destroy(self)
 
     def disable(self):

@@ -4,7 +4,7 @@ IsisWorld is a 3D virtual simulator for evaluating commonsense reasoning AI agen
 
 For more information, visit the project's website:  http://mmp.mit.edu/isisworld
 
-IsisWorld Developers:  Dustin Smith, Chris M. Jones, Bo Morgan, Gleb Kuznetsov
+5IsisWorld Developers:  Dustin Smith, Chris M. Jones, Bo Morgan, Gleb Kuznetsov
 
 """
 # parameters
@@ -45,6 +45,7 @@ from src.controller import *
 from src.isis_objects.layout_manager import HorizontalGridLayout
 from src.lights.skydome2 import *
 from src.actions.actions import *
+from src.utilities import rgb_ram_image__as__xmlrpc_image
 
 # panda's own threading module
 from direct.stdpy import threading, file
@@ -55,19 +56,29 @@ class IsisWorld(DirectObject):
     physics = None
     
     def __init__(self):
+        
+        # TODO, read args http://www.panda3d.org/apiref.php?page=ExecutionEnvironment#getBinaryName
+        print "ARGS", 
         # MAIN_DIR var is set in direct/showbase/DirectObject.py
         self.rootDirectory = ""#ExecutionEnvironment.getEnvironmentVariable("ISISWORLD_SCENARIO_PATH")
+        for arg in xrange(ExecutionEnvironment.getNumArgs()):
+            print arg, ExecutionEnvironment.getArg(arg)
         
         DirectObject.__init__(self)
-
+        
         self.isisMessage("Starting Up")
+        
+        self.current_physics_time = 0.0
+        self.desired_physics_time = None # simulation unpaused (warning: must be paused while initializing IsisAgents and IsisObjects)
+        self.physics_time_step    = 1.0/40.0
         
         self._setup_base_environment(debug=False)
         self._setup_lights()
         self._setup_cameras()
-
+        self._setup_offscreen_texture()
+        
         # initialize Finite State Machine to control UI
-        self.controller = Controller(self)
+        self.controller = Controller(self, base)
         
         self._setup_actions()
         # parse command line options
@@ -111,14 +122,13 @@ class IsisWorld(DirectObject):
         """ Setup the Physics manager as a class variable """ 
         IsisWorld.physics = ODEWorldManager(self)
         
-        self.teacher_utterances = [] # last message typed
-        # main dialogue box
+        self.teacher_utterances = [] # last messages typed into dialog box
         self.agents = []
         self.agentNum = 0
         self.agentsNamesToIDs = {}
         self.objects = []
         self.worldNode = base.render.attachNewNode(PandaNode('isisObjects'))
-
+        
         """ The world consists of a plane, the "ground" that stretches to infinity
         and a dome, the "sky" that sits concavely on the ground. """
         cm = CardMaker("ground")
@@ -135,17 +145,16 @@ class IsisWorld(DirectObject):
         obj.setCatColBits("environment")
         IsisWorld.physics.addObject(obj)
         
-        """ Setup the skydome
-        Moving clouds are pretty but computationally expensive """
+        """ Setup the skydome and moving clouds """
         self.skydomeNP = SkyDome2(self.worldNode,True)
         self.skydomeNP.setPos(Vec3(0,0,-500))
         self.skydomeNP.setStandardControl()
         self.skydomeNP.att_skycolor.setColor(Vec4(0.3,0.3,0.3,1))
-
+    
     def _setup_base_environment(self,debug=False):
         """  Configuration code for basic window management, and the XML-RPC server.
         Everything here is only loaded ONCE."""
-       
+        
         base.setFrameRateMeter(True)
         base.setBackgroundColor(.2, .2, .2)
         base.camLens.setFov(75)
@@ -154,7 +163,10 @@ class IsisWorld(DirectObject):
         
         base.graphicsEngine.renderFrame()
         base.graphicsEngine.renderFrame()
-
+        
+        self.main_window_texture = Texture("main_window-texture")
+        base.win.addRenderTexture(self.main_window_texture, GraphicsOutput.RTMCopyRam)
+        
         # load a nicer font
         self.fonts = {'bold': base.loader.loadFont('media/fonts/DroidSans-Bold.ttf'), \
                        'mono': base.loader.loadFont('media/fonts/DroidSansMono.ttf'),\
@@ -168,32 +180,105 @@ class IsisWorld(DirectObject):
         self.server.register_function(self.commandHandler.handler,'do')
         # some hints on threading: https://www.panda3d.org/forums/viewtopic.php?t=7345
         base.taskMgr.setupTaskChain('xmlrpc',numThreads=1,frameSync=True)
-        base.taskMgr.add(self.server.start_serving, 'xmlrpc-server', taskChain='xmlrpc',priority=1000)
-        base.taskMgr.add(self.run_xml_command_queue,'xmlrpc-command-queue', taskChain='xmlrpc', priority=1000)
+        base.taskMgr.add(self.server.start_serving,  'xmlrpc-server',           taskChain='xmlrpc', priority=1000)
+        base.taskMgr.add(self.run_xml_command_queue, 'xmlrpc-command-queue',    taskChain='xmlrpc', priority=1000)
+        base.taskMgr.add(self.rest_a_little,         'rest-a-little',           priority=1000)
+        base.taskMgr.add(self.tick_simulation_task,  'physics-step_simulation', priority=1000)
+        base.taskMgr.add(self.cloud_moving_task,     'visual-movingClouds',     priority=1000)
+        
         #base.taskMgr.popupControls() 
+    
+    def get_current_physics_time(self):
+        return self.current_physics_time
     
     def cloud_moving_task(self,task):
         """ Non-essential visualization to move the clouds around."""
-        self.skydomeNP.skybox.setShaderInput('time', task.time)
+        self.skydomeNP.skybox.setShaderInput('time', self.current_physics_time)
         return task.cont
+    
+    def simulation_is_running(self):
+        """ Returns True if the physics simulation is running."""
+        return (self.desired_physics_time == None) or (self.current_physics_time < self.desired_physics_time - self.physics_time_step)
+    
+    def tick_simulation_task(self,task):
+        """ this is executed in order to move the physics time to the desired physics time.""" 
+        if self.simulation_is_running():
+            #print "stepping simulation:", self.current_physics_time, "seconds"
+            self.physics.step_simulation(self.physics_time_step)
+            self.current_physics_time += self.physics_time_step
+        
+        return task.cont
+    
+    def step_simulation(self, time_step):
+        """ this is used to increment the desired physics time (the tick
+        function above will handle ticking actual physics time to match
+        desired time)"""
+        if self.desired_physics_time != None:
+            self.desired_physics_time += time_step
+        else:
+            print "Cannot step the simulator when it is running freely"
+    
+    def pause_simulation(self):
+        """ this is used to pause the simulation."""
+        self.desired_physics_time = self.current_physics_time
+    
+    def resume_simulation(self):
+        """ this is used to unpause the simulation (runs freely)."""
+        self.desired_physics_time = None
+        
+    def capture_rgb_ram_image(self):
+        ram_image_data = self.offscreen_render_texture.getRamImageAs('RGB')
+        if (not ram_image_data) or (ram_image_data is None):
+            print 'Failed to get ram image from main window texture.'
+            return None
+        rgb_ram_image = {'dict_type':'rgb_ram_image', 'width':self.offscreen_render_texture.getXSize(), 'height':self.offscreen_render_texture.getYSize(), 'rgb_data':ram_image_data}
+        return rgb_ram_image
+    
+    def capture_xmlrpc_image(self, max_x=None, max_y=None, x_offset=0, y_offset=0):
+        rgb_ram_image = self.capture_rgb_ram_image()
+        if rgb_ram_image is None:
+            return None
+        xmlrpc_image = rgb_ram_image__as__xmlrpc_image(rgb_ram_image, max_x=max_x, max_y=max_y, x_offset=x_offset, y_offset=y_offset)
+        return xmlrpc_image
     
     def run_xml_command_queue(self,task):
         """ Executes all of the XML-RPC commands in the queue"""
         self.commandHandler.panda3d_thread_process_command_queue()
         return task.cont
-
+    
+    def rest_a_little(self,task):
+        """ Forces the rendering thread to sleep."""
+        time.sleep(1.0/30.0)
+        return task.cont
+    
     def _setup_cameras(self):
         """" Set up displays and cameras """
-        base.cam.node().setCameraMask(BitMask32.bit(0))
+        base.cam.node().setCameraMask(BitMask32.bit(0)) # show everything
         base.camera.setPos(0,0,12)
-        base.camera.setP(0)#315)
+        base.camera.setP(0)
+    
+    def _setup_offscreen_texture(self):
+        fbp=FrameBufferProperties(FrameBufferProperties.getDefault())
+        self.offscreen_render_buffer  = base.win.makeTextureBuffer("offscreen_render-buffer", 640, 480, tex=Texture('offscreen_render-texture'), to_ram=True, fbp=fbp)
+        print "made Texture Buffer"
+        #self.offscreen_render_texture = self.offscreen_render_buffer.getTexture()
+        self.offscreen_render_texture = Texture("offscreen_render-texture")
+        self.offscreen_render_buffer.addRenderTexture(self.offscreen_render_texture, GraphicsOutput.RTMCopyRam)
+        self.offscreen_render_buffer.setSort(-100)
+        self.offscreen_render_camera = base.makeCamera(self.offscreen_render_buffer)
+        self.offscreen_render_camera.node().setCameraMask(BitMask32.bit(0)) # show everything
+        self.offscreen_render_camera.node().getLens().setFov(75)
+        self.offscreen_render_camera.node().getLens().setNear(0.1)
+        self.offscreen_render_camera.reparentTo(base.camera)
+        self.offscreen_render_camera.setPos(0, 0, 0)
+        self.offscreen_render_camera.setHpr(0, 0, 0)
 
+    
     def _setup_lights(self):
         alight = AmbientLight("ambientLight")
         alight.setColor(Vec4(.7, .7, .7, 1.0))
         alightNP = render.attachNewNode(alight)
         
-
         dlight = DirectionalLight("directionalLight")
         dlight.setDirection(Vec3(0,0,-8))
         dlight.setColor(Vec4(0.2, 0.2, 0.2, 1))
@@ -208,10 +293,7 @@ class IsisWorld(DirectObject):
         render.setLight(plnp)     
         render.setLight(alightNP)
 
-        #self.pl.
-        #render.setLight(dlightNP)
         
-
 
     def _setup_actions(self):
         """ Initializes commands that are related to the XML-Server and
@@ -245,10 +327,17 @@ class IsisWorld(DirectObject):
         self.actionController.addAction(IsisAction(commandName="move_left",intervalAction=True))
         self.actionController.addAction(IsisAction(commandName="move_right",intervalAction=True))
         self.actionController.addAction(IsisAction(commandName="open_fridge",intervalAction=False,keyboardBinding="p"))
+        
+        #Can move with arrow keys or with w,a,s,d
         self.actionController.addAction(IsisAction(commandName="turn_left",intervalAction=True,argList=['speed'],keyboardBinding="arrow_left"))
+        self.actionController.addAction(IsisAction(commandName="turn_left",intervalAction=True,argList=['speed'],keyboardBinding="a"))        
         self.actionController.addAction(IsisAction(commandName="turn_right",intervalAction=True,argList=['speed'],keyboardBinding="arrow_right"))
+        self.actionController.addAction(IsisAction(commandName="turn_right",intervalAction=True,argList=['speed'],keyboardBinding="d"))
         self.actionController.addAction(IsisAction(commandName="move_forward",intervalAction=True,argList=['speed'],keyboardBinding="arrow_up"))
+        self.actionController.addAction(IsisAction(commandName="move_forward",intervalAction=True,argList=['speed'],keyboardBinding="w"))
         self.actionController.addAction(IsisAction(commandName="move_backward",intervalAction=True,argList=['speed'],keyboardBinding="arrow_down"))
+        self.actionController.addAction(IsisAction(commandName="move_backward",intervalAction=True,argList=['speed'],keyboardBinding="s"))       
+        
         self.actionController.addAction(IsisAction(commandName="move_right",intervalAction=True,argList=['speed']))
         self.actionController.addAction(IsisAction(commandName="move_left",intervalAction=True,argList=['speed']))
         self.actionController.addAction(IsisAction(commandName="look_right",intervalAction=True,argList=['speed'],keyboardBinding="l"))
@@ -259,14 +348,15 @@ class IsisWorld(DirectObject):
         self.actionController.addAction(IsisAction(commandName="say",intervalAction=False,argList=['message']))
         self.actionController.addAction(IsisAction(commandName="think",intervalAction=False,argList=['message','layer']))
         self.actionController.addAction(IsisAction(commandName="sense",intervalAction=False,keyboardBinding='y'))
+        self.actionController.addAction(IsisAction(commandName="sense_retina_image",intervalAction=False))
         self.actionController.addAction(IsisAction(commandName="use_aimed",intervalAction=False,keyboardBinding="u"))
         self.actionController.addAction(IsisAction(commandName="view_objects",intervalAction=False,keyboardBinding="o"))
-        self.actionController.addAction(IsisAction(commandName="pick_up_with_left_hand",intervalAction=False,argList=['target'],keyboardBinding="v"))
-        self.actionController.addAction(IsisAction(commandName="pick_up_with_right_hand",intervalAction=False,argList=['target'],keyboardBinding="b"))
+        self.actionController.addAction(IsisAction(commandName="pick_up_with_left_hand",intervalAction=False,argList=['target'],keyboardBinding="z"))
+        self.actionController.addAction(IsisAction(commandName="pick_up_with_right_hand",intervalAction=False,argList=['target'],keyboardBinding="c"))
         self.actionController.addAction(IsisAction(commandName="drop_from_left_hand",intervalAction=False,keyboardBinding="n"))
         self.actionController.addAction(IsisAction(commandName="drop_from_right_hand",intervalAction=False,keyboardBinding="m"))
-        self.actionController.addAction(IsisAction(commandName="use_left_hand",intervalAction=False,argList=['target','action'],keyboardBinding=","))
-        self.actionController.addAction(IsisAction(commandName="use_right_hand",intervalAction=False,argList=['target','action'],keyboardBinding="."))
+        self.actionController.addAction(IsisAction(commandName="use_left_hand",intervalAction=False,argList=['target','action'],keyboardBinding="q"))
+        self.actionController.addAction(IsisAction(commandName="use_right_hand",intervalAction=False,argList=['target','action'],keyboardBinding="e"))
 
         # initialze keybindings
         for keybinding, command in self.actionController.keyboardMap.items():
@@ -308,12 +398,12 @@ class IsisWorld(DirectObject):
         self.accept("2",               base.toggleTexture, [])
         self.accept("3",               changeAgent, [])
         self.accept("4",               self.toggleInstructionsWindow, [])
-        self.accept("space",           self.controller.step_simulation, [.1]) # argument is amount of second to advance
-        self.accept("p",               self.controller.toggle_paused)
-        self.accept("s",               self.screenshot, ["snapshot"])
-        self.accept("a",               self.screenshot_agent, ["agent_snapshot"])
-        self.accept("d",               lambda: base.camera.setP(base.camera.getP()-1), [])
-        self.accept("f",               lambda: base.camera.setP(base.camera.getP()+1), [])
+        self.accept("space",           self.step_simulation, [.1]) # argument is amount of second to advance
+        self.accept("p",               self.controller.toggle_paused, [])
+        #self.accept("s",               self.screenshot, ["snapshot"])
+        #self.accept("a",               self.screenshot_agent, ["agent_snapshot"])
+        #self.accept("d",               lambda: base.camera.setP(base.camera.getP()-1), [])
+        #self.accept("f",               lambda: base.camera.setP(base.camera.getP()+1), [])
         self.accept("escape",          self.exit)
 
 
@@ -359,6 +449,7 @@ class IsisWorld(DirectObject):
                 newAgent.setPos(agentPos)
         except Exception, e:
             self.isisMessage("Could not add agent %s to room. Error: %s" % (newAgent.name, e))
+        self.controller.setAgentCamera(self.agentCamera)
         return newAgent
 
     def toggleInstructionsWindow(self):

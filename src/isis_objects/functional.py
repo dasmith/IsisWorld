@@ -38,7 +38,18 @@ class Spreadable(IsisFunctional):
     def action__spread(self, agent, object):
         # agent is the 'person' who is interacting with self and object
         # object is the other object that this is spreading on, such as a knife or piece of bread
-        # TODO write code to spread self onto object        
+        # TODO write code to spread self onto object
+
+class SurfaceForSpreadable(IsisFunctional):
+    # This superclass should be inherited by objects on which Spreadable objects can be spread
+    # e.g. knife, bread, toast
+    def __init__(self):
+        IsisFunctional.__init__(self)
+        # TODO implement attribute for the Spreadable object on this surface
+        
+    def action__surface(self, agent, object):
+        # agent is the 'person' and object should be the Spreadable thing going on this surface
+        # TODO implement this
 
 class Dividable(IsisFunctional):
     def __init__(self):

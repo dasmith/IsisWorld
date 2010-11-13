@@ -17,22 +17,12 @@ class IsisObject(NodePath):
     
     
     def  __init__(self,name=1):
-        # generate a unique name for the object, warning, unique id uses GENERATORS ID
-        self.name = "IsisObject/"+self.__class__.__name__+"+"+str(id(self))
-        # reference to the layout parent
-        self.layout = None
+
         
         NodePath.__init__(self,self.name)
         # store pointer to IsisObject subclass
         self.setPythonTag("isisobj", self)
-        # store model offsets 
-        if not hasattr(self, 'offsetVec'):
-            self.offsetVec = (0,0,0,0,0,0)
-        if not hasattr(self, 'pickupVec'):
-            self.pickupVec = (0,0,0,0,0,0)
 
-        if not hasattr(self,'physics'):
-            raise "Error: %s missing self.physics" % self.name
         
         superclasses =  map(lambda x: [x,hasattr(x, 'priority') and x.priority or 101], self.__class__.__bases__)
         # call __init__ on all parent classes
@@ -42,7 +32,7 @@ class IsisObject(NodePath):
         # call generator's setup method first
         if hasattr(self,'setup'):
             self.setup()
-        # call setup() on all appropriate parent classes
+        # call setup() on all appropriate parent classes, beginning with IsisObject's
         for sc, rank in sorted(superclasses, key=lambda x: x[1]):
             if hasattr(sc,'setup'):
                 sc.setup(self)
@@ -79,4 +69,24 @@ class IsisObject(NodePath):
             self.activeModel.removeNode()
             self.removeNode()
         del self.activeModel
+        
+    def setup(self):
+        """ Stores the default values for the objects if they are not specified """
+        if not hasattr(self, 'scale')
+        # store model offsets 
+        if not hasattr(self, 'offsetVec'):
+            self.offsetVec = (0,0,0,0,0,0)
+        if not hasattr(self, 'pickupVec'):
+            self.pickupVec = (0,0,0,0,0,0)
+        if not hasattr(self,'physics'):
+            raise "Error: %s missing self.physics" % self.name
+        # generate a unique name for the object. unique id uses GENERATORS ID
+        self.name = "IsisObject/"+self.__class__.__name__+"+"+str(id(self))
+        # reference to the layout parent
+        self.layout = None
+
+    def generate_scale_between(self, start, end):
+        self.__generate_scale_between_start = start
+        self.__generate_scale_between_end = end
+        
         

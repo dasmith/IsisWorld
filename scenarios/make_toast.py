@@ -8,6 +8,7 @@ class Scenario(IsisScenario):
 
     def environment():
         k = kitchen()
+        
         put_in_world(k)
 
         f = fridge()
@@ -48,7 +49,7 @@ class Scenario(IsisScenario):
         #put_in_world(ralph)
         #put_in_world(lauren2)
         put_in_world(lauren)
-        put_in_front_of(ralph,kn)
+        put_in_front_of(ralph,f)
 
         # required at the end of the environment setup
         store(locals())

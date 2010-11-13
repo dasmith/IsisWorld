@@ -102,7 +102,7 @@ class toaster(IsisObject, IsisVisual, SpatialPickableBox, Cooker):
         self.registerState("containsToast", [0,1,2])
         IsisObject.__init__(self)
 
-class bread(IsisObject, IsisVisual, SpatialPickableBox, Cookable):
+class bread(IsisObject, IsisVisual, SpatialPickableBox, Cookable, SurfaceForSpreadable):
 
     def  __init__(self):
         self.offsetVec = (0,0,-.1,0,-120,-20)
@@ -115,7 +115,7 @@ class bread(IsisObject, IsisVisual, SpatialPickableBox, Cookable):
         self.cookableCookedModel = "toast"
         IsisObject.__init__(self)
 
-class butter(IsisObject, IsisVisual, SpatialPickableBox, IsisFunctional ):
+class butter(IsisObject, IsisVisual, SpatialPickableBox, IsisFunctional, Spreadable):
 
     def  __init__(self):
         self.offsetVec = (-0.8,0.3,0.0,90,0,180)

@@ -115,7 +115,7 @@ class bread(IsisObject, IsisVisual, SpatialPickableBox, Cookable, SurfaceForSpre
         self.cookableCookedModel = "toast"
         IsisObject.__init__(self)
 
-class butter(IsisObject, IsisVisual, SpatialPickableBox, IsisFunctional, Spreadable):
+class butter(IsisObject, IsisVisual, SpatialPickableBox, Spreadable):
 
     def  __init__(self):
         self.offsetVec = (-0.8,0.3,0.0,90,0,180)

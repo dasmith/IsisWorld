@@ -1,12 +1,13 @@
+from random import *
+
 from pandac.PandaModules import Vec3
+from direct.interval.IntervalGlobal import *
+
 from visual import *
 from functional import *
-from spatial2 import *
+from spatial_ode import *
 from isisobject import IsisObject
 from layout_manager import SlotLayout
-
-from direct.interval.IntervalGlobal import *
-from random import *
 from ..isis_agents.isis_agent import IsisAgent
 from ..physics.ode.pickables import *
 from ..physics.ode.odeWorldManager import *
@@ -14,26 +15,30 @@ from ..physics.ode.odeWorldManager import *
 class table(IsisObject,IsisVisual,SpatialStaticBox,Surface,IsisFunctional):
 
     def  __init__(self):
-        self.offsetVec = offsetVec=(0,0,0,0,0,0)
-        self.model = "table/table"
-        self.scale= randint(60,90)/10.0
+        
         IsisObject.__init__(self)
+        
+        self.model = "table/table"
+        self.generate_scale_between(6,9)
 
         self.setH(180)
 
-
-class fridge(IsisObject, IsisVisual, SpatialStaticBox, Container, IsisFunctional):
+class fridge(IsisObject, IsisVisual, SpatialStaticBox, Container, FunctionalDoor):
     
     def  __init__(self):
+        
+        IsisObject.__init__(self)
+        
         self.model={'default':"Fridge/Fridge"}
-        self.scale= randint(16,20)/100.0
+        self.generate_scale_between(.16,.20)
+        
         self.density = 4000
         self.registerState("openState", "closed")
 
-        IsisObject.__init__(self)
-
         self.in_layout = SlotLayout([(0, 0, .5), (0, 0, 1),(0, 0, 1.5)])
 
+        self.door = None #  required as a FunctionalDoor obj
+        #self.functional__door_model_path = "**"
     def afterSetup(self):
         # add the door
         fd = self.activeModel.find("**/freezerDoor*")
@@ -43,21 +48,6 @@ class fridge(IsisObject, IsisVisual, SpatialStaticBox, Container, IsisFunctional
         #self.door.setCollideMask(BitMask32.allOff())
         self.setH(0)
         
-
-    def action__open(self, agent, directobj):
-        print "Select method called"
-        if self.retrieveState("openState") == "closed":
-            Sequence(
-                Func(self.registerState, "openState", "opening"),
-                LerpPosHprInterval(self.door, 0.5, Vec3(.45, 2.4, .72), Vec3(-90, 0, 0)),
-                Func(self.registerState, "openState", "opened")
-            ).start()
-        elif self.retrieveState("openState") == "opened":
-            Sequence(
-                Func(self.registerState, "openState", "closing"),
-                LerpPosHprInterval(self.door, 0.5, Vec3(-.56, .6, .72), Vec3(0, 0, 0)),
-                Func(self.registerState, "openState", "closed")
-            ).start()
 
 
 class knife(IsisObject, IsisVisual, SpatialPickableBox, Sharp):

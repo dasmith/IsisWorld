@@ -182,7 +182,7 @@ class IsisWorld(DirectObject):
         base.taskMgr.setupTaskChain('xmlrpc',numThreads=1,frameSync=True)
         base.taskMgr.add(self.server.start_serving,  'xmlrpc-server',           taskChain='xmlrpc', priority=1000)
         base.taskMgr.add(self.run_xml_command_queue, 'xmlrpc-command-queue',    taskChain='xmlrpc', priority=1000)
-        base.taskMgr.add(self.rest_a_little,         'rest-a-little',           priority=1000)
+        #base.taskMgr.add(self.rest_a_little,         'rest-a-little',           priority=1000)
         base.taskMgr.add(self.tick_simulation_task,  'physics-step_simulation', priority=1000)
         base.taskMgr.add(self.cloud_moving_task,     'visual-movingClouds',     priority=1000)
         

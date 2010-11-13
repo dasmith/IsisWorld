@@ -9,7 +9,7 @@ from direct.gui.DirectGui import DirectSlider, RetryCancelDialog, DirectCheckBut
 from direct.fsm.FSM import FSM, RequestDenied
 from direct.gui.OnscreenText import OnscreenText
 from direct.gui.OnscreenImage import OnscreenImage
-from pandac.PandaModules import Vec3, Vec4, PandaNode, PNMImage
+from pandac.PandaModules import Vec3, Vec4, PandaNode, PNMImage, HTTPClient, Ramfile, DocumentSpec
 
 from panda3d.core import ExecutionEnvironment, Filename
 
@@ -32,13 +32,7 @@ class Controller(object, FSM):
             'TaskTrain' : ['TaskPaused','TaskTest','Menu','Scenario'],
             'TaskTest' : ['TaskPaused','TaskTrain','Menu','Scenario'],
         }
-        self.runningSimulation = False
-
-        #Convenience fields.
-        self.taskBarShown = True
-        self.scenarioBarShown = True
-
-
+        
         self.main = isisworld
         # load a nicer font
         self.fonts = {'bold': base.loader.loadFont('media/fonts/DroidSans-Bold.ttf'), \
@@ -402,23 +396,21 @@ class Controller(object, FSM):
         return True
         
     def pause_simulation(self,task=None):
-        if self.runningSimulation:
+        if self.main:
             #self.main.physics.stopSimulation()
             self.main.pause_simulation()
-            self.runningSimulation = False
-    
+            
     def step_simulation(self, step_time):
         self.main.step_simulation(step_time)
 
     def start_simulation(self):
         """ Starts the simulation, if it is not already running"""
-        if not self.runningSimulation:
+        if not self.main.simulation_is_running():
             self.main.resume_simulation()
-            self.runningSimulation = True
     
     def toggle_paused(self):
         """ Starts or Pauses the simulation, depending on the current state"""
-        if self.runningSimulation:
+        if self.main.simulation_is_running():
             self.pause_simulation()
             self.pauseButton.hide()
             self.unpauseButton.show()
@@ -674,3 +666,28 @@ class Controller(object, FSM):
 
     def physics_is_active(self):
         return self.main.simulation_is_running()
+
+    def download_isis_scenarios(self):
+        #Convenience fields.
+        self.taskBarShown = True
+        self.scenarioBarShown = True
+        self.http = HTTPClient()
+        self.channel = self.http.makeChannel(True)
+        self.channel.beginGetDocument(DocumentSpec('http://web.media.mit.edu/~dustin/isis_scenarios/'))
+        self.rf = Ramfile()
+        self.channel.downloadToRam(self.rf)
+
+        def downloadTask( task):
+            if self.channel.run():
+                # Still waiting for file to finish downloading.
+                return task.cont
+            if not self.channel.isDownloadComplete():
+                print "Error downloading file."
+                return task.done
+            data = self.rf.getData()
+            print "got data:"
+            print data
+            return task.done
+        
+        taskMgr.add(downloadTask, 'download')
+>>>>>>> stash

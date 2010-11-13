@@ -40,7 +40,7 @@ class Scenario(IsisScenario):
     
         l = loaf()
         put_in(l, f)
-
+        
         l = loaf()
         put_on(l, ta3)
 

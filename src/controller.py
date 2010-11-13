@@ -510,8 +510,8 @@ class Controller(object, FSM):
                     
                 print "Current scenario methods", dir(self.currentScenario)
                 # setup world
-                self.currentScenario.loadScenario(self.main)
                 self.main.pause_simulation()
+                self.currentScenario.loadScenario(self.main)
             except IsisParseProblem as e:
                 dialogbox = RetryCancelDialog(text='There was a problem parsing the scenario file\
                                   : \n %s.  \n\nLocation %s' % (e.message, e.component),\

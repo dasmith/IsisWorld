@@ -227,7 +227,6 @@ class IsisWorld(DirectObject):
         self.desired_physics_time = None
         
     def capture_rgb_ram_image(self):
-        #ram_image_data = self.main_window_texture.getRamImageAs('RGB')
         ram_image_data = self.offscreen_render_texture.getRamImageAs('RGB')
         if (not ram_image_data) or (ram_image_data is None):
             print 'Failed to get ram image from main window texture.'

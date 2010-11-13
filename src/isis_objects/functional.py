@@ -28,7 +28,17 @@ class IsisFunctional():
         else:
             print "Error, %s does not respond to action__%s" % (self.name, action)
 
-
+class Spreadable(IsisFunctional):
+    # This superclass should be inherited by objects that can be "spread" over other objects
+    # For example, butter can be "spread" onto a knife, plate, or piece of bread
+    def __init__(self):
+        IsisFunctional.__init__(self)
+        # TODO If there are attributes, use hasattr to make sure self has them!
+        
+    def action__spread(self, agent, object):
+        # agent is the 'person' who is interacting with self and object
+        # object is the other object that this is spreading on, such as a knife or piece of bread
+        # TODO write code to spread self onto object        
 
 class Dividable(IsisFunctional):
     def __init__(self):

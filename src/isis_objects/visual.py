@@ -2,7 +2,6 @@ from pandac.PandaModules import Vec3, BitMask32
 from ..physics.panda.manager import *
 
 class IsisVisual():
-    priority = 2
     """ This is the base class responsible for handling all of the visual aspects of an object
     in IsisWorld, including all of the handling of visual features (scaling, colors, textures),
     and models (animations, exposing parts).
@@ -10,6 +9,8 @@ class IsisVisual():
     It is the first class instantiated because the self.activeModel is what is used in the other
     object classes: IsisSpatial and IsisFunctional."""
 
+    priority = 2
+    
     def __init__(self):
         # keep a dictionary mapping model names to paths 
         self.models = {}
@@ -113,7 +114,7 @@ class IsisVisual():
                 self.activeModel.remove()
             self.activeModel = loader.loadModel("media/models/"+self.models[changeToKey])
             self.activeModel.setScale(self.scale)
-            self.activeModel.setPosHpr(*self.offsetVec)
+            self.activeModel.setPosHpr(*self.offset_vector)
             self.activeModel.setCollideMask(BitMask32.allOff())
             self.activeModel.reparentTo(self)
 

@@ -26,7 +26,7 @@ from ..utilities import rgb_ram_image__as__xmlrpc_image
 class IsisAgent(kinematicCharacterController,DirectObject):
     
     @classmethod
-    def setPhysics(cls,physics):
+    def set_physics(cls,physics):
         """ This method is set in src.loader when the generators are loaded
         into the namespace.  This frees the environment definitions (in 
         scenario files) from having to pass around the physics parameter 
@@ -212,7 +212,7 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         needs to exclude isisobjects since they cannot be serialized  
         """
         if exclude == None:
-            exclude = ['isisobject']
+            exclude = ['isisobject', 'all_attributes']
         objects = {}
         for obj in base.render.findAllMatches("**/IsisObject*"):
             if not obj.hasPythonTag("isisobj"):
@@ -232,14 +232,19 @@ class IsisAgent(kinematicCharacterController,DirectObject):
                 if 'y_pos' not in exclude: object_dict['y_pos'] = p3[2]
                 if 'distance' not in exclude: object_dict['distance'] = o.activeModel.getDistance(self.fov)
                 if 'orientation' not in exclude: object_dict['orientation'] = o.activeModel.getH(self.fov)
-                if 'actions' not in exclude: object_dict['actions'] = o.list_actions()
+                if 'actions' not in exclude: object_dict['actions'] = o.get_all_action_names()
+                if 'all_attributes' not in exclude: 
+                    object_dict['attributes'] = o.get_all_attributes_and_values(False)
+                else:
+                    # shows only attributes that have visible=True.
+                    object_dict['attributes'] = o.get_all_attributes_and_values(True)
                 if 'isisobject' not in exclude: object_dict['isisobject'] = o
-                if 'class' not in exclude: object_dict['class'] = o.getClassName()
+                if 'class' not in exclude: object_dict['class'] = o.get_class_name()
                 # add item to dinctionary
                 objects[o] = object_dict
         return objects
 
-    def getClassName(self):
+    def get_class_name(self):
         return self.__class__.__name__
 
     def get_agents_in_field_of_vision(self):
@@ -261,7 +266,7 @@ class IsisAgent(kinematicCharacterController,DirectObject):
                              'y_pos': p3[2],\
                              'distance':a.actorNodePath.getDistance(self.fov),\
                              'orientation': a.actorNodePath.getH(self.fov),\
-                             'class': a.getClassName()}
+                             'class': a.get_class_name()}
                 agents[a] = agentDict
         return agents
     

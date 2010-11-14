@@ -690,4 +690,3 @@ class Controller(object, FSM):
             return task.done
         
         taskMgr.add(downloadTask, 'download')
->>>>>>> stash

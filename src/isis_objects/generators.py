@@ -63,7 +63,7 @@ class fridge(IsisObject, IsisVisual, SpatialStaticBox, Container, FunctionalDoor
         self.in_layout = SlotLayout([(0, 0, .5), (0, 0, 1),(0, 0, 1.5)])
         IsisObject.__init__(self, **kwargs)
 
-    def afterSetup(self):
+    def after_setup(self):
         # add the door
         fd = self.activeModel.find("**/freezerDoor*")
         fd.setPos(-.56, .6, 1.65)
@@ -73,17 +73,17 @@ class fridge(IsisObject, IsisVisual, SpatialStaticBox, Container, FunctionalDoor
         self.setH(0)
         
 
-    def action__open(self, agent, directobj):
-        print "Select method called"
-        if self.get_attribute_value('is_open'):
+    def action__open(self, agent, indrect_object):
+        
+        if not self.get_attribute_value('is_open'):
             Sequence(
                 LerpPosHprInterval(self.door, 0.5, Vec3(.45, 2.4, .72), Vec3(-90, 0, 0)),
-                Func(self.set_attribute_value, 'is_open', True)
+                Func(self.set_attribute, 'is_open', True)
             ).start()
         else:
             Sequence(
                 LerpPosHprInterval(self.door, 0.5, Vec3(-.56, .6, .72), Vec3(0, 0, 0)),
-                Func(self.set_attribute_value, 'is_open', False)
+                Func(self.set_attribute, 'is_open', False)
             ).start()
 
 

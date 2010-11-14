@@ -59,8 +59,8 @@ class IsisObject(NodePath):
             if hasattr(sc,'setup'):
                 sc.setup(self)
         # call generator's post-setup function too
-        if hasattr(self,'afterSetup'):
-            self.afterSetup()
+        if hasattr(self,'after_setup'):
+            self.after_setup()
 
         # register object in main:  this is used for 
         # destroying all of the initialized objects later
@@ -96,5 +96,4 @@ class IsisObject(NodePath):
         assert end > start
         self._generate_scale_between_start = start
         self._generate_scale_between_end = end
-        
-        
+

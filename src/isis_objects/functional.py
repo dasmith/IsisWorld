@@ -47,10 +47,10 @@ class IsisFunctional():
         only the visible attributes if this is defined. """
         return dict(map(lambda (x,y): (x,y.get_value()), filter(lambda (x,y): not visible_only or y.visible, self.attributes.items())))
         
-    def set_attribute(self, attribute, value):
+    def set_attribute(self, attribute_name, value):
         """ Attempts to set an attribute to a given value """        
         if self.attributes.has_key(attribute_name):
-            return self.attributes[a_name].set_value(value)
+            return self.attributes[attribute_name].set_value(value)
         else:
             print "Warning: %s does not have attribute %s " % (self.name, attribute_name)
             return False

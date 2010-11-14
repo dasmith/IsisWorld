@@ -947,10 +947,10 @@ class ODEWorldManager(object):
         self.pause()
         for obj in self.objects:
             self.removeObject(obj)
-            if hasattr(obj,'removeFromWorld'): 
+            if hasattr(obj,'remove_from_world'): 
                 # IsisObject method for destroying the object and model
                 obj.destroy()
-                obj.removeFromWorld()
+                obj.remove_from_world()
             else:
                 obj.destroy()
         print "remaining objects", self.objects

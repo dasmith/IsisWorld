@@ -442,7 +442,7 @@ class Controller(object, FSM):
             self.currentScenario = None
             # kitchen 
             for obj in self.main.objects:
-                obj.removeFromWorld()
+                obj.remove_from_world()
             for agent in self.main.agents:
                 agent.destroy()
             self.main.physics.destroy() 

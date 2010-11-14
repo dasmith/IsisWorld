@@ -22,7 +22,7 @@ def load_objects(scenario, world):
     filterfun = lambda x: x[0] in ['fridge','toaster','bread','butter','loaf','kitchen','knife','table','IsisAgent']
     generators = dict(filter(filterfun, generators.__dict__.items()))
     for klass, constructor in generators.items():
-        constructor.setPhysics(physics)
+        constructor.set_physics(physics)
     
     # define functions used in the execution namspace
     def put_in_world(obj,parent=None):

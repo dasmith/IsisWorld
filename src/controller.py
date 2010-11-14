@@ -27,7 +27,7 @@ class Controller(object, FSM):
         # define the acceptable state transitions
         self.defaultTransitions = {
             'Menu' : ['Scenario'],
-            'Scenario' : ['Menu','TaskPaused','Scenario'],
+            'Scenario' : ['Menu','TaskPaused'],
             'TaskPaused' : ['Menu','TaskTrain','TaskTest','Scenario'],
             'TaskTrain' : ['TaskPaused','TaskTest','Menu','Scenario'],
             'TaskTest' : ['TaskPaused','TaskTrain','Menu','Scenario'],
@@ -467,7 +467,7 @@ class Controller(object, FSM):
                                        pos=(0, -0.9), scale=0.1,
                                        fg=(1, 1, 1, 1), bg=(0, 0, 0, 0.5))
         loadingText.setTransparency(1)
-        if self.oldState in ['Menu','Scenario']:
+        if self.oldState in ['Menu']:
             # reload the scenario
 
             def parsingProblemDialogCallback(arg):

@@ -70,7 +70,7 @@ class fridge(IsisObject, IsisVisual, SpatialStaticBox, Container, IsisFunctional
             ).start()
 
 
-class knife(IsisObject, IsisVisual, SpatialPickableBox, Sharp, SurfaceForSpreadable):
+class knife(IsisObject, IsisVisual, SpatialPickableBox, Sharp, TransfersSpreadable):
 
     def  __init__(self): 
         self.offsetVec = (0,0,0.0,0,0,0)

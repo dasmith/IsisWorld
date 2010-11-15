@@ -73,7 +73,24 @@ class SurfaceForSpreadable(IsisFunctional):
         return None
 
 class TransfersSpreadable(SurfaceForSpreadable):
-    # This class represents 
+    # This class represents a SurfaceForSpreadable that can transfer its spreadable
+    # object to another SurfaceForSpreadable
+    def __init__(self):
+        SurfaceForSpreadable.__init__(self)
+    
+    def action__transfer(self, agent, object):
+        # agent is the 'person' and object is the target that will receive self's Spreadable
+        # object must be a SurfaceForSpreadable
+        print "in action__transfer"
+        if object != None and hasattr(object, 'action__surface'):
+            if self.spreadableOnSelf == None:
+                print "tried to transfer a Spreadable from ", self.name, " to ", object, \
+                      " but ", self.name, " has no Spreadable on it"
+            else:
+                object.action__surface(agent, self.spreadableOnSelf)
+                self.spreadableOnSelf = None # Not on this surface anymore
+                return "success"
+        return None
 
 class Dividable(IsisFunctional):
     def __init__(self):

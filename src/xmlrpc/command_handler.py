@@ -18,8 +18,9 @@ class IsisCommandHandler(object):
     
     def __init__(self, simulator):
         self.simulator = simulator
-        self.meta_commands  = ['meta_step','meta_pause','meta_resume','meta_list_actions','meta_list_scenarios',\
-        'meta_load_scenario','meta_list_tasks','meta_load_task','meta_train','meta_test','meta_setup_thought_layers','step_simulation',]
+        self.meta_commands  = ['meta_step','meta_pause','meta_resume','meta_reset','meta_list_actions','meta_list_scenarios', \
+                                   'meta_load_scenario','meta_list_tasks','meta_load_task','meta_train','meta_test','meta_setup_thought_layers','step_simulation', \
+                                   'meta_physics_is_active']
         self.logger = Logger("logs")
         self.logger.createLog(str(int(time.time())), "Test scenario making toast", "Create toast")
         
@@ -71,7 +72,7 @@ class IsisCommandHandler(object):
                     for agent,id in self.simulator.agentsNamesToIDs.items():
                         print "\t (%i)  %s\n" % (id,agent)
                 return 'failure'
-            # Now we can relay teh command to the agent 
+            # Now we can relay the command to the agent 
             # TODO: check to see if proper keys are defined for the given command
             self.logger.log(cmd+", "+self.simulator.agents[agent_to_control].name+": Relayed to agent")
             return self._relayAgentControl(agent_to_control,cmd,args)
@@ -80,20 +81,13 @@ class IsisCommandHandler(object):
             if args.has_key('seconds'):
                 seconds = args['seconds']
             self.simulator.controller.step_simulation(seconds)
-            
-            # Bo says: I remarked these lines out, so we need to find
-            # another way to block time before returning to the
-            # client.  The command queues mean we can't sleep because
-            # all of these functions are called from within a Panda3D
-            # Task now.  The xmlrpc thread shouldn't call -any-
-            # Panda3D functions because they are not thread safe.
-            #
-            #time.sleep(seconds)
-            ## dont accept new commands until this has stepped
-            #while self.simulator.physicsManager.stepping:   self.closed = True
-            #
+            # This function starts the simulator.  In order to tell when the simulation is finished, you need to use meta_
             self.logger.log("step: "+str(seconds)+" seconds")
             return 'success'            
+        elif cmd == 'meta_physics_active':
+            if self.simulator.controller.physics_is_active():
+                return 1
+            return 0
         elif cmd == 'step_simulation':
             print "WARNING, the step_simulation command will soon be deprecated. use 'meta_step' instead"
             seconds = 0.05
@@ -172,6 +166,8 @@ class IsisCommandHandler(object):
         elif cmd == "meta_test":
             """ Enters testing mode """
             return self.simulator.controller.safe_request('TaskTest')
+        elif cmd == 'meta_reset':
+            return self.simulator.controller.reset_scenario()
         elif cmd == "meta_setup_thought_layers":
             """ initializes the GUI and components with which kinds of thoughts
             exist in the agent and which ones should be visualized. """

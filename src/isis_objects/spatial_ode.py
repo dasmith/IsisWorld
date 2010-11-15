@@ -44,7 +44,7 @@ class Container(object):
                 elif agent.right_hand_holding_object == obj:
                     agent.control__drop_from_right_hand()
             obj.disable()
-            obj.reparentTo(self.activeModel)
+            obj.reparentTo(self)
             print "Geom pos", self.getGeomPos()
             obj.setPosition(self.getPos()+pos)
             obj.set_layout(self.in_layout)

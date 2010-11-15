@@ -125,7 +125,7 @@ class Dividable(IsisFunctional):
 class Cookable(IsisFunctional):
     def __init__(self):
         IsisFunctional.__init__(self)
-        self.add_attribute(NominalAttribute(name='covered_in',visible=True, is_unique=True))
+        self.add_attribute(NominalAttribute(name='covered_in', visible=True, is_unique=True))
         self.add_attribute(OrderedAttribute(name='cooked', domain=[0,1,2,3], visible=True, is_monotonic=True), value=0)
         if not hasattr(self,'cookableRawModel'):
             self.cookableRawModel = "default"

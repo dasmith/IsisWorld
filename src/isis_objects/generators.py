@@ -59,7 +59,7 @@ class fridge(IsisObject, IsisVisual, SpatialStaticBox, Container, FunctionalDoor
         self.offset_vector = (0.5,0,0,0,0,0)
         self.generate_scale_between(.16,.20)
         self.density = 4000
-        self.in_layout = SlotLayout([(0, 0, .5), (0, 0, .5),(0, 0, 1.5)])
+        self.in_layout = SlotLayout([(0, 0, .1), (0, 0, .1),(0, 0, 1.5)])
         IsisObject.__init__(self, **kwargs)
 
     def after_setup(self):
@@ -68,7 +68,7 @@ class fridge(IsisObject, IsisVisual, SpatialStaticBox, Container, FunctionalDoor
         fd.setPos(-.56, .6, 1.65)
         # and add the door
         self.door = self.activeModel.find("**/fridgeDoor*")
-        self.door.setPos(-0.56, .6, .72)
+        self.door.setPos(-0.56, .7, .72)
         self.setH(0)
         self.action__open(None,None)
 

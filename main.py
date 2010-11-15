@@ -71,6 +71,8 @@ class IsisWorld(DirectObject):
         self.desired_physics_time = None # simulation unpaused (warning: must be paused while initializing IsisAgents and IsisObjects)
         self.physics_time_step    = 1.0/40.0
         
+        self.__enable_xmlrpc_vision = True
+        
         self._setup_base_environment(debug=False)
         self._setup_lights()
         self._setup_cameras()

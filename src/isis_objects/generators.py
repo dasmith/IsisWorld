@@ -76,7 +76,7 @@ class fridge(IsisObject, IsisVisual, SpatialStaticBox, Container, FunctionalDoor
         
         if not self.get_attribute_value('is_open'):
             Sequence(
-                LerpPosHprInterval(self.door, 0.5, Vec3(.45, 2.4, .72), Vec3(-90, 0, 0)),
+                LerpPosHprInterval(self.door, 0.5, Vec3(.90, 2.4, .72), Vec3(-90, 0, 0)),
                 Func(self.set_attribute, 'is_open', True)
             ).start()
         else:

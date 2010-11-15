@@ -63,8 +63,18 @@ step(.1)
 
 # Try to use the knife to butter the toast
 # Here I'm just following the format of the above code
-print do('pick_up_with_right_hand', {'target':'knife'})
+
+# I think the knife is already in the right hand, but uncomment the following 2 lines if I'm wrong
+#print do('pick_up_with_right_hand', {'target':'knife'})
+#step(.1)
+
+# Pick up the butter with the left hand
+print do('pick_up_with_left_hand', {'target':'butter'})
 step(.1)
+
+# Put the butter on the table
+print do('use_left_hand', {'target':'table', 'action':'put_on'})
+step(.1) 
 
 # Spread the butter on the knife
 print do('use_right_hand', {'target':'butter', 'action':'spread'})

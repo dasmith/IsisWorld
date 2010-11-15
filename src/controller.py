@@ -651,28 +651,6 @@ class Controller(object, FSM):
         else:
             print "Failed to saved to ", filename
         
-    # Changed these to use capture_screenshot and
-    # capture_agent_screenshot above.  This is so that we can retrieve
-    # PNMImages over XML-RPC without saving anything to disk.  --Bo
-    #
-    #def screenshot(self, name):
-    #    name = os.path.join("screenshots", name+"_")
-    #    num = 0
-    #    while os.path.exists(name+str(num)+".jpg"):
-    #        num += 1
-    #    filename = name+str(num)+".jpg"
-    #    self.base.camNode.getDisplayRegion(0).saveScreenshot(filename)
-    #    print "Saved to ", filename
-    #
-    #def screenshot_agent(self, name):
-    #    name = os.path.join("screenshots", name+"_")
-    #    num = 0
-    #    while os.path.exists(name+str(num)+".jpg"):
-    #        num += 1
-    #    filename = name+str(num)+".jpg"
-    #    self.agent_camera.saveScreenshot(filename)
-    #    print "Saved to ", filename
-        
     def setAgentCamera(self, camera):
         self.agent_camera = camera
 
@@ -693,3 +671,6 @@ class Controller(object, FSM):
             self.scenarioFrame.show()
             #self.scenarioBarControl.text = 'Hide Scenario Options'
         self.scenarioBarShown = not self.scenarioBarShown
+
+    def physics_is_active(self):
+        return self.main.simulation_is_running()

@@ -73,7 +73,8 @@ class IsisWorld(DirectObject):
         self.physics_time_step    = 1.0/40.0
         
         self.__enable_xmlrpc_vision = True
-        
+        self.__xmlrpc_port_number = 8001
+
         self._setup_base_environment(debug=False)
         self._setup_lights()
         self._setup_cameras()
@@ -88,11 +89,12 @@ class IsisWorld(DirectObject):
             print "-"*30
             print "-D : loads first Scenario by default"
             print "-f : do not include off-screen buffering "
+            print "-p [PORTNUMBER] : launches the XML-RPC server on the specified port. Default 8001"
             print "-h : displays this help menu"
             print "-"*30
         # parse command line options
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "ho:vDf", ["help", "output=","Default"])
+            opts, args = getopt.getopt(sys.argv[1:], "ho:vDpf", ["help", "output=","Default"])
         except getopt.GetoptError, err:
             # print help information and exit:
             print str(err) # will print something like "option -a not recognized"
@@ -106,6 +108,8 @@ class IsisWorld(DirectObject):
                 self.verbosity = a
             elif o == '-f':
                 self.__enable_xmlrpc_vision = False
+            elif o == '-p':
+                self.__xmlrpc_port_number = a 
             elif o in ("-h", "--help"):
                 usage()
                 sys.exit()
@@ -187,7 +191,7 @@ class IsisWorld(DirectObject):
         if debug:  messenger.toggleVerbose()
         # xmlrpc server command handler
         self.commandHandler = IsisCommandHandler(self)
-        self.server = XMLRPCServer() 
+        self.server = XMLRPCServer(self.__xmlrpc_port_number) 
         self.server.register_function(self.commandHandler.handler,'do')
         # some hints on threading: https://www.panda3d.org/forums/viewtopic.php?t=7345
         base.taskMgr.setupTaskChain('xmlrpc',numThreads=1,frameSync=True)

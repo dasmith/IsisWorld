@@ -75,4 +75,5 @@ print do('pick_up_with_left_hand', {'target':'toast'})
 step(.1)
 
 # Transfer the butter from the knife to the toasted bread
-# TODO add a function to functional.py that does this
+print do('use_right_hand', {'target':'toast', 'action':'transfer'})
+step(.1)

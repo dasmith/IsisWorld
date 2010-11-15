@@ -33,7 +33,7 @@ print "pausing"
 print e.do('meta_pause')
 
 do('look_down-start')
-step(.4)
+step(2)
 do('look_down-stop')
 
 print "opening fridge"

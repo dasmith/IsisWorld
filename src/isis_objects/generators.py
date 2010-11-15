@@ -55,23 +55,22 @@ class fridge(IsisObject, IsisVisual, SpatialStaticBox, Container, FunctionalDoor
     
     def  __init__(self, **kwargs):
         
-
         self.model={'default':"Fridge/Fridge"}
+        self.offset_vector = (0.5,0,0,0,0,0)
         self.generate_scale_between(.16,.20)
         self.density = 4000
-        
-        self.in_layout = SlotLayout([(0, 0, .5), (0, 0, 1),(0, 0, 1.5)])
+        self.in_layout = SlotLayout([(0, 0, .5), (0, 0, .5),(0, 0, 1.5)])
         IsisObject.__init__(self, **kwargs)
 
     def after_setup(self):
-        # add the door
+        # fix the model's misgivings
         fd = self.activeModel.find("**/freezerDoor*")
         fd.setPos(-.56, .6, 1.65)
+        # and add the door
         self.door = self.activeModel.find("**/fridgeDoor*")
         self.door.setPos(-0.56, .6, .72)
-        #self.door.setCollideMask(BitMask32.allOff())
         self.setH(0)
-        
+        self.action__open(None,None)
 
     def action__open(self, agent, indrect_object):
         
@@ -135,7 +134,7 @@ class bread(IsisObject, IsisVisual, SpatialPickableBox, Cookable):
 class butter(IsisObject, IsisVisual, SpatialPickableBox, IsisFunctional ):
 
     def  __init__(self, **kwargs):
-        self.offset_vector = (-0.8,0.3,0.0,90,0,180)
+        #self.offset_vector = (-0.8,0.3,0.0,90,0,180)
         self.pickup_vector=(-.125,.225,0,0,-125,0)
         self.model={"default":"butter"}
         self.scale = 0.05
@@ -147,7 +146,7 @@ class butter(IsisObject, IsisVisual, SpatialPickableBox, IsisFunctional ):
 class loaf( IsisObject, IsisVisual, SpatialPickableBox, Dividable):
 
     def __init__(self, **kwargs):
-        self.offset_vector = (.00144,0,0.0,0,0,0)
+        #self.offset_vector = (1.0,1.2,0.0,0,0,0)
         
         self.model = "loaf_of_bread"
         self.scale = 0.2

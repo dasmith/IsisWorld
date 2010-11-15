@@ -15,7 +15,7 @@ class Scenario(IsisScenario):
         put_in(f, k)
 
         b = butter()
-        put_in(b, k)
+        put_in(b, f)
 
         ta = table(scale=7)
         put_in(ta, k)

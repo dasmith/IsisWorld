@@ -36,6 +36,7 @@ class Container(object):
         # TODO: ensure that object can fit in other object
         #  1) internal volume is big enough, 2) vol - vol of other things in there
         pos = self.in_layout.add(obj)
+        print "ADDING", obj, "to", self.name
         if pos:
             if agent and agent.is_holding(obj.name):
                 if agent.left_hand_holding_object == obj:
@@ -43,10 +44,11 @@ class Container(object):
                 elif agent.right_hand_holding_object == obj:
                     agent.control__drop_from_right_hand()
             obj.disable()
-            obj.activeModel.reparentTo(self.activeModel)
-            obj.setPosition(self.getGeomPos()+pos)
+            obj.reparentTo(self.activeModel)
+            print "Geom pos", self.getGeomPos()
+            obj.setPosition(self.getPos()+pos)
             obj.set_layout(self.in_layout)
-            obj.enable()
+            #obj.enable()
             return "success"
         return "container is full"
 

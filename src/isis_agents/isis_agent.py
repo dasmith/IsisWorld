@@ -180,8 +180,6 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         self.queue = []
         self.queueSize = queueSize
         self.lastSense = 0
-
-        self.initialize_retina()
         
     def setLayout(self,layout):
         """ Dummy method called by spatial methods for use with objects. 

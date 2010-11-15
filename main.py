@@ -58,7 +58,6 @@ class IsisWorld(DirectObject):
     def __init__(self):
         
         # TODO, read args http://www.panda3d.org/apiref.php?page=ExecutionEnvironment#getBinaryName
-        print "ARGS", 
         # MAIN_DIR var is set in direct/showbase/DirectObject.py
         self.rootDirectory = ""#ExecutionEnvironment.getEnvironmentVariable("ISISWORLD_SCENARIO_PATH")
         for arg in xrange(ExecutionEnvironment.getNumArgs()):
@@ -83,7 +82,7 @@ class IsisWorld(DirectObject):
         self._setup_actions()
         # parse command line options
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "ho:vD", ["help", "output=","Default"])
+            opts, args = getopt.getopt(sys.argv[1:], "ho:vDf", ["help", "output=","Default"])
         except getopt.GetoptError, err:
             # print help information and exit:
             print str(err) # will print something like "option -a not recognized"
@@ -95,6 +94,8 @@ class IsisWorld(DirectObject):
         for o, a in opts:
             if o == "-v":
                 self.verbosity = a
+            elif o == '-f':
+                self.__enable_xmlrpc_vision = False
             elif o in ("-h", "--help"):
                 usage()
                 sys.exit()
@@ -438,12 +439,14 @@ class IsisWorld(DirectObject):
             room = render.find("**/*kitchen*").getPythonTag("isisobj")
             agentPos = newAgent.actorNodePath.getPos(render)
             newAgent.actorNodePath.reparentTo(room)
+            if self.__enable_xmlrpc_vision:
+                self.initialize_retina()
             if agentPos == Vec3(0,0,0):  
                 # get middle
                 roomPos = room.getPos(render)
                 center = room.getBounds().getCenter()
                 w,h = roomPos[0]+center[0], roomPos[1]+center[1]
-                newAgent.setPos(Vec3(w,h+(len(self.agents)*1),5))
+                newAgent.setPos(Vec3(w,h+(len(self.agents)*1),3))
             else:
                 agentPos[2] = 5
                 newAgent.setPos(agentPos)

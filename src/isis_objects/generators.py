@@ -86,7 +86,7 @@ class fridge(IsisObject, IsisVisual, SpatialStaticBox, Container, FunctionalDoor
             ).start()
 
 
-class knife(IsisObject, IsisVisual, SpatialPickableBox, Sharp):
+class knife(IsisObject, IsisVisual, SpatialPickableBox, FunctionalSharp):
 
     def  __init__(self, **kwargs):
         self.offset_vector = (0,0,0.0,0,0,0)
@@ -96,7 +96,7 @@ class knife(IsisObject, IsisVisual, SpatialPickableBox, Sharp):
         self.density = 25
         IsisObject.__init__(self, **kwargs)
 
-class toaster(IsisObject, IsisVisual, SpatialPickableBox, Cooker):
+class toaster(IsisObject, IsisVisual, SpatialPickableBox, FunctionalCooker):
     
     def __init__(self, **kwargs):
         ######### Base Variables ##########
@@ -118,7 +118,7 @@ class toaster(IsisObject, IsisVisual, SpatialPickableBox, Cooker):
         #self.registerState("containsToast", [0,1,2])
         IsisObject.__init__(self, **kwargs)
 
-class bread(IsisObject, IsisVisual, SpatialPickableBox, Cookable):
+class bread(IsisObject, IsisVisual, SpatialPickableBox, FunctionalCountable):
 
     def __init__(self, **kwargs):
         self.offset_vector = (0,0,-.1,0,-120,-20)
@@ -131,7 +131,7 @@ class bread(IsisObject, IsisVisual, SpatialPickableBox, Cookable):
         self.cookableCookedModel = "toast"
         IsisObject.__init__(self, **kwargs)
 
-class butter(IsisObject, IsisVisual, SpatialPickableBox, IsisFunctional ):
+class butter(IsisObject, IsisVisual, SpatialPickableBox, FunctionalMass ):
 
     def  __init__(self, **kwargs):
         #self.offset_vector = (-0.8,0.3,0.0,90,0,180)
@@ -143,7 +143,7 @@ class butter(IsisObject, IsisVisual, SpatialPickableBox, IsisFunctional ):
         
         IsisObject.__init__(self, **kwargs)
 
-class loaf( IsisObject, IsisVisual, SpatialPickableBox, Dividable):
+class loaf( IsisObject, IsisVisual, SpatialPickableBox, FunctionalDividableCountable):
 
     def __init__(self, **kwargs):
         #self.offset_vector = (1.0,1.2,0.0,0,0,0)
@@ -158,7 +158,7 @@ class loaf( IsisObject, IsisVisual, SpatialPickableBox, Dividable):
         IsisObject.__init__(self, **kwargs)
 
 
-class kitchen(IsisObject,IsisVisual,SpatialRoom,IsisFunctional):
+class kitchen(IsisObject,IsisVisual,SpatialRoom,FunctionalCountable):
 
     def  __init__(self, **kwargs):
         self.offset_vector = offset_vector=(0,0,0,0,0,0)

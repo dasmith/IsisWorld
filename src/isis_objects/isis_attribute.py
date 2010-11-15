@@ -73,6 +73,7 @@ class IsisAttribute(object):
         self._actual_value = None
         # properties
         self._is_monotonic = False
+        self._is_single_valued = True
         self._is_unique = True
 
         self._func_cmp = lambda x,y: x < y
@@ -91,7 +92,39 @@ class IsisAttribute(object):
              % (self.name, self._actual_value, new_value))
         if self._callback_function != None:
             self._callback_function(self._actual_value, new_value)
-        self._actual_value = new_value
+        if self._is_single_valued:
+            # overwrite existing value
+            self._actual_value = new_value
+        else:
+            if self._actual_value == None:
+                if self._is_unique:
+                    self._actual_value = set([new_value])
+                else:
+                    self._actual_value = [new_value]
+            else:
+                if self._is_unique:
+                    self._actual_value.add(new_value)
+                else:
+                    self._actual_value.append(new_value)
+                
+    def add_value(self, new_value):
+        """ Adds a value to the list of actual values.  Only works to the
+        values that _is_single_valued = True """
+        if self._is_single_valued:
+            print "Cannot add a value to single-valued attribute"
+        else:
+            self.set_value(new_value)
+    
+    def pop_value(self, new_value):
+        """ Removes and returns a value from a list of actual values.  Only works to the
+        values that _is_single_valued = True """
+        if self._is_single_valued:
+            print "Cannot pop a value from a single-valued attribute"
+        elif self._actual_value != None:
+            v = self._actual_value.pop()
+            if len(self._actual_value) == 0:
+                self._actual_value = None
+            return v
     
     def get_value(self):
         """ Returns the value for the particular attritube """
@@ -106,6 +139,8 @@ class BinaryAttribute(IsisAttribute):
 
       - Properties:
         1. name : name of the attribute
+        2. visible : whether or not the attribute is visible
+        3. on_change_func : optionall call back function
 
       - Examples: 
          * FunctionalElectronic::is_on = {True,False}
@@ -117,7 +152,6 @@ class BinaryAttribute(IsisAttribute):
             print "Warning: binary IsisAttribute '%s' violates naming convention, it should start with 'is_'" % (name)
         self._possible_values = [True, False]
         self._actual_value = True
-        self._is_unique = True
 
 class NominalAttribute(IsisAttribute):
     """
@@ -129,6 +163,7 @@ class NominalAttribute(IsisAttribute):
         1. name : name of the attribute
         2. max_number [default = None]: the maximum number of values
         3. is_unique? [default = True]: allow duplicates?
+        4. is_single_valued? [default = True]: otherwise, treats value as a set or list (depending on is_unique?)
         5. exhaustive? [default = False]: means that the possible range
            of values is already in the set, and that new assignments
            can only come from existing members of the set.
@@ -137,10 +172,14 @@ class NominalAttribute(IsisAttribute):
         * IsisFunctional::owners = {[names of IsisAgents that own the object]}
            - max_number=None, unique?=True, 
     """
-    def __init__(self, name, domain=None, visible=False, max_number=None, is_unique=True, on_change_func=None):
+    def __init__(self, name, domain=None, visible=False, max_number=None, is_unique=True, is_single_valued=True, on_change_func=None):
         IsisAttribute.__init__(self, name, visible, on_change_func)
         self._possible_values = domain
         self._is_unique = is_unique
+        self._is_single_valued = is_single_valued
+        if is_unique and not is_single_valued:
+            print "Warning: If unique is False, is_single_valued must be True."
+            
         # actual value is first element of domain
         #if domain != None:
         #    self._actual_value = domain[0]
@@ -183,16 +222,33 @@ if __name__ == '__main__':
 
     x = BinaryAttribute(name='binary', on_change_func=func)
     print x.get_value()
+    assert x.get_value() == True
     x.set_value(False)
+    assert x.get_value() == False
     print x.get_value()
+
     # test ordered attributes
     x = OrderedAttribute(name='monotonic', is_monotonic=True)
-    print "value = ", x.get_value()
+    assert x.get_value() == None
     x.set_value(10)
-    print "value = ", x.get_value()
+    assert x.get_value() == 10
     x.set_value(15)
     try:
         x.set_value(12) # should fail
     except Exception, e:
         print e
+    else:
+        raise "Monotonic-constraint not caught"
     
+    # test nominal attributes
+    n = NominalAttribute(name='contains', is_unique=True, is_single_valued=False)
+    n.add_value('butter')
+    n.add_value('jam')
+    n.add_value('jam')
+    print n.get_value()
+    assert n.get_value() == set(['butter','jam'])
+    o = NominalAttribute(name='owner', is_unique=False, is_single_valued=False)
+    o.add_value('Joe')
+    o.add_value('Joe')
+    print o.get_value()
+    assert o.get_value() == ['Joe','Joe']

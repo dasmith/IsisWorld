@@ -43,6 +43,7 @@ class Scenario(IsisScenario):
         put_on(l, ta3)
 
         ralph = IsisAgent("Ralph")
+        
         lauren = IsisAgent("Lauren")
 
         put_in_world(lauren)

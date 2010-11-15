@@ -13,13 +13,13 @@ from pandac.PandaModules import loadPrcFileData
 loadPrcFileData("", """sync-video 0
 win-size 1024 768
 yield-timeslice 0 
-load-display tinydisplay
+load-display pandagl 
 client-sleep 0 
 multi-sleep 0
 #want-pstats 1
 basic-shaders-only #f
 audio-library-name null""")
-
+# tinysdisplay, pandadx8, pandadx9
 import time
 import sys
 import os
@@ -72,7 +72,7 @@ class IsisWorld(DirectObject):
         self.desired_physics_time = None # simulation unpaused (warning: must be paused while initializing IsisAgents and IsisObjects)
         self.physics_time_step    = 1.0/40.0
         
-        self.__enable_xmlrpc_vision = True
+        self.__enable_xmlrpc_vision = False
         self.__xmlrpc_port_number = 8001
 
         self._setup_base_environment(debug=False)
@@ -88,7 +88,7 @@ class IsisWorld(DirectObject):
             print "IsisWorld command line options"
             print "-"*30
             print "-D : loads first Scenario by default"
-            print "-f : do not include off-screen buffering "
+            print "-f : include off-screen buffering "
             print "-p [PORTNUMBER] : launches the XML-RPC server on the specified port. Default 8001"
             print "-h : displays this help menu"
             print "-"*30
@@ -107,7 +107,7 @@ class IsisWorld(DirectObject):
             if o == "-v":
                 self.verbosity = a
             elif o == '-f':
-                self.__enable_xmlrpc_vision = False
+                self.__enable_xmlrpc_vision = True
             elif o == '-p':
                 self.__xmlrpc_port_number = a 
             elif o in ("-h", "--help"):

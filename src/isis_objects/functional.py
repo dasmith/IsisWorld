@@ -34,7 +34,8 @@ from direct.task import Task, TaskManagerGlobal
 from isis_attribute import *
 
 class IsisFunctional():
-
+    """ Every object must inherit from this base-class."""
+    
     def __init__(self):
         self.attributes = {}
     
@@ -46,7 +47,27 @@ class IsisFunctional():
         """ Returns all of the attributes and their values, filters to 
         only the visible attributes if this is defined. """
         return dict(map(lambda (x,y): (x,y.get_value()), filter(lambda (x,y): not visible_only or y.visible, self.attributes.items())))
-        
+    
+    def has_attribute(self, attribute_name):
+        """ Returns whether has attribute name """
+        return self.attributes.has_key(attribute_name)
+    
+    def get_attribute(self, attribute_name):
+        """ Returns the attribute. """
+        return self.attributes[attribute_name]
+    
+    def get_attribute_value(self, attribute_name):
+        if self.attributes.has_key(attribute_name):
+            return self.attributes[attribute_name].get_value()
+        else:
+            print "Warning: %s does not have attribute %s " % (self.name, attribute_name)
+            
+    def pop_attribute(self, attribute_name):
+        """ If the attribute contains multiple values,
+        this removes and returns one element from the list/set. """
+        return self.attributes[attribute_name].pop_value()
+
+    
     def set_attribute(self, attribute_name, value):
         """ Attempts to set an attribute to a given value """        
         if self.attributes.has_key(attribute_name):
@@ -58,7 +79,6 @@ class IsisFunctional():
     def add_attribute(self, attribute, value=None):
         """ Creates a new attribute, which must be of type IsisAttribute, storing it in the
         self.attributes dictionary indexed by its name, and optionally sets its value. """
-        
         if not isinstance(attribute, IsisAttribute):
             raise "Error: attribute %s of %s is not IsisAttribute" % (self.name, attribute)
         else:
@@ -68,11 +88,7 @@ class IsisFunctional():
             if not value == None:
                 self.attributes[a_name].set_value(value)
     
-    def get_attribute_value(self, attribute_name):
-        if self.attributes.has_key(attribute_name):
-            return self.attributes[attribute_name].get_value()
-        else:
-            print "Warning: %s does not have attribute %s " % (self.name, attribute_name)
+
     
     def call(self, agent, action, indirect_object = None):
         """ This is the dispatcher for the action methods """
@@ -82,6 +98,56 @@ class IsisFunctional():
         else:
             print "Error, %s does not respond to action__%s" % (self.name, action)
 
+
+class FunctionalCountable(IsisFunctional):
+    """ This is the base-class for all count-nouns.
+    """
+    def __init__(self):
+        IsisFunctional.__init__(self)
+        self.add_attribute(NominalAttribute(name='owners', is_unique=True, is_single_valued=False))
+        self.add_attribute(NominalAttribute(name='covered_in', is_unique=True, is_single_valued=False))
+
+        def __action_cook_callback(start_val, end_val):
+            """ Changes the appearance of the cooked item to match the cooked state.
+            If it is cooked more than 3 times, then it dispapears?"""
+            print "Cooked callback called for ", self.name
+            if not hasattr(self,'cookableRawModel'):
+                self.cookableRawModel = "default"
+            if not hasattr(self,'cookableCookedModel'):
+                print "Warning: %s has no Cookable.cookableCookedModel model defined, using default." % self.name
+                self.cookableCookedModel = "default"
+            self.changeModel(self.cookableRawModel)
+
+        self.add_attribute(OrderedAttribute(name='cooked', domain=[0,1,2,3], visible=True, is_monotonic=True, on_change_func=__action_cook_callback), value=0)
+    
+    def action__smear(self, agent, direct_object):
+        """ Transfers the 'covered_in' attributes from direct_object
+        to the current object.
+        
+        FUTURE: should this be generalized into a 'event-of-transfer'?
+        """
+        transferred_substances = []
+        if direct_object.has_attribute('covered_in'):
+            cia = direct_object.get_attribute('covered_in')
+            value = cia.pop_value()
+            while value != None:
+                self.add_attribute_value('covered_in', value)
+                value = cia.pop_value()
+
+    def action__cook(self, agent, object):
+        """ This defines an action that changes the state and the corresponding model."""
+        self.changeModel(self.cookableCookedModel)
+        # TODO: if there is no model, just make it darker
+        self.set_attribute('cooked', (self.get_attribute_value('cooked')+1))
+
+
+class FunctionalMass(IsisFunctional):
+    """ FunctionalMass is used for defining objects where their parts are also pieces of the self-same
+    object, like water, butter, jelly.
+    """
+    def __init__(self):
+        IsisFunctional.__init__(self)
+        #self.add_attribute(NominalAttribute(name='owners', is_unique=True, is_single_valued=False))
 
 
 class FunctionalDoor(IsisFunctional):
@@ -102,9 +168,9 @@ class FunctionalDoor(IsisFunctional):
 
 
 
-class Dividable(IsisFunctional):
+class FunctionalDividableCountable(FunctionalCountable):
     def __init__(self):
-        IsisFunctional.__init__(self)
+        FunctionalCountable.__init__(self)
         if not hasattr(self,'piece'):
             print "Warning: no piece object defined for Dividable object", self.name
 
@@ -121,38 +187,32 @@ class Dividable(IsisFunctional):
                 print "Error - no free hand"
         return None
 
-
-class Cookable(IsisFunctional):
+class FunctionalDividableMass(FunctionalCountable):
     def __init__(self):
-        IsisFunctional.__init__(self)
-        self.add_attribute(NominalAttribute(name='covered_in', visible=True, is_unique=True))
-        self.add_attribute(OrderedAttribute(name='cooked', domain=[0,1,2,3], visible=True, is_monotonic=True), value=0)
-        if not hasattr(self,'cookableRawModel'):
-            self.cookableRawModel = "default"
-        if not hasattr(self,'cookableCookedModel'):
-            print "Warning: %s has no Cookable.cookableCookedModel model defined, using default." % self.name
-            self.cookableCookedModel = "default"
-        self.changeModel(self.cookableRawModel)
+        FunctionalCountable.__init__(self)
+        if not hasattr(self,'piece'):
+            print "Warning: no piece object defined for Dividable object", self.name
 
-    def action__cook(self, agent, object):
-        """ This defines an action that changes the state and the corresponding model."""
-        self.changeModel(self.cookableCookedModel)
-        # TODO: if there is no model, just make it darker
-        self.set_attribute('cooked', (self.get_attribute_value('cooked')+1))
+    def action__scoop(self, agent, direct_object):
+        if direct_object != None and direct_object.has_attribute('covered_in'):
+            direct_object.add_attribute_value(self.name)
+        else:
+            print "Error, you cannot scoop something without a covered_in attribute like" % self.direct_object
+            return None
 
 
-class Sharp(IsisFunctional):
+class FunctionalSharp(FunctionalCountable):
     def __init__(self):
-        IsisFunctional.__init__(self)
+        FunctionalCountable.__init__(self)
 
     def action__cut(self, agent, object):
         print "action_cut called"
         return "success"
 
 
-class OnOffDevice(IsisFunctional):
+class FunctionalElectronic(FunctionalCountable):
     def __init__(self):
-        IsisFunctional.__init__(self)
+        FunctionalCountable.__init__(self)
         self.add_attribute(BinaryAttribute(name='is_on',visible=True), value=False)
 
     def action__turn_on(self, agent, object):
@@ -161,14 +221,14 @@ class OnOffDevice(IsisFunctional):
     def action__turn_off(self, agent, object):
         self.set_attribute('is_on', False)
 
-class Cooker(OnOffDevice):
+class FunctionalCooker(FunctionalElectronic):
     """ This device must be a container and an on-off device.
     
     When turned on, it increments the cooked value for each item inside of the container.
     
     """
     def __init__(self):
-        OnOffDevice.__init__(self)
+        FunctionalElectronic.__init__(self)
         if not hasattr(self,'cook_in'):
             self.cook_in = False
         if not hasattr(self,'cook_on'):

@@ -80,6 +80,13 @@ class IsisWorld(DirectObject):
         self.controller = Controller(self, base)
         
         self._setup_actions()
+        def usage():
+            print "IsisWorld command line options"
+            print "-"*30
+            print "-D : loads first Scenario by default"
+            print "-f : do not include off-screen buffering "
+            print "-h : displays this help menu"
+            print "-"*30
         # parse command line options
         try:
             opts, args = getopt.getopt(sys.argv[1:], "ho:vDf", ["help", "output=","Default"])

@@ -13,6 +13,7 @@ from pandac.PandaModules import loadPrcFileData
 loadPrcFileData("", """sync-video 0
 win-size 1024 768
 yield-timeslice 0 
+load-display tinydisplay
 client-sleep 0 
 multi-sleep 0
 #want-pstats 1

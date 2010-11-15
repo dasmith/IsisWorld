@@ -18,7 +18,7 @@ class IsisCommandHandler(object):
     
     def __init__(self, simulator):
         self.simulator = simulator
-        self.meta_commands  = ['meta_step','meta_pause','meta_resume','meta_list_actions','meta_list_scenarios', \
+        self.meta_commands  = ['meta_step','meta_pause','meta_resume','meta_reset','meta_list_actions','meta_list_scenarios', \
                                    'meta_load_scenario','meta_list_tasks','meta_load_task','meta_train','meta_test','meta_setup_thought_layers','step_simulation', \
                                    'meta_physics_is_active']
         self.logger = Logger("logs")
@@ -166,6 +166,8 @@ class IsisCommandHandler(object):
         elif cmd == "meta_test":
             """ Enters testing mode """
             return self.simulator.controller.safe_request('TaskTest')
+        elif cmd == 'meta_reset':
+            return self.simulator.controller.reset_scenario()
         elif cmd == "meta_setup_thought_layers":
             """ initializes the GUI and components with which kinds of thoughts
             exist in the agent and which ones should be visualized. """

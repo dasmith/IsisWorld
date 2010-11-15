@@ -27,7 +27,7 @@ class Controller(object, FSM):
         # define the acceptable state transitions
         self.defaultTransitions = {
             'Menu' : ['Scenario'],
-            'Scenario' : ['Menu','TaskPaused','Scenario'],
+            'Scenario' : ['Menu','TaskPaused'],
             'TaskPaused' : ['Menu','TaskTrain','TaskTest','Scenario'],
             'TaskTrain' : ['TaskPaused','TaskTest','Menu','Scenario'],
             'TaskTest' : ['TaskPaused','TaskTrain','Menu','Scenario'],
@@ -274,7 +274,7 @@ class Controller(object, FSM):
             else:
                 self.request('TaskTrain')
     
-        self.menuResetTrainingButton = DirectButton(text = "Reset", 
+        self.menuResetTrainingButton = DirectButton(text = "Reset Task", 
                                             scale=0.05, textMayChange=1, pos=(0,0,0.4),
                                             text_font=self.fonts['bold'],borderWidth=BUTTON_BORDER,
                                             text_fg=BUTTON_FG, text_bg = BUTTON_BG, relief=BUTTON_RELIEF,
@@ -427,7 +427,15 @@ class Controller(object, FSM):
             self.unpauseButton.hide()
             self.pauseButton.show()
 
-
+    def reset_scenario(self):
+        """ Resets the scenario if one is already running"""
+        if self.state in ['Scenario','TaskTrain','TaskPaused','TaskTest']:
+            self.pause_simulation()
+            self.request('Menu')
+            return self.request('Scenario')
+        else:
+            return "error: cannot reset unless you have a scenario loaded."
+            
     def safe_request(self,newState):
         """ Attempts to advance the state and either does or returns an error message as a string instead of
         raising an exception."""
@@ -591,6 +599,7 @@ class Controller(object, FSM):
 
     def onGoalMetCallback(self):
         self.request('TaskPaused')
+    
     
     def capture_agent_screenshot_pnm_image(self):
         pnm_image = PNMImage()

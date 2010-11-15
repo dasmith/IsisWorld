@@ -72,6 +72,9 @@ class SurfaceForSpreadable(IsisFunctional):
                       " but it already has ", self.spreadableOnSelf
         return None
 
+class TransfersSpreadable(SurfaceForSpreadable):
+    # This class represents 
+
 class Dividable(IsisFunctional):
     def __init__(self):
         IsisFunctional.__init__(self)

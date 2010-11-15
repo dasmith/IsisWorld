@@ -60,3 +60,19 @@ print do('use_left_hand', {'target':'toaster', 'action':'put_in'})
 step(.1)
 print do('use_right_hand', {'target':'toaster', 'action':'turn_on'})
 step(.1)
+
+# Try to use the knife to butter the toast
+# Here I'm just following the format of the above code
+print do('pick_up_with_right_hand', {'target':'knife'})
+step(.1)
+
+# Spread the butter on the knife
+print do('use_right_hand', {'target':'butter', 'action':'spread'})
+step(.1)
+
+# Pick up the toasted bread
+print do('pick_up_with_left_hand', {'target':'toast'})
+step(.1)
+
+# Transfer the butter from the knife to the toasted bread
+# TODO add a function to functional.py that does this

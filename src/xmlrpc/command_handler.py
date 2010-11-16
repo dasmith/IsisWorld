@@ -63,10 +63,10 @@ class IsisCommandHandler(object):
             else:
                 # maybe the simulator has not loaded any agents
                 if len(self.simulator.agents) == 0:
-                    self.logger.log("Error - Agent command issued when no agent is in simulator")
+                    #self.logger.log("Error - Agent command issued when no agent is in simulator")
                     print "Error: there are no agents in the simulator!  Load a valid scene!"
                 else:
-                    self.logger.log("Error - Agent command issued when no agent is in simulator")
+                    #self.logger.log("Error - Agent command issued when no agent is in simulator")
                     print "Error: you must supply an agent either through 'agent'= name or 'agent_id' = id argument\n"
                     print "\nAvailable agents:"
                     for agent,id in self.simulator.agentsNamesToIDs.items():
@@ -74,7 +74,7 @@ class IsisCommandHandler(object):
                 return 'failure'
             # Now we can relay the command to the agent 
             # TODO: check to see if proper keys are defined for the given command
-            self.logger.log(cmd+", "+self.simulator.agents[agent_to_control].name+": Relayed to agent")
+            #self.logger.log(cmd+", "+self.simulator.agents[agent_to_control].name+": Relayed to agent")
             return self._relayAgentControl(agent_to_control,cmd,args)
         elif cmd == 'meta_step':
             seconds = 0.05
@@ -82,7 +82,7 @@ class IsisCommandHandler(object):
                 seconds = args['seconds']
             self.simulator.controller.step_simulation(seconds)
             # This function starts the simulator.  In order to tell when the simulation is finished, you need to use meta_
-            self.logger.log("step: "+str(seconds)+" seconds")
+            #self.logger.log("step: "+str(seconds)+" seconds")
             return 'success'            
         elif cmd == 'meta_physics_active':
             if self.simulator.controller.physics_is_active():
@@ -100,11 +100,11 @@ class IsisCommandHandler(object):
             return 'success'
         elif cmd == 'meta_pause':
             self.simulator.controller.pause_simulation()
-            self.logger.log("pause: Simulation paused")
+            #self.logger.log("pause: Simulation paused")
             return 'success'
         elif cmd == 'meta_resume':
             self.simulator.controller.start_simulation()
-            self.logger.log("resume: Simulation resumed")
+            #self.logger.log("resume: Simulation resumed")
             return 'success'
         elif cmd == 'meta_screenshot':
             max_x = None
@@ -179,9 +179,8 @@ class IsisCommandHandler(object):
             # command is in neither meta_commands or the agent_controller
             print 'Unknown command: %s' % cmd
             print self.simulator.actionController.actionMap.values()
-            self.logger.log("UNKNOWN COMMAND: "+cmd)
             return 'failure'
-            self.logger.log("UNKNOWN COMMAND: " + cmd)
+            #self.logger.log("UNKNOWN COMMAND: " + cmd)
             raise "Undefined meta command: %s" % cmd
         
         return "done"

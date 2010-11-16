@@ -5,7 +5,7 @@ from ..physics.ode.pickables import *
 from layout_manager import *
 
 
-class Container(object):
+class SpatialContainer(object):
     priority = 19
     def __init__(self):
         self.containerItems = []
@@ -35,6 +35,7 @@ class Container(object):
     def action__put_in(self, agent, obj):
         # TODO: ensure that object can fit in other object
         #  1) internal volume is big enough, 2) vol - vol of other things in there
+        print "IN LAYOUT FUNCT", self.in_layout
         pos = self.in_layout.add(obj)
         print "ADDING", obj, "to", self.name
         if pos:
@@ -45,16 +46,20 @@ class Container(object):
                     agent.control__drop_from_right_hand()
             obj.disable()
             obj.reparentTo(self)
-            print "Geom pos", self.getGeomPos()
-            obj.setPosition(self.getPos()+pos)
+            print "Geom pos", self.getGeomPos(), self.getPos(), self.getPos(render), self.get_middle(), pos
+            p2 = Vec3(self.getGeomPos()[0], self.getGeomPos()[1], 0)
+            p2 += pos
+            print "Position 2", p2, pos
+            obj.setPosition(p2)
             obj.set_layout(self.in_layout)
-            #obj.enable()
+            obj.enable()
             return "success"
         return "container is full"
 
 
-class Surface(object):
+class SpatialSurface(object):
     priority = 10
+
     def __init__(self):
         self.surfaceContacts = []
         
@@ -149,8 +154,7 @@ class SpatialRoom(staticObject):
         self.setTrimeshGeom(self.activeModel)
         self.setCatColBits("environment")
         self.physics.addObject(self)
-        print "\n\n\n KITCHEN GEOM", self.geom
-
+    
     def enterContainer(self,fromObj):
         print "Entering room", self.name
         if fromObj not in self.containerItems:
@@ -191,7 +195,7 @@ class SpatialStaticBox(staticObject):
 
     def setup(self):
         self.setBoxGeomFromNodePath(self.activeModel)
-        self.state = "vacant"
+        #self.state = "vacant"
         self.physics.addObject(self)
 
 class SpatialStaticTriMesh(staticObject):

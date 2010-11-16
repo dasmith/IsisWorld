@@ -40,7 +40,7 @@ from ..isis_agents.isis_agent import IsisAgent
 from ..physics.ode.pickables import *
 from ..physics.ode.odeWorldManager import *
 
-class table(IsisObject,IsisVisual,SpatialStaticBox,Surface,IsisFunctional):
+class table(IsisObject,IsisVisual,SpatialStaticBox,SpatialSurface,IsisFunctional):
 
     def __init__(self, **kwargs):
 
@@ -51,24 +51,26 @@ class table(IsisObject,IsisVisual,SpatialStaticBox,Surface,IsisFunctional):
 
         IsisObject.__init__(self, **kwargs)
 
-class fridge(IsisObject, IsisVisual, SpatialStaticBox, Container, FunctionalDoor):
+class fridge(IsisObject, IsisVisual, SpatialStaticBox, SpatialContainer, FunctionalDoor):
     
     def  __init__(self, **kwargs):
         
         self.model={'default':"Fridge/Fridge"}
-        self.offset_vector = (0.5,0,0,0,0,0)
+        self.offset_vector = (0.5,0.2,-0.31,0,0,0)
         self.generate_scale_between(.16,.20)
         self.density = 4000
-        self.in_layout = SlotLayout([(0, 0, .1), (0, 0, .1),(0, 0, 1.5)])
+
         IsisObject.__init__(self, **kwargs)
+        
+        self.in_layout = SlotLayout([(0.8, 0.2, .8), (0, 0, .4),(0, 0, 1.5)])
 
     def after_setup(self):
         # fix the model's misgivings
         fd = self.activeModel.find("**/freezerDoor*")
-        fd.setPos(-.56, .6, 1.65)
+        fd.setPos(-.70, .5, 1.78)
         # and add the door
         self.door = self.activeModel.find("**/fridgeDoor*")
-        self.door.setPos(-0.56, .7, .72)
+        self.door.setPos(-0.56, .5, .72)
         self.setH(0)
         self.action__open(None,None)
 
@@ -76,7 +78,7 @@ class fridge(IsisObject, IsisVisual, SpatialStaticBox, Container, FunctionalDoor
         
         if not self.get_attribute_value('is_open'):
             Sequence(
-                LerpPosHprInterval(self.door, 0.5, Vec3(.90, 2.4, .72), Vec3(-90, 0, 0)),
+                LerpPosHprInterval(self.door, 0.5, Vec3(.90, 2.9, .72), Vec3(-90, 0, 0)),
                 Func(self.set_attribute, 'is_open', True)
             ).start()
         else:
@@ -121,7 +123,7 @@ class toaster(IsisObject, IsisVisual, SpatialPickableBox, FunctionalCooker):
 class bread(IsisObject, IsisVisual, SpatialPickableBox, FunctionalCountable):
 
     def __init__(self, **kwargs):
-        self.offset_vector = (0,0,-.1,0,-120,-20)
+        #self.offset_vector = (0,0,-.1,0,-120,-20)
         self.pickup_vector=(-.125,.225,0,0,-125,0)
         self.model={"default":"slice_of_bread", "toast":"piece_of_toast"}
         self.scale = 0.5
@@ -134,8 +136,8 @@ class bread(IsisObject, IsisVisual, SpatialPickableBox, FunctionalCountable):
 class butter(IsisObject, IsisVisual, SpatialPickableBox, FunctionalMass ):
 
     def  __init__(self, **kwargs):
-        #self.offset_vector = (-0.8,0.3,0.0,90,0,180)
-        self.pickup_vector=(-.125,.225,0,0,-125,0)
+        self.offset_vector = (-0.8,0.3,0.0,90,0,180)
+        #self.pickup_vector=(-.125,.225,0,0,-125,0)
         self.model={"default":"butter"}
         self.scale = 0.05
         

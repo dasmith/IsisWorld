@@ -74,6 +74,12 @@ class IsisVisual():
         if self._needToRecalculateScalingProperties: self._recalculateScalingProperties()
         return self.height
 
+    def get_middle(self):
+        """ Returns the middle of an object, based on its bounding box"""
+        if self._needToRecalculateScalingProperties: self._recalculateScalingProperties()
+        return Vec3((self.width, self.height,0))
+
+
     def _recalculateScalingProperties(self):
         """ Internal method for recomputing properties, lazily issued"""
         p1, p2 = self.activeModel.getTightBounds()

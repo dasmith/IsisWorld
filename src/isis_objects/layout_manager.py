@@ -20,7 +20,7 @@ class LayoutManager():
 
 class RoomLayout(LayoutManager):
     """Arranges objects in rows around the perimeter"""
-    def __init__(self, area, height, padw = .10, padh = .10):
+    def __init__(self, area, height, padw = .13, padh = .13):
         LayoutManager.__init__(self)
         self.w, self.h = area
         self.z = height
@@ -117,7 +117,7 @@ class RoomLayout(LayoutManager):
 
 class HorizontalGridLayout(LayoutManager):
     """Arranges objects in rows within the given area"""
-    def __init__(self, area, height, padw = .05, padh = .05):
+    def __init__(self, area, height, padw = .10, padh = .10):
         LayoutManager.__init__(self)
         self.w, self.h = area
         self.z = height
@@ -146,15 +146,20 @@ class HorizontalGridLayout(LayoutManager):
 class SlotLayout(LayoutManager):
     """Arranges objects into pre-defined (x, y, z) slots"""
     def __init__(self, slots):
+        print "\n\n\n initializing slot layout"
         LayoutManager.__init__(self)
         self.slots = slots
         self.map = {}
+
     def add(self, obj):
+        print "\n\n\n\ntrying layout man", self
         if not LayoutManager.add(self, obj):
             return
+        print "slots", self.slots
         for s in self.slots:
             if not s in self.map:
                 self.map[s] = obj
+                print "returning s", s
                 return s
         return None
     def remove(self, obj):

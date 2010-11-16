@@ -14,6 +14,7 @@ loadPrcFileData("", """sync-video 0
 win-size 1024 768
 yield-timeslice 0 
 load-display pandagl 
+aux-display pandadx8
 client-sleep 0 
 multi-sleep 0
 #want-pstats 1
@@ -66,7 +67,7 @@ class IsisWorld(DirectObject):
         
         DirectObject.__init__(self)
         
-        self.isisMessage("Starting Up")
+        self.display_isis_message("Starting Up")
         
         self.current_physics_time = 0.0
         self.desired_physics_time = None # simulation unpaused (warning: must be paused while initializing IsisAgents and IsisObjects)
@@ -124,7 +125,7 @@ class IsisWorld(DirectObject):
         
         self._textObjectVisible = True
         # turn off main help menu by default
-        self.toggleInstructionsWindow()
+        self._toggle_instructions_window()
         base.exitFunc = self.exit
 
 
@@ -322,10 +323,10 @@ class IsisWorld(DirectObject):
                 if self.actionController.hasAction(command):
                     self.actionController.makeAgentDo(self.agents[self.agentNum], command)
                 else:
-                    self.isisMessage("relayAgentControl: %s command not found in action controller" % (command))
+                    self.display_isis_message("relayAgentControl: %s command not found in action controller" % (command))
                     raise self.actionController
             else:
-                self.isisMessage("Cannot relay command '%s' when there is no agent in the scenario!" % command)
+                self.display_isis_message("Cannot relay command '%s' when there is no agent in the scenario!" % command)
             return
 
         text = "\n"
@@ -406,13 +407,13 @@ class IsisWorld(DirectObject):
                 # change agent view camera
                 self.agentCamera.setCamera(self.agents[self.agentNum].fov)
             else:
-                self.isisMessage("Cannot switch agents because there are no agents.")
+                self.display_isis_message("Cannot switch agents because there are no agents.")
  
         # store keybindings
         self.accept("1",               base.toggleWireframe, [])
         self.accept("2",               base.toggleTexture, [])
         self.accept("3",               changeAgent, [])
-        self.accept("4",               self.toggleInstructionsWindow, [])
+        self.accept("4",               self._toggle_instructions_window, [])
         self.accept("space",           self.step_simulation, [.1]) # argument is amount of second to advance
         self.accept("p",               self.controller.toggle_paused, [])
         #self.accept("s",               self.screenshot, ["snapshot"])
@@ -465,11 +466,11 @@ class IsisWorld(DirectObject):
                 agentPos[2] = 5
                 newAgent.setPos(agentPos)
         except Exception, e:
-            self.isisMessage("Could not add agent %s to room. Error: %s" % (newAgent.name, e))
+            self.display_isis_message("Could not add agent %s to room. Error: %s" % (newAgent.name, e))
         self.controller.setAgentCamera(self.agentCamera)
         return newAgent
 
-    def toggleInstructionsWindow(self):
+    def _toggle_instructions_window(self):
         """ Hides the instruction window """
         if self._textObjectVisible:
             self.textObject.detachNode()
@@ -479,7 +480,7 @@ class IsisWorld(DirectObject):
             self._textObjectVisible = True
 
 
-    def isisMessage(self,message):
+    def display_isis_message(self,message):
         print "[IsisWorld] %s %s" % (message, str(time.ctime()))
 
     def screenshot(self, name):

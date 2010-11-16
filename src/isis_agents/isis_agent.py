@@ -568,7 +568,10 @@ class IsisAgent(kinematicCharacterController,DirectObject):
                 print "no target in reach"
                 return
         else:
-            target = render.find("**/*" + target + "*").getPythonTag("isisobj")    
+            target = render.find("**/*" + target + "*").getPythonTag("isisobj") 
+            if not target:
+                print "no target in reach"
+                return "error: no target in reach"
         print "attempting to pick up " + target.name + " with left hand.\n"
         if self.can_grasp(target): # object within distance      
             target = self.pick_object_up_with(target, self.left_hand_holding_object, self.player_left_hand)

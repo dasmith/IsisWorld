@@ -171,17 +171,17 @@ class FunctionalDoor(IsisFunctional):
 class FunctionalDividableCountable(FunctionalCountable):
     def __init__(self):
         FunctionalCountable.__init__(self)
-        if not hasattr(self,'piece'):
+        if not hasattr(self,'_functional__dividable_piece'):
             print "Warning: no piece object defined for Dividable object", self.name
 
     def action__divide(self, agent, direct_object):
         if direct_object != None and hasattr(direct_object, "action__cut"):
             if agent.right_hand_holding_object == None:
                 # instantiate a new IsisObject
-                obj = self.piece()
+                obj = self._functional__dividable_piece()
                 return agent.pick_object_up_with(obj, agent.right_hand_holding_object, agent.player_right_hand)
             elif agent.left_hand_holding_object == None:
-                obj = self.piece()
+                obj = self._functional__dividable_piece()
                 return agent.pick_object_up_with(obj, agent.left_hand_holding_object, agent.player_left_hand)
             else:
                 print "Error - no free hand"
@@ -245,14 +245,14 @@ class FunctionalCooker(FunctionalElectronic):
     
         #taskMgr.doMethodLater(5, self.__timerDone, "Cooker Timer", extraArgs = [])
 
-    def cook(self, agent, object):
-        print "Cooking..."
+    def action__cook(self, agent, direct_object):
+        print "Cooking...", direct_object, " in ", self.name
         if self.cook_on:
             for obj in self.on_layout.getItems():
                 print obj.name
-                obj.call(agent, "cook", object)
+                obj.call(agent, "cook", direct_object)
         if self.cook_in:
             for obj in self.in_layout.getItems():
                 print obj.name
-                obj.call(agent, "cook", object)
+                obj.call(agent, "cook", direct_object)
         print "done."

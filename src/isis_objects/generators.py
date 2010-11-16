@@ -155,7 +155,7 @@ class loaf( IsisObject, IsisVisual, SpatialPickableBox, FunctionalDividableCount
         #self.create()
 
         # this is a dividable object, so define a piece
-        self.piece = bread
+        self._functional__dividable_piece = bread
         self.density =1000
         IsisObject.__init__(self, **kwargs)
 
@@ -165,9 +165,9 @@ class kitchen(IsisObject,IsisVisual,SpatialRoom,FunctionalCountable):
     def  __init__(self, **kwargs):
         self.offset_vector = offset_vector=(0,0,0,0,0,0)
         self.density = 4000
-        self.roomScale=35
-        self.length =  randint(6, 9)*2
-        self.width = randint(6, 9)*2
+        self.room_scale = 35
+        self.length =  randint(12, 18)
+        self.width = randint(12, 18)
         self.height = randint(6, 9)
         self.activeModel = NodePath('kitchen')
         # don't allow model to ever be changed. since model is a pointer to a procedurally generated visual model, it doesn't behave like an egg file

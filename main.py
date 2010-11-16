@@ -123,7 +123,7 @@ class IsisWorld(DirectObject):
             else:
                 assert False, "unhandled option"
         
-        self._textObjectVisible = True
+        self._text_object_visible = True
         # turn off main help menu by default
         self._toggle_instructions_window()
         base.exitFunc = self.exit
@@ -369,8 +369,8 @@ class IsisWorld(DirectObject):
         self.actionController.addAction(IsisAction(commandName="view_objects",intervalAction=False,keyboardBinding="o"))
         self.actionController.addAction(IsisAction(commandName="pick_up_with_left_hand",intervalAction=False,argList=['target'],keyboardBinding="z"))
         self.actionController.addAction(IsisAction(commandName="pick_up_with_right_hand",intervalAction=False,argList=['target'],keyboardBinding="c"))
-        self.actionController.addAction(IsisAction(commandName="drop_from_left_hand",intervalAction=False,keyboardBinding="n"))
-        self.actionController.addAction(IsisAction(commandName="drop_from_right_hand",intervalAction=False,keyboardBinding="m"))
+        self.actionController.addAction(IsisAction(commandName="drop_from_left_hand",intervalAction=False,argList=['target'],keyboardBinding="n"))
+        self.actionController.addAction(IsisAction(commandName="drop_from_right_hand",intervalAction=False,argList=['target'],keyboardBinding="m"))
         self.actionController.addAction(IsisAction(commandName="use_left_hand",intervalAction=False,argList=['target','action'],keyboardBinding="q"))
         self.actionController.addAction(IsisAction(commandName="use_right_hand",intervalAction=False,argList=['target','action'],keyboardBinding="e"))
 
@@ -380,7 +380,7 @@ class IsisWorld(DirectObject):
             self.accept(keybinding, relayAgentControl, [command])
 
         # add on-screen documentation
-        self.textObjectVisible = True
+        self.text_objectVisible = True
         for helpString in self.actionController.helpStrings:
             text += "\n%s" % (helpString)
 
@@ -388,7 +388,7 @@ class IsisWorld(DirectObject):
         props.setTitle( 'IsisWorld v%s' % ISIS_VERSION )
         base.win.requestProperties( props )
 
-        self.textObject = OnscreenText(
+        self.text_object = OnscreenText(
                 text = text,
                 fg = (.98, .9, .9, 1),
                 bg = (.1, .1, .1, 0.8),
@@ -461,7 +461,7 @@ class IsisWorld(DirectObject):
                 roomPos = room.getPos(render)
                 center = room.getBounds().getCenter()
                 w,h = roomPos[0]+center[0], roomPos[1]+center[1]
-                newAgent.setPos(Vec3(w,h+(len(self.agents)*1),3))
+                newAgent.setPos(Vec3(w,h+(len(self.agents)*1),2))
             else:
                 agentPos[2] = 5
                 newAgent.setPos(agentPos)
@@ -472,12 +472,12 @@ class IsisWorld(DirectObject):
 
     def _toggle_instructions_window(self):
         """ Hides the instruction window """
-        if self._textObjectVisible:
-            self.textObject.detachNode()
-            self._textObjectVisible = False
+        if self._text_object_visible:
+            self.text_object.detachNode()
+            self._text_object_visible = False
         else:
-            self.textObject.reparentTo(aspect2d)
-            self._textObjectVisible = True
+            self.text_object.reparentTo(aspect2d)
+            self._text_object_visible = True
 
 
     def display_isis_message(self,message):

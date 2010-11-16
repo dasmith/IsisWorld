@@ -14,7 +14,14 @@ def do(command, args = None):
     args['agent'] = 'Ralph'
     return e.do(command, args)
 
-
+def get_obj_xy(item):
+    objs = sense()['objects']
+    true_key = None
+    for key in objs.keys():
+        if item in key: true_key = key
+    if not true_key:
+        return False
+    return (objs[true_key]['x_pos'], objs[true_key]['y_pos'])
 
 def move_in_front_of_item(item):
     objs = sense()['objects']
@@ -32,29 +39,42 @@ print "Listing scenarios: %s" % (scenarios)
 # load the toast scenario
 print e.do('meta_load_scenario', {'scenario': 'make_toast.py'})
 
+tasks = e.do('meta_list_tasks')
+print "Listing tasks: %s" % (tasks)
+
+# load the toast scenario
+print e.do('meta_load_task', {'task': tasks[0]})
+
 print 'Going into training mode'
 print e.do('meta_train')
+
+print "Waiting for agent to drop"
+import time
+time.sleep(2)
 
 print "pausing"
 print e.do('meta_pause')
 
+
 do('look_down-start')
-step(.4)
+while get_obj_xy('loaf') < 0.5:
+    step(.4)
+
 do('look_down-stop')
 
-print "opening fridge"
-do('pick_up_with_left_hand', {'target':'loaf'})
+print "picking up butter"
+do('pick_up_with_left_hand', {'target':'butter'})
 
-print "picking up"
+print "picking up loaf"
 do('pick_up_with_right_hand', {'target':'loaf'})
 
-do('move_right-start')
-step(.4)
-do('move_right-stop')
+do('move_backward-start')
+time.sleep(0.8)
+do('move_backward-stop')
 
-do('move_forward-start')
-step(.5)
-do('move_forward-stop')
+do('turn_left-start')
+time.sleep(2)
+do('turn_left-stop')
 
 print do('use_right_hand', {'target':'table', 'action':'put_on'})
 step(.1)

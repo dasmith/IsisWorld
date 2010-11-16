@@ -69,7 +69,7 @@ class fridge(IsisObject, IsisVisual, SpatialStaticBox, SpatialContainer, Functio
         # fix the model's misgivings
         fd = self.activeModel.find("**/freezerDoor*")
 
-        fd.setPos(-.56, .6, 1.65)
+        fd.setPos(-.56, .6, 1.55)
         self.door = self.activeModel.find("**/fridgeDoor*")
         self.door.setPos(-0.56, .6, .72)
         #fd.setPos(-.70, .5, 1.78)

@@ -51,39 +51,46 @@ class table(IsisObject,IsisVisual,SpatialStaticBox,SpatialSurface,IsisFunctional
 
         IsisObject.__init__(self, **kwargs)
 
+
 class fridge(IsisObject, IsisVisual, SpatialStaticBox, SpatialContainer, FunctionalDoor):
-    
+
     def  __init__(self, **kwargs):
-        
+
         self.model={'default':"Fridge/Fridge"}
-        self.offset_vector = (0.5,0.2,-0.31,0,0,0)
+        self.offset_vector = (0.0,0.0,-0.31,0,0,0)
         self.generate_scale_between(.16,.20)
         self.density = 4000
 
         IsisObject.__init__(self, **kwargs)
         # in_layout must go AFTER IsisObj.__init__ or else it will be overwritten
-        self.in_layout = SlotLayout([(0.8, 0.2, .8), (0, 0, .4),(0, 0, 1.5)])
-
+        #self.in_layout = SlotLayout([(0.8, 0.2, .8), (0, 0, .4),(0, 0, 1.5)])
+        self.in_layout = SlotLayout([(0.8, 0.2, .8), (0, 0, 0.4),(0, 0, 1.5)])
     def after_setup(self):
         # fix the model's misgivings
         fd = self.activeModel.find("**/freezerDoor*")
-        fd.setPos(-.70, .5, 1.78)
-        # and add the door
+
+        fd.setPos(-.56, .6, 1.65)
         self.door = self.activeModel.find("**/fridgeDoor*")
-        self.door.setPos(-0.56, .5, .72)
+        self.door.setPos(-0.56, .6, .72)
+        #fd.setPos(-.70, .5, 1.78)
+        # and add the door
+        #self.door = self.activeModel.find("**/fridgeDoor*")
+        #self.door.setPos(-0.56, .5, .72)
         self.setH(0)
         self.action__open(None,None)
 
     def action__open(self, agent, indrect_object):
-        
+
         if not self.get_attribute_value('is_open'):
             Sequence(
-                LerpPosHprInterval(self.door, 0.5, Vec3(.90, 2.9, .72), Vec3(-90, 0, 0)),
+                LerpPosHprInterval(self.door, 0.5, Vec3(.45, 2.4, .72), Vec3(-90, 0, 0)),
+                #LerpPosHprInterval(self.door, 0.5, Vec3(.90, 2.9, .72), Vec3(-90, 0, 0)),
                 Func(self.set_attribute, 'is_open', True)
             ).start()
         else:
             Sequence(
                 LerpPosHprInterval(self.door, 0.5, Vec3(-.56, .6, .72), Vec3(0, 0, 0)),
+                #LerpPosHprInterval(self.door, 0.5, Vec3(-.56, .6, .72), Vec3(0, 0, 0)),
                 Func(self.set_attribute, 'is_open', False)
             ).start()
 

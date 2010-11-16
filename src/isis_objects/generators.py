@@ -61,7 +61,7 @@ class fridge(IsisObject, IsisVisual, SpatialStaticBox, SpatialContainer, Functio
         self.density = 4000
 
         IsisObject.__init__(self, **kwargs)
-        
+        # in_layout must go AFTER IsisObj.__init__ or else it will be overwritten
         self.in_layout = SlotLayout([(0.8, 0.2, .8), (0, 0, .4),(0, 0, 1.5)])
 
     def after_setup(self):

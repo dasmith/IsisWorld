@@ -52,10 +52,12 @@ class ActionController():
         """ Given a command and an agent pointer, tell the agent to do that command"""
         commandArgs = self.argMap[command]
         kwargs = {}
+        
         for c in commandArgs:
             if c in args:
                 kwargs[c] = args[c]
 
+        print "\n\n ARGS =", args, kwargs
         result = None 
         failed = False
         result = getattr(agent, command)(**kwargs)

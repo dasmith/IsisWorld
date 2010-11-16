@@ -146,20 +146,16 @@ class HorizontalGridLayout(LayoutManager):
 class SlotLayout(LayoutManager):
     """Arranges objects into pre-defined (x, y, z) slots"""
     def __init__(self, slots):
-        print "\n\n\n initializing slot layout"
         LayoutManager.__init__(self)
         self.slots = slots
         self.map = {}
 
     def add(self, obj):
-        print "\n\n\n\ntrying layout man", self
         if not LayoutManager.add(self, obj):
             return
-        print "slots", self.slots
         for s in self.slots:
             if not s in self.map:
                 self.map[s] = obj
-                print "returning s", s
                 return s
         return None
     def remove(self, obj):

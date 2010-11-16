@@ -540,48 +540,97 @@ class IsisAgent(kinematicCharacterController,DirectObject):
             return target
 
     def control__pick_up_with_right_hand(self, target=None):
+        """ Tries to find an object with 'target' as a substring of its name that is:
+        
+          1. has the isisobj tag, which points to the IsisWorld generator Python object
+          2. is part of an IsisObject node
+          3. has the pickable tag, indicating it can be picked up
+          4. is within reach, meaning self.can_grasp(item) == True
+        
+        If it fails, it returns an error string specifying which type of error occurred.
+        Alternatively, if target=None, then it is populated with whatever item is in the center
+        of the agent's field of view.  This was originally used for the key-binding pick up 
+        commands.
+        
+        This command is almost identicial for the left/right hands, changes in one
+        should correspond with changes in the other.
+        """
         if not target:
-            target = self.__get_object_in_center_of_view()
+            found_item = self.__get_object_in_center_of_view()
             if not target:
                 print "no target in reach"
-                return "error: no target in reach"
+                return "error: no target in center of view"
         else:
-            target = render.find("**/*" + target + "*").getPythonTag("isisobj")    
-            if not target:
-                print "no target in reach"
-                return "error: no target in reach"
-        print "attempting to pick up " + target.name + " with right hand.\n"
-        if self.can_grasp(target): # object within distance      
-            target = self.pick_object_up_with(target, self.right_hand_holding_object, self.player_right_hand)
-            if target != None:
+            found_items = IsisAgent.physics.main.worldNode.findAllMatches("**/IsisObject*%s*" % (target))
+            if not found_items:
+                print "no target name %s found" % (target)
+                return "error: no target by that name"
+            found_item = None
+            for potential_item in found_items:
+                if potential_item.hasPythonTag('isisobj'):
+                    found_item = potential_item.getPythonTag("isisobj")
+                    break
+            if not found_item:
+                print "targets matching %s were not isisobj and pickable" % (target)
+                return "error: no pickable isisobjects by name %s" % (target)
+        print "attempting to pick up " + found_item.name + " with right hand.\n"
+        if self.can_grasp(found_item): # object within distance      
+            picked_up = self.pick_object_up_with(found_item, self.right_hand_holding_object, self.player_right_hand)
+            if picked_up != None:
                 return 'success'
             else:
                 return 'failure'
         else:
-            print 'object (' + target.name + ') is not graspable (i.e. in view and close enough).'
+            print 'object (' + found_item.name + ') is not graspable (i.e. in view and close enough).'
             return 'error: object not graspable'
-            
-    def control__pick_up_with_left_hand(self, target = None):
+
+    def control__pick_up_with_left_hand(self, target=None):
+        """ Tries to find an object with 'target' as a substring of its name that is:
+        
+          1. has the isisobj tag, which points to the IsisWorld generator Python object
+          2. is part of an IsisObject node
+          3. has the pickable tag, indicating it can be picked up
+          4. is within reach, meaning self.can_grasp(item) == True
+        
+        If it fails, it returns an error string specifying which type of error occurred.
+        
+        Alternatively, if target=None, then it is populated with whatever item is in the center
+        of the agent's field of view.  This was originally used for the key-binding pick up 
+        commands.
+        
+        This command is almost identicial for the left/right hands, changes in one
+        should correspond with changes in the other.
+        """
         if not target:
-            target = self.__get_object_in_center_of_view()
+            found_item = self.__get_object_in_center_of_view()
             if not target:
                 print "no target in reach"
-                return
+                return "error: no target in center of view"
         else:
-            target = render.find("**/*" + target + "*").getPythonTag("isisobj") 
-            if not target:
-                print "no target in reach"
-                return "error: no target in reach"
-        print "attempting to pick up " + target.name + " with left hand.\n"
-        if self.can_grasp(target): # object within distance      
-            target = self.pick_object_up_with(target, self.left_hand_holding_object, self.player_left_hand)
-            if target != None:
+            found_items = IsisAgent.physics.main.worldNode.findAllMatches("**/IsisObject*%s*" % (target))
+            if not found_items:
+                print "no target name %s found" % (target)
+                return "error: no target by that name"
+            found_item = None
+            for potential_item in found_items:
+                print "potential -item",potential_item, potential_item.hasPythonTag('pickable'),potential_item.hasPythonTag('isisobj')
+                if potential_item.hasPythonTag('isisobj'):
+                    found_item = potential_item.getPythonTag("isisobj")
+                    break
+            if not found_item:
+                print "targets matching %s were not isisobj and pickable" % (target)
+                return "error: no pickable isisobjects by name %s" % (target)
+        print "attempting to pick up " + found_item.name + " with left hand.\n"
+        if self.can_grasp(found_item): # object within distance      
+            picked_up = self.pick_object_up_with(found_item, self.left_hand_holding_object, self.player_left_hand)
+            if picked_up != None:
                 return 'success'
             else:
                 return 'failure'
         else:
-            print 'object (' + target.name + ') is not graspable (i.e. in view and close enough).'
-            return 'error: object not graspable'
+            print 'object (' + found_item.name + ') is not graspable (i.e. in view and close enough).'
+            return 'error: object not graspable'   
+
 
     def control__drop_from_right_hand(self):
         print "attempting to drop object from right hand.\n"

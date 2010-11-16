@@ -116,7 +116,7 @@ class FunctionalCountable(IsisFunctional):
             if not hasattr(self,'cookableCookedModel'):
                 print "Warning: %s has no Cookable.cookableCookedModel model defined, using default." % self.name
                 self.cookableCookedModel = "default"
-            self.changeModel(self.cookableRawModel)
+            #self.changeModel(self.cookableRawModel)
 
         self.add_attribute(OrderedAttribute(name='cooked', domain=[0,1,2,3], visible=True, is_monotonic=True, on_change_func=__action_cook_callback), value=0)
     

@@ -1,7 +1,4 @@
 import xmlrpclib as xml
-
-
-
 # connect to environment via XML-RPC
 e = xml.ServerProxy('http://localhost:8001')
 
@@ -16,6 +13,15 @@ def do(command, args = None):
         args = {}
     args['agent'] = 'Ralph'
     return e.do(command, args)
+
+
+
+def move_in_front_of_item(item):
+    objs = sense()['objects']
+    e.do('move_right-start')
+    while not item in objs.keys():
+        break
+        
 
 
 print "Connected to IsisWorld"
@@ -37,7 +43,7 @@ step(.4)
 do('look_down-stop')
 
 print "opening fridge"
-do('pick_up_with_right_hand', {'target':'loaf'})
+do('pick_up_with_left_hand', {'target':'loaf'})
 
 print "picking up"
 do('pick_up_with_right_hand', {'target':'loaf'})

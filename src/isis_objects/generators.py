@@ -57,7 +57,7 @@ class fridge(IsisObject, IsisVisual, SpatialStaticBox, SpatialContainer, Functio
     def  __init__(self, **kwargs):
 
         self.model={'default':"Fridge/Fridge"}
-        self.offset_vector = (0.0,0.0,-0.31,0,0,0)
+        self.offset_vector = (0.0,0.0,-0.28,0,0,0)
         self.generate_scale_between(.16,.20)
         self.density = 4000
 
@@ -83,7 +83,7 @@ class fridge(IsisObject, IsisVisual, SpatialStaticBox, SpatialContainer, Functio
 
         if not self.get_attribute_value('is_open'):
             Sequence(
-                LerpPosHprInterval(self.door, 0.5, Vec3(.45, 2.4, .72), Vec3(-90, 0, 0)),
+                LerpPosHprInterval(self.door, 0.5, Vec3(.44, 2.4, .72), Vec3(-90, 0, 0)),
                 #LerpPosHprInterval(self.door, 0.5, Vec3(.90, 2.9, .72), Vec3(-90, 0, 0)),
                 Func(self.set_attribute, 'is_open', True)
             ).start()

@@ -99,6 +99,7 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         
         self.player_head  = self.actor.exposeJoint(None, 'modelRoot', 'Head')
         self.neck = self.actor.controlJoint(None, 'modelRoot', 'Head')
+        self.neck.setP(bound(self.neck.getP() - 15, -60, 80))
         
         self.controlMap = {"turn_left":0,
                            "turn_right":0,

@@ -117,7 +117,7 @@ class RoomLayout(LayoutManager):
 
 class HorizontalGridLayout(LayoutManager):
     """Arranges objects in rows within the given area"""
-    def __init__(self, area, height, padw = .10, padh = .10):
+    def __init__(self, area, height, padw = .15, padh = .15):
         LayoutManager.__init__(self)
         self.w, self.h = area
         self.z = height
@@ -125,11 +125,16 @@ class HorizontalGridLayout(LayoutManager):
         self.maxh = 0
         self.padw = padw
         self.padh = padh
+        
     def add(self, obj):
+        print "HGL called with", obj,  obj.getWidth(),  obj.getLength(), self.padw, self.padh
         if not LayoutManager.add(self, obj):
             return
+        print "Width, "
         ow = obj.getWidth()+self.padw
         ol = obj.getLength()+self.padh
+        print "Object width and length", ow, ol
+                
         if self.px+ow > self.w:
             self.py += self.maxh
             self.px = 0

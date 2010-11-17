@@ -515,29 +515,35 @@ class IsisAgent(kinematicCharacterController,DirectObject):
        closestEntry, closestObject = IsisAgent.physics.doRaycastNew('aimRay', 5, [pos, direction], exclude)
        return closestObject
     
-    def pick_object_up_with(self,target,hand_slot,hand_joint):
-        """ Attaches an IsisObject, target, to the hand joint.  Does not check anything first,
+    def pick_object_up_with(self,picked_up,hand_slot,hand_joint):
+        """ Attaches an IsisObject, picked_up, to the hand joint.  Does not check anything first,
         other than the fact that the hand joint is not currently holding something else."""
         if hand_slot != None:
             print 'already holding ' + hand_slot.getName() + '.'
             return None  
         else:
-            if target.layout:
-                target.layout.remove(target)
-                target.layout = None
+            if picked_up.layout:
+                picked_up.layout.remove(picked_up)
+                picked_up.layout = None
             # store original position
-            target.originalHpr = target.getHpr(render)
-            target.disable() #turn off physics
-            if target.body: target.body.setGravityMode(0)
-            target.reparentTo(hand_joint)
-            target.setPosition(hand_joint.getPos(render))
-            target.setTag('heldBy', self.name)
+            picked_up.originalHpr = picked_up.getHpr(render)
+            picked_up.disable() #turn off physics
+            if picked_up.body: picked_up.body.setGravityMode(0)
+            picked_up.reparentTo(hand_joint)
+            # TODO: if object is a surface
+            #  - perturb its contained objects to turn physics back on
+            #  if object is a container
+            #  - turn off the physics of the contained objects, 
+            #   so that they move with the object
+            picked_up.setPosition(hand_joint.getPos(render) + Vec3(*picked_up.pickup_vector[0:3]))
+            picked_up.setRotation(Vec3(*picked_up.pickup_vector[3:]))
+            picked_up.setTag('heldBy', self.name)
             if hand_joint == self.player_right_hand:
-                self.right_hand_holding_object = target
+                self.right_hand_holding_object = picked_up
             elif hand_joint == self.player_left_hand:
-                self.left_hand_holding_object = target
-            hand_slot = target
-            return target
+                self.left_hand_holding_object = picked_up
+            hand_slot = picked_up # does this do anything?
+            return picked_up
 
     def control__pick_up_with_right_hand(self, target=None):
         """ Tries to find an object with 'target' as a substring of its name that is:
@@ -632,7 +638,7 @@ class IsisAgent(kinematicCharacterController,DirectObject):
             return 'error: object not graspable'   
 
 
-    def control__drop_from_right_hand(self):
+    def control__drop_from_right_hand(self, throw_object=True):
         print "attempting to drop object from right hand.\n"
         
         if self.right_hand_holding_object is None:
@@ -640,7 +646,7 @@ class IsisAgent(kinematicCharacterController,DirectObject):
             return False
         if self.right_hand_holding_object.getNetTag('heldBy') == self.name:
             self.right_hand_holding_object.reparentTo(render)
-            direction = render.getRelativeVector(self.fov, Vec3(0, 1.0, 0))
+            direction = render.getRelativeVector(self.fov, Vec3(1.0, 0, 0))
             pos = self.player_right_hand.getPos(render)
             heldPos = self.right_hand_holding_object.geom.getPosition()
             self.right_hand_holding_object.setPosition(pos)
@@ -648,25 +654,26 @@ class IsisAgent(kinematicCharacterController,DirectObject):
             self.right_hand_holding_object.setTag('heldBy', '')
             self.right_hand_holding_object.setRotation(self.right_hand_holding_object.originalHpr)
             self.right_hand_holding_object.enable()
-            if self.right_hand_holding_object.body:
+
+            if self.right_hand_holding_object.body and throw_object:
                 quat = self.getQuat()
                 # throw object
                 force = 5
                 self.right_hand_holding_object.body.setGravityMode(1)
-                self.right_hand_holding_object.getBody().setForce(quat.xform(Vec3(0, force, 0)))
+                self.right_hand_holding_object.getBody().setForce(quat.xform(Vec3(force, 0, 0)))
             self.right_hand_holding_object = None
             return 'success'
         else:
             return "Error: not being held by agent %s" % (self.name)
 
     
-    def control__drop_from_left_hand(self):
+    def control__drop_from_left_hand(self, throw_object=True):
         print "attempting to drop object from left hand.\n"
         if self.left_hand_holding_object is None:
             return 'left hand is not holding an object.'
         if self.left_hand_holding_object.getNetTag('heldBy') == self.name:
             self.left_hand_holding_object.reparentTo(render)
-            direction = render.getRelativeVector(self.fov, Vec3(0, 1.0, 0))
+            direction = render.getRelativeVector(self.fov, Vec3(1.0, 0, 0))
             pos = self.player_left_hand.getPos(render)
             heldPos = self.left_hand_holding_object.geom.getPosition()
             self.left_hand_holding_object.setPosition(pos)
@@ -674,12 +681,12 @@ class IsisAgent(kinematicCharacterController,DirectObject):
             self.left_hand_holding_object.setTag('heldBy', '')
             self.left_hand_holding_object.setRotation(self.left_hand_holding_object.originalHpr)
             self.left_hand_holding_object.enable()
-            if self.left_hand_holding_object.body:
+            if self.left_hand_holding_object.body and throw_object:
                 quat = self.getQuat()
                 # throw object
                 force = 5
                 self.left_hand_holding_object.body.setGravityMode(1)
-                self.left_hand_holding_object.getBody().setForce(quat.xform(Vec3(0, force, 0)))
+                self.left_hand_holding_object.getBody().setForce(quat.xform(Vec3(force,0, 0)))
             self.left_hand_holding_object = None
             return 'success'
         else:
@@ -854,9 +861,9 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         Update the held object position to be in the hands
         """
         if self.right_hand_holding_object != None:
-            self.right_hand_holding_object.setPosition(self.player_right_hand.getPos(render))
+            self.right_hand_holding_object.setPosition(self.player_right_hand.getPos(render)+Vec3(*self.right_hand_holding_object.pickup_vector[0:3]))
         if self.left_hand_holding_object != None:
-            self.left_hand_holding_object.setPosition(self.player_left_hand.getPos(render))
+            self.left_hand_holding_object.setPosition(self.player_left_hand.getPos(render)+Vec3(*self.left_hand_holding_object.pickup_vector[0:3]))
 
         #Update the dialog box and thought windows
         #This allows dialogue window to gradually decay (changing transparancy) and then disappear

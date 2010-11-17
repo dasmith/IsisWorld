@@ -65,26 +65,32 @@ class SpatialSurface(object):
         
     def setup(self):
         area = (self.getWidth(), self.getLength())
-        self.on_layout = HorizontalGridLayout(area, self.getHeight(), int(self.getWidth()),int(self.getLength()))
+        self.on_layout = HorizontalGridSlotLayout(area, self.getHeight(), 5, 5)
+        #SlotLayout([(.3, .1, .2), (.3, -.1, .2)])
 
     def action__put_on(self, agent, obj):
-        # TODO: requires that object has an exposed surface
-        obj.setGeomQuat(self.getQuat())
+        print " CALL TO action__put_on", agent, obj
+
+        if agent and agent.is_holding(obj.name):
+            #agent.is_holding(obj.name):
+            if agent.left_hand_holding_object == obj:
+                agent.control__drop_from_left_hand(throw_object=False)
+            elif agent.right_hand_holding_object == obj:
+                agent.control__drop_from_right_hand(throw_object=False)
+            obj.disable()
+            obj.rotateAlongX(1)
+        #obj.setGeomQuat(self.getQuat())
         pos = self.on_layout.add(obj)
+        print "POS result", pos
         if pos:
-            if agent and agent.is_holding(obj.name):
-                if agent.left_hand_holding_object == obj:
-                    agent.control__drop_from_left_hand()
-                elif agent.right_hand_holding_object == obj:
-                    agent.control__drop_from_right_hand()
             obj.disable()
             obj.reparentTo(self)
-
             obj.setPosition(self.getGeomPos()+pos)
             obj.set_layout(self.on_layout)
             obj.enable()
+            obj.synchPosQuatToNode()
             return "success"
-        return "Surface is full"
+        return "error: Surface is full"
 
 
 class SpatialPickable(pickableObject):

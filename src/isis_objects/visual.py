@@ -41,17 +41,20 @@ class IsisVisual():
         self.setPos(pos)
         # set position of physics -- doesn't need argument, it gets it from activeModel
         self.setGeomPos(pos)
+        self.synchPosQuatToNode()
         
         
     def setRotation(self,hpr):
         self.setHpr(hpr)
         self.synchPosQuatToNode()
+        self._needToRecalculateScalingProperties = True
 
     def rotateAlongX(self,x):
         """ Rotates the model and the ODE geom along the X axis"""
         self.setH(self.getH()+x)
         self.synchPosQuatToNode()
         self._needToRecalculateScalingProperties = True
+        print "Rotated", self.name, self._needToRecalculateScalingProperties
         
     def rescaleModel(self,scale):
         """ Changes the model's dimensions to a given scale"""
@@ -61,12 +64,16 @@ class IsisVisual():
 
     def getLength(self):
         """ Returns the length of an object, based on its bounding box"""
-        if self._needToRecalculateScalingProperties: self._recalculateScalingProperties()
-        return self.length
+        if self._needToRecalculateScalingProperties: 
+            self._recalculateScalingProperties()
+            return self.length
+        else:
+            return self.length
 
     def getWidth(self):
         """ Returns the width of an object, based on its bounding box"""
         if self._needToRecalculateScalingProperties: self._recalculateScalingProperties()
+        print "Calling get width on ", self.name, self._needToRecalculateScalingProperties, self.width
         return self.width
 
     def getHeight(self):
@@ -82,10 +89,12 @@ class IsisVisual():
 
     def _recalculateScalingProperties(self):
         """ Internal method for recomputing properties, lazily issued"""
+
         p1, p2 = self.activeModel.getTightBounds()
         self.width = abs(p2.getX()-p1.getX())
         self.length = abs(p2.getY()-p1.getY())
         self.height = abs(p2.getZ()-p1.getZ())
+        print "Recalculating scaling properties", self.width, self.length
         # reset physical model
         self._needToRecalculateScalingProperties = False
 

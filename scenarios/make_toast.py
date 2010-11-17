@@ -40,7 +40,7 @@ class Scenario(IsisScenario):
         put_in(l, f)
 
         l = loaf()
-        put_on(l, ta3)
+        put_on(l, ta2)
 
         ralph = IsisAgent("Ralph")
         

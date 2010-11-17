@@ -57,7 +57,6 @@ class ActionController():
             if c in args:
                 kwargs[c] = args[c]
 
-        print "\n\n ARGS =", args, kwargs
         result = None 
         failed = False
         result = getattr(agent, command)(**kwargs)

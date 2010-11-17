@@ -1,9 +1,8 @@
 
 # To Do List
  
-  - fix object dropping semantics:  
-  - fix object pick up semantics:  objects in containers get moved, objects on surfaces have physics reinstated
-  - parsing of attributes in scenario files. e.g. `k.width(10)` in scenario files. IsisObject generators specify/randomly select the default values during `__init__()`, but then the defaults can be changed sometime after `__init__` and before `setup()`.
+  - in isis_agent:pick_object_up_with, special handling for objects on surfaces and objects in containers.
+  - exit should kill xmlrpc and then shut down
   - Loading and running [IsisScenarios](#IsisScenarios) files:
     - buttons for starting a task, running a training and test scenario
     - recording statistics about the task: how many steps since it started, state of task (failed/completed/ongoing)
@@ -22,6 +21,8 @@
 
 GitHub does not appear to interpret Markdown's ~~strikethrough~~ operator, so here's the list of changes that have been made since the last version:
  
+  - creation of `IsisAttribute` with consistency checks.
+  - scenario files allow defaults to be specified as keyword arguments. `k = kitchen(width=10, height=7)`
   - objects can have "front" orientation that is used to place objects around a room, with their backs to the wall
   - checking for whether the goal state is met
   - migrating the `kitchen.isis` into an "scene initialization" section of the "scenario/" files.

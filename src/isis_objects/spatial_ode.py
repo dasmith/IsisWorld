@@ -65,7 +65,12 @@ class SpatialSurface(object):
         
     def setup(self):
         area = (self.getWidth(), self.getLength())
-        self.on_layout = HorizontalGridSlotLayout(area, self.getHeight(), 5, 5)
+        # -x moves to the right
+        # y moves toward the camera
+        
+        self.on_layout =  SlotLayout([(-1, 0.6, 0), (-2, 0.6, 0.0), (-3, 0.6, 0.0), (-4, 0.6, 0.0)])
+        
+        #HorizontalGridSlotLayout(area, self.getHeight(), 2,2)
         #SlotLayout([(.3, .1, .2), (.3, -.1, .2)])
 
     def action__put_on(self, agent, obj):
@@ -85,10 +90,11 @@ class SpatialSurface(object):
         if pos:
             obj.disable()
             obj.reparentTo(self)
-            obj.setPosition(self.getGeomPos()+pos)
+            pos = (pos[0]+self.getGeomPos()[0], pos[1]+self.getGeomPos()[1], self.getHeight())
+            obj.setPosition(pos)
             obj.set_layout(self.on_layout)
             obj.enable()
-            obj.synchPosQuatToNode()
+            #obj.synchPosQuatToNode()
             return "success"
         return "error: Surface is full"
 

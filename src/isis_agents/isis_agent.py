@@ -649,18 +649,18 @@ class IsisAgent(kinematicCharacterController,DirectObject):
             direction = render.getRelativeVector(self.fov, Vec3(1.0, 0, 0))
             pos = self.player_right_hand.getPos(render)
             heldPos = self.right_hand_holding_object.geom.getPosition()
-            self.right_hand_holding_object.setPosition(pos)
-            self.right_hand_holding_object.synchPosQuatToNode()
+            #self.right_hand_holding_object.setPosition(pos)
+            #self.right_hand_holding_object.synchPosQuatToNode()
             self.right_hand_holding_object.setTag('heldBy', '')
-            self.right_hand_holding_object.setRotation(self.right_hand_holding_object.originalHpr)
+            #self.right_hand_holding_object.setRotation(self.right_hand_holding_object.originalHpr)
             self.right_hand_holding_object.enable()
 
-            if self.right_hand_holding_object.body and throw_object:
+            if self.right_hand_holding_object.body:
                 quat = self.getQuat()
                 # throw object
                 force = 5
                 self.right_hand_holding_object.body.setGravityMode(1)
-                self.right_hand_holding_object.getBody().setForce(quat.xform(Vec3(force, 0, 0)))
+                self.right_hand_holding_object.getBody().setForce(quat.xform(Vec3(0, 0, -1)))
             self.right_hand_holding_object = None
             return 'success'
         else:
@@ -675,18 +675,18 @@ class IsisAgent(kinematicCharacterController,DirectObject):
             self.left_hand_holding_object.reparentTo(render)
             direction = render.getRelativeVector(self.fov, Vec3(1.0, 0, 0))
             pos = self.player_left_hand.getPos(render)
-            heldPos = self.left_hand_holding_object.geom.getPosition()
-            self.left_hand_holding_object.setPosition(pos)
-            self.left_hand_holding_object.synchPosQuatToNode()
+            #heldPos = self.left_hand_holding_object.geom.getPosition()
+            #self.left_hand_holding_object.setPosition(pos)
+            #self.left_hand_holding_object.synchPosQuatToNode()
             self.left_hand_holding_object.setTag('heldBy', '')
-            self.left_hand_holding_object.setRotation(self.left_hand_holding_object.originalHpr)
+            #self.left_hand_holding_object.setRotation(self.left_hand_holding_object.originalHpr)
             self.left_hand_holding_object.enable()
-            if self.left_hand_holding_object.body and throw_object:
+            if self.left_hand_holding_object.body:# and throw_object:
                 quat = self.getQuat()
                 # throw object
-                force = 5
+                force = -1
                 self.left_hand_holding_object.body.setGravityMode(1)
-                self.left_hand_holding_object.getBody().setForce(quat.xform(Vec3(force,0, 0)))
+                self.left_hand_holding_object.getBody().setForce(quat.xform(Vec3(0,0, force)))
             self.left_hand_holding_object = None
             return 'success'
         else:

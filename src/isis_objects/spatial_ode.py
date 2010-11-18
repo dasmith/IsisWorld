@@ -48,7 +48,7 @@ class SpatialContainer(object):
             obj.reparentTo(self)
             pos = (pos[0]+self.getGeomPos()[0]+obj.offset_vector[0],
                    pos[1]+self.getGeomPos()[1]+obj.offset_vector[1],
-                   self.getHeight()+obj.offset_vector[2])
+                   self.getHeight()/2+obj.offset_vector[2])
             obj.setPosition(pos)
             obj.setRotation(obj.offset_vector[3:])
             obj.set_layout(self.in_layout)
@@ -143,19 +143,24 @@ class SpatialPickableBox(pickableObject):
         self.physics.addObject(self)
 
 
-class SpatialPickableContainer(object):
+class SpatialPickableContainer(pickableObject):
     #priority = 19
     def __init__(self):
+        pickableObject.__init__(self, "box", 0.5)
+        self.friction = 1.0      
+        self.showCCD = False
         self.containerItems = []
 
     def setup(self):
+        self.geomSize =self.physics.extractSizeForBoxGeom(self.activeModel)
+        pos = self.activeModel.getPos(render)
+        quat = self.activeModel.getQuat(render)
+        self.setupGeomAndPhysics(self.physics, pos, quat)
+        self.physics.addObject(self)
         self.in_layout = HorizontalGridLayout((self.getWidth(), self.getLength()), self.getHeight())
-        self.collisionCallback = self.enterContainer
+        #self.collisionCallback = None
         if hasattr(self,'geom'):
             self.setCatColBits("container")
-
-    def update(self,x=None):
-        print "Update method called for", self.name, x
 
     def action__put_in(self, agent, obj):
         # TODO: ensure that object can fit in other object
@@ -173,7 +178,7 @@ class SpatialPickableContainer(object):
             obj.reparentTo(self)
             pos = (pos[0]+self.getGeomPos()[0]+obj.offset_vector[0],
                    pos[1]+self.getGeomPos()[1]+obj.offset_vector[1],
-                   self.getHeight()+obj.offset_vector[2])
+                   pos[2]+self.getGeomPos()[2]+obj.offset_vector[2])
             obj.setPosition(pos)
             obj.setRotation(obj.offset_vector[3:])
             obj.set_layout(self.in_layout)

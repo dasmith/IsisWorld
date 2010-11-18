@@ -105,7 +105,7 @@ class knife(IsisObject, IsisVisual, SpatialPickableBox, FunctionalSharp):
         self.density = 25
         IsisObject.__init__(self, **kwargs)
 
-class toaster(IsisObject, IsisVisual, SpatialPickableBox, SpatialContainer, FunctionalCooker):
+class toaster(IsisObject, IsisVisual, SpatialPickableContainer, FunctionalCooker):
     
     def __init__(self, **kwargs):
         ######### Base Variables ##########
@@ -126,7 +126,7 @@ class toaster(IsisObject, IsisVisual, SpatialPickableBox, SpatialContainer, Func
         
         #self.registerState("containsToast", [0,1,2])
         IsisObject.__init__(self, **kwargs)
-        self.in_layout = SlotLayout([(-0.2, 0.2, 1.8), (.3, -.1, .2)])
+        self.in_layout = SlotLayout([(-0.2, 0.2, 0.0), (0.2, 0.2, 0.0)])
         #self.in_layout = SlotLayout([(.3, .1, .5), (.3, -.1, .2)])
 
 class bread(IsisObject, IsisVisual, SpatialPickableBox, FunctionalCountable):
@@ -145,7 +145,7 @@ class bread(IsisObject, IsisVisual, SpatialPickableBox, FunctionalCountable):
 class butter(IsisObject, IsisVisual, SpatialPickableBox, FunctionalMass ):
 
     def  __init__(self, **kwargs):
-        self.offset_vector = (-0.6,0.15,0.3,90,90,90)
+        self.offset_vector = (-0.6,0.0,0.3,90,90,90)
         # +x was do the lift
         self.pickup_vector=(0.3,-0.8,-0.3,0,90,0)
         self.model={"default":"butter"}

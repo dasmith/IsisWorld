@@ -110,17 +110,20 @@ class FunctionalCountable(IsisFunctional):
         def __action_cook_callback(start_val, end_val):
             """ Changes the appearance of the cooked item to match the cooked state.
             If it is cooked more than 3 times, then it dispapears?"""
-            print "Cooked callback called for ", self.name
-            if not hasattr(self,'cookableRawModel'):
-                self.cookableRawModel = "default"
-            if not hasattr(self,'cookableCookedModel'):
-                print "Warning: %s has no Cookable.cookableCookedModel model defined, using default." % self.name
-                self.cookableCookedModel = "default"
-            #self.changeModel(self.cookableRawModel)
-
+            print "Cooked callback called for ", self.name, end_val
+            if hasattr(self,'functional_cooked_model') and end_val > 0:
+                self.changeModel(self.functional_cooked_model)
+            elif end_val > 0:
+                # just make the model darker
+                colors = self.activeModel.getColorScale()
+                new_colors = [0,0,0,0]
+                for i in range(0,3):
+                    new_colors[i] += 10
+                self.activeModel.setColorScale(*new_colors)
+    
         self.add_attribute(OrderedAttribute(name='cooked', domain=[0,1,2,3], visible=True, is_monotonic=True, on_change_func=__action_cook_callback), value=0)
     
-    def action__smear(self, agent, direct_object):
+    def action__wipe(self, agent, direct_object):
         """ Transfers the 'covered_in' attributes from direct_object
         to the current object.
         
@@ -134,10 +137,8 @@ class FunctionalCountable(IsisFunctional):
                 self.add_attribute_value('covered_in', value)
                 value = cia.pop_value()
 
-    def action__cook(self, agent, object):
+    def action__cook(self, agent, direct_object):
         """ This defines an action that changes the state and the corresponding model."""
-        self.changeModel(self.cookableCookedModel)
-        # TODO: if there is no model, just make it darker
         self.set_attribute('cooked', (self.get_attribute_value('cooked')+1))
 
 
@@ -162,7 +163,7 @@ class FunctionalDoor(IsisFunctional):
         IsisFunctional.__init__(self)
         self.add_attribute(BinaryAttribute(name='is_open',visible=True), value=False)
     
-    def afterSetup(self):
+    def after_setup(self):
         if not hasattr(self,'door'):
             print "Warning: no door object defined for FunctionalDoor object", self.name
 
@@ -243,13 +244,18 @@ class FunctionalCooker(FunctionalElectronic):
                 
         self.add_attribute_callback('is_on', launch_turn_cooker_on_isis_event)
     
-        #taskMgr.doMethodLater(5, self.__timerDone, "Cooker Timer", extraArgs = [])
 
     def action__cook(self, agent, direct_object):
         print "Cooking...", direct_object, " in ", self.name
+        def cooking_callback_function():
+            for obj in self.in_layout.getItems():
+                obj.call("cook", None, None)
+            
+        taskMgr.doMethodLater(5, self.cooking_callback_function, "Cooker Timer", extraArgs = [])
         if self.cook_on:
             for obj in self.on_layout.getItems():
                 print obj.name
+                       
                 obj.call(agent, "cook", direct_object)
         if self.cook_in:
             for obj in self.in_layout.getItems():

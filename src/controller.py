@@ -26,7 +26,8 @@ class Controller(object, FSM):
         # define the acceptable state transitions
         self.defaultTransitions = {
             'Menu' : ['Scenario'],
-            'Scenario' : ['Menu','TaskPaused'],
+            'Scenario' : ['Menu','TaskPaused', 'ScenarioLoadError'],
+            'ScenarioLoadError' : ['Menu', 'Scenario'],
             'TaskPaused' : ['Menu','TaskTrain','TaskTest','Scenario'],
             'TaskTrain' : ['TaskPaused','TaskTest','Menu','Scenario'],
             'TaskTest' : ['TaskPaused','TaskTrain','Menu','Scenario'],

@@ -31,7 +31,7 @@ class Scenario(IsisScenario):
         put_in(ta4, k)
 
         t = toaster()
-        put_on(t, ta2)
+        put_on(t, ta)
 
         kn = knife()
         put_on(kn, ta)

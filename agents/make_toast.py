@@ -59,7 +59,7 @@ do('turn_right-stop')
 
 print "moving forward"
 do('move_forward-start')
-step(3)
+step(3.6)
 do('move_forward-stop')
 
 """
@@ -82,7 +82,18 @@ for name in objs.keys():
 print do('use_right_hand', {'target':full_table_name, 'action':'put_on'})
 step(.1)
 
+print do('use_left_hand', {'target':full_table_name, 'action':'put_on'})
+step(.1)
 
+print "picking up knife"
+print do('pick_up_with_right_hand', {'target':'knife'})
+step(.1)
+print do('use_right_hand', {'target':'loaf', 'action':'divide'})
+step(.1)
+print do('use_left_hand', {'target':'toaster', 'action':'put_in'})
+step(.1)
+print do('use_right_hand', {'target':'toaster', 'action':'turn_on'})
+step(.1)
 
 """
 

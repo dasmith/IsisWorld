@@ -173,7 +173,6 @@ class IsisAgent(kinematicCharacterController,DirectObject):
 
         self.isSitting = False
         self.isDisabled = False
-        self.msg = None
         self.actorNodePath.setPythonTag("agent", self)
 
         # Initialize the action queue, with a maximum length of queueSize
@@ -696,48 +695,58 @@ class IsisAgent(kinematicCharacterController,DirectObject):
     def control__use_right_hand(self, target = None, action = None):
         # TODO, rename this to use object with 
         if not action:
-            if self.msg:
-                action = self.msg
-            else:
-                action = "divide"
+            return "error: no action specified in IsisAgent::control__use_right_hand "
         if not target:
-            target = self.__get_object_in_center_of_view()
-            if not target:
+            found_item = self.__get_object_in_center_of_view()
+            if not found_item:
                 print "no target in reach"
                 return
         else:
-            target = render.find("**/*" + target + "*").getPythonTag('isisobj')
-            if not target:
-                print "no target in reach"
-                return
-        print "Trying to use object", target
-        if self.can_grasp(target):
-            if(target.call(self, action, self.right_hand_holding_object) or
-              (self.right_hand_holding_object and self.right_hand_holding_object.call(self, action, target))):
+            found_items = IsisAgent.physics.main.worldNode.findAllMatches("**/IsisObject*%s*" % (target))
+            if not found_items:
+                print "no target name %s found" % (target)
+                return "error: no target by that name"
+            found_item = None
+            for potential_item in found_items:
+                if potential_item.hasPythonTag('isisobj'):
+                    found_item = potential_item.getPythonTag("isisobj")
+                    break
+            if not found_item:
+                print "No suitable isisobject found"
+                return "no suitable isisobject found"
+        print "Trying to use object", found_item
+        if self.can_grasp(found_item):
+            if(found_item.call(self, action, self.right_hand_holding_object) or
+              (self.right_hand_holding_object and self.right_hand_holding_object.call(self, action, found_item))):
                 return "success"
             return str(action) + " not associated with either target or object"
         return "target not within reach"
 
     def control__use_left_hand(self, target = None, action = None):
         if not action:
-            if self.msg:
-                action = self.msg
-            else:
-                action = "divide"
+            return "error: no action specified in IsisAgent::control__use_right_hand "
         if not target:
-            target = self.__get_object_in_center_of_view()
-            if not target:
+            found_item = self.__get_object_in_center_of_view()
+            if not found_item:
                 print "no target in reach"
                 return
         else:
-            target = render.find("**/*" + target + "*").getPythonTag('isisobj')
-            if not target:
-                print "no target in reach"
-                return
-        print "Trying to use object", target
-        if self.can_grasp(target):
-            if(target.call(self, action, self.left_hand_holding_object) or
-              (self.left_hand_holding_object and self.left_hand_holding_object.call(self, action, target))):
+            found_items = IsisAgent.physics.main.worldNode.findAllMatches("**/IsisObject*%s*" % (target))
+            if not found_items:
+                print "no target name %s found" % (target)
+                return "error: no target by that name"
+            found_item = None
+            for potential_item in found_items:
+                if potential_item.hasPythonTag('isisobj'):
+                    found_item = potential_item.getPythonTag("isisobj")
+                    break
+            if not found_item:
+                print "No suitable isisobject found"
+                return "no suitable isisobject found"
+        print "Trying to use object", found_item
+        if self.can_grasp(found_item):
+            if(found_item.call(self, action, self.left_hand_holding_object) or
+              (self.left_hand_holding_object and self.left_hand_holding_object.call(self, action, found_item))):
                 return "success"
             return str(action) + " not associated with either target or object"
         return "target not within reach"

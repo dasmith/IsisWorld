@@ -1,7 +1,6 @@
 from pandac.PandaModules import Vec3, BitMask32 
 from ..physics.ode.odeWorldManager import *
 from ..physics.ode.pickables import *
-
 from layout_manager import *
 
 
@@ -13,13 +12,14 @@ class SpatialContainer(object):
     def setup(self):
         self.in_layout = HorizontalGridLayout((self.getWidth(), self.getLength()), self.getHeight())
         self.collisionCallback = self.enterContainer
-        self.setCatColBits("container")
+        if hasattr(self,'geom'):
+            self.setCatColBits("container")
 
     def enterContainer(self,entry,fromObj,toObj):
-        print "Entering container", self.name, fromObj, toObj
-        if fromObj not in self.containerItems:
-
-            self.containerItems.append(fromObj)
+        if fromObj != toObj:
+            print "Entering container", self.name, fromObj, toObj
+            if fromObj not in self.containerItems:
+                self.containerItems.append(fromObj)
 
     def leaveContainer(self,entry,fromObj,toObj):
         print "Removing %s from container", fromObj
@@ -46,13 +46,14 @@ class SpatialContainer(object):
                     agent.control__drop_from_right_hand()
             obj.disable()
             obj.reparentTo(self)
-            print "Geom pos", self.getGeomPos(), self.getPos(), self.getPos(render), self.get_middle(), pos
-            p2 = Vec3(self.getGeomPos()[0], self.getGeomPos()[1], 0)
-            p2 += pos
-            print "Position 2", p2, pos
-            obj.setPosition(p2)
+            pos = (pos[0]+self.getGeomPos()[0]+obj.offset_vector[0],
+                   pos[1]+self.getGeomPos()[1]+obj.offset_vector[1],
+                   self.getHeight()+obj.offset_vector[2])
+            obj.setPosition(pos)
+            obj.setRotation(obj.offset_vector[3:])
             obj.set_layout(self.in_layout)
-            obj.enable()
+            if not "toaster" in self.name:
+                obj.enable() # let the object fall to the floor
             return "success"
         return "container is full"
 
@@ -68,7 +69,7 @@ class SpatialSurface(object):
         # -x moves to the right
         # y moves toward the camera
         
-        self.on_layout =  SlotLayout([(-1, 0.6, 0), (-2, 0.6, 0.0), (-3, 0.6, 0.0), (-4, 0.6, 0.0)])
+        self.on_layout =  SlotLayout([(1.5, 0.6, 0), (1.0, 0.6, 0.0), (0.5, 0.6, 0.0), (0, 0.6, 0.0)])
         
         #HorizontalGridSlotLayout(area, self.getHeight(), 2,2)
         #SlotLayout([(.3, .1, .2), (.3, -.1, .2)])
@@ -90,9 +91,13 @@ class SpatialSurface(object):
         if pos:
             obj.disable()
             obj.reparentTo(self)
-            pos = (pos[0]+self.getGeomPos()[0], pos[1]+self.getGeomPos()[1], self.getHeight())
+            pos = (pos[0]+self.getGeomPos()[0]+obj.offset_vector[0],
+                   pos[1]+self.getGeomPos()[1]+obj.offset_vector[1],
+                   self.getHeight()+obj.offset_vector[2])
             obj.setPosition(pos)
+            obj.setRotation(obj.offset_vector[3:])
             obj.set_layout(self.on_layout)
+     
             obj.enable()
             #obj.synchPosQuatToNode()
             return "success"
@@ -136,6 +141,47 @@ class SpatialPickableBox(pickableObject):
         quat = self.activeModel.getQuat(render)
         self.setupGeomAndPhysics(self.physics, pos, quat)
         self.physics.addObject(self)
+
+
+class SpatialPickableContainer(object):
+    #priority = 19
+    def __init__(self):
+        self.containerItems = []
+
+    def setup(self):
+        self.in_layout = HorizontalGridLayout((self.getWidth(), self.getLength()), self.getHeight())
+        self.collisionCallback = self.enterContainer
+        if hasattr(self,'geom'):
+            self.setCatColBits("container")
+
+    def update(self,x=None):
+        print "Update method called for", self.name, x
+
+    def action__put_in(self, agent, obj):
+        # TODO: ensure that object can fit in other object
+        #  1) internal volume is big enough, 2) vol - vol of other things in there
+        print "IN LAYOUT FUNCT", self.in_layout
+        pos = self.in_layout.add(obj)
+        print "ADDING", obj, "to", self.name
+        if pos:
+            if agent and agent.is_holding(obj.name):
+                if agent.left_hand_holding_object == obj:
+                    agent.control__drop_from_left_hand()
+                elif agent.right_hand_holding_object == obj:
+                    agent.control__drop_from_right_hand()
+            obj.disable()
+            obj.reparentTo(self)
+            pos = (pos[0]+self.getGeomPos()[0]+obj.offset_vector[0],
+                   pos[1]+self.getGeomPos()[1]+obj.offset_vector[1],
+                   self.getHeight()+obj.offset_vector[2])
+            obj.setPosition(pos)
+            obj.setRotation(obj.offset_vector[3:])
+            obj.set_layout(self.in_layout)
+            # don't enable@
+            #obj.enable() # let the object fall to the floor
+            return "success"
+        return "container is full"
+
 
 class SpatialPickableBall(pickableObject):
     def __init__(self):

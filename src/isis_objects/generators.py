@@ -69,7 +69,7 @@ class fridge(IsisObject, IsisVisual, SpatialStaticBox, SpatialContainer, Functio
         # fix the model's misgivings
         fd = self.activeModel.find("**/freezerDoor*")
 
-        fd.setPos(-.66, .6, 1.6)
+        fd.setPos(-.66, .6, 1.8)
         self.door = self.activeModel.find("**/fridgeDoor*")
         self.door.setPos(-0.56, .6, .72)
         #fd.setPos(-.70, .5, 1.78)
@@ -126,7 +126,7 @@ class toaster(IsisObject, IsisVisual, SpatialPickableBox, SpatialContainer, Func
         
         #self.registerState("containsToast", [0,1,2])
         IsisObject.__init__(self, **kwargs)
-        self.in_layout = SlotLayout([(-0.2, 0.2, 1.2), (.3, -.1, .2)])
+        self.in_layout = SlotLayout([(-0.2, 0.2, 1.8), (.3, -.1, .2)])
         #self.in_layout = SlotLayout([(.3, .1, .5), (.3, -.1, .2)])
 
 class bread(IsisObject, IsisVisual, SpatialPickableBox, FunctionalCountable):
@@ -145,9 +145,9 @@ class bread(IsisObject, IsisVisual, SpatialPickableBox, FunctionalCountable):
 class butter(IsisObject, IsisVisual, SpatialPickableBox, FunctionalMass ):
 
     def  __init__(self, **kwargs):
-        self.offset_vector = (-0.4,0.3,0.3,90,90,90)
+        self.offset_vector = (-0.6,0.15,0.3,90,90,90)
         # +x was do the lift
-        self.pickup_vector=(0.4,-0.8,-0.3,0,90,0)
+        self.pickup_vector=(0.3,-0.8,-0.3,0,90,0)
         self.model={"default":"butter"}
         self.scale = 0.05
         

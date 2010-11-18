@@ -49,7 +49,7 @@ do('turn_left-stop')
 
 print "moving forward"
 do('move_forward-start')
-step(4)
+step(4.5)
 do('move_forward-stop')
 
 print "turning right"
@@ -59,7 +59,7 @@ do('turn_right-stop')
 
 print "moving forward"
 do('move_forward-start')
-step(3.6)
+step(3)
 do('move_forward-stop')
 
 """
@@ -95,43 +95,12 @@ step(.1)
 print do('use_right_hand', {'target':'toaster', 'action':'turn_on'})
 step(.1)
 
-"""
-
-print do('pick_up_with_right_hand', {'target':'knife'})
+print "picking up toast"
+do('pick_up_with_left_hand', {'target':'bread'})
+step(0.8)
+print "scooping butter"
+print do('use_right_hand', {'target':'butter', 'action':'scoop'})
 step(.1)
-print do('use_right_hand', {'target':'loaf', 'action':'divide'})
+print "wiping butter on bread"
+print do('use_right_hand', {'target':'bread', 'action':'wipe'})
 step(.1)
-print do('use_left_hand', {'target':'toaster', 'action':'put_in'})
-step(.1)
-print do('use_right_hand', {'target':'toaster', 'action':'turn_on'})
-step(.1)
-
-# Try to use the knife to butter the toast
-# Here I'm just following the format of the above code
-
-# I think the knife is already in the right hand, but uncomment the following 2 lines if I'm wrong
-#print do('pick_up_with_right_hand', {'target':'knife'})
-#step(.1)
-
-# Pick up the butter with the left hand
-print do('pick_up_with_left_hand', {'target':'butter'})
-step(.1)
-
-# Put the butter on the table
-print do('use_left_hand', {'target':'table', 'action':'put_on'})
-step(.1) 
-
-# Spread the butter on the knife
-print do('use_right_hand', {'target':'butter', 'action':'spread'})
-step(.1)
-
-# Pick up the toasted bread
-print do('pick_up_with_left_hand', {'target':'toast'})
-step(.1)
-
-
-# Transfer the butter from the knife to the toasted bread
-print do('use_right_hand', {'target':'toast', 'action':'transfer'})
-step(.1)
-
-"""

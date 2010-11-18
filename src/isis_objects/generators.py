@@ -65,11 +65,12 @@ class fridge(IsisObject, IsisVisual, SpatialStaticBox, SpatialContainer, Functio
         # in_layout must go AFTER IsisObj.__init__ or else it will be overwritten
         #self.in_layout = SlotLayout([(0.8, 0.2, .8), (0, 0, .4),(0, 0, 1.5)])
         self.in_layout = SlotLayout([(0.8, 0.2, .8), (0, 0, 0.4),(0, 0, 1.5)])
+        
     def after_setup(self):
         # fix the model's misgivings
         fd = self.activeModel.find("**/freezerDoor*")
 
-        fd.setPos(-.66, .6, 1.8)
+        fd.setPos(-.66, .6, 1.65)
         self.door = self.activeModel.find("**/fridgeDoor*")
         self.door.setPos(-0.56, .6, .72)
         #fd.setPos(-.70, .5, 1.78)
@@ -138,11 +139,11 @@ class bread(IsisObject, IsisVisual, SpatialPickableBox, FunctionalCountable):
         self.scale = 0.5
         
         self.density = 200
-        
-        self.cookableCookedModel = "toast"
+        self.functional_cooked_model = "toast"
+
         IsisObject.__init__(self, **kwargs)
 
-class butter(IsisObject, IsisVisual, SpatialPickableBox, FunctionalMass ):
+class butter(IsisObject, IsisVisual, SpatialPickableBox, FunctionalDividableMass ):
 
     def  __init__(self, **kwargs):
         self.offset_vector = (-0.6,0.0,0.3,90,90,90)

@@ -106,7 +106,10 @@ class IsisAttribute(object):
                     self._actual_value.add(new_value)
                 else:
                     self._actual_value.append(new_value)
-                
+    
+    def set_callback(self, callback_function):
+        self._callback_function = callback_function
+
     def add_value(self, new_value):
         """ Adds a value to the list of actual values.  Only works to the
         values that _is_single_valued = True """
@@ -115,7 +118,7 @@ class IsisAttribute(object):
         else:
             self.set_value(new_value)
     
-    def pop_value(self, new_value):
+    def pop_value(self):
         """ Removes and returns a value from a list of actual values.  Only works to the
         values that _is_single_valued = True """
         if self._is_single_valued:
@@ -220,7 +223,7 @@ if __name__ == '__main__':
     def func(f,t):
         print "Changing %s to %s" % (f, t)
 
-    x = BinaryAttribute(name='binary', on_change_func=func)
+    x = BinaryAttribute(name='binary')
     print x.get_value()
     assert x.get_value() == True
     x.set_value(False)

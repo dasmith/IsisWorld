@@ -67,6 +67,13 @@ class IsisFunctional():
         this removes and returns one element from the list/set. """
         return self.attributes[attribute_name].pop_value()
 
+    def add_attribute_value(self, attribute_name, value):
+        """ Attempts to add an attribute to a given value """        
+        if self.attributes.has_key(attribute_name):
+            return self.attributes[attribute_name].add_value(value)
+        else:
+            print "Warning: %s does not have attribute %s " % (self.name, attribute_name)
+            return False
     
     def set_attribute(self, attribute_name, value):
         """ Attempts to set an attribute to a given value """        
@@ -75,6 +82,14 @@ class IsisFunctional():
         else:
             print "Warning: %s does not have attribute %s " % (self.name, attribute_name)
             return False
+    
+    def add_attribute_callback(self, attribute_name, callback_func):
+        """ Associates a callback function with an attribute """
+        if self.attributes.has_key(attribute_name):
+            a = self.attributes[attribute_name]
+            a.set_callback(callback_func)
+        else:
+            raise Exception("Error, function does not have attribute %s" % (attribute_name))
 
     def add_attribute(self, attribute, value=None):
         """ Creates a new attribute, which must be of type IsisAttribute, storing it in the
@@ -196,7 +211,7 @@ class FunctionalDividableMass(FunctionalCountable):
 
     def action__scoop(self, agent, direct_object):
         if direct_object != None and direct_object.has_attribute('covered_in'):
-            direct_object.add_attribute_value(self.name)
+            direct_object.add_attribute_value("covered_in", self.name)
         else:
             print "Error, you cannot scoop something without a covered_in attribute like" % self.direct_object
             return None
@@ -217,7 +232,9 @@ class FunctionalElectronic(FunctionalCountable):
         self.add_attribute(BinaryAttribute(name='is_on',visible=True), value=False)
 
     def action__turn_on(self, agent, object):
+        print "TURN ON CALLED"
         self.set_attribute('is_on', True)
+        return "success"
 
     def action__turn_off(self, agent, object):
         self.set_attribute('is_on', False)
@@ -230,35 +247,22 @@ class FunctionalCooker(FunctionalElectronic):
     """
     def __init__(self):
         FunctionalElectronic.__init__(self)
-        if not hasattr(self,'cook_in'):
-            self.cook_in = False
-        if not hasattr(self,'cook_on'):
-            self.cook_on = False
-        
-        return True
-        
+
         def launch_turn_cooker_on_isis_event():
             # check preconditions for
             # x = IsisEvent()
             print "Could not turn on cooker because...."
-                
-        self.add_attribute_callback('is_on', launch_turn_cooker_on_isis_event)
+        
+        def cooking_callback(f, t):
+            print "Cooking... in", self.name
+            def cooking_callback_function():
+                for obj in self.in_layout.getItems():
+                    obj.call(None, "cook", None)
+                    obj.setZ(obj.getZ()+0.7) # pop up toast
+
+            taskMgr.doMethodLater(5, cooking_callback_function, "Cooker Timer", extraArgs = [])
+            
+        #turn_on_call = lambda : self.action__cook(agent)
+        self.add_attribute_callback('is_on', cooking_callback)
     
 
-    def action__cook(self, agent, direct_object):
-        print "Cooking...", direct_object, " in ", self.name
-        def cooking_callback_function():
-            for obj in self.in_layout.getItems():
-                obj.call("cook", None, None)
-            
-        taskMgr.doMethodLater(5, self.cooking_callback_function, "Cooker Timer", extraArgs = [])
-        if self.cook_on:
-            for obj in self.on_layout.getItems():
-                print obj.name
-                       
-                obj.call(agent, "cook", direct_object)
-        if self.cook_in:
-            for obj in self.in_layout.getItems():
-                print obj.name
-                obj.call(agent, "cook", direct_object)
-        print "done."

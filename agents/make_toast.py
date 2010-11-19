@@ -24,7 +24,6 @@ time.sleep(5)
 print "pausing"
 print e.do('meta_pause')
 
-
 # look for the toast
 print "Looking down to the loaf"
 print do('look_down-start')
@@ -41,21 +40,21 @@ do('pick_up_with_right_hand', {'target':'loaf'})
 step(0.8)
 
 do('move_backward-start')
-step(0.8)
+step(0.2)
 do('move_backward-stop')
 
 do('turn_left-start')
-step(1.3)
+step(0.25)
 do('turn_left-stop')
 
 print "moving forward"
 do('move_forward-start')
-step(4.5)
+step(0.1)
 do('move_forward-stop')
 
 print "turning right"
 do('turn_right-start')
-step(1.3)
+step(0.25)
 do('turn_right-stop')
 
 print "moving forward"

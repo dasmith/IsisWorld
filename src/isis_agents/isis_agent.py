@@ -192,7 +192,7 @@ class IsisAgent(kinematicCharacterController,DirectObject):
     def reparentTo(self, parent):
         self.actorNodePath.reparentTo(parent)
 
-    def setControl(self, control, value):
+    def _set_control(self, control, value):
         """Set the state of one of the character's movement controls.  """
         self.controlMap[control] = value
     
@@ -305,117 +305,117 @@ class IsisAgent(kinematicCharacterController,DirectObject):
     # control functions
     
     def control__turn_left__start(self, speed=None):
-        self.setControl("turn_left",  1)
-        self.setControl("turn_right", 0)
+        self._set_control("turn_left",  1)
+        self._set_control("turn_right", 0)
         if speed:
             self.speeds[0] = speed
         return "success"
 
     def control__turn_left__stop(self):
-        self.setControl("turn_left",  0)
+        self._set_control("turn_left",  0)
         return "success"
 
     def control__turn_right__start(self, speed=None):
-        self.setControl("turn_left",  0)
-        self.setControl("turn_right", 1)
+        self._set_control("turn_left",  0)
+        self._set_control("turn_right", 1)
         if speed:
             self.speeds[1] = speed
         return "success"
 
     def control__turn_right__stop(self):
-        self.setControl("turn_right", 0)
+        self._set_control("turn_right", 0)
         return "success"
 
     def control__move_forward__start(self, speed=None):
-        self.setControl("move_forward",  1)
-        self.setControl("move_backward", 0)
+        self._set_control("move_forward",  1)
+        self._set_control("move_backward", 0)
         if speed:
             self.speeds[2] = speed
         return "success"
 
     def control__move_forward__stop(self):
-        self.setControl("move_forward",  0)
+        self._set_control("move_forward",  0)
         return "success"
 
     def control__move_backward__start(self, speed=None):
-        self.setControl("move_forward",  0)
-        self.setControl("move_backward", 1)
+        self._set_control("move_forward",  0)
+        self._set_control("move_backward", 1)
         if speed:
             self.speeds[3] = speed
         return "success"
 
     def control__move_backward__stop(self):
-        self.setControl("move_backward", 0)
+        self._set_control("move_backward", 0)
         return "success"
 
     def control__move_left__start(self, speed=None):
-        self.setControl("move_left",  1)
-        self.setControl("move_right", 0)
+        self._set_control("move_left",  1)
+        self._set_control("move_right", 0)
         if speed:
             self.speeds[4] = speed
         return "success"
 
     def control__move_left__stop(self):
-        self.setControl("move_left",  0)
+        self._set_control("move_left",  0)
         return "success"
 
     def control__move_right__start(self, speed=None):
-        self.setControl("move_right",  1)
-        self.setControl("move_left", 0)
+        self._set_control("move_right",  1)
+        self._set_control("move_left", 0)
         if speed:
             self.speeds[5] = speed
         return "success"
 
     def control__move_right__stop(self):
-        self.setControl("move_right",  0)
+        self._set_control("move_right",  0)
         return "success"
 
     def control__look_left__start(self, speed=None):
-        self.setControl("look_left",  1)
-        self.setControl("look_right", 0)
+        self._set_control("look_left",  1)
+        self._set_control("look_right", 0)
         if speed:
             self.speeds[9] = speed
         return "success"
 
     def control__look_left__stop(self):
-        self.setControl("look_left",  0)
+        self._set_control("look_left",  0)
         return "success"
 
     def control__look_right__start(self, speed=None):
-        self.setControl("look_right",  1)
-        self.setControl("look_left", 0)
+        self._set_control("look_right",  1)
+        self._set_control("look_left", 0)
         if speed:
             self.speeds[8] = speed
         return "success"
 
     def control__look_right__stop(self):
-        self.setControl("look_right",  0)
+        self._set_control("look_right",  0)
         return "success"
 
     def control__look_up__start(self, speed=None):
-        self.setControl("look_up",  1)
-        self.setControl("look_down", 0)
+        self._set_control("look_up",  1)
+        self._set_control("look_down", 0)
         if speed:
             self.speeds[6] = speed
         return "success"
 
     def control__look_up__stop(self):
-        self.setControl("look_up",  0)
+        self._set_control("look_up",  0)
         return "success"
 
     def control__look_down__start(self, speed=None):
-        self.setControl("look_down",  1)
-        self.setControl("look_up",  0)
+        self._set_control("look_down",  1)
+        self._set_control("look_up",  0)
         if speed:
             self.speeds[7] = speed
         return "success"
 
     def control__look_down__stop(self):
-        self.setControl("look_down",  0)
+        self._set_control("look_down",  0)
         return "success"
 
     def control__jump(self):
-        self.setControl("jump",  1)
+        self._set_control("jump",  1)
         return "success"
 
     def control__view_objects(self):
@@ -788,8 +788,17 @@ class IsisAgent(kinematicCharacterController,DirectObject):
             left_hand_obj = {self.left_hand_holding_object.getName() : self.left_hand_holding_object.get_all_attributes_and_values(False)}
         if self.right_hand_holding_object: 
             right_hand_obj = {self.right_hand_holding_object.getName() : self.right_hand_holding_object.get_all_attributes_and_values(False)}
-        return {'body_x': x, 'body_y': y, 'body_z': z,'body_h':h,\
-                'body_p': p, 'body_r': r,  'in_left_hand': left_hand_obj, 'in_right_hand':right_hand_obj}
+        return {'body_x': x, 
+                'body_y': y, 
+                'body_z': z,
+                'body_h':h,
+                'body_p': p,
+                'body_r': r,
+                'left_hand_pos': list(self.player_left_hand.getPosHpr()),
+                'right_hand_pos': list(self.player_right_hand.getPosHpr()),
+                'neck_pos': list(self.neck.getPosHpr()),
+                'in_left_hand':left_hand_obj,
+                'in_right_hand':right_hand_obj}
 
     def sense__get_vision(self):
         self.fov.node().saveScreenshot("temp.jpg")

@@ -17,8 +17,8 @@ def sense():
 def step(t):
     e.do('meta_pause')
     e.do('meta_step', {'seconds':t})
-    while e.do('meta_running'):
-        time.sleep(0.001)
+    while e.do('meta_physics_active'):
+        time.sleep(0.2)
 
 def do(command, args = None):
     if not args:

@@ -101,7 +101,7 @@ Here are a few helper functions to connect to the simulator:
     def step(t):
         e.do('meta_pause')
         e.do('meta_step', {'seconds':t})
-        while e.do('meta_running'):
+        while e.do('meta_physics_active'):
             time.sleep(0.001)
 
     def do(command, args = None):
@@ -155,7 +155,7 @@ The following **meta commands** are defined that allow you to query and change t
     'meta_train',
     'meta_test',
     'meta_setup_thought_layers',
-    'meta_physics_is_active'
+    'meta_physics_active'
 
 Additionally, agents can execute actions.  For an up-to-date list of actions available to the agent, use the `meta_list_actions` command to return a list.
 

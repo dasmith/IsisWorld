@@ -31,7 +31,7 @@ class IsisCommandHandler(object):
                                'meta_test',
                                'meta_setup_thought_layers',
                                'step_simulation',
-                               'meta_physics_is_active']
+                               'meta_physics_active']
         #self.logger = Logger("logs")
         #self.logger.createLog(str(int(time.time())), "Test scenario making toast", "Create toast")
         

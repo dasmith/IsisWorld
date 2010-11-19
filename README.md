@@ -126,24 +126,14 @@ Here are a few helper functions to connect to the simulator:
     # load the toast scenario
     print e.do('meta_load_task', {'task': tasks[0]})
 
-    print 'Going into training mode'
+    # enter training mode
     print e.do('meta_train')
-
-    print "pausing"
-    print e.do('meta_pause')
-
-    # look for the toast
-    print "Looking down until you see the loaf the loaf"
-    print do('look_down-start')
-    while get_obj_xy('butter') < 0.5:
-        step(.4)
-    do('look_down-stop')
-
-    print "picking up butter"
+    
+    # pick up butter
     print do('pick_up_with_left_hand', {'target':'butter'})
     step(.2)
 
-    print "picking up loaf"
+    # pick up loaf
     do('pick_up_with_right_hand', {'target':'loaf'})
     step(0.8)
 

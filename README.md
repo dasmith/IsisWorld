@@ -229,7 +229,7 @@ Ralph describes his actions or Sue's actions as an English verb phrase.
 
 ## Physics
 
-The location of an object over time is defined by is *position* in three dimensional space, $(x,y,z)$, and its *orientation*--its rotation around the three axes, $(h,p,r)$.  Unfortunately, 3D models often exist is arbitrary coordinate systems, with varying scales. So before adding a model to IsisWorld, one should run the positioning tool to normalize the model's scale, position and orientation.
+The location of an object over time is defined by is *position* in three dimensional space, `(x,y,z)`, and its *orientation*--its rotation around the three axes, `(h,p,r)`.  Unfortunately, 3D models often exist is arbitrary coordinate systems, with varying scales. So before adding a model to IsisWorld, one should run the positioning tool to normalize the model's scale, position and orientation.
 
 Angular and linear forces can be modeled along with densities of objects by the Open Dynamics Engine. 
 IsisWorld uses Piotr Podgórski's [ODE Middleware for Panda3D](http://www.panda3d.org/forums/viewtopic.php?t=7913), which permits modeling static, kinematic, dynamic and ray objects.
@@ -238,7 +238,7 @@ Note, Panda3D's  [ODE integration](http://www.panda3d.org/wiki/index.php/Using_O
 
 ## State controller
 
-The state of the simulator represented by a [FSM](http://www.panda3d.org/wiki/index.php/Finite_State_Machines) that can be controlled either through the GUI or by issuing `meta_` commands through the XML-RPC client.
+The state of the simulator represented by a [Finite-State Machine](http://www.panda3d.org/wiki/index.php/Finite_State_Machines) that can be controlled either through the GUI or by issuing `meta_` commands through the XML-RPC client.
 
 
 

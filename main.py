@@ -75,16 +75,9 @@ class IsisWorld(DirectObject):
         
         self.__enable_xmlrpc_vision = False
         self.__xmlrpc_port_number = 8001
-
-        self._setup_base_environment(debug=False)
-        self._setup_lights()
-        self._setup_cameras()
-        self._setup_offscreen_texture()
+        self.__display_usage_information = False
+        self.__use_default_scenario = False
         
-        # initialize Finite State Machine to control UI
-        self.controller = Controller(self, base)
-        
-        self._setup_actions()
         def usage():
             print "IsisWorld command line options"
             print "-"*30
@@ -103,7 +96,6 @@ class IsisWorld(DirectObject):
             sys.exit(2)
             
         self.verbosity = 0
-        self._defaultTask = None
         for o, a in opts:
             if o == "-v":
                 self.verbosity = a
@@ -112,17 +104,34 @@ class IsisWorld(DirectObject):
             elif o == '-p':
                 self.__xmlrpc_port_number = a 
             elif o in ("-h", "--help"):
-                usage()
-                sys.exit()
+                self.__display_usage_information = True
             elif o in ("-D", "--default"):
-                # go to the first scenario
-                self._defaultTask = a
-                while not self.controller.loaded: time.sleep(0.0001)
-                self.controller.request('Scenario')
-                self.controller.request('TaskPaused')
+                self.__use_default_scenario = True
             else:
                 assert False, "unhandled option"
         
+        self._setup_base_environment(debug=False)
+        self._setup_lights()
+        self._setup_cameras()
+        self._setup_offscreen_texture()
+        
+        # initialize Finite State Machine to control UI
+        self.controller = Controller(self, base)
+        
+        self._setup_actions()
+        
+        if self.__display_usage_information:
+            usage()
+            sys.exit()
+
+        self._defaultTask = None
+        if self.__use_default_scenario:
+            # go to the first scenario
+            self._defaultTask = a
+            while not self.controller.loaded: time.sleep(0.0001)
+            self.controller.request('Scenario')
+            self.controller.request('TaskPaused')
+
         self._text_object_visible = True
         # turn off main help menu by default
         self._toggle_instructions_window()
@@ -455,7 +464,7 @@ class IsisWorld(DirectObject):
             agentPos = newAgent.actorNodePath.getPos(render)
             newAgent.actorNodePath.reparentTo(room)
             if self.__enable_xmlrpc_vision:
-                self.initialize_retina()
+                newAgent.initialize_retina()
             if agentPos == Vec3(0,0,0):  
                 # get middle
                 roomPos = room.getPos(render)

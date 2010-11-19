@@ -76,12 +76,14 @@ There are several command-line options:
 
 After you have started the agent, you need to 1) load a scenario, and 2) load a task, and 3) unpause the simulator.
 
-## Loading the client
+## Writing a client / agent
 
 You can control the agent running the key-bindings (press `4` to have a list of all keybindings appear on the screen) or by writing a client that connects to the simulator using [XML-RPC](http://en.wikipedia.org/wiki/XML-RPC).  Examples of Python XML-RCP IsisWorld clients can be found in the `agents` folder, although XML-RPC libraries are available for many other languages.
 
 
 ### Running commands through an XML-RPC client:
+
+The following **meta commands** are defined that allow you to control and change the state of the simulator.  
 
     'meta_step',
     'meta_pause',
@@ -97,6 +99,8 @@ You can control the agent running the key-bindings (press `4` to have a list of 
     'meta_setup_thought_layers',
     'step_simulation',
     'meta_physics_is_active'
+
+Additionally, agents can execute actions.  For an up-to-date list of actions available to the agent, use the `meta_list_actions` function to return a list.
 
 ## How to add a new scenario
 

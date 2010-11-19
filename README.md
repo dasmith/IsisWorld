@@ -81,9 +81,77 @@ After you have started the agent, you need to 1) load a scenario, and 2) load a 
 You can control the agent running the key-bindings (press `4` to have a list of all keybindings appear on the screen) or by writing a client that connects to the simulator using [XML-RPC](http://en.wikipedia.org/wiki/XML-RPC).  Examples of Python XML-RCP IsisWorld clients can be found in the `agents` folder, although XML-RPC libraries are available for many other languages.
 
 
+### Example client in Python
+
+Here are a few helper functions to connect to the simulator:
+
+    import xmlrpclib as xml
+    import time
+
+    def connect_to_isis_world(server, port=8001):
+        # connect to environment via XML-RPC
+        e = xml.ServerProxy('http://%s:%i' % (server, port))
+        print "Connecting to server"
+        return e
+
+
+    def sense():
+        return e.do('sense', {'agent':'Ralph'})
+
+    def step(t):
+        e.do('meta_pause')
+        e.do('meta_step', {'seconds':t})
+        while e.do('meta_running'):
+            time.sleep(0.001)
+
+    def do(command, args = None):
+        if not args:
+            args = {}
+        args['agent'] = 'Ralph'
+        return e.do(command, args)
+
+    # connect to isisworld
+    e = connect_to_isis_world(server="localhost", port=8001)
+
+    # list scenarios
+    scenarios = e.do('meta_list_scenarios')
+    print "Listing scenarios: %s" % (scenarios)
+
+    # load the toast scenario
+    print e.do('meta_load_scenario', {'scenario': 'make_toast.py'})
+
+    tasks = e.do('meta_list_tasks')
+    print "Listing tasks: %s" % (tasks)
+
+    # load the toast scenario
+    print e.do('meta_load_task', {'task': tasks[0]})
+
+    print 'Going into training mode'
+    print e.do('meta_train')
+
+    print "pausing"
+    print e.do('meta_pause')
+
+    # look for the toast
+    print "Looking down until you see the loaf the loaf"
+    print do('look_down-start')
+    while get_obj_xy('butter') < 0.5:
+        step(.4)
+    do('look_down-stop')
+
+    print "picking up butter"
+    print do('pick_up_with_left_hand', {'target':'butter'})
+    step(.2)
+
+    print "picking up loaf"
+    do('pick_up_with_right_hand', {'target':'loaf'})
+    step(0.8)
+
+
+
 ### Running commands through an XML-RPC client:
 
-The following **meta commands** are defined that allow you to control and change the state of the simulator.  
+The following **meta commands** are defined that allow you to query and change the state of the simulator: 
 
     'meta_step',
     'meta_pause',
@@ -100,6 +168,7 @@ The following **meta commands** are defined that allow you to control and change
     'meta_physics_is_active'
 
 Additionally, agents can execute actions.  For an up-to-date list of actions available to the agent, use the `meta_list_actions` command to return a list.
+
 
 ## How to add a new scenario
 

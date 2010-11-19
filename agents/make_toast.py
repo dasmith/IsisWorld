@@ -95,6 +95,10 @@ step(.1)
 print do('use_right_hand', {'target':'toaster', 'action':'turn_on'})
 step(.1)
 
+do('look_left-start')
+while not get_obj_xy('toaster'):
+    step(.1)
+do('look_left-stop')
 
 while get_obj_dict('toaster')['attributes']['is_on']:
     print "waiting for toaster"

@@ -146,7 +146,7 @@ class bread(IsisObject, IsisVisual, SpatialPickableBox, FunctionalCountable):
 class butter(IsisObject, IsisVisual, SpatialPickableBox, FunctionalDividableMass ):
 
     def  __init__(self, **kwargs):
-        self.offset_vector = (-0.6,0.0,0.3,90,270,90)
+        self.offset_vector = (-0.6,0.0,-0.3,90,270,90)
         # +x was do the lift
         self.pickup_vector=(0.3,-0.8,-0.3,0,90,0)
         self.model={"default":"butter"}

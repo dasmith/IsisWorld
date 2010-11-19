@@ -788,15 +788,10 @@ class IsisAgent(kinematicCharacterController,DirectObject):
             left_hand_obj = {self.left_hand_holding_object.getName() : self.left_hand_holding_object.get_all_attributes_and_values(False)}
         if self.right_hand_holding_object: 
             right_hand_obj = {self.right_hand_holding_object.getName() : self.right_hand_holding_object.get_all_attributes_and_values(False)}
-        return {'body_x': x, 
-                'body_y': y, 
-                'body_z': z,
-                'body_h':h,
-                'body_p': p,
-                'body_r': r,
-                'left_hand_pos': list(self.player_left_hand.getPos()),
-                'right_hand_pos': list(self.player_right_hand.getPos()),
-                'neck_pos': list(self.neck.getPos()),
+        return {'body_pos' : list(self.actorNodePath.getPos())+list(self.actorNodePath.getHpr()),
+                'left_hand_pos': list(self.player_left_hand.getPos())+list(self.player_left_hand.getHpr()),
+                'right_hand_pos': list(self.player_right_hand.getPos())+list(self.player_right_hand.getHpr()),
+                'neck_pos': list(self.neck.getPos())+list(self.neck.getHpr()),
                 'in_left_hand':left_hand_obj,
                 'in_right_hand':right_hand_obj}
 

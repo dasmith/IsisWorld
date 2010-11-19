@@ -14,6 +14,24 @@
   - Storing and resuming game states
   - UI overhaul: clean up, make UI much more thin.
   - re-write layout managers
+  
+## Model adding tool
+
+One of the main goals of IsisWorld is to allow end users to easily add new models to the simulator. Thee most tedious and time consuming part of building a scenario is making the objects' positions look realistic.  When loading a new model, the middle point (0,0,0) is arbitrarily defined and sometimes not even a part of the 3D visual model.   I have been accommodating these differences using two vectors that are added to the default positions of the objects
+
+  - **offset_vector** = (x,y,z,h,p,r):  whenever an object is put in, or on, another object.
+  - **pickup_vector** = (x,y,z,h,p,r): whenever the object is picked up, i.e., attached to one of the agent's hands.
+
+Another problems is with the arbitrary scale of a model.  Often a model is way too large and needs to scaled to a tenth or hundred of the original size.  This is bad, because some of Panda's visual optimization techniques don't work with very scaled-down models.
+
+What IsisWorld needs is a script that allows the user to view the model to tweak it.  I'm thinking something like [pview](http://www.panda3d.org/manual/index.php/Previewing_3D_Models_in_Pview), with an IsisAgent inside for scale and seeing what it looks like when an agent is holding an object, that we could use to compute the scaling parameter and the offset vectors using Panda3D's built-in `model.place()` GUI. Currently, the tedious process involves: loading the scene, having an agent pick it up, figuring out which dimension to rotate/scale it, and then editing the file.
+
+The script could be as a wrapper to [egg-optchar](http://www.panda3d.org/manual/index.php/List_of_Panda3D_Executables), then we could do away with the offset/pickup vectors altogether.
+
+For example, this is how you scale the model by a, rotate it by h,p,r and translate it by x,y,z.
+
+    egg-optchar -o output.egg -TS a -TS h,p,r -TT x,y,z input.egg
+ 
 
 ## Has Been Done List
 
@@ -180,17 +198,6 @@ Note, Panda3D's  [ODE integration](http://www.panda3d.org/wiki/index.php/Using_O
 ## State controller
 
 The state of the simulator represented by a [FSM](http://www.panda3d.org/wiki/index.php/Finite_State_Machines) that can be controlled either through the GUI or by issuing `meta_` commands through the XML-RPC client.
-
-
-## Extending corpus of models
-
-Lots that can possibly be added.  Stay focused on the kitchen and the use cases (make toast)
-
- - Can add models from Google's [3D warehouse](http://sketchup.google.com/3dwarehouse/), export them to **egg** files. Instructions: [#1](http://www.panda3d.org/phpbb2/viewtopic.php?t=9013)
- - Blender models can be exported using Chicken.
- - [Alice](http://www.alice.org/index.php?page=gallery/index) I saw a list of these somewhere that were already in the egg file format. Some of these already have animation methods!
- - List of [game models](http://www.panda3d.org/phpbb2/viewtopic.php?t=6880)
- - [(not? immediately useful?) list of resources](http://code.google.com/p/panda3d-models/wiki/Resources)
 
 
 

@@ -794,9 +794,9 @@ class IsisAgent(kinematicCharacterController,DirectObject):
                 'body_h':h,
                 'body_p': p,
                 'body_r': r,
-                'left_hand_pos': list(self.player_left_hand.getPosHpr()),
-                'right_hand_pos': list(self.player_right_hand.getPosHpr()),
-                'neck_pos': list(self.neck.getPosHpr()),
+                'left_hand_pos': list(self.player_left_hand.getPos()),
+                'right_hand_pos': list(self.player_right_hand.getPos()),
+                'neck_pos': list(self.neck.getPos()),
                 'in_left_hand':left_hand_obj,
                 'in_right_hand':right_hand_obj}
 

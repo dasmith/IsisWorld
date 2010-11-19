@@ -56,7 +56,7 @@ GitHub does not appear to interpret Markdown's ~~strikethrough~~ operator, so he
 
 ## Starting the simulator
 
-To run the source code (non-packaged), you first need to have installed the [Panda3D](http://panda3d.com) SDK and have the files locatable from your Python's library path.  Then you can run the simulator:
+To run the source code (non-packaged), you first need to have installed the [Panda3D](http://panda3d.com) SDK such that its library files are locatable from your Python's loading path.  Then you can run the simulator:
 
     python main.py
 

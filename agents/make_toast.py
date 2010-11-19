@@ -40,16 +40,16 @@ do('pick_up_with_right_hand', {'target':'loaf'})
 step(0.8)
 
 do('move_backward-start')
-step(0.2)
+step(0.35)
 do('move_backward-stop')
 
 do('turn_left-start')
-step(0.25)
+step(0.28)
 do('turn_left-stop')
 
 print "moving forward"
 do('move_forward-start')
-step(0.1)
+step(1)
 do('move_forward-stop')
 
 print "turning right"
@@ -59,7 +59,7 @@ do('turn_right-stop')
 
 print "moving forward"
 do('move_forward-start')
-step(3)
+step(.3)
 do('move_forward-stop')
 
 """

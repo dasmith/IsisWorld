@@ -57,24 +57,24 @@ GitHub does not appear to interpret Markdown's ~~strikethrough~~ operator, so he
 IsisWorld loads a scenario: a description of what the generated world will look like along with *tasks* that check to see if a goal state of the world has been reached.   Isis Scenarios are Python files found in the `scenarios/` directory that implement a `Scenario` class.  For example, the file "scenarios/make_toast"
 
 
-  class Scenario(IsisScenario):
+    class Scenario(IsisScenario):
     
-      description = "making toast in isisworld"
-      author = "dustin smith"
-      version = "1"
+        description = "making toast in isisworld"
+        author = "dustin smith"
+        version = 1
 
-      def environment():
-          k = kitchen(length=15, width=15)
-          put_in_world(k)
+        def environment():
+            k = kitchen(length=15, width=15)
+            put_in_world(k)
         
-          f = fridge()
-          put_in(f, k)
+            f = fridge()
+            put_in(f, k)
 
-          b = butter()
-          put_in(b, f)
+            b = butter()
+            put_in(b, f)
 
-          ta = table(scale=7)
-          put_in(ta, k)
+            ta = table(scale=7)
+            put_in(ta, k)
 
 
 ## Environment function

@@ -28,7 +28,7 @@ class IsisCommandHandler(object):
                                'meta_list_tasks',
                                'meta_load_task',
                                'meta_train',
-                               'meta_teta',
+                               'meta_test',
                                'meta_setup_thought_layers',
                                'step_simulation',
                                'meta_physics_is_active']

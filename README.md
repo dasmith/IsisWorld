@@ -52,7 +52,48 @@ GitHub does not appear to interpret Markdown's ~~strikethrough~~ operator, so he
 
 # How to use the simulator.
 
-*Note: This section of the README is incomplete and will be constantly changing.*.
+*Note: This section of the README is incomplete and will be constantly changing.*
+
+## Starting the simulator
+
+To run the source code (non-packaged), you first need to have installed the [Panda3D](http://panda3d.com) SDK and have the files locatable from your Python's library path.  Then you can run the simulator:
+
+    python main.py
+
+There are several command-line options:
+
+    -D:  loads the first task of the first scenario by default
+    -f:  initializes off-screen frame buffers, enabling the `sense_retina_image' commands through XML-RPC.
+    -p [NUMBER]: changes the port from 8001 to another number for the XML-RPC server.
+    -h:  a list of the current command line options.
+
+After you have started the agent, you need to 1) load a scenario, and 2) load a task, and 3) unpause the simulator.
+
+## Loading the client
+
+You can control the agent running the key-bindings (press `4` to toggle the keybinding menu command).
+
+
+
+
+### Running commands through the interface:
+
+    'meta_step',
+    'meta_pause',
+    'meta_resume',
+    'meta_reset',
+    'meta_list_actions',
+    'meta_list_scenarios',
+    'meta_load_scenario',
+    'meta_list_tasks',
+    'meta_load_task',
+    'meta_train',
+    'meta_test',
+    'meta_setup_thought_layers',
+    'step_simulation',
+    'meta_physics_is_active'
+
+## How to add a new scenario
 
 IsisWorld loads a scenario: a description of what the generated world will look like along with *tasks* that check to see if a goal state of the world has been reached.   Isis Scenarios are Python files found in the `scenarios/` directory that implement a `Scenario` class.  For example, the file "scenarios/make_toast"
 

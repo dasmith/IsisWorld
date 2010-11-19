@@ -71,12 +71,12 @@ After you have started the agent, you need to 1) load a scenario, and 2) load a 
 
 ## Loading the client
 
-You can control the agent running the key-bindings (press `4` to toggle the keybinding menu command).
+You can control the agent running the key-bindings (press `4` to have a list of all keybindings appear on the screen) or by writing a client that connects to the simulator using XML-RPC.
 
 
 
 
-### Running commands through the interface:
+### Running commands through an XML-RPC client:
 
     'meta_step',
     'meta_pause',

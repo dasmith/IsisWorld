@@ -106,6 +106,8 @@ Additionally, agents can execute actions.  For an up-to-date list of actions ava
 IsisWorld uses scenario files to define the state of the world and, optionally, a task specification to evaluate the agent's performance.  A scenario file contains  a description of what the generated world will look like along with *tasks* that check to see if a goal state of the world has been reached.   Isis Scenarios are Python files found in the `scenarios/` directory that implement a `Scenario` class.  For example, the file "scenarios/make_toast"
 
 
+    from src.isis_scenario import IsisScenario
+
     class Scenario(IsisScenario):
     
         description = "making toast in isisworld"
@@ -124,6 +126,27 @@ IsisWorld uses scenario files to define the state of the world and, optionally, 
 
             ta = table(scale=7)
             put_in(ta, k)
+            
+            lauren = IsisAgent("Lauren")
+            put_in_world(lauren)
+            put_in_front_of(lauren,f)
+            
+            # required at the end of the environment setup
+            store(locals())
+
+
+        def task_toaster_in_view():
+            #name = "toaster is in view"
+            # define which environment to use (if not the default)
+            #environment = "first"
+
+            def train():
+                k.put_in(r) # put ralph in the kitchen
+
+            def goal_toaster_in_view():
+                return ralph.in_view(t)
+
+            store(locals())
 
 
 ## Environment function

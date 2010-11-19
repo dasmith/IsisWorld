@@ -71,9 +71,7 @@ After you have started the agent, you need to 1) load a scenario, and 2) load a 
 
 ## Loading the client
 
-You can control the agent running the key-bindings (press `4` to have a list of all keybindings appear on the screen) or by writing a client that connects to the simulator using XML-RPC.
-
-
+You can control the agent running the key-bindings (press `4` to have a list of all keybindings appear on the screen) or by writing a client that connects to the simulator using [XML-RPC](http://en.wikipedia.org/wiki/XML-RPC). Client libraries are available for many languages.
 
 
 ### Running commands through an XML-RPC client:
@@ -95,7 +93,7 @@ You can control the agent running the key-bindings (press `4` to have a list of 
 
 ## How to add a new scenario
 
-IsisWorld loads a scenario: a description of what the generated world will look like along with *tasks* that check to see if a goal state of the world has been reached.   Isis Scenarios are Python files found in the `scenarios/` directory that implement a `Scenario` class.  For example, the file "scenarios/make_toast"
+IsisWorld uses scenario files to define the state of the world and the kind of task it is evaluating.  A scenario file contains  a description of what the generated world will look like along with *tasks* that check to see if a goal state of the world has been reached.   Isis Scenarios are Python files found in the `scenarios/` directory that implement a `Scenario` class.  For example, the file "scenarios/make_toast"
 
 
     class Scenario(IsisScenario):
@@ -120,9 +118,7 @@ IsisWorld loads a scenario: a description of what the generated world will look 
 
 ## Environment function
 
-This specifies how to build an IsisWorld.  The classes that are initialized correspond to objects in the `isis_objects/generators.py` file.
-
-
+This function `Scenario.environment()` specifies how to generate an IsisWorld.  The classes that are initialized correspond to objects in the `isis_objects/generators.py` file.  Properties like scale, length, and width are commonly drawn at random from values defined uniformly over an interval; however, these can be fixed by specifying a particular value as a keyword argument, as has been done for the `kitchen` object.
 
 
 ## Tasks

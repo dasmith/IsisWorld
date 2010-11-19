@@ -1,26 +1,26 @@
 
 # To Do List
  
-  - in isis_agent:pick_object_up_with, special handling for objects on surfaces and objects in containers.
-  - exit should kill xmlrpc and then shut down
+  - build tool for normalizing the position and rotations for objects.
+  - UI triggered exit should first kill xmlrpc (and join thread?) before shutting down
   - Loading and running [IsisScenarios](#IsisScenarios) files:
     - buttons for starting a task, running a training and test scenario
     - recording statistics about the task: how many steps since it started, state of task (failed/completed/ongoing)
     - displaying state of task in the menu
-  - specifying scale ranges for some of the common models sizes, the same way the size of the kitchen is chosen from a random range.
   - documenting a skeleton generator file with all possible superclass attributes, so that other people can work on the project by adding / describing models.
-  - working out the kinks in packaging binaries (try by running `make package` on mac)
+  - fix problem of dynamically loading scenario files in panda3d packages.
   - separating actions from the `main.py` as a different data structure in a different file.
   - IsisEvent class
   - Storing and resuming game states
-  - UI overhaul
-  - XMLRPC test cases: ensure loading scenarios and tasks is bugfree
-
+  - UI overhaul: clean up, make UI much more thin.
+  - re-write layout managers
 
 ## Has Been Done List
 
 GitHub does not appear to interpret Markdown's ~~strikethrough~~ operator, so here's the list of changes that have been made since the last version:
- 
+
+  - specifying scale ranges for some of the common models sizes, the same way the size of the kitchen is chosen from a random range.
+  - in isis_agent:pick_object_up_with, special handling for objects on surfaces and objects in containers: Items being removed from containers first have their parent checked to see if `is_open` is True. If it is not, then the pickup action fails.  Objects like the toaster, have `is_open` as a hidden property, that is turned to `False` iff the toaster `is_on`.
   - creation of `IsisAttribute` with consistency checks.
   - scenario files allow defaults to be specified as keyword arguments. `k = kitchen(width=10, height=7)`
   - objects can have "front" orientation that is used to place objects around a room, with their backs to the wall
@@ -31,18 +31,40 @@ GitHub does not appear to interpret Markdown's ~~strikethrough~~ operator, so he
   - exporting screen shots
   - RoomLayout layout manager that puts objects around the walls
 
-# IsisScenarios
 
-Isis Scenarios are Python files found in the `scenarios/` directory.
+# How to use the simulator.
 
-**Settings**:
+*Note: This section of the README is incomplete and will be constantly changing.*.
 
- * Sequential or unordered:  does the simulator reset IsisWorld between each task, or are they staged incrementally?
- * Metadata: a string describing the scenario
+IsisWorld loads a scenario: a description of what the generated world will look like along with *tasks* that check to see if a goal state of the world has been reached.   Isis Scenarios are Python files found in the `scenarios/` directory that implement a `Scenario` class.  For example, the file "scenarios/make_toast"
+
+
+  class Scenario(IsisScenario):
+    
+      description = "making toast in isisworld"
+      author = "dustin smith"
+      version = "1"
+
+      def environment():
+          k = kitchen(length=15, width=15)
+          put_in_world(k)
+        
+          f = fridge()
+          put_in(f, k)
+
+          b = butter()
+          put_in(b, f)
+
+          ta = table(scale=7)
+          put_in(ta, k)
+
 
 ## Environment function
 
-This specifies how to build an IsisWorld.
+This specifies how to build an IsisWorld.  The classes that are initialized correspond to objects in the `isis_objects/generators.py` file.
+
+
+
 
 ## Tasks
 
@@ -57,6 +79,8 @@ For example, putting ralph in front of various objects.
 ### Test
 
 Any function that returns *true* or *false*.  Has access to the entirety of IsisWorld.
+
+
 
 # About the IsisWorld Simulator
 
@@ -81,6 +105,7 @@ Further, we are looking for test bed to study the problems of meta-reasoning: wh
 ## Use cases / Problem Scenarios
 
 The development of the simulator is focused on the following  test scenarios
+
 ### 1. Toast Making: studying first-level planning
 
 Ralph is in the kitchen and has the goals of making and eating toast.  Ralph has to "use" the knife to cut the bread, and then put the bread in the toaster. Problems addressed [[#1](http://web.media.mit.edu/~push/Push.Phd.Proposal.pdf)]:
@@ -113,7 +138,6 @@ Sue is communicating a new sequence of actions.  Ralph must identify Sue's plan 
   * Plan and goal recognition
   * Planning and debugging in simulated mental worlds
 
-
 ### 4. Imprimer learning
 
 Sue is teaching Ralph how *not* to use a kitchen.  He must learn that the faucet must be turned off after being used, doors closed after they are opened, not to leave the refrigerator open for more time than necessary, etc.  He must learn these how to represent and pursue these imagined goals and antigoals of his imprimer.   This must cover the problem of **shared attention**, where the teacher deliberately acts a certain way to encourage the learner to focus on a relevant aspect of the shared situation.
@@ -141,53 +165,22 @@ Learning the labels of objects from examples. Learning to label events/actions w
 
 Ralph describes his actions or Sue's actions as an English verb phrase.
 
-# IsisWorld Sub-Projects
-
-Over the summer of 2010, we plan to make many significant improvements to IsisWorld.  These projects are:
+# Details about specific components of the simulator
 
 
+## Physics
 
-## Implementation of Physics
+The location of an object over time is defined by is *position* in three dimensional space, $(x,y,z)$, and its *orientation*--its rotation around the three axes, $(h,p,r)$.  Unfortunately, 3D models often exist is arbitrary coordinate systems, with varying scales. So before adding a model to IsisWorld, one should run the positioning tool to normalize the model's scale, position and orientation.
 
-**Target Scope**: one week
+Angular and linear forces can be modeled along with densities of objects by the Open Dynamics Engine. 
+IsisWorld uses Piotr Podgórski's [ODE Middleware for Panda3D](http://www.panda3d.org/forums/viewtopic.php?t=7913), which permits modeling static, kinematic, dynamic and ray objects.
 
-Angular and linear forces will be modeled, densities of objects will be represented by a Physical simulator. Because [ODE integration](http://www.panda3d.org/wiki/index.php/Using_ODE_with_Panda3D) in Panda3D is still preliminary [[#1](http://www.panda3d.org/phpbb2/viewtopic.php?t=8207), [#2](http://www.panda3d.org/phpbb2/viewtopic.php?t=9200&sid=cd4e0c8166aadd14238c2e88f1a55282)], and commitment to open source principles has eliminated NVidia's PhysX platform as a viable option, our
-only current option is to use Panda3D's built-in [physics support](http://www.panda3d.org/wiki/index.php/Panda3D_Physics_Engine) and [collision detection](http://www.panda3d.org/wiki/index.php/Collision_Detection).
-Some decent tutorials exist [[#1](http://www.panda3d.org/phpbb2/viewtopic.php?t=4806) [#2](http://www.panda3d.org/phpbb2/viewtopic.php?t=7918)],  and for ODE, when Panda3D's support becomes more robust [[#1](http://www.panda3d.org/phpbb2/viewtopic.php?t=7913)].
+Note, Panda3D's  [ODE integration](http://www.panda3d.org/wiki/index.php/Using_ODE_with_Panda3D) has a memory leak as of 1.7.0 that has been fixed in the latest builds.
 
-### Design ideas
+## State controller
 
-Changing physics engines should be as easy as switching the import statement in `simulator/physics.py`.
+The state of the simulator represented by a [FSM](http://www.panda3d.org/wiki/index.php/Finite_State_Machines) that can be controlled either through the GUI or by issuing `meta_` commands through the XML-RPC client.
 
- - Make the physics handling modular, accessible through the `IsisWorld.worldManager` variable
- - Agents, Objects, and Environment items are initialized separately:
-    - **Agents**: Are sub-classed instances, defined in `simulator/ralph.py` of `PhysicsCharacterController` class, which has an `updatePhysics` method.  Geometrically, these are represented as capped cylinders, as TriMeshes are too computationally expensive.
-    - **Objects**: In ODE, there are two types of objects: kinematic (non-self propelled) and dynamic (capable of self-motion).  Most objects can be represented as a boundedBox, although some are best represented as cylinder or sphere.
-        - Objects can be added through `worldManager.addObjectToPhysics`
-    - **Environment**:  The ground is represented as an infinite plane.  Should represent walls of house as blocks, not TriMesh.
- - Gravity is represented as a linear force downward
-
-## Initialization scripts for designing and loading environments
-
-**Target Scope**: two weeks
-
-As mentioned in the [position paper](http://web.media.mit.edu/~dustin/simulator_metacog_aaai_2010.pdf), we want environments to be *generated* from a space of possible dimensions.  Most of the variable properties of the items (size, location, plurality, color, state) could be left to future work.  Default locations can be specified in a configuration file corresponding to prepositions:
-   - X on Y in Z:  "on" and "in" are less descriptive than 3D (relative) coordinates
-
-This will require a general module for describing and loading components, a large range of visual, physical, linguistic, spatial (default locations), and functions (properties, methods to modify properties) for each object.
-
-  * **Physical**: shape (for Physical collision mask), dynamic or kinesthetic
-  * **Visual**: visibility, color mask, transparency level, scale size (of model)
-  * **Spatial**: default orientation of model, default locations (as represented in abstract descriptions: "in kitchen on table")
-  * **Functional**: use a commonsense **type system** and inheritance structure for **attributes** and **values**  and their **default value** (e.g., `{'is_on': {'domain': [True,False], 'default': False}}`) and **event listeners** to change the properties of these actions, some of which can affect the other kinds of item properties (physical), etc.
-
-### Design ideas
-
-  - Read `kitchen.isis` world in, creating a labeled graph structure: "X on Y" becomes: *graph.addEdge(x,y,label='on')*
-  - With root node "kitchen", [topologically sort](http://en.wikipedia.org/wiki/Topological_sorting) all items.  For each item:
-      - Visually, add models to their parent renderer `attachNodeWrtParent()`
-      - Set default properties of the item
-      - Physically, register item within physics handler
 
 ## Extending corpus of models
 
@@ -199,19 +192,7 @@ Lots that can possibly be added.  Stay focused on the kitchen and the use cases 
  - List of [game models](http://www.panda3d.org/phpbb2/viewtopic.php?t=6880)
  - [(not? immediately useful?) list of resources](http://code.google.com/p/panda3d-models/wiki/Resources)
 
-## Event Handling in simulated world
 
-In addition to items being able to re-act to actions of the character, events can be initiated by states of the world.  For example, when a toaster "is_on" and "contains_item", then after 5 minutes, it changes the state of the item inside to "burned", darkens the color, and turns itself off.
-
-### Design Ideas
-
-Use the [FSM](http://www.panda3d.org/wiki/index.php/Finite_State_Machines) of Panda3D to do this.  Possible approach: using Honda's OMICS corpus
-
-# Kitchen use-cases
-
-Several tasks for evaluating intelligent agents in IsisWorld.
-
-## Creating Toast in the Kitchen
 
 
 ## Resources for Developers

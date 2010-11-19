@@ -17,7 +17,7 @@
   
 ## Model adding tool
 
-One of the main goals of IsisWorld is to allow end users to easily add new models to the simulator. Thee most tedious and time consuming part of building a scenario is making the objects' positions look realistic.  When loading a new model, the middle point (0,0,0) is arbitrarily defined and sometimes not even a part of the 3D visual model.   I have been accommodating these differences using two vectors that are added to the default positions of the objects
+One of the main goals of IsisWorld is to allow end users to easily add new models to the simulator. Thee most tedious and time consuming part of building a scenario is making the objects' positions look realistic.  When loading a new model, the middle point (0,0,0) is arbitrarily defined and sometimes does not even intersect the 3D visual model!  We need a standard: each model should be realistically scaled (with respect to the 2 meter tall Robot), have its bottom center at 0,0,0, being standing upright, with its "Front" facing (1,1,1).    I have been accommodating these differences using two vectors that are added to the default positions of the objects
 
   - **offset_vector** = (x,y,z,h,p,r):  whenever an object is put in, or on, another object.
   - **pickup_vector** = (x,y,z,h,p,r): whenever the object is picked up, i.e., attached to one of the agent's hands.

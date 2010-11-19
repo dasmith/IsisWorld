@@ -34,7 +34,6 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         cls.physics = physics
 
     def __init__(self, name, queueSize = 100):
-        print 'initializing IsisAgent: 0'
         # load the model and the different animations for the model into an Actor object.
         self.actor= Actor("media/models/boxman",
                           {"walk":"media/models/boxman-walk", 
@@ -47,7 +46,6 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         self.activeModel = self.actorNodePath
         
         
-        print 'initializing IsisAgent: 1'
         self.actorNodePath.reparentTo(render)
         
         self.actor.reparentTo(self.actorNodePath)
@@ -121,7 +119,6 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         bubble = loader.loadTexture("media/textures/thought_bubble.png")
         #bubble.setTransparency(TransparencyAttrib.MAlpha)
     
-        print 'initializing IsisAgent: 2'
         self.speech_bubble =DirectLabel(parent=self.actor, text="", text_wordwrap=10, pad=(3,3), relief=None, text_scale=(.3,.3), pos = (0,0,3.6), frameColor=(.6,.2,.1,.5), textMayChange=1, text_frame=(0,0,0,1), text_bg=(1,1,1,1))
         #self.myImage=
         self.speech_bubble.setTransparency(TransparencyAttrib.MAlpha)
@@ -133,7 +130,6 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         self.speech_bubble.hide(BitMask32.bit(1))
         
         
-        print 'initializing IsisAgent: 3'
         self.thought_bubble =DirectLabel(parent=self.actor, text="", text_wordwrap=9, text_frame=(1,0,-2,1), text_pos=(0,.5), text_bg=(1,1,1,0), relief=None, frameSize=(0,1.5,-2,3), text_scale=(.18,.18), pos = (0,0.2,3.6), textMayChange=1, image=bubble, image_pos=(0,0.1,0), sortOrder=5)
         self.thought_bubble.setTransparency(TransparencyAttrib.MAlpha)
         # stop the speech bubble from being colored like the agent
@@ -150,7 +146,6 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         self.last_spoke = 0 # timers to keep track of last thought/speech and 
         self.last_thought =0 # hide visualizations
         
-        print 'initializing IsisAgent: 4'
         # put a camera on ralph
         self.fov = NodePath(Camera('RaphViz'))
         self.fov.node().setCameraMask(BitMask32.bit(1))
@@ -280,8 +275,8 @@ class IsisAgent(kinematicCharacterController,DirectObject):
     
     def initialize_retina(self):
         fbp=FrameBufferProperties(FrameBufferProperties.getDefault())
-        self.retina_buffer  = base.win.makeTextureBuffer("retina-buffer-%s" % (self.name), 320, 240, tex=Texture('retina-texture'), to_ram=True, fbp=fbp)
-        print "made Texture Buffer"
+        self.retina_buffer = base.win.makeTextureBuffer("retina-buffer-%s" % (self.name), 320, 240, tex=Texture('retina-texture'), to_ram=True, fbp=fbp)
+        print "initializing agent Texture Buffer"
         #self.retina_texture = self.retina_buffer.getTexture()
         self.retina_texture = Texture("retina-texture-%s" % (self.name))
         self.retina_buffer.addRenderTexture(self.retina_texture, GraphicsOutput.RTMCopyRam)

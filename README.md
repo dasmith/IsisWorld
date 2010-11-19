@@ -99,7 +99,7 @@ The following **meta commands** are defined that allow you to control and change
     'meta_setup_thought_layers',
     'meta_physics_is_active'
 
-Additionally, agents can execute actions.  For an up-to-date list of actions available to the agent, use the `meta_list_actions` function to return a list.
+Additionally, agents can execute actions.  For an up-to-date list of actions available to the agent, use the `meta_list_actions` command to return a list.
 
 ## How to add a new scenario
 
@@ -136,10 +136,7 @@ IsisWorld uses scenario files to define the state of the world and, optionally, 
 
 
         def task_toaster_in_view():
-            #name = "toaster is in view"
-            # define which environment to use (if not the default)
-            #environment = "first"
-
+  
             def train():
                 k.put_in(r) # put ralph in the kitchen
 

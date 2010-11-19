@@ -47,7 +47,7 @@ class IsisFunctional():
     def get_all_attributes_and_values(self, visible_only=True):
         """ Returns all of the attributes and their values, filters to 
         only the visible attributes if this is defined. """
-        return dict(map(lambda (x,y): (x,y.get_value()), filter(lambda (x,y): not visible_only or y.visible, self.attributes.items())))
+        return dict(filter(lambda (x,y): y != None, map(lambda (x,y): (x,y.get_value()), filter(lambda (x,y): not visible_only or y.visible, self.attributes.items()))))
     
     def has_attribute(self, attribute_name):
         """ Returns whether has attribute name """

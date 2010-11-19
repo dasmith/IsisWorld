@@ -131,7 +131,10 @@ class IsisAttribute(object):
     
     def get_value(self):
         """ Returns the value for the particular attritube """
-        return self._actual_value
+        if isinstance(self._actual_value,set):
+            return list(self._actual_value)
+        else:
+            return self._actual_value
 
 class BinaryAttribute(IsisAttribute):
     """

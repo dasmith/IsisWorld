@@ -134,7 +134,7 @@ class bread(IsisObject, IsisVisual, SpatialPickableBox, FunctionalCountable):
 
     def __init__(self, **kwargs):
         #self.offset_vector = (0,0,-.1,0,-120,-20)
-        self.pickup_vector=(-.125,.225,0,0,-125,0)
+        self.pickup_vector=(-.125,.1,0,0,-125,0)
         self.model={"default":"slice_of_bread", "toast":"piece_of_toast"}
         self.scale = 0.5
         

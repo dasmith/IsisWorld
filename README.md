@@ -31,7 +31,14 @@ The script could be as a wrapper to [egg-optchar](http://www.panda3d.org/manual/
 For example, this is how you scale the model by a, rotate it by h,p,r and translate it by x,y,z.
 
     egg-optchar -o output.egg -TS a -TS h,p,r -TT x,y,z input.egg
- 
+
+Resources for adding new models:
+
+  -Google's [3D warehouse](http://sketchup.google.com/3dwarehouse/) is a huge resource that can be exported to **egg** files. Instructions: [#1](http://www.panda3d.org/phpbb2/viewtopic.php?t=9013).  (Works better with Sketchup Pro and using one of the alternative proprietary export options)
+  - Blender models can be exported using Chicken.
+  - [Alice](http://www.alice.org/index.php?page=gallery/index) I saw a list of these somewhere that were already in the egg file format. Some of these already have animation methods!
+  - List of [game models](http://www.panda3d.org/phpbb2/viewtopic.php?t=6880)
+  - [(not? immediately useful?) list of resources](http://code.google.com/p/panda3d-models/wiki/Resources)
 
 ## Has Been Done List
 
@@ -71,7 +78,7 @@ After you have started the agent, you need to 1) load a scenario, and 2) load a 
 
 ## Loading the client
 
-You can control the agent running the key-bindings (press `4` to have a list of all keybindings appear on the screen) or by writing a client that connects to the simulator using [XML-RPC](http://en.wikipedia.org/wiki/XML-RPC). Client libraries are available for many languages.
+You can control the agent running the key-bindings (press `4` to have a list of all keybindings appear on the screen) or by writing a client that connects to the simulator using [XML-RPC](http://en.wikipedia.org/wiki/XML-RPC).  Examples of Python XML-RCP IsisWorld clients can be found in the `agents` folder, although XML-RPC libraries are available for many other languages.
 
 
 ### Running commands through an XML-RPC client:

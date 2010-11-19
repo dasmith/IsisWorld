@@ -520,6 +520,7 @@ class Controller(object, FSM):
                 dialogbox = RetryCancelDialog(text='There was a problem parsing the scenario file\
                                   : \n %s.  \n\nLocation %s' % (e.message, e.component),\
                                  command=parsingProblemDialogCallback)
+                self.request('ScenarioLoadError')
             else:
                 # define pointer to base scene.
                 room = render.find("**/*kitchen*").getPythonTag("isisobj")

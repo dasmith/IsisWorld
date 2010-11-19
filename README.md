@@ -97,7 +97,6 @@ The following **meta commands** are defined that allow you to control and change
     'meta_train',
     'meta_test',
     'meta_setup_thought_layers',
-    'step_simulation',
     'meta_physics_is_active'
 
 Additionally, agents can execute actions.  For an up-to-date list of actions available to the agent, use the `meta_list_actions` function to return a list.

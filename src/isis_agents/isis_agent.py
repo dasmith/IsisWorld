@@ -206,9 +206,8 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         if exclude == None:
             exclude = ['isisobject', 'all_attributes']
         objects = {}
-        for obj in base.render.findAllMatches("**/IsisObject*"):
-            if not obj.hasPythonTag("isisobj"):
-                continue
+        # find all objects with 'isisobj' tag.  Doesn't work for Python tags 
+        for obj in base.render.findAllMatches("**/=isisobj"):
             o = obj.getPythonTag("isisobj")
             bounds = o.activeModel.getBounds() 
             bounds.xform(o.activeModel.getMat(self.fov))
@@ -564,7 +563,7 @@ class IsisAgent(kinematicCharacterController,DirectObject):
                 print "no target in reach"
                 return "error: no target in center of view"
         else:
-            found_items = IsisAgent.physics.main.worldNode.findAllMatches("**/IsisObject*%s*" % (target))
+            found_items = IsisAgent.physics.main.worldNode.findAllMatches("**/%s*" % (target))
             if not found_items:
                 print "no target name %s found" % (target)
                 return "error: no target by that name"
@@ -610,7 +609,7 @@ class IsisAgent(kinematicCharacterController,DirectObject):
                 print "no target in reach"
                 return "error: no target in center of view"
         else:
-            found_items = IsisAgent.physics.main.worldNode.findAllMatches("**/IsisObject*%s*" % (target))
+            found_items = IsisAgent.physics.main.worldNode.findAllMatches("**/%s*" % (target))
             if not found_items:
                 print "no target name %s found" % (target)
                 return "error: no target by that name"
@@ -700,7 +699,7 @@ class IsisAgent(kinematicCharacterController,DirectObject):
                 print "no target in reach"
                 return
         else:
-            found_items = IsisAgent.physics.main.worldNode.findAllMatches("**/IsisObject*%s*" % (target))
+            found_items = IsisAgent.physics.main.worldNode.findAllMatches("**/%s*" % (target))
             if not found_items:
                 print "no target name %s found" % (target)
                 return "error: no target by that name"
@@ -729,7 +728,7 @@ class IsisAgent(kinematicCharacterController,DirectObject):
                 print "no target in reach"
                 return
         else:
-            found_items = IsisAgent.physics.main.worldNode.findAllMatches("**/IsisObject*%s*" % (target))
+            found_items = IsisAgent.physics.main.worldNode.findAllMatches("**/%s*" % (target))
             if not found_items:
                 print "no target name %s found" % (target)
                 return "error: no target by that name"

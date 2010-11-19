@@ -23,11 +23,12 @@ class IsisObject(NodePath):
         self.__dict__.update(kwargs)
         
         # generate a unique name for the object. unique id uses GENERATORS ID
-        self.name = "IsisObject/"+self.__class__.__name__+"+"+str(id(self))
+        self.name = self.__class__.__name__+"+"+str(id(self))
         NodePath.__init__(self,self.name)
         
         # store pointer to IsisObject subclass        
         self.setPythonTag("isisobj", self)
+        self.setTag("isisobj", 'True')
         if not hasattr(self, 'scale'):
             # generate a scale value
             if not hasattr(self, '_generate_scale_between_end'):                

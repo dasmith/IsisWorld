@@ -18,9 +18,20 @@ class IsisCommandHandler(object):
     
     def __init__(self, simulator):
         self.simulator = simulator
-        self.meta_commands  = ['meta_step','meta_pause','meta_resume','meta_reset','meta_list_actions','meta_list_scenarios', \
-                                   'meta_load_scenario','meta_list_tasks','meta_load_task','meta_train','meta_test','meta_setup_thought_layers','step_simulation', \
-                                   'meta_physics_is_active']
+        self.meta_commands  = ['meta_step',
+                               'meta_pause',
+                               'meta_resume',
+                               'meta_reset',
+                               'meta_list_actions',
+                               'meta_list_scenarios',
+                               'meta_load_scenario',
+                               'meta_list_tasks',
+                               'meta_load_task',
+                               'meta_train',
+                               'meta_teta',
+                               'meta_setup_thought_layers',
+                               'step_simulation',
+                               'meta_physics_is_active']
         #self.logger = Logger("logs")
         #self.logger.createLog(str(int(time.time())), "Test scenario making toast", "Create toast")
         

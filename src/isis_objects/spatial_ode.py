@@ -35,9 +35,10 @@ class SpatialContainer(object):
     def action__put_in(self, agent, obj):
         # TODO: ensure that object can fit in other object
         #  1) internal volume is big enough, 2) vol - vol of other things in there
-        print "IN LAYOUT FUNCT", self.in_layout
         pos = self.in_layout.add(obj)
         print "ADDING", obj, "to", self.name
+        if not obj:
+            return "error: no object specified"
         if pos:
             if agent and agent.is_holding(obj.name):
                 if agent.left_hand_holding_object == obj:
@@ -76,7 +77,8 @@ class SpatialSurface(object):
 
     def action__put_on(self, agent, obj):
         print " CALL TO action__put_on", agent, obj
-
+        if not obj:
+            return "error: no object specified"
         if agent and agent.is_holding(obj.name):
             #agent.is_holding(obj.name):
             if agent.left_hand_holding_object == obj:
@@ -234,6 +236,8 @@ class SpatialRoom(staticObject):
     def action__put_in(self, agent, obj):
         # TODO: ensure that object can fit in other object
         #  1) internal volume is big enough, 2) vol - vol of other things in there
+        if not obj:
+            return "error: no object specified"
         pos = self.in_layout.add(obj)
         print "Putting %s in room %s" % (obj,self)
         #obj.disable() # turn off physics

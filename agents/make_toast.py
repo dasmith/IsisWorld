@@ -26,13 +26,14 @@ print e.do('meta_pause')
 
 
 # look for the toast
-do('look_down-start')
-while get_obj_xy('loaf') < 0.5:
+print "Looking down to the loaf"
+print do('look_down-start')
+while get_obj_xy('butter') < 0.5:
     step(.4)
 do('look_down-stop')
 
 print "picking up butter"
-do('pick_up_with_left_hand', {'target':'butter'})
+print do('pick_up_with_left_hand', {'target':'butter'})
 step(.2)
 
 print "picking up loaf"
@@ -77,7 +78,7 @@ objs = sense()['objects']
 full_table_name = None
 for name in objs.keys():
     if "table" in name: 
-        full_table_name  = name.replace("IsisObject/","")
+        full_table_name  = name
 
 print do('use_right_hand', {'target':full_table_name, 'action':'put_on'})
 step(.1)

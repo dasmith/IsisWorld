@@ -29,6 +29,7 @@ directly.
 
 
 """
+from direct.interval.IntervalGlobal import *
 from direct.task import Task, TaskManagerGlobal
 
 from isis_attribute import *
@@ -133,8 +134,9 @@ class FunctionalCountable(IsisFunctional):
                 colors = self.activeModel.getColorScale()
                 new_colors = [0,0,0,0]
                 for i in range(0,3):
-                    new_colors[i] += 10
-                self.activeModel.setColorScale(*new_colors)
+                    new_colors[i] += .33*end_val
+                print "setting new colors to", new_colors
+                self.activeModel.setColor(*new_colors)
     
         self.add_attribute(OrderedAttribute(name='cooked', domain=[0,1,2,3], visible=True, is_monotonic=True, on_change_func=__action_cook_callback), value=0)
     
@@ -144,18 +146,18 @@ class FunctionalCountable(IsisFunctional):
         
         FUTURE: should this be generalized into a 'event-of-transfer'?
         """
-        transferred_substances = []
         if direct_object.has_attribute('covered_in'):
             cia = direct_object.get_attribute('covered_in')
             value = cia.pop_value()
             while value != None:
                 self.add_attribute_value('covered_in', value)
                 value = cia.pop_value()
-
+        return "success"
+                
     def action__cook(self, agent, direct_object):
         """ This defines an action that changes the state and the corresponding model."""
         self.set_attribute('cooked', (self.get_attribute_value('cooked')+1))
-
+        return "success"
 
 class FunctionalMass(IsisFunctional):
     """ FunctionalMass is used for defining objects where their parts are also pieces of the self-same
@@ -163,8 +165,6 @@ class FunctionalMass(IsisFunctional):
     """
     def __init__(self):
         IsisFunctional.__init__(self)
-        #self.add_attribute(NominalAttribute(name='owners', is_unique=True, is_single_valued=False))
-
 
 class FunctionalDoor(IsisFunctional):
     """ Implements the 'action__open' method, allowing a part of the model to be "opened"
@@ -203,11 +203,10 @@ class FunctionalDividableCountable(FunctionalCountable):
                 print "Error - no free hand"
         return None
 
-class FunctionalDividableMass(FunctionalCountable):
+class FunctionalDividableMass(FunctionalMass):
     def __init__(self):
-        FunctionalCountable.__init__(self)
-        if not hasattr(self,'piece'):
-            print "Warning: no piece object defined for Dividable object", self.name
+        FunctionalMass.__init__(self)
+
 
     def action__scoop(self, agent, direct_object):
         if direct_object != None and direct_object.has_attribute('covered_in'):
@@ -215,6 +214,7 @@ class FunctionalDividableMass(FunctionalCountable):
         else:
             print "Error, you cannot scoop something without a covered_in attribute like" % self.direct_object
             return None
+        return "success"
 
 
 class FunctionalSharp(FunctionalCountable):
@@ -232,12 +232,12 @@ class FunctionalElectronic(FunctionalCountable):
         self.add_attribute(BinaryAttribute(name='is_on',visible=True), value=False)
 
     def action__turn_on(self, agent, object):
-        print "TURN ON CALLED"
         self.set_attribute('is_on', True)
         return "success"
 
     def action__turn_off(self, agent, object):
         self.set_attribute('is_on', False)
+        return "success"
 
 class FunctionalCooker(FunctionalElectronic):
     """ This device must be a container and an on-off device.
@@ -247,22 +247,30 @@ class FunctionalCooker(FunctionalElectronic):
     """
     def __init__(self):
         FunctionalElectronic.__init__(self)
-
-        def launch_turn_cooker_on_isis_event():
-            # check preconditions for
-            # x = IsisEvent()
-            print "Could not turn on cooker because...."
+        self.add_attribute(BinaryAttribute(name='is_open',visible=False), value=False)
         
-        def cooking_callback(f, t):
-            print "Cooking... in", self.name
-            def cooking_callback_function():
-                for obj in self.in_layout.getItems():
-                    obj.call(None, "cook", None)
-                    obj.setZ(obj.getZ()+0.7) # pop up toast
 
-            taskMgr.doMethodLater(5, cooking_callback_function, "Cooker Timer", extraArgs = [])
-            
-        #turn_on_call = lambda : self.action__cook(agent)
-        self.add_attribute_callback('is_on', cooking_callback)
-    
+    def action__turn_on(self, agent, object):
+        self.set_attribute('is_on', True)
+        print "Cooking... in", self.name
+
+        def cook_items():
+            for obj in self.in_layout.getItems():
+                obj.call(None, "cook", None)
+                pos = obj.getPos()
+                new_pos = (pos[0],pos[1],pos[2]+0.3)
+                obj.setFluidPosition(new_pos)
+        delay = Wait(5)
+        seq = Sequence(Func(self.set_attribute, 'is_open', False),
+                       delay,
+                       Func(cook_items),
+                       Func(self.set_attribute, 'is_open', True),
+                       Func(self.set_attribute, 'is_on', False))
+        seq.start()
+        #self.set_attribute('is_open', False)
+        #self.set_attribute('is_open', True)
+        #self.set_attribute('is_on', False)
+        return "success"
+        # close the box
+
 

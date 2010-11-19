@@ -42,7 +42,14 @@ class IsisVisual():
         # set position of physics -- doesn't need argument, it gets it from activeModel
         self.setGeomPos(pos)
         self.synchPosQuatToNode()
-        
+    
+    def setFluidPosition(self,pos):
+        # set position of nodepath
+        self.setFluidPos(pos)
+        # set position of physics -- doesn't need argument, it gets it from activeModel
+        self.setGeomPos(pos)
+        self.synchPosQuatToNode()
+
         
     def setRotation(self,hpr):
         self.setHpr(hpr)

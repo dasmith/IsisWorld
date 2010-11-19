@@ -34,7 +34,7 @@ class Controller(object, FSM):
         }
         
         #Convenience fields.
-        self.taskBarShown = True
+        self.taskBarShown = False
         self.scenarioBarShown = True
         
         self.main = isisworld
@@ -75,7 +75,7 @@ class Controller(object, FSM):
             POPUP_BG = (0.54,0.45,0.47,1)
             FRAME_BORDER = (0.02, 0.02) 
             FRAME_RELIEF = DGG.RIDGE
-            BUTTON_RELIEF = DGG.RAISED
+            BUTTON_RELIEF = DGG.FLAT
             BUTTON_BORDER = (0.02,0.02)
             BUTTON_BG =  (0.29,0.09,0.18,1)
             BUTTON_FG = (1.00,0.80,0.34,1)

@@ -522,6 +522,9 @@ class IsisAgent(kinematicCharacterController,DirectObject):
             return None  
         else:
             if picked_up.layout:
+                if picked_up.layout.parent.has_attribute('is_open') and not picked_up.layout.parent.get_attribute_value('is_open'):
+                    print "Error: %s is part of a closed container." % (picked_up)
+                    return "error: cannot remove item from closed container"
                 picked_up.layout.remove(picked_up)
                 picked_up.layout = None
             # store original position
@@ -534,7 +537,7 @@ class IsisAgent(kinematicCharacterController,DirectObject):
             #  if object is a container
             #  - turn off the physics of the contained objects, 
             #   so that they move with the object
-            picked_up.setPosition(hand_joint.getPos(render) + Vec3(*picked_up.pickup_vector[0:3]))
+            picked_up.setFluidPosition(hand_joint.getPos(render) + Vec3(*picked_up.pickup_vector[0:3]))
             picked_up.setRotation(Vec3(*picked_up.pickup_vector[3:]))
             picked_up.setTag('heldBy', self.name)
             if hand_joint == self.player_right_hand:

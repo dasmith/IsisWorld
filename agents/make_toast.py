@@ -95,6 +95,11 @@ step(.1)
 print do('use_right_hand', {'target':'toaster', 'action':'turn_on'})
 step(.1)
 
+
+while get_obj_dict('toaster')['attributes']['is_on']:
+    print "waiting for toaster"
+    step(.1)
+
 print "picking up toast"
 do('pick_up_with_left_hand', {'target':'bread'})
 step(0.8)

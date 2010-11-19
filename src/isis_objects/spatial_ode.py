@@ -10,7 +10,7 @@ class SpatialContainer(object):
         self.containerItems = []
     
     def setup(self):
-        self.in_layout = HorizontalGridLayout((self.getWidth(), self.getLength()), self.getHeight())
+        self.in_layout = HorizontalGridLayout(self, (self.getWidth(), self.getLength()), self.getHeight())
         self.collisionCallback = self.enterContainer
         if hasattr(self,'geom'):
             self.setCatColBits("container")
@@ -49,7 +49,7 @@ class SpatialContainer(object):
             pos = (pos[0]+self.getGeomPos()[0]+obj.offset_vector[0],
                    pos[1]+self.getGeomPos()[1]+obj.offset_vector[1],
                    self.getHeight()/2+obj.offset_vector[2])
-            obj.setPosition(pos)
+            obj.setFluidPosition(pos)
             obj.setRotation(obj.offset_vector[3:])
             obj.set_layout(self.in_layout)
             if not "toaster" in self.name:
@@ -69,7 +69,7 @@ class SpatialSurface(object):
         # -x moves to the right
         # y moves toward the camera
         
-        self.on_layout =  SlotLayout([(1.5, 0.6, 0), (1.0, 0.6, 0.0), (0.5, 0.6, 0.0), (0, 0.6, 0.0)])
+        self.on_layout =  SlotLayout(self, [(1.5, 0.6, 0), (1.0, 0.6, 0.0), (0.5, 0.6, 0.0), (0, 0.6, 0.0)])
         
         #HorizontalGridSlotLayout(area, self.getHeight(), 2,2)
         #SlotLayout([(.3, .1, .2), (.3, -.1, .2)])
@@ -157,7 +157,7 @@ class SpatialPickableContainer(pickableObject):
         quat = self.activeModel.getQuat(render)
         self.setupGeomAndPhysics(self.physics, pos, quat)
         self.physics.addObject(self)
-        self.in_layout = HorizontalGridLayout((self.getWidth(), self.getLength()), self.getHeight())
+        self.in_layout = HorizontalGridLayout(self, (self.getWidth(), self.getLength()), self.getHeight())
         #self.collisionCallback = None
         if hasattr(self,'geom'):
             self.setCatColBits("container")
@@ -179,7 +179,7 @@ class SpatialPickableContainer(pickableObject):
             pos = (pos[0]+self.getGeomPos()[0]+obj.offset_vector[0],
                    pos[1]+self.getGeomPos()[1]+obj.offset_vector[1],
                    pos[2]+self.getGeomPos()[2]+obj.offset_vector[2])
-            obj.setPosition(pos)
+            obj.setFluidPosition(pos)
             obj.setRotation(obj.offset_vector[3:])
             obj.set_layout(self.in_layout)
             # don't enable@
@@ -211,7 +211,7 @@ class SpatialRoom(staticObject):
         staticObject.__init__(self,self.physics)
         # Flag to limit setup to once per object
         self.containerItems = []
-        self.in_layout = RoomLayout((self.getWidth(), self.getLength()), 0)
+        self.in_layout = RoomLayout(self, (self.getWidth(), self.getLength()), 0)
 
     def setup(self):
         self.setTrimeshGeom(self.activeModel)

@@ -50,12 +50,17 @@ class ActionController():
 
     def makeAgentDo(self,agent,command,args={}):
         """ Given a command and an agent pointer, tell the agent to do that command"""
-        commandArgs = self.argMap[command]
+        command_args = set(self.argMap[command])
         kwargs = {}
-        for c in commandArgs:
+        
+        for c in command_args:
             if c in args:
                 kwargs[c] = args[c]
-
+        # any args missing?
+        missing_args = command_args - set(kwargs.keys())
+        if len(missing_args) != 0:
+            print "Missing %i arguments: %s" % (len(missing_args), ', '.join(missing_args))
+        # we should fail here, but we need some way to do default arguments
         result = None 
         failed = False
         result = getattr(agent, command)(**kwargs)

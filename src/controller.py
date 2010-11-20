@@ -640,7 +640,7 @@ class Controller(object, FSM):
         if pnm_image.write(Filename(filename)):
             print "Saved to ", filename
         else:
-            print "Failed to saved to ", filename
+            print "Failed to save to ", filename
         
     def screenshot_agent(self, name):
         pnm_image = self.capture_agent_screenshot_pnm_image()

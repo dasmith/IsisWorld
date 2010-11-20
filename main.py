@@ -82,7 +82,7 @@ class IsisWorld(DirectObject):
             print "IsisWorld command line options"
             print "-"*30
             print "-D : loads first Scenario by default"
-            print "-f : include off-screen buffering "
+            print "-f : include off-screen buffering"
             print "-p [PORTNUMBER] : launches the XML-RPC server on the specified port. Default 8001"
             print "-h : displays this help menu"
             print "-"*30
@@ -251,21 +251,6 @@ class IsisWorld(DirectObject):
         """ this is used to unpause the simulation (runs freely)."""
         self.desired_physics_time = None
         
-    def capture_rgb_ram_image(self):
-        ram_image_data = self.offscreen_render_texture.getRamImageAs('RGB')
-        if (not ram_image_data) or (ram_image_data is None):
-            print 'Failed to get ram image from main window texture.'
-            return None
-        rgb_ram_image = {'dict_type':'rgb_ram_image', 'width':self.offscreen_render_texture.getXSize(), 'height':self.offscreen_render_texture.getYSize(), 'rgb_data':ram_image_data}
-        return rgb_ram_image
-    
-    def capture_xmlrpc_image(self, max_x=None, max_y=None, x_offset=0, y_offset=0):
-        rgb_ram_image = self.capture_rgb_ram_image()
-        if rgb_ram_image is None:
-            return None
-        xmlrpc_image = rgb_ram_image__as__xmlrpc_image(rgb_ram_image, max_x=max_x, max_y=max_y, x_offset=x_offset, y_offset=y_offset)
-        return xmlrpc_image
-    
     def run_xml_command_queue(self,task):
         """ Executes all of the XML-RPC commands in the queue"""
         self.commandHandler.panda3d_thread_process_command_queue()
@@ -282,7 +267,16 @@ class IsisWorld(DirectObject):
         base.camera.setPos(0,0,12)
         base.camera.setP(0)
     
+
+## offscreen rendering functions (activated with the -f command-line flag)
+##
+##   optimization note from bo: the offscreen texture can render only
+##                              when needed, but renders constantly at
+##                              the moment.  to-do after deadline.
+
     def _setup_offscreen_texture(self):
+        if not self.__enable_xmlrpc_vision:
+            return None
         fbp=FrameBufferProperties(FrameBufferProperties.getDefault())
         self.offscreen_render_buffer  = base.win.makeTextureBuffer("offscreen_render-buffer", 640, 480, tex=Texture('offscreen_render-texture'), to_ram=True, fbp=fbp)
         print "made Texture Buffer"
@@ -297,6 +291,32 @@ class IsisWorld(DirectObject):
         self.offscreen_render_camera.reparentTo(base.camera)
         self.offscreen_render_camera.setPos(0, 0, 0)
         self.offscreen_render_camera.setHpr(0, 0, 0)
+
+    def get_offscreen_render_texture(self):
+        if not self.__enable_xmlrpc_vision:
+            return None
+        return self.offscreen_render_texture
+        
+    def capture_rgb_ram_image(self):
+        if not self.__enable_xmlrpc_vision:
+            return None
+        ram_image_data = self.offscreen_render_texture.getRamImageAs('RGB')
+        if (not ram_image_data) or (ram_image_data is None):
+            print 'Failed to get ram image from main window texture.'
+            return None
+        rgb_ram_image = {'dict_type':'rgb_ram_image', 'width':self.offscreen_render_texture.getXSize(), 'height':self.offscreen_render_texture.getYSize(), 'rgb_data':ram_image_data}
+        return rgb_ram_image
+    
+    def capture_xmlrpc_image(self, max_x=None, max_y=None, x_offset=0, y_offset=0):
+        if not self.__enable_xmlrpc_vision:
+            return None
+        rgb_ram_image = self.capture_rgb_ram_image()
+        if rgb_ram_image is None:
+            return None
+        xmlrpc_image = rgb_ram_image__as__xmlrpc_image(rgb_ram_image, max_x=max_x, max_y=max_y, x_offset=x_offset, y_offset=y_offset)
+        return xmlrpc_image
+    
+## end of offscreen rendering functions
 
     
     def _setup_lights(self):

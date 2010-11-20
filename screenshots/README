@@ -1,0 +1,5 @@
+This is the directory where IsisWorld will save screenshots by
+default.
+
+Also, this file needs to exist for Git to remember to create this
+directory.  :-)

@@ -238,7 +238,22 @@ class IsisAgent(kinematicCharacterController,DirectObject):
                 # add item to dinctionary
                 objects[o] = object_dict
         return objects
-
+    
+    def get_objects_spatial_relations(self):
+        seen = []
+        spatial_relations = []
+        for node in base.render.findAllMatches("**/=isisobj"):
+            node = node.getPythonTag("isisobj")
+            if hasattr(node,'in_layout'):
+                for item in node.in_layout.items:
+                    item = item.getPythonTag("isisobj")
+                    spatial_relations.append(('in', node.name, item.name))
+            if hasattr(node,'on_layout'):
+                for item in node.on_layout.items:
+                    item = item.getPythonTag("isisobj")
+                    spatial_relations.append(('on', node.name, item.name))
+        return spatial_relations
+    
     def get_class_name(self):
         return self.__class__.__name__
 
@@ -442,6 +457,9 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         percepts['language'] = self.sense__get_utterances()
         # agents: returns a map of agents to a list of actions that have been sensed
         percepts['agents'] = self.sense__get_agents()
+        # spatial relations
+        percepts['spatial_relations'] = self.get_objects_spatial_relations()
+        
         print percepts
         return percepts
     

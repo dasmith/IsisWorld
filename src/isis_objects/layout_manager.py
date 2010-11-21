@@ -128,13 +128,13 @@ class HorizontalGridLayout(LayoutManager):
         self.padh = padh
         
     def add(self, obj):
-        print "HGL called with", obj,  obj.getWidth(),  obj.getLength(), self.padw, self.padh
+        #print "HGL called with", obj,  obj.getWidth(),  obj.getLength(), self.padw, self.padh
         if not LayoutManager.add(self, obj):
             return
-        print "Width, "
+        #print "Width, "
         ow = obj.getWidth()+self.padw
         ol = obj.getLength()+self.padh
-        print "Object width and length", ow, ol
+        #print "Object width and length", ow, ol
                 
         if self.px+ow > self.w:
             self.py += self.maxh

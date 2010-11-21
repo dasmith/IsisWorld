@@ -89,7 +89,6 @@ class SpatialSurface(object):
             obj.rotateAlongX(1)
         #obj.setGeomQuat(self.getQuat())
         pos = self.on_layout.add(obj)
-        print "POS result", pos
         if pos:
             obj.disable()
             obj.reparentTo(self)
@@ -124,7 +123,7 @@ class SpatialPickable(pickableObject):
         self.physics.addObjectToWorld(self,'dynamics')
         pos = self.activeModel.getPos(render)
         quat = self.activeModel.getQuat(render)
-        print "Creating:", self.name
+        #print "Creating:", self.name
         self.setupGeomAndPhysics(self.physics, pos, quat)
         self.showCCD = False
 
@@ -167,7 +166,7 @@ class SpatialPickableContainer(pickableObject):
     def action__put_in(self, agent, obj):
         # TODO: ensure that object can fit in other object
         #  1) internal volume is big enough, 2) vol - vol of other things in there
-        print "IN LAYOUT FUNCT", self.in_layout
+        #print "IN LAYOUT FUNCT", self.in_layout
         pos = self.in_layout.add(obj)
         print "ADDING", obj, "to", self.name
         if pos:

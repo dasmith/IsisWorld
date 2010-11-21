@@ -61,7 +61,6 @@ class IsisVisual():
         self.setH(self.getH()+x)
         self.synchPosQuatToNode()
         self._needToRecalculateScalingProperties = True
-        print "Rotated", self.name, self._needToRecalculateScalingProperties
         
     def rescaleModel(self,scale):
         """ Changes the model's dimensions to a given scale"""
@@ -80,7 +79,6 @@ class IsisVisual():
     def getWidth(self):
         """ Returns the width of an object, based on its bounding box"""
         if self._needToRecalculateScalingProperties: self._recalculateScalingProperties()
-        print "Calling get width on ", self.name, self._needToRecalculateScalingProperties, self.width
         return self.width
 
     def getHeight(self):
@@ -101,7 +99,6 @@ class IsisVisual():
         self.width = abs(p2.getX()-p1.getX())
         self.length = abs(p2.getY()-p1.getY())
         self.height = abs(p2.getZ()-p1.getZ())
-        print "Recalculating scaling properties", self.width, self.length
         # reset physical model
         self._needToRecalculateScalingProperties = False
 

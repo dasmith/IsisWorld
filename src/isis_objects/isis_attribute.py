@@ -183,8 +183,8 @@ class NominalAttribute(IsisAttribute):
         self._possible_values = domain
         self._is_unique = is_unique
         self._is_single_valued = is_single_valued
-        if is_unique and not is_single_valued:
-            print "Warning: If unique is False, is_single_valued must be True."
+        if not (is_unique or is_single_valued):
+            print "Warning: In attribute %s unique is False, to make a difference: is_single_valued must = True." % self.name
             
         # actual value is first element of domain
         #if domain != None:
@@ -207,7 +207,7 @@ class OrderedAttribute(IsisAttribute):
       - Examples:
         * IsisDiscrete::cooked  [0,1,2,3,4]
     """
-    def __init__(self, name, domain=None, domain_types=None, visible=False, is_unique=True, is_monotonic=False, on_change_func=None):
+    def __init__(self, name, domain=None, domain_types=None, visible=False, is_monotonic=False, on_change_func=None):
         IsisAttribute.__init__(self, name, visible, on_change_func)
         if domain != None:
             self._possible_values = domain
@@ -216,7 +216,6 @@ class OrderedAttribute(IsisAttribute):
                 if not isinstance(dt,str):
                     raise "Domain type specifications must be strings! %d is not. " % (dt)
             self._possible_values_classes = domain_types
-        self._is_unique = is_unique
         self._is_monotonic = is_monotonic
         
 

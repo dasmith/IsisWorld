@@ -1,12 +1,20 @@
 import os
 import sys
+import direct.directbase.DirectStart
 
 if __name__ == '__main__':
     print "sys.argv: ", sys.argv
+    print "len(sys.argv) ", len(sys.argv)
     if len(sys.argv) != 2:
-        "Please specify a model to show. Using panda.egg as the default."
+        print "Please specify a model to show. Using panda.egg as the default."
         modelName = "panda.egg"
     else:
         modelName = sys.argv[1]
     viewCmd = 'pview %s' % modelName
-    os.system(viewCmd)
+    
+    # Doesn't actually display?
+    #panda = render.attachNewNode("panda.egg")
+    
+    #os.system(viewCmd)
+    inp = raw_input("What do you want to do?")
+    print "You inputted ", inp

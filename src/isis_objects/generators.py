@@ -40,7 +40,7 @@ from ..isis_agents.isis_agent import IsisAgent
 from ..physics.ode.pickables import *
 from ..physics.ode.odeWorldManager import *
 
-class table(IsisObject,IsisVisual,SpatialStaticBox,SpatialSurface,IsisFunctional):
+class table(IsisObject,IsisVisual,SpatialStaticBox,SpatialSurface,FunctionalCountable):
 
     def __init__(self, **kwargs):
 

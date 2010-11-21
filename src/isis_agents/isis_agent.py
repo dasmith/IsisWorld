@@ -125,6 +125,9 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         self.speech_bubble.setTransparency(TransparencyAttrib.MAlpha)
         # stop the speech bubble from being colored like the agent
         self.speech_bubble.setColorScaleOff()
+        self.speech_bubble.setBin("fixed", 40)
+        self.speech_bubble.setDepthTest(False)
+        self.speech_bubble.setDepthWrite(False)
         self.speech_bubble.component('text0').textNode.setCardDecal(1)
         self.speech_bubble.setBillboardAxis()
         # hide the speech bubble from IsisAgent's own camera

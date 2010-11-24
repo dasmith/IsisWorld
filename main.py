@@ -398,8 +398,8 @@ class IsisWorld(DirectObject):
         self.actionController.addAction(IsisAction(commandName="view_objects",intervalAction=False,keyboardBinding="o"))
         self.actionController.addAction(IsisAction(commandName="pick_up_with_left_hand",intervalAction=False,argList=['target'],keyboardBinding="z"))
         self.actionController.addAction(IsisAction(commandName="pick_up_with_right_hand",intervalAction=False,argList=['target'],keyboardBinding="c"))
-        self.actionController.addAction(IsisAction(commandName="drop_from_left_hand",intervalAction=False,argList=['target'],keyboardBinding="n"))
-        self.actionController.addAction(IsisAction(commandName="drop_from_right_hand",intervalAction=False,argList=['target'],keyboardBinding="m"))
+        self.actionController.addAction(IsisAction(commandName="drop_from_left_hand",intervalAction=False,keyboardBinding="n"))
+        self.actionController.addAction(IsisAction(commandName="drop_from_right_hand",intervalAction=False,keyboardBinding="m"))
         self.actionController.addAction(IsisAction(commandName="use_left_hand",intervalAction=False,argList=['target','action'],keyboardBinding="q"))
         self.actionController.addAction(IsisAction(commandName="use_right_hand",intervalAction=False,argList=['target','action'],keyboardBinding="e"))
 

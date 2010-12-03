@@ -24,7 +24,15 @@ class ModelDisplayer(ShowBase):
         self.taskMgr.add(self.spinCameraTask, "SpinCameraTask")
 
         self.addAModel("models/teapot")
-        
+
+        # Testing if i can use os.system
+        # Yes, I can do it. 
+        # I could probably use os.system to make calls to egg_optchar
+        print "Calling os.system"
+        os.system("echo hi")
+        self.addAModel("models/box")
+        print "added box"
+
     def spinCameraTask(self, task):
         angleDegrees = task.time * 6.0
         angleRadians = angleDegrees * (pi / 180.0)

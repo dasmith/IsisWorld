@@ -23,7 +23,7 @@ class ModelDisplayer(ShowBase):
         # Add the spinCameraTask
         self.taskMgr.add(self.spinCameraTask, "SpinCameraTask")
 
-        self.addAModel()
+        self.addAModel("models/teapot")
         
     def spinCameraTask(self, task):
         angleDegrees = task.time * 6.0
@@ -32,9 +32,10 @@ class ModelDisplayer(ShowBase):
         self.camera.setHpr(angleDegrees, 0, 0)
         return Task.cont
 
-    def addAModel(self):
-        self.pandaActor = Actor("models/panda-model")
-        self.pandaActor.setScale(0.005, 0.005, 0.005)
+    def addAModel(self, model):
+        self.pandaActor = loader.loadModel(model)
+        #self.pandaActor = Actor("models/teapot")
+        #self.pandaActor.setScale(0.005, 0.005, 0.005)
         self.pandaActor.reparentTo(self.render)
         #self.pandaActor.loop("walk") 
 

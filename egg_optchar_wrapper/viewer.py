@@ -6,6 +6,10 @@ import direct.directbase.DirectStart
 from direct.showbase.ShowBase import ShowBase
 from direct.task import Task
 from direct.actor.Actor import Actor
+from direct.gui.DirectGui import *
+
+def buttonResp():
+    print "Button was clicked!!"
 
 class ModelDisplayer(ShowBase):
     
@@ -30,8 +34,12 @@ class ModelDisplayer(ShowBase):
         # I could probably use os.system to make calls to egg_optchar
         print "Calling os.system"
         os.system("echo hi")
-        self.addAModel("models/box")
-        print "added box"
+
+
+        b = DirectButton(text=("Click me!"), scale=.25, command=buttonResp)
+        # The teapot stays there, though...
+        #self.addAModel("models/box")
+        #print "added box"
 
     def spinCameraTask(self, task):
         angleDegrees = task.time * 6.0

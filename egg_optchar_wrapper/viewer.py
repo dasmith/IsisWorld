@@ -27,7 +27,7 @@ class ModelDisplayer(ShowBase):
         # Add the spinCameraTask
         self.taskMgr.add(self.spinCameraTask, "SpinCameraTask")
 
-        self.addAModel("models/teapot")
+        self.addAModel("models/panda-model_copy")
 
         # Testing if i can use os.system
         # Yes, I can do it. 
@@ -51,7 +51,7 @@ class ModelDisplayer(ShowBase):
     def addAModel(self, model):
         self.pandaActor = loader.loadModel(model)
         #self.pandaActor = Actor("models/teapot")
-        #self.pandaActor.setScale(0.005, 0.005, 0.005)
+        self.pandaActor.setScale(0.005, 0.005, 0.005)
         self.pandaActor.reparentTo(self.render)
         #self.pandaActor.loop("walk") 
 

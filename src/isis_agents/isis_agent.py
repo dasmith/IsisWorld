@@ -458,7 +458,11 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         # agents: returns a map of agents to a list of actions that have been sensed
         percepts['agents'] = self.sense__get_agents()
         # spatial relations
-        percepts['spatial_relations'] = self.get_objects_spatial_relations()
+        sr = self.get_objects_spatial_relations()
+       
+        # filter spatial relations based on what is in the object key 
+        filter_non_objects = lambda x: percepts['objects'].has_key(x[1]) and percepts['objects'].has_key(x[2])
+        percepts['spatial_relations'] =  filter(filter_non_objects, sr)
         
         print percepts
         return percepts

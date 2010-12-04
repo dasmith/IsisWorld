@@ -8,8 +8,6 @@ from direct.task import Task
 from direct.actor.Actor import Actor
 from direct.gui.DirectGui import *
 
-def buttonResp():
-    print "Button was clicked!!"
 
 class ModelDisplayer(ShowBase):
     
@@ -27,19 +25,17 @@ class ModelDisplayer(ShowBase):
         # Add the spinCameraTask
         self.taskMgr.add(self.spinCameraTask, "SpinCameraTask")
 
-        self.addAModel("models/panda-model_copy")
+        self.addAModel("models/box")
 
         # Testing if i can use os.system
         # Yes, I can do it. 
         # I could probably use os.system to make calls to egg_optchar
-        print "Calling os.system"
-        os.system("echo hi")
+        #print "Calling os.system"
+        #os.system("echo hi")
 
 
-        b = DirectButton(text=("Click me!"), scale=.25, command=buttonResp)
-        # The teapot stays there, though...
-        #self.addAModel("models/box")
-        #print "added box"
+        b = DirectButton(text=("Reload Model"), scale=.25,
+                         command=self.buttonResp)
 
     def spinCameraTask(self, task):
         angleDegrees = task.time * 6.0
@@ -48,12 +44,20 @@ class ModelDisplayer(ShowBase):
         self.camera.setHpr(angleDegrees, 0, 0)
         return Task.cont
 
+    def buttonResp(self):
+        # Example of how to replace a model
+        # We could refresh models by replacing the model with
+        # itself
+        print "Button was clicked!!"
+        self.model.detachNode()
+        loader.unloadModel(self.model)
+        self.model = loader.loadModel('models/box')
+        self.model.reparentTo(self.render)
+
     def addAModel(self, model):
-        self.pandaActor = loader.loadModel(model)
-        #self.pandaActor = Actor("models/teapot")
-        self.pandaActor.setScale(0.005, 0.005, 0.005)
-        self.pandaActor.reparentTo(self.render)
-        #self.pandaActor.loop("walk") 
+        self.model = loader.loadModel(model)
+        #self.model.setScale(0.005, 0.005, 0.005)
+        self.model.reparentTo(self.render)
 
 md = ModelDisplayer()
 md.run()

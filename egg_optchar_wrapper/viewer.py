@@ -1,5 +1,4 @@
 from math import pi, sin, cos
-
 import os
 import sys
 import direct.directbase.DirectStart
@@ -7,7 +6,6 @@ from direct.showbase.ShowBase import ShowBase
 from direct.task import Task
 from direct.actor.Actor import Actor
 from direct.gui.DirectGui import *
-
 
 class ModelDisplayer(ShowBase):
     
@@ -25,7 +23,7 @@ class ModelDisplayer(ShowBase):
         # Add the spinCameraTask
         self.taskMgr.add(self.spinCameraTask, "SpinCameraTask")
 
-        self.addAModel("models/box")
+        self.addAModel("models/panda-model_copy")
 
         # Testing if i can use os.system
         # Yes, I can do it. 
@@ -51,30 +49,20 @@ class ModelDisplayer(ShowBase):
         print "Button was clicked!!"
         self.model.detachNode()
         loader.unloadModel(self.model)
-        self.model = loader.loadModel('models/box')
+        self.model = loader.loadModel('models/panda-model_copy')
         self.model.reparentTo(self.render)
 
     def addAModel(self, model):
         self.model = loader.loadModel(model)
-        #self.model.setScale(0.005, 0.005, 0.005)
         self.model.reparentTo(self.render)
 
-md = ModelDisplayer()
-md.run()
-
-def start():
-    print "sys.argv: ", sys.argv
-    print "len(sys.argv) ", len(sys.argv)
+if __name__ == '__main__':
+    #print "sys.argv: ", sys.argv
+    #print "len(sys.argv) ", len(sys.argv)
     if len(sys.argv) != 2:
-        print "Please specify a model to show. Using panda.egg as the default."
-        modelName = "panda.egg"
+        print "Please specify a model to show. Using models/panda-model_copy as the default."
+        modelName = "models/panda-model_copy"
     else:
         modelName = sys.argv[1]
-    viewCmd = 'pview %s' % modelName
-    
-    # Doesn't actually display?
-    #panda = render.attachNewNode("panda.egg")
-    
-    #os.system(viewCmd)
-    inp = raw_input("What do you want to do?")
-    print "You inputted ", inp
+    md = ModelDisplayer()
+    md.run()

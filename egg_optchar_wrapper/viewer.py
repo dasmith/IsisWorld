@@ -6,12 +6,14 @@ from direct.showbase.ShowBase import ShowBase
 from direct.task import Task
 from direct.actor.Actor import Actor
 from direct.gui.DirectGui import *
+from direct.gui.OnscreenText import OnscreenText
+from pandac.PandaModules import *
 
 class ModelDisplayer(ShowBase):
     
-    def __init__(self):
+    def __init__(self, modelName):
         ShowBase.__init__(self)
-
+        self.modelName = modelName
         # Load the environment model
         self.environ = self.loader.loadModel("models/environment")
         # Reparent model to render
@@ -23,17 +25,36 @@ class ModelDisplayer(ShowBase):
         # Add the spinCameraTask
         self.taskMgr.add(self.spinCameraTask, "SpinCameraTask")
 
-        self.addAModel("models/panda-model_copy")
+        self.addAModel(modelName)
 
         # Testing if i can use os.system
         # Yes, I can do it. 
         # I could probably use os.system to make calls to egg_optchar
         #print "Calling os.system"
         #os.system("echo hi")
+        self.drawGUI()
 
+    def drawGUI(self):
+        self.reloadButton = DirectButton(text=("Reload Model"), scale=.15,
+                                         command=self.buttonResp,
+                                         pos = (0, 0, -0.85))
+        #textInp = "This will be executed by the shell"
+        #self.textInp = OnscreenText(text = textInp, pos = (0.95, -0.95),
+              #  scale = 0.07, fg=(1, 0.5, 0.5, 1), align=TextNode.ACenter,
+             #   mayChange = 1)
 
-        b = DirectButton(text=("Reload Model"), scale=.25,
-                         command=self.buttonResp)
+        # Clear the text in the DirectEntry field
+        def clearText():
+            self.textInp.enterText('')
+
+        def systemCallText(command):
+            os.system("echo " + command)
+            clearText()
+
+        # add button
+        self.textInp = DirectEntry(text = "", scale=.05, command=systemCallText, 
+                initialText="This will go to shell", numLines = 2, focus = 1, 
+                focusInCommand = clearText)
 
     def spinCameraTask(self, task):
         angleDegrees = task.time * 6.0
@@ -49,7 +70,7 @@ class ModelDisplayer(ShowBase):
         print "Button was clicked!!"
         self.model.detachNode()
         loader.unloadModel(self.model)
-        self.model = loader.loadModel('models/panda-model_copy')
+        self.model = loader.loadModel(self.modelName)
         self.model.reparentTo(self.render)
 
     def addAModel(self, model):
@@ -57,12 +78,10 @@ class ModelDisplayer(ShowBase):
         self.model.reparentTo(self.render)
 
 if __name__ == '__main__':
-    #print "sys.argv: ", sys.argv
-    #print "len(sys.argv) ", len(sys.argv)
     if len(sys.argv) != 2:
         print "Please specify a model to show. Using models/panda-model_copy as the default."
         modelName = "models/panda-model_copy"
     else:
         modelName = sys.argv[1]
-    md = ModelDisplayer()
+    md = ModelDisplayer(modelName)
     md.run()

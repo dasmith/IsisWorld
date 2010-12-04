@@ -15,6 +15,7 @@ from pandac.PandaModules import Vec3, Vec4, PandaNode, PNMImage, HTTPClient, Ram
 
 from src.isis_scenario import *
 from utilities import pnm_image__as__xmlrpc_image
+from scenarios.make_toast import Scenario 
 
 class Controller(object, FSM):
 
@@ -43,16 +44,13 @@ class Controller(object, FSM):
                        'mono': base.loader.loadFont('media/fonts/DroidSansMono.ttf'),\
                        'normal': base.loader.loadFont('media/fonts/DroidSans.ttf')}
         self.currentScenario = None
-        self.scenarioFiles = []
+        self.selectedScenario = 'make toast'
+        self.scenarioFiles = ['make toast']
         self.scenarioTasks = []
         
+
         
         # load files in the scenario directory
-        print "LOADING SCENARIO FILES", self.main.rootDirectory
-        for scenarioPath in os.listdir(self.main.rootDirectory+"scenarios"):
-            scenarioFile = scenarioPath[scenarioPath.rfind("/")+1:]
-            if "__init__" not in scenarioFile:
-                self.scenarioFiles.append(scenarioFile)
         # display GUI for navigating tasks
         #textObj = OnscreenText(text = "Scenarios:", pos = (1,0.9), scale = 0.05,fg=(1,0.5,0.5,1),align=TextNode.ALeft,mayChange=1)
         # summer theme
@@ -103,12 +101,13 @@ class Controller(object, FSM):
         
         """
         
+
         def setScenarioUsingGUI(arg=None):
             # you cannot do this when a task is running already
             if self.state == 'TaskPaused':
                 raise Exception("FSM violation, you cannot change a task from the Task state.  First you must stop the task")
             else:
-                self.selectedScenario = self.scenarioFiles[self.menuScenarioOptions.selectedIndex]
+                self.selectedScenario = "make_toast"
 
         #                                            item_text_font=self.fonts['normal'], 
         self.menuScenarioOptions = DirectOptionMenu(text='Scenarios:',
@@ -467,8 +466,6 @@ class Controller(object, FSM):
         # reveal the correct GUI
         self.menuFrame.show()
 
-        # make sure default scenario is selected
-        self.selectedScenario = self.scenarioFiles[self.menuScenarioOptions.selectedIndex]
 
     def exitMenu(self):
         self.menuFrame.hide()
@@ -491,26 +488,7 @@ class Controller(object, FSM):
             
             try:
                 print "Selected Scenario", self.selectedScenario
-                #os.chdir(self.main.rootDirectory+"scenarios")
-                #print sys.path[0] 
-                #print os.getcwd()
-                print "NAME", self.selectedScenario[:-3]
-                print "OPENING", "scenarios/"+self.selectedScenario
-                if self.selectedScenario.lower()[-3:] == '.py':
-                    py_mod = imp.load_source(self.selectedScenario[:-3], "scenarios/"+self.selectedScenario)
-                elif self.selectedScenario.lower()[-4:] == '.pyo':
-                    # these files are loaded within the packaged P3D files
-                    import marshal
-                    def loadPYbyte(path): 
-                        # read module file 
-                        marshal_data= VFS.readFile(Filename(path),1)[8:] 
-                        # unmarshal the data 
-                        return marshal.loads(marshal_data)
-                    py_mod = imp.load_compiled(self.selectedScenario[:-4], loadPYbyte(self.selectedScenario))
-                else:
-                    raise Exception("Invalid file extension for %s " % (self.selectedScenario))
-                if 'Scenario' in dir(py_mod):
-                    self.currentScenario = py_mod.Scenario(self.selectedScenario) 
+                self.currentScenario = Scenario(self.selectedScenario) 
                     
                 print "Current scenario methods", dir(self.currentScenario)
                 # setup world

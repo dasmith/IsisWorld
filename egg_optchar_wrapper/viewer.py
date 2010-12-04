@@ -14,7 +14,7 @@ class ModelDisplayer(ShowBase):
     def __init__(self, modelName):
         ShowBase.__init__(self)
         self.modelName = modelName
-        # Load the environment model
+        # Load the environment model (right now using models/environment)
         self.environ = self.loader.loadModel("models/environment")
         # Reparent model to render
         self.environ.reparentTo(self.render)
@@ -27,47 +27,43 @@ class ModelDisplayer(ShowBase):
 
         self.addAModel(modelName)
 
-        # Testing if i can use os.system
-        # Yes, I can do it. 
-        # I could probably use os.system to make calls to egg_optchar
-        #print "Calling os.system"
-        #os.system("echo hi")
         self.drawGUI()
 
     def drawGUI(self):
         self.reloadButton = DirectButton(text=("Reload Model"), scale=.15,
-                                         command=self.buttonResp,
+                                         command=self.reloadModel,
                                          pos = (0, 0, -0.85))
-        #textInp = "This will be executed by the shell"
-        #self.textInp = OnscreenText(text = textInp, pos = (0.95, -0.95),
-              #  scale = 0.07, fg=(1, 0.5, 0.5, 1), align=TextNode.ACenter,
-             #   mayChange = 1)
 
         # Clear the text in the DirectEntry field
         def clearText():
             self.textInp.enterText('')
 
         def systemCallText(command):
-            os.system("echo " + command)
+            theCmd = "egg-optchar -o " + self.modelName + " " + \
+                     command + " " + self.modelName 
+            print theCmd
+            os.system(theCmd)
+            self.reloadModel()
             clearText()
 
         # add button
         self.textInp = DirectEntry(text = "", scale=.05, command=systemCallText, 
-                initialText="This will go to shell", numLines = 2, focus = 1, 
+                initialText="This will go to shell", numLines = 5, focus = 1, 
                 focusInCommand = clearText)
 
     def spinCameraTask(self, task):
+        # From the Panda3D tutorial, I left it in because it looks a bit
+        # nicer than a fixed camera, and previously the camera wasn't
+        # perfectly centered
         angleDegrees = task.time * 6.0
         angleRadians = angleDegrees * (pi / 180.0)
         self.camera.setPos(20 * sin(angleRadians), -20.0 * cos(angleRadians), 3)
         self.camera.setHpr(angleDegrees, 0, 0)
         return Task.cont
 
-    def buttonResp(self):
-        # Example of how to replace a model
-        # We could refresh models by replacing the model with
-        # itself
-        print "Button was clicked!!"
+    def reloadModel(self):
+        # We can refresh models by replacing the model with itself
+        # That is, detach the model, and then reload it
         self.model.detachNode()
         loader.unloadModel(self.model)
         self.model = loader.loadModel(self.modelName)
@@ -79,8 +75,8 @@ class ModelDisplayer(ShowBase):
 
 if __name__ == '__main__':
     if len(sys.argv) != 2:
-        print "Please specify a model to show. Using models/panda-model_copy as the default."
-        modelName = "models/panda-model_copy"
+        print "Please specify a model to show. Using pandaModCopy.egg as the default."
+        modelName = "/c//Users/Rahul_2/Documents/IsisWorldUROP/egg_optchar_wrapper/pandaModCopy.egg"
     else:
         modelName = sys.argv[1]
     md = ModelDisplayer(modelName)

@@ -1,3 +1,8 @@
+# Rahul Rajagopalan
+# Graphical frontend for egg-optchar to make it a bit easier for users
+# to tweak .egg models. This script displays the model in question and
+# reloads it after every change to provide visual feedback.
+
 from math import pi, sin, cos
 import os
 import sys

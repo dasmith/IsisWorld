@@ -13,12 +13,14 @@ from pandac.PandaModules import loadPrcFileData
 loadPrcFileData("", """sync-video 0
 win-size 1024 768
 yield-timeslice 0 
+load-display pandagl 
+aux-display pandadx8
 client-sleep 0 
 multi-sleep 0
 #want-pstats 1
 basic-shaders-only #f
 audio-library-name null""")
-
+# tinysdisplay, pandadx8, pandadx9
 import time
 import sys
 import os
@@ -58,7 +60,6 @@ class IsisWorld(DirectObject):
     def __init__(self):
         
         # TODO, read args http://www.panda3d.org/apiref.php?page=ExecutionEnvironment#getBinaryName
-        print "ARGS", 
         # MAIN_DIR var is set in direct/showbase/DirectObject.py
         self.rootDirectory = ""#ExecutionEnvironment.getEnvironmentVariable("ISISWORLD_SCENARIO_PATH")
         for arg in xrange(ExecutionEnvironment.getNumArgs()):
@@ -66,11 +67,48 @@ class IsisWorld(DirectObject):
         
         DirectObject.__init__(self)
         
-        self.isisMessage("Starting Up")
+        self.display_isis_message("Starting Up")
         
         self.current_physics_time = 0.0
         self.desired_physics_time = None # simulation unpaused (warning: must be paused while initializing IsisAgents and IsisObjects)
         self.physics_time_step    = 1.0/40.0
+        
+        self.__enable_xmlrpc_vision = False
+        self.__xmlrpc_port_number = 8001
+        self.__display_usage_information = False
+        self.__use_default_scenario = False
+        
+        def usage():
+            print "IsisWorld command line options"
+            print "-"*30
+            print "-D : loads first Scenario by default"
+            print "-f : include off-screen buffering"
+            print "-p [PORTNUMBER] : launches the XML-RPC server on the specified port. Default 8001"
+            print "-h : displays this help menu"
+            print "-"*30
+        # parse command line options
+        try:
+            opts, args = getopt.getopt(sys.argv[1:], "ho:vDpf", ["help", "output=","Default"])
+        except getopt.GetoptError, err:
+            # print help information and exit:
+            print str(err) # will print something like "option -a not recognized"
+            usage()
+            sys.exit(2)
+            
+        self.verbosity = 0
+        for o, a in opts:
+            if o == "-v":
+                self.verbosity = a
+            elif o == '-f':
+                self.__enable_xmlrpc_vision = True
+            elif o == '-p':
+                self.__xmlrpc_port_number = a 
+            elif o in ("-h", "--help"):
+                self.__display_usage_information = True
+            elif o in ("-D", "--default"):
+                self.__use_default_scenario = True
+            else:
+                assert False, "unhandled option"
         
         self._setup_base_environment(debug=False)
         self._setup_lights()
@@ -81,35 +119,22 @@ class IsisWorld(DirectObject):
         self.controller = Controller(self, base)
         
         self._setup_actions()
-        # parse command line options
-        try:
-            opts, args = getopt.getopt(sys.argv[1:], "ho:vD", ["help", "output=","Default"])
-        except getopt.GetoptError, err:
-            # print help information and exit:
-            print str(err) # will print something like "option -a not recognized"
-            usage()
-            sys.exit(2)
-            
-        self.verbosity = 0
-        self._defaultTask = None
-        for o, a in opts:
-            if o == "-v":
-                self.verbosity = a
-            elif o in ("-h", "--help"):
-                usage()
-                sys.exit()
-            elif o in ("-D", "--default"):
-                # go to the first scenario
-                self._defaultTask = a
-                while not self.controller.loaded: time.sleep(0.0001)
-                self.controller.request('Scenario')
-                self.controller.request('TaskPaused')
-            else:
-                assert False, "unhandled option"
         
-        self._textObjectVisible = True
+        if self.__display_usage_information:
+            usage()
+            sys.exit()
+
+        self._defaultTask = None
+        if self.__use_default_scenario:
+            # go to the first scenario
+            self._defaultTask = a
+            while not self.controller.loaded: time.sleep(0.0001)
+            self.controller.request('Scenario')
+            self.controller.request('TaskPaused')
+
+        self._text_object_visible = True
         # turn off main help menu by default
-        self.toggleInstructionsWindow()
+        self._toggle_instructions_window()
         base.exitFunc = self.exit
 
 
@@ -176,7 +201,7 @@ class IsisWorld(DirectObject):
         if debug:  messenger.toggleVerbose()
         # xmlrpc server command handler
         self.commandHandler = IsisCommandHandler(self)
-        self.server = XMLRPCServer() 
+        self.server = XMLRPCServer(self.__xmlrpc_port_number) 
         self.server.register_function(self.commandHandler.handler,'do')
         # some hints on threading: https://www.panda3d.org/forums/viewtopic.php?t=7345
         base.taskMgr.setupTaskChain('xmlrpc',numThreads=1,frameSync=True)
@@ -226,21 +251,6 @@ class IsisWorld(DirectObject):
         """ this is used to unpause the simulation (runs freely)."""
         self.desired_physics_time = None
         
-    def capture_rgb_ram_image(self):
-        ram_image_data = self.offscreen_render_texture.getRamImageAs('RGB')
-        if (not ram_image_data) or (ram_image_data is None):
-            print 'Failed to get ram image from main window texture.'
-            return None
-        rgb_ram_image = {'dict_type':'rgb_ram_image', 'width':self.offscreen_render_texture.getXSize(), 'height':self.offscreen_render_texture.getYSize(), 'rgb_data':ram_image_data}
-        return rgb_ram_image
-    
-    def capture_xmlrpc_image(self, max_x=None, max_y=None, x_offset=0, y_offset=0):
-        rgb_ram_image = self.capture_rgb_ram_image()
-        if rgb_ram_image is None:
-            return None
-        xmlrpc_image = rgb_ram_image__as__xmlrpc_image(rgb_ram_image, max_x=max_x, max_y=max_y, x_offset=x_offset, y_offset=y_offset)
-        return xmlrpc_image
-    
     def run_xml_command_queue(self,task):
         """ Executes all of the XML-RPC commands in the queue"""
         self.commandHandler.panda3d_thread_process_command_queue()
@@ -257,7 +267,16 @@ class IsisWorld(DirectObject):
         base.camera.setPos(0,0,12)
         base.camera.setP(0)
     
+
+## offscreen rendering functions (activated with the -f command-line flag)
+##
+##   optimization note from bo: the offscreen texture can render only
+##                              when needed, but renders constantly at
+##                              the moment.  to-do after deadline.
+
     def _setup_offscreen_texture(self):
+        if not self.__enable_xmlrpc_vision:
+            return None
         fbp=FrameBufferProperties(FrameBufferProperties.getDefault())
         self.offscreen_render_buffer  = base.win.makeTextureBuffer("offscreen_render-buffer", 640, 480, tex=Texture('offscreen_render-texture'), to_ram=True, fbp=fbp)
         print "made Texture Buffer"
@@ -272,6 +291,32 @@ class IsisWorld(DirectObject):
         self.offscreen_render_camera.reparentTo(base.camera)
         self.offscreen_render_camera.setPos(0, 0, 0)
         self.offscreen_render_camera.setHpr(0, 0, 0)
+
+    def get_offscreen_render_texture(self):
+        if not self.__enable_xmlrpc_vision:
+            return None
+        return self.offscreen_render_texture
+        
+    def capture_rgb_ram_image(self):
+        if not self.__enable_xmlrpc_vision:
+            return None
+        ram_image_data = self.offscreen_render_texture.getRamImageAs('RGB')
+        if (not ram_image_data) or (ram_image_data is None):
+            print 'Failed to get ram image from main window texture.'
+            return None
+        rgb_ram_image = {'dict_type':'rgb_ram_image', 'width':self.offscreen_render_texture.getXSize(), 'height':self.offscreen_render_texture.getYSize(), 'rgb_data':ram_image_data}
+        return rgb_ram_image
+    
+    def capture_xmlrpc_image(self, max_x=None, max_y=None, x_offset=0, y_offset=0):
+        if not self.__enable_xmlrpc_vision:
+            return None
+        rgb_ram_image = self.capture_rgb_ram_image()
+        if rgb_ram_image is None:
+            return None
+        xmlrpc_image = rgb_ram_image__as__xmlrpc_image(rgb_ram_image, max_x=max_x, max_y=max_y, x_offset=x_offset, y_offset=y_offset)
+        return xmlrpc_image
+    
+## end of offscreen rendering functions
 
     
     def _setup_lights(self):
@@ -307,10 +352,10 @@ class IsisWorld(DirectObject):
                 if self.actionController.hasAction(command):
                     self.actionController.makeAgentDo(self.agents[self.agentNum], command)
                 else:
-                    self.isisMessage("relayAgentControl: %s command not found in action controller" % (command))
+                    self.display_isis_message("relayAgentControl: %s command not found in action controller" % (command))
                     raise self.actionController
             else:
-                self.isisMessage("Cannot relay command '%s' when there is no agent in the scenario!" % command)
+                self.display_isis_message("Cannot relay command '%s' when there is no agent in the scenario!" % command)
             return
 
         text = "\n"
@@ -364,7 +409,7 @@ class IsisWorld(DirectObject):
             self.accept(keybinding, relayAgentControl, [command])
 
         # add on-screen documentation
-        self.textObjectVisible = True
+        self.text_objectVisible = True
         for helpString in self.actionController.helpStrings:
             text += "\n%s" % (helpString)
 
@@ -372,7 +417,7 @@ class IsisWorld(DirectObject):
         props.setTitle( 'IsisWorld v%s' % ISIS_VERSION )
         base.win.requestProperties( props )
 
-        self.textObject = OnscreenText(
+        self.text_object = OnscreenText(
                 text = text,
                 fg = (.98, .9, .9, 1),
                 bg = (.1, .1, .1, 0.8),
@@ -391,13 +436,13 @@ class IsisWorld(DirectObject):
                 # change agent view camera
                 self.agentCamera.setCamera(self.agents[self.agentNum].fov)
             else:
-                self.isisMessage("Cannot switch agents because there are no agents.")
+                self.display_isis_message("Cannot switch agents because there are no agents.")
  
         # store keybindings
         self.accept("1",               base.toggleWireframe, [])
         self.accept("2",               base.toggleTexture, [])
         self.accept("3",               changeAgent, [])
-        self.accept("4",               self.toggleInstructionsWindow, [])
+        self.accept("4",               self._toggle_instructions_window, [])
         self.accept("space",           self.step_simulation, [.1]) # argument is amount of second to advance
         self.accept("p",               self.controller.toggle_paused, [])
         #self.accept("s",               self.screenshot, ["snapshot"])
@@ -438,31 +483,33 @@ class IsisWorld(DirectObject):
             room = render.find("**/*kitchen*").getPythonTag("isisobj")
             agentPos = newAgent.actorNodePath.getPos(render)
             newAgent.actorNodePath.reparentTo(room)
+            if self.__enable_xmlrpc_vision:
+                newAgent.initialize_retina()
             if agentPos == Vec3(0,0,0):  
                 # get middle
                 roomPos = room.getPos(render)
                 center = room.getBounds().getCenter()
                 w,h = roomPos[0]+center[0], roomPos[1]+center[1]
-                newAgent.setPos(Vec3(w,h+(len(self.agents)*1),5))
+                newAgent.setPos(Vec3(w,h+(len(self.agents)*1),2))
             else:
                 agentPos[2] = 5
                 newAgent.setPos(agentPos)
         except Exception, e:
-            self.isisMessage("Could not add agent %s to room. Error: %s" % (newAgent.name, e))
+            self.display_isis_message("Could not add agent %s to room. Error: %s" % (newAgent.name, e))
         self.controller.setAgentCamera(self.agentCamera)
         return newAgent
 
-    def toggleInstructionsWindow(self):
+    def _toggle_instructions_window(self):
         """ Hides the instruction window """
-        if self._textObjectVisible:
-            self.textObject.detachNode()
-            self._textObjectVisible = False
+        if self._text_object_visible:
+            self.text_object.detachNode()
+            self._text_object_visible = False
         else:
-            self.textObject.reparentTo(aspect2d)
-            self._textObjectVisible = True
+            self.text_object.reparentTo(aspect2d)
+            self._text_object_visible = True
 
 
-    def isisMessage(self,message):
+    def display_isis_message(self,message):
         print "[IsisWorld] %s %s" % (message, str(time.ctime()))
 
     def screenshot(self, name):

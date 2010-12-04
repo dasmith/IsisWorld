@@ -26,7 +26,7 @@ from ..utilities import rgb_ram_image__as__xmlrpc_image
 class IsisAgent(kinematicCharacterController,DirectObject):
     
     @classmethod
-    def setPhysics(cls,physics):
+    def set_physics(cls,physics):
         """ This method is set in src.loader when the generators are loaded
         into the namespace.  This frees the environment definitions (in 
         scenario files) from having to pass around the physics parameter 
@@ -34,7 +34,6 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         cls.physics = physics
 
     def __init__(self, name, queueSize = 100):
-        print 'initializing IsisAgent: 0'
         # load the model and the different animations for the model into an Actor object.
         self.actor= Actor("media/models/boxman",
                           {"walk":"media/models/boxman-walk", 
@@ -47,7 +46,6 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         self.activeModel = self.actorNodePath
         
         
-        print 'initializing IsisAgent: 1'
         self.actorNodePath.reparentTo(render)
         
         self.actor.reparentTo(self.actorNodePath)
@@ -99,6 +97,7 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         
         self.player_head  = self.actor.exposeJoint(None, 'modelRoot', 'Head')
         self.neck = self.actor.controlJoint(None, 'modelRoot', 'Head')
+        self.neck.setP(bound(self.neck.getP() - 15, -60, 80))
         
         self.controlMap = {"turn_left":0,
                            "turn_right":0,
@@ -121,19 +120,20 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         bubble = loader.loadTexture("media/textures/thought_bubble.png")
         #bubble.setTransparency(TransparencyAttrib.MAlpha)
     
-        print 'initializing IsisAgent: 2'
-        self.speech_bubble =DirectLabel(parent=self.actor, text="", text_wordwrap=10, pad=(3,3), relief=None, text_scale=(.3,.3), pos = (0,0,3.6), frameColor=(.6,.2,.1,.5), textMayChange=1, text_frame=(0,0,0,1), text_bg=(1,1,1,1))
+        self.speech_bubble =DirectLabel(parent=self.actor, text="",  text_wordwrap=10, pad=(3,3), relief=None, text_scale=(.6,.6), pos = (0,0,3.6), frameColor=(.6,.2,.1,.5), textMayChange=1, text_frame=(0,0,0,1), text_bg=(1,1,1,1))
         #self.myImage=
         self.speech_bubble.setTransparency(TransparencyAttrib.MAlpha)
         # stop the speech bubble from being colored like the agent
         self.speech_bubble.setColorScaleOff()
+        self.speech_bubble.setBin("fixed", 40)
+        self.speech_bubble.setDepthTest(False)
+        self.speech_bubble.setDepthWrite(False)
         self.speech_bubble.component('text0').textNode.setCardDecal(1)
         self.speech_bubble.setBillboardAxis()
         # hide the speech bubble from IsisAgent's own camera
         self.speech_bubble.hide(BitMask32.bit(1))
         
         
-        print 'initializing IsisAgent: 3'
         self.thought_bubble =DirectLabel(parent=self.actor, text="", text_wordwrap=9, text_frame=(1,0,-2,1), text_pos=(0,.5), text_bg=(1,1,1,0), relief=None, frameSize=(0,1.5,-2,3), text_scale=(.18,.18), pos = (0,0.2,3.6), textMayChange=1, image=bubble, image_pos=(0,0.1,0), sortOrder=5)
         self.thought_bubble.setTransparency(TransparencyAttrib.MAlpha)
         # stop the speech bubble from being colored like the agent
@@ -150,7 +150,6 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         self.last_spoke = 0 # timers to keep track of last thought/speech and 
         self.last_thought =0 # hide visualizations
         
-        print 'initializing IsisAgent: 4'
         # put a camera on ralph
         self.fov = NodePath(Camera('RaphViz'))
         self.fov.node().setCameraMask(BitMask32.bit(1))
@@ -173,15 +172,12 @@ class IsisAgent(kinematicCharacterController,DirectObject):
 
         self.isSitting = False
         self.isDisabled = False
-        self.msg = None
         self.actorNodePath.setPythonTag("agent", self)
 
         # Initialize the action queue, with a maximum length of queueSize
         self.queue = []
         self.queueSize = queueSize
         self.lastSense = 0
-
-        self.initialize_retina()
         
     def setLayout(self,layout):
         """ Dummy method called by spatial methods for use with objects. 
@@ -200,7 +196,7 @@ class IsisAgent(kinematicCharacterController,DirectObject):
     def reparentTo(self, parent):
         self.actorNodePath.reparentTo(parent)
 
-    def setControl(self, control, value):
+    def _set_control(self, control, value):
         """Set the state of one of the character's movement controls.  """
         self.controlMap[control] = value
     
@@ -212,11 +208,10 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         needs to exclude isisobjects since they cannot be serialized  
         """
         if exclude == None:
-            exclude = ['isisobject']
+            exclude = ['isisobject', 'all_attributes']
         objects = {}
-        for obj in base.render.findAllMatches("**/IsisObject*"):
-            if not obj.hasPythonTag("isisobj"):
-                continue
+        # find all objects with 'isisobj' tag.  Doesn't work for Python tags 
+        for obj in base.render.findAllMatches("**/=isisobj"):
             o = obj.getPythonTag("isisobj")
             bounds = o.activeModel.getBounds() 
             bounds.xform(o.activeModel.getMat(self.fov))
@@ -232,14 +227,34 @@ class IsisAgent(kinematicCharacterController,DirectObject):
                 if 'y_pos' not in exclude: object_dict['y_pos'] = p3[2]
                 if 'distance' not in exclude: object_dict['distance'] = o.activeModel.getDistance(self.fov)
                 if 'orientation' not in exclude: object_dict['orientation'] = o.activeModel.getH(self.fov)
-                if 'actions' not in exclude: object_dict['actions'] = o.list_actions()
+                if 'actions' not in exclude: object_dict['actions'] = o.get_all_action_names()
+                if 'all_attributes' not in exclude: 
+                    object_dict['attributes'] = o.get_all_attributes_and_values(False)
+                else:
+                    # shows only attributes that have visible=True.
+                    object_dict['attributes'] = o.get_all_attributes_and_values(True)
                 if 'isisobject' not in exclude: object_dict['isisobject'] = o
-                if 'class' not in exclude: object_dict['class'] = o.getClassName()
+                if 'class' not in exclude: object_dict['class'] = o.get_class_name()
                 # add item to dinctionary
                 objects[o] = object_dict
         return objects
-
-    def getClassName(self):
+    
+    def get_objects_spatial_relations(self):
+        seen = []
+        spatial_relations = []
+        for node in base.render.findAllMatches("**/=isisobj"):
+            node = node.getPythonTag("isisobj")
+            if hasattr(node,'in_layout'):
+                for item in node.in_layout.items:
+                    item = item.getPythonTag("isisobj")
+                    spatial_relations.append(('in', node.name, item.name))
+            if hasattr(node,'on_layout'):
+                for item in node.on_layout.items:
+                    item = item.getPythonTag("isisobj")
+                    spatial_relations.append(('on', node.name, item.name))
+        return spatial_relations
+    
+    def get_class_name(self):
         return self.__class__.__name__
 
     def get_agents_in_field_of_vision(self):
@@ -261,7 +276,7 @@ class IsisAgent(kinematicCharacterController,DirectObject):
                              'y_pos': p3[2],\
                              'distance':a.actorNodePath.getDistance(self.fov),\
                              'orientation': a.actorNodePath.getH(self.fov),\
-                             'class': a.getClassName()}
+                             'class': a.get_class_name()}
                 agents[a] = agentDict
         return agents
     
@@ -278,8 +293,8 @@ class IsisAgent(kinematicCharacterController,DirectObject):
     
     def initialize_retina(self):
         fbp=FrameBufferProperties(FrameBufferProperties.getDefault())
-        self.retina_buffer  = base.win.makeTextureBuffer("retina-buffer-%s" % (self.name), 320, 240, tex=Texture('retina-texture'), to_ram=True, fbp=fbp)
-        print "made Texture Buffer"
+        self.retina_buffer = base.win.makeTextureBuffer("retina-buffer-%s" % (self.name), 320, 240, tex=Texture('retina-texture'), to_ram=True, fbp=fbp)
+        print "initializing agent Texture Buffer"
         #self.retina_texture = self.retina_buffer.getTexture()
         self.retina_texture = Texture("retina-texture-%s" % (self.name))
         self.retina_buffer.addRenderTexture(self.retina_texture, GraphicsOutput.RTMCopyRam)
@@ -309,117 +324,117 @@ class IsisAgent(kinematicCharacterController,DirectObject):
     # control functions
     
     def control__turn_left__start(self, speed=None):
-        self.setControl("turn_left",  1)
-        self.setControl("turn_right", 0)
+        self._set_control("turn_left",  1)
+        self._set_control("turn_right", 0)
         if speed:
             self.speeds[0] = speed
         return "success"
 
     def control__turn_left__stop(self):
-        self.setControl("turn_left",  0)
+        self._set_control("turn_left",  0)
         return "success"
 
     def control__turn_right__start(self, speed=None):
-        self.setControl("turn_left",  0)
-        self.setControl("turn_right", 1)
+        self._set_control("turn_left",  0)
+        self._set_control("turn_right", 1)
         if speed:
             self.speeds[1] = speed
         return "success"
 
     def control__turn_right__stop(self):
-        self.setControl("turn_right", 0)
+        self._set_control("turn_right", 0)
         return "success"
 
     def control__move_forward__start(self, speed=None):
-        self.setControl("move_forward",  1)
-        self.setControl("move_backward", 0)
+        self._set_control("move_forward",  1)
+        self._set_control("move_backward", 0)
         if speed:
             self.speeds[2] = speed
         return "success"
 
     def control__move_forward__stop(self):
-        self.setControl("move_forward",  0)
+        self._set_control("move_forward",  0)
         return "success"
 
     def control__move_backward__start(self, speed=None):
-        self.setControl("move_forward",  0)
-        self.setControl("move_backward", 1)
+        self._set_control("move_forward",  0)
+        self._set_control("move_backward", 1)
         if speed:
             self.speeds[3] = speed
         return "success"
 
     def control__move_backward__stop(self):
-        self.setControl("move_backward", 0)
+        self._set_control("move_backward", 0)
         return "success"
 
     def control__move_left__start(self, speed=None):
-        self.setControl("move_left",  1)
-        self.setControl("move_right", 0)
+        self._set_control("move_left",  1)
+        self._set_control("move_right", 0)
         if speed:
             self.speeds[4] = speed
         return "success"
 
     def control__move_left__stop(self):
-        self.setControl("move_left",  0)
+        self._set_control("move_left",  0)
         return "success"
 
     def control__move_right__start(self, speed=None):
-        self.setControl("move_right",  1)
-        self.setControl("move_left", 0)
+        self._set_control("move_right",  1)
+        self._set_control("move_left", 0)
         if speed:
             self.speeds[5] = speed
         return "success"
 
     def control__move_right__stop(self):
-        self.setControl("move_right",  0)
+        self._set_control("move_right",  0)
         return "success"
 
     def control__look_left__start(self, speed=None):
-        self.setControl("look_left",  1)
-        self.setControl("look_right", 0)
+        self._set_control("look_left",  1)
+        self._set_control("look_right", 0)
         if speed:
             self.speeds[9] = speed
         return "success"
 
     def control__look_left__stop(self):
-        self.setControl("look_left",  0)
+        self._set_control("look_left",  0)
         return "success"
 
     def control__look_right__start(self, speed=None):
-        self.setControl("look_right",  1)
-        self.setControl("look_left", 0)
+        self._set_control("look_right",  1)
+        self._set_control("look_left", 0)
         if speed:
             self.speeds[8] = speed
         return "success"
 
     def control__look_right__stop(self):
-        self.setControl("look_right",  0)
+        self._set_control("look_right",  0)
         return "success"
 
     def control__look_up__start(self, speed=None):
-        self.setControl("look_up",  1)
-        self.setControl("look_down", 0)
+        self._set_control("look_up",  1)
+        self._set_control("look_down", 0)
         if speed:
             self.speeds[6] = speed
         return "success"
 
     def control__look_up__stop(self):
-        self.setControl("look_up",  0)
+        self._set_control("look_up",  0)
         return "success"
 
     def control__look_down__start(self, speed=None):
-        self.setControl("look_down",  1)
-        self.setControl("look_up",  0)
+        self._set_control("look_down",  1)
+        self._set_control("look_up",  0)
         if speed:
             self.speeds[7] = speed
         return "success"
 
     def control__look_down__stop(self):
-        self.setControl("look_down",  0)
+        self._set_control("look_down",  0)
         return "success"
 
     def control__jump(self):
-        self.setControl("jump",  1)
+        self._set_control("jump",  1)
         return "success"
 
     def control__view_objects(self):
@@ -442,6 +457,13 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         percepts['language'] = self.sense__get_utterances()
         # agents: returns a map of agents to a list of actions that have been sensed
         percepts['agents'] = self.sense__get_agents()
+        # spatial relations
+        sr = self.get_objects_spatial_relations()
+       
+        # filter spatial relations based on what is in the object key 
+        filter_non_objects = lambda x: percepts['objects'].has_key(x[1]) and percepts['objects'].has_key(x[2])
+        percepts['spatial_relations'] =  filter(filter_non_objects, sr)
+        
         print percepts
         return percepts
     
@@ -512,69 +534,133 @@ class IsisAgent(kinematicCharacterController,DirectObject):
        closestEntry, closestObject = IsisAgent.physics.doRaycastNew('aimRay', 5, [pos, direction], exclude)
        return closestObject
     
-    def pick_object_up_with(self,target,hand_slot,hand_joint):
-        """ Attaches an IsisObject, target, to the hand joint.  Does not check anything first,
+    def pick_object_up_with(self,picked_up,hand_slot,hand_joint):
+        """ Attaches an IsisObject, picked_up, to the hand joint.  Does not check anything first,
         other than the fact that the hand joint is not currently holding something else."""
         if hand_slot != None:
             print 'already holding ' + hand_slot.getName() + '.'
             return None  
         else:
-            if target.layout:
-                target.layout.remove(target)
-                target.layout = None
+            if picked_up.layout:
+                if picked_up.layout.parent.has_attribute('is_open') and not picked_up.layout.parent.get_attribute_value('is_open'):
+                    print "Error: %s is part of a closed container." % (picked_up)
+                    return "error: cannot remove item from closed container"
+                picked_up.layout.remove(picked_up)
+                picked_up.layout = None
             # store original position
-            target.originalHpr = target.getHpr(render)
-            target.disable() #turn off physics
-            if target.body: target.body.setGravityMode(0)
-            target.reparentTo(hand_joint)
-            target.setPosition(hand_joint.getPos(render))
-            target.setTag('heldBy', self.name)
+            picked_up.originalHpr = picked_up.getHpr(render)
+            picked_up.disable() #turn off physics
+            if picked_up.body: picked_up.body.setGravityMode(0)
+            picked_up.reparentTo(hand_joint)
+            # TODO: if object is a surface
+            #  - perturb its contained objects to turn physics back on
+            #  if object is a container
+            #  - turn off the physics of the contained objects, 
+            #   so that they move with the object
+            picked_up.setFluidPosition(hand_joint.getPos(render) + Vec3(*picked_up.pickup_vector[0:3]))
+            picked_up.setRotation(Vec3(*picked_up.pickup_vector[3:]))
+            picked_up.setTag('heldBy', self.name)
             if hand_joint == self.player_right_hand:
-                self.right_hand_holding_object = target
+                self.right_hand_holding_object = picked_up
             elif hand_joint == self.player_left_hand:
-                self.left_hand_holding_object = target
-            hand_slot = target
-            return target
+                self.left_hand_holding_object = picked_up
+            hand_slot = picked_up # does this do anything?
+            return picked_up
 
     def control__pick_up_with_right_hand(self, target=None):
+        """ Tries to find an object with 'target' as a substring of its name that is:
+        
+          1. has the isisobj tag, which points to the IsisWorld generator Python object
+          2. is part of an IsisObject node
+          3. has the pickable tag, indicating it can be picked up
+          4. is within reach, meaning self.can_grasp(item) == True
+        
+        If it fails, it returns an error string specifying which type of error occurred.
+        Alternatively, if target=None, then it is populated with whatever item is in the center
+        of the agent's field of view.  This was originally used for the key-binding pick up 
+        commands.
+        
+        This command is almost identicial for the left/right hands, changes in one
+        should correspond with changes in the other.
+        """
         if not target:
-            target = self.__get_object_in_center_of_view()
+            found_item = self.__get_object_in_center_of_view()
             if not target:
                 print "no target in reach"
-                return "error: no target in reach"
+                return "error: no target in center of view"
         else:
-            target = render.find("**/*" + target + "*").getPythonTag("isisobj")    
-        print "attempting to pick up " + target.name + " with right hand.\n"
-        if self.can_grasp(target): # object within distance      
-            target = self.pick_object_up_with(target, self.right_hand_holding_object, self.player_right_hand)
-            if target != None:
+            found_items = IsisAgent.physics.main.worldNode.findAllMatches("**/%s*" % (target))
+            if not found_items:
+                print "no target name %s found" % (target)
+                return "error: no target by that name"
+            found_item = None
+            for potential_item in found_items:
+                if potential_item.hasPythonTag('isisobj'):
+                    found_item = potential_item.getPythonTag("isisobj")
+                    break
+            if not found_item:
+                print "targets matching %s were not isisobj and pickable" % (target)
+                return "error: no pickable isisobjects by name %s" % (target)
+        print "attempting to pick up " + found_item.name + " with right hand.\n"
+        if self.can_grasp(found_item): # object within distance      
+            picked_up = self.pick_object_up_with(found_item, self.right_hand_holding_object, self.player_right_hand)
+            if picked_up != None:
                 return 'success'
             else:
                 return 'failure'
         else:
-            print 'object (' + target.name + ') is not graspable (i.e. in view and close enough).'
-            return 'error: object not graspable'
-            
-    def control__pick_up_with_left_hand(self, target = None):
-        if not target:
-            target = self.__get_object_in_center_of_view()
-            if not target:
-                print "no target in reach"
-                return
-        else:
-            target = render.find("**/*" + target + "*").getPythonTag("isisobj")    
-        print "attempting to pick up " + target.name + " with left hand.\n"
-        if self.can_grasp(target): # object within distance      
-            target = self.pick_object_up_with(target, self.left_hand_holding_object, self.player_left_hand)
-            if target != None:
-                return 'success'
-            else:
-                return 'failure'
-        else:
-            print 'object (' + target.name + ') is not graspable (i.e. in view and close enough).'
+            print 'object (' + found_item.name + ') is not graspable (i.e. in view and close enough).'
             return 'error: object not graspable'
 
-    def control__drop_from_right_hand(self):
+    def control__pick_up_with_left_hand(self, target=None):
+        """ Tries to find an object with 'target' as a substring of its name that is:
+        
+          1. has the isisobj tag, which points to the IsisWorld generator Python object
+          2. is part of an IsisObject node
+          3. has the pickable tag, indicating it can be picked up
+          4. is within reach, meaning self.can_grasp(item) == True
+        
+        If it fails, it returns an error string specifying which type of error occurred.
+        
+        Alternatively, if target=None, then it is populated with whatever item is in the center
+        of the agent's field of view.  This was originally used for the key-binding pick up 
+        commands.
+        
+        This command is almost identicial for the left/right hands, changes in one
+        should correspond with changes in the other.
+        """
+        if not target:
+            found_item = self.__get_object_in_center_of_view()
+            if not target:
+                print "no target in reach"
+                return "error: no target in center of view"
+        else:
+            found_items = IsisAgent.physics.main.worldNode.findAllMatches("**/%s*" % (target))
+            if not found_items:
+                print "no target name %s found" % (target)
+                return "error: no target by that name"
+            found_item = None
+            for potential_item in found_items:
+                print "potential -item",potential_item, potential_item.hasPythonTag('pickable'),potential_item.hasPythonTag('isisobj')
+                if potential_item.hasPythonTag('isisobj'):
+                    found_item = potential_item.getPythonTag("isisobj")
+                    break
+            if not found_item:
+                print "targets matching %s were not isisobj and pickable" % (target)
+                return "error: no pickable isisobjects by name %s" % (target)
+        print "attempting to pick up " + found_item.name + " with left hand.\n"
+        if self.can_grasp(found_item): # object within distance      
+            picked_up = self.pick_object_up_with(found_item, self.left_hand_holding_object, self.player_left_hand)
+            if picked_up != None:
+                return 'success'
+            else:
+                return 'failure'
+        else:
+            print 'object (' + found_item.name + ') is not graspable (i.e. in view and close enough).'
+            return 'error: object not graspable'   
+
+
+    def control__drop_from_right_hand(self, throw_object=True):
         print "attempting to drop object from right hand.\n"
         
         if self.right_hand_holding_object is None:
@@ -582,46 +668,47 @@ class IsisAgent(kinematicCharacterController,DirectObject):
             return False
         if self.right_hand_holding_object.getNetTag('heldBy') == self.name:
             self.right_hand_holding_object.reparentTo(render)
-            direction = render.getRelativeVector(self.fov, Vec3(0, 1.0, 0))
+            direction = render.getRelativeVector(self.fov, Vec3(1.0, 0, 0))
             pos = self.player_right_hand.getPos(render)
             heldPos = self.right_hand_holding_object.geom.getPosition()
-            self.right_hand_holding_object.setPosition(pos)
-            self.right_hand_holding_object.synchPosQuatToNode()
+            #self.right_hand_holding_object.setPosition(pos)
+            #self.right_hand_holding_object.synchPosQuatToNode()
             self.right_hand_holding_object.setTag('heldBy', '')
-            self.right_hand_holding_object.setRotation(self.right_hand_holding_object.originalHpr)
+            #self.right_hand_holding_object.setRotation(self.right_hand_holding_object.originalHpr)
             self.right_hand_holding_object.enable()
+
             if self.right_hand_holding_object.body:
                 quat = self.getQuat()
                 # throw object
                 force = 5
                 self.right_hand_holding_object.body.setGravityMode(1)
-                self.right_hand_holding_object.getBody().setForce(quat.xform(Vec3(0, force, 0)))
+                self.right_hand_holding_object.getBody().setForce(quat.xform(Vec3(0, 0, -1)))
             self.right_hand_holding_object = None
             return 'success'
         else:
             return "Error: not being held by agent %s" % (self.name)
 
     
-    def control__drop_from_left_hand(self):
+    def control__drop_from_left_hand(self, throw_object=True):
         print "attempting to drop object from left hand.\n"
         if self.left_hand_holding_object is None:
             return 'left hand is not holding an object.'
         if self.left_hand_holding_object.getNetTag('heldBy') == self.name:
             self.left_hand_holding_object.reparentTo(render)
-            direction = render.getRelativeVector(self.fov, Vec3(0, 1.0, 0))
+            direction = render.getRelativeVector(self.fov, Vec3(1.0, 0, 0))
             pos = self.player_left_hand.getPos(render)
-            heldPos = self.left_hand_holding_object.geom.getPosition()
-            self.left_hand_holding_object.setPosition(pos)
-            self.left_hand_holding_object.synchPosQuatToNode()
+            #heldPos = self.left_hand_holding_object.geom.getPosition()
+            #self.left_hand_holding_object.setPosition(pos)
+            #self.left_hand_holding_object.synchPosQuatToNode()
             self.left_hand_holding_object.setTag('heldBy', '')
-            self.left_hand_holding_object.setRotation(self.left_hand_holding_object.originalHpr)
+            #self.left_hand_holding_object.setRotation(self.left_hand_holding_object.originalHpr)
             self.left_hand_holding_object.enable()
-            if self.left_hand_holding_object.body:
+            if self.left_hand_holding_object.body:# and throw_object:
                 quat = self.getQuat()
                 # throw object
-                force = 5
+                force = -1
                 self.left_hand_holding_object.body.setGravityMode(1)
-                self.left_hand_holding_object.getBody().setForce(quat.xform(Vec3(0, force, 0)))
+                self.left_hand_holding_object.getBody().setForce(quat.xform(Vec3(0,0, force)))
             self.left_hand_holding_object = None
             return 'success'
         else:
@@ -631,41 +718,58 @@ class IsisAgent(kinematicCharacterController,DirectObject):
     def control__use_right_hand(self, target = None, action = None):
         # TODO, rename this to use object with 
         if not action:
-            if self.msg:
-                action = self.msg
-            else:
-                action = "divide"
+            return "error: no action specified in IsisAgent::control__use_right_hand "
         if not target:
-            target = self.__get_object_in_center_of_view()
-            if not target:
+            found_item = self.__get_object_in_center_of_view()
+            if not found_item:
                 print "no target in reach"
                 return
         else:
-            target = render.find("**/*" + target + "*").getPythonTag('isisobj')
-        print "Trying to use object", target
-        if self.can_grasp(target):
-            if(target.call(self, action, self.right_hand_holding_object) or
-              (self.right_hand_holding_object and self.right_hand_holding_object.call(self, action, target))):
+            found_items = IsisAgent.physics.main.worldNode.findAllMatches("**/%s*" % (target))
+            if not found_items:
+                print "no target name %s found" % (target)
+                return "error: no target by that name"
+            found_item = None
+            for potential_item in found_items:
+                if potential_item.hasPythonTag('isisobj'):
+                    found_item = potential_item.getPythonTag("isisobj")
+                    break
+            if not found_item:
+                print "No suitable isisobject found"
+                return "no suitable isisobject found"
+        print "Trying to use object", found_item
+        if self.can_grasp(found_item):
+            if(found_item.call(self, action, self.right_hand_holding_object) or
+              (self.right_hand_holding_object and self.right_hand_holding_object.call(self, action, found_item))):
                 return "success"
             return str(action) + " not associated with either target or object"
         return "target not within reach"
 
     def control__use_left_hand(self, target = None, action = None):
         if not action:
-            if self.msg:
-                action = self.msg
-            else:
-                action = "divide"
+            return "error: no action specified in IsisAgent::control__use_right_hand "
         if not target:
-            target = self.__get_object_in_center_of_view()
-            if not target:
+            found_item = self.__get_object_in_center_of_view()
+            if not found_item:
                 print "no target in reach"
                 return
         else:
-            target = render.find("**/*" + target + "*").getPythonTag('isisobj')
-        if self.can_grasp(target):
-            if(target.call(self, action, self.left_hand_holding_object) or
-              (self.left_hand_holding_object and self.left_hand_holding_object.call(self, action, target))):
+            found_items = IsisAgent.physics.main.worldNode.findAllMatches("**/%s*" % (target))
+            if not found_items:
+                print "no target name %s found" % (target)
+                return "error: no target by that name"
+            found_item = None
+            for potential_item in found_items:
+                if potential_item.hasPythonTag('isisobj'):
+                    found_item = potential_item.getPythonTag("isisobj")
+                    break
+            if not found_item:
+                print "No suitable isisobject found"
+                return "no suitable isisobject found"
+        print "Trying to use object", found_item
+        if self.can_grasp(found_item):
+            if(found_item.call(self, action, self.left_hand_holding_object) or
+              (self.left_hand_holding_object and self.left_hand_holding_object.call(self, action, found_item))):
                 return "success"
             return str(action) + " not associated with either target or object"
         return "target not within reach"
@@ -706,10 +810,16 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         # neck is not positioned in Blockman nh,np,nr = self.agents[agent_id].actor_neck.getHpr()
         left_hand_obj = "" 
         right_hand_obj = "" 
-        if self.left_hand_holding_object:  left_hand_obj = self.left_hand_holding_object.getName()
-        if self.right_hand_holding_object: right_hand_obj = self.right_hand_holding_object.getName()
-        return {'body_x': x, 'body_y': y, 'body_z': z,'body_h':h,\
-                'body_p': p, 'body_r': r,  'in_left_hand': left_hand_obj, 'in_right_hand':right_hand_obj}
+        if self.left_hand_holding_object:  
+            left_hand_obj = {self.left_hand_holding_object.getName() : self.left_hand_holding_object.get_all_attributes_and_values(False)}
+        if self.right_hand_holding_object: 
+            right_hand_obj = {self.right_hand_holding_object.getName() : self.right_hand_holding_object.get_all_attributes_and_values(False)}
+        return {'body_pos' : list(self.actorNodePath.getPos())+list(self.actorNodePath.getHpr()),
+                'left_hand_pos': list(self.player_left_hand.getPos())+list(self.player_left_hand.getHpr()),
+                'right_hand_pos': list(self.player_right_hand.getPos())+list(self.player_right_hand.getHpr()),
+                'neck_pos': list(self.neck.getPos())+list(self.neck.getHpr()),
+                'in_left_hand':left_hand_obj,
+                'in_right_hand':right_hand_obj}
 
     def sense__get_vision(self):
         self.fov.node().saveScreenshot("temp.jpg")
@@ -789,9 +899,9 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         Update the held object position to be in the hands
         """
         if self.right_hand_holding_object != None:
-            self.right_hand_holding_object.setPosition(self.player_right_hand.getPos(render))
+            self.right_hand_holding_object.setPosition(self.player_right_hand.getPos(render)+Vec3(*self.right_hand_holding_object.pickup_vector[0:3]))
         if self.left_hand_holding_object != None:
-            self.left_hand_holding_object.setPosition(self.player_left_hand.getPos(render))
+            self.left_hand_holding_object.setPosition(self.player_left_hand.getPos(render)+Vec3(*self.left_hand_holding_object.pickup_vector[0:3]))
 
         #Update the dialog box and thought windows
         #This allows dialogue window to gradually decay (changing transparancy) and then disappear

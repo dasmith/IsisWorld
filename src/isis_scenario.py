@@ -45,10 +45,10 @@ class IsisScenario(object):
             self._taskDict[new_task.name] = new_task
 
     def loadScenario(self, baseNode):
-        try:
+        if True:#try:
             load_objects(self, baseNode)
             return True
-        except Exception, e:
+        else:#except Exception, e:
             raise IsisParseProblem(str(e),"%s in def environment()" % self.name)
             return False
 

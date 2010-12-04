@@ -20,8 +20,8 @@ class RequestHandler(SimpleXMLRPCRequestHandler):
 
 
 class XMLRPCServer(SocketServer.ThreadingMixIn,SimpleXMLRPCServer):
-    def __init__(self):
-        SimpleXMLRPCServer.__init__(self, ("", 8001), requestHandler=RequestHandler)
+    def __init__(self, port_number=8001):
+        SimpleXMLRPCServer.__init__(self, ("", port_number), requestHandler=RequestHandler)
         self.register_introspection_functions()
         self.register_function(self.print_command)
         # allow the server to be turned off

@@ -9,12 +9,11 @@ from direct.gui.DirectGui import DirectSlider, RetryCancelDialog, DirectCheckBut
 from direct.fsm.FSM import FSM, RequestDenied
 from direct.gui.OnscreenText import OnscreenText
 from direct.gui.OnscreenImage import OnscreenImage
-from pandac.PandaModules import Vec3, Vec4, PandaNode, PNMImage
-
+from direct.stdpy import threading, file
 from panda3d.core import ExecutionEnvironment, Filename
+from pandac.PandaModules import Vec3, Vec4, PandaNode, PNMImage, HTTPClient, Ramfile, DocumentSpec
 
 from src.isis_scenario import *
-
 from utilities import pnm_image__as__xmlrpc_image
 
 class Controller(object, FSM):
@@ -27,18 +26,17 @@ class Controller(object, FSM):
         # define the acceptable state transitions
         self.defaultTransitions = {
             'Menu' : ['Scenario'],
-            'Scenario' : ['Menu','TaskPaused'],
+            'Scenario' : ['Menu','TaskPaused', 'ScenarioLoadError'],
+            'ScenarioLoadError' : ['Menu', 'Scenario'],
             'TaskPaused' : ['Menu','TaskTrain','TaskTest','Scenario'],
             'TaskTrain' : ['TaskPaused','TaskTest','Menu','Scenario'],
             'TaskTest' : ['TaskPaused','TaskTrain','Menu','Scenario'],
         }
-        self.runningSimulation = False
-
+        
         #Convenience fields.
-        self.taskBarShown = True
+        self.taskBarShown = False
         self.scenarioBarShown = True
-
-
+        
         self.main = isisworld
         # load a nicer font
         self.fonts = {'bold': base.loader.loadFont('media/fonts/DroidSans-Bold.ttf'), \
@@ -65,7 +63,7 @@ class Controller(object, FSM):
             FRAME_BORDER =  (0.01, 0.01)
             POPUP_BG = (0.74,0.71,0.70,1) 
             FRAME_RELIEF = DGG.RIDGE
-            BUTTON_RELIEF = DGG.RAISED
+            BUTTON_RELIEF = DGG.FLAT
             BUTTON_BORDER = (0.02,0.02)
             BUTTON_BG = (0.74,1.00,0.94,1)
             BUTTON_FG =  (0.91,0.00,0.26,1)
@@ -77,7 +75,7 @@ class Controller(object, FSM):
             POPUP_BG = (0.54,0.45,0.47,1)
             FRAME_BORDER = (0.02, 0.02) 
             FRAME_RELIEF = DGG.RIDGE
-            BUTTON_RELIEF = DGG.RAISED
+            BUTTON_RELIEF = DGG.FLAT
             BUTTON_BORDER = (0.02,0.02)
             BUTTON_BG =  (0.29,0.09,0.18,1)
             BUTTON_FG = (1.00,0.80,0.34,1)
@@ -402,23 +400,21 @@ class Controller(object, FSM):
         return True
         
     def pause_simulation(self,task=None):
-        if self.runningSimulation:
+        if self.main:
             #self.main.physics.stopSimulation()
             self.main.pause_simulation()
-            self.runningSimulation = False
-    
+            
     def step_simulation(self, step_time):
         self.main.step_simulation(step_time)
 
     def start_simulation(self):
         """ Starts the simulation, if it is not already running"""
-        if not self.runningSimulation:
+        if not self.main.simulation_is_running():
             self.main.resume_simulation()
-            self.runningSimulation = True
     
     def toggle_paused(self):
         """ Starts or Pauses the simulation, depending on the current state"""
-        if self.runningSimulation:
+        if self.main.simulation_is_running():
             self.pause_simulation()
             self.pauseButton.hide()
             self.unpauseButton.show()
@@ -458,7 +454,7 @@ class Controller(object, FSM):
             self.currentScenario = None
             # kitchen 
             for obj in self.main.objects:
-                obj.removeFromWorld()
+                obj.remove_from_world()
             for agent in self.main.agents:
                 agent.destroy()
             self.main.physics.destroy() 
@@ -483,7 +479,7 @@ class Controller(object, FSM):
                                        pos=(0, -0.9), scale=0.1,
                                        fg=(1, 1, 1, 1), bg=(0, 0, 0, 0.5))
         loadingText.setTransparency(1)
-        if self.oldState in ['Menu','Scenario']:
+        if self.oldState in ['Menu']:
             # reload the scenario
 
             def parsingProblemDialogCallback(arg):
@@ -524,6 +520,7 @@ class Controller(object, FSM):
                 dialogbox = RetryCancelDialog(text='There was a problem parsing the scenario file\
                                   : \n %s.  \n\nLocation %s' % (e.message, e.component),\
                                  command=parsingProblemDialogCallback)
+                self.request('ScenarioLoadError')
             else:
                 # define pointer to base scene.
                 room = render.find("**/*kitchen*").getPythonTag("isisobj")
@@ -643,7 +640,7 @@ class Controller(object, FSM):
         if pnm_image.write(Filename(filename)):
             print "Saved to ", filename
         else:
-            print "Failed to saved to ", filename
+            print "Failed to save to ", filename
         
     def screenshot_agent(self, name):
         pnm_image = self.capture_agent_screenshot_pnm_image()
@@ -683,3 +680,25 @@ class Controller(object, FSM):
 
     def physics_is_active(self):
         return self.main.simulation_is_running()
+
+    def download_isis_scenarios(self):
+
+        self.http = HTTPClient()
+        self.channel = self.http.makeChannel(True)
+        self.channel.beginGetDocument(DocumentSpec('http://web.media.mit.edu/~dustin/isis_scenarios/'))
+        self.rf = Ramfile()
+        self.channel.downloadToRam(self.rf)
+
+        def downloadTask( task):
+            if self.channel.run():
+                # Still waiting for file to finish downloading.
+                return task.cont
+            if not self.channel.isDownloadComplete():
+                print "Error downloading file."
+                return task.done
+            data = self.rf.getData()
+            print "got data:"
+            print data
+            return task.done
+        
+        taskMgr.add(downloadTask, 'download')

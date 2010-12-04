@@ -2,7 +2,6 @@ from pandac.PandaModules import Vec3, BitMask32
 from ..physics.panda.manager import *
 
 class IsisVisual():
-    priority = 2
     """ This is the base class responsible for handling all of the visual aspects of an object
     in IsisWorld, including all of the handling of visual features (scaling, colors, textures),
     and models (animations, exposing parts).
@@ -10,6 +9,8 @@ class IsisVisual():
     It is the first class instantiated because the self.activeModel is what is used in the other
     object classes: IsisSpatial and IsisFunctional."""
 
+    priority = 2
+    
     def __init__(self):
         # keep a dictionary mapping model names to paths 
         self.models = {}
@@ -40,11 +41,20 @@ class IsisVisual():
         self.setPos(pos)
         # set position of physics -- doesn't need argument, it gets it from activeModel
         self.setGeomPos(pos)
-        
+        self.synchPosQuatToNode()
+    
+    def setFluidPosition(self,pos):
+        # set position of nodepath
+        self.setFluidPos(pos)
+        # set position of physics -- doesn't need argument, it gets it from activeModel
+        self.setGeomPos(pos)
+        self.synchPosQuatToNode()
+
         
     def setRotation(self,hpr):
         self.setHpr(hpr)
         self.synchPosQuatToNode()
+        self._needToRecalculateScalingProperties = True
 
     def rotateAlongX(self,x):
         """ Rotates the model and the ODE geom along the X axis"""
@@ -60,8 +70,11 @@ class IsisVisual():
 
     def getLength(self):
         """ Returns the length of an object, based on its bounding box"""
-        if self._needToRecalculateScalingProperties: self._recalculateScalingProperties()
-        return self.length
+        if self._needToRecalculateScalingProperties: 
+            self._recalculateScalingProperties()
+            return self.length
+        else:
+            return self.length
 
     def getWidth(self):
         """ Returns the width of an object, based on its bounding box"""
@@ -73,8 +86,15 @@ class IsisVisual():
         if self._needToRecalculateScalingProperties: self._recalculateScalingProperties()
         return self.height
 
+    def get_middle(self):
+        """ Returns the middle of an object, based on its bounding box"""
+        if self._needToRecalculateScalingProperties: self._recalculateScalingProperties()
+        return Vec3((self.width, self.height,0))
+
+
     def _recalculateScalingProperties(self):
         """ Internal method for recomputing properties, lazily issued"""
+
         p1, p2 = self.activeModel.getTightBounds()
         self.width = abs(p2.getX()-p1.getX())
         self.length = abs(p2.getY()-p1.getY())
@@ -113,7 +133,7 @@ class IsisVisual():
                 self.activeModel.remove()
             self.activeModel = loader.loadModel("media/models/"+self.models[changeToKey])
             self.activeModel.setScale(self.scale)
-            self.activeModel.setPosHpr(*self.offsetVec)
+            self.activeModel.setPosHpr(*self.offset_vector)
             self.activeModel.setCollideMask(BitMask32.allOff())
             self.activeModel.reparentTo(self)
 

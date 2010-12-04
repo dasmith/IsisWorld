@@ -5,7 +5,8 @@ from pandac.PandaModules import NodePath, Quat
 # Various layout managers used to generate coordinates for placing objects
 
 class LayoutManager():
-    def __init__(self):
+    def __init__(self, parent):
+        self.parent = parent
         self.items = []
     def add(self, obj):
         if not obj:
@@ -20,8 +21,8 @@ class LayoutManager():
 
 class RoomLayout(LayoutManager):
     """Arranges objects in rows around the perimeter"""
-    def __init__(self, area, height, padw = .05, padh = .05):
-        LayoutManager.__init__(self)
+    def __init__(self, parent, area, height, padw = .13, padh = .13):
+        LayoutManager.__init__(self, parent)
         self.w, self.h = area
         self.z = height
         self.px, self.py = (0, 0)
@@ -117,19 +118,24 @@ class RoomLayout(LayoutManager):
 
 class HorizontalGridLayout(LayoutManager):
     """Arranges objects in rows within the given area"""
-    def __init__(self, area, height, padw = .05, padh = .05):
-        LayoutManager.__init__(self)
+    def __init__(self, parent, area, height, padw = .15, padh = .15):
+        LayoutManager.__init__(self, parent)
         self.w, self.h = area
         self.z = height
         self.px, self.py = (0, 0)
         self.maxh = 0
         self.padw = padw
         self.padh = padh
+        
     def add(self, obj):
+        #print "HGL called with", obj,  obj.getWidth(),  obj.getLength(), self.padw, self.padh
         if not LayoutManager.add(self, obj):
             return
+        #print "Width, "
         ow = obj.getWidth()+self.padw
         ol = obj.getLength()+self.padh
+        #print "Object width and length", ow, ol
+                
         if self.px+ow > self.w:
             self.py += self.maxh
             self.px = 0
@@ -145,10 +151,11 @@ class HorizontalGridLayout(LayoutManager):
 
 class SlotLayout(LayoutManager):
     """Arranges objects into pre-defined (x, y, z) slots"""
-    def __init__(self, slots):
-        LayoutManager.__init__(self)
+    def __init__(self, parent, slots):
+        LayoutManager.__init__(self, parent)
         self.slots = slots
         self.map = {}
+
     def add(self, obj):
         if not LayoutManager.add(self, obj):
             return
@@ -169,8 +176,8 @@ class SlotLayout(LayoutManager):
 
 class HorizontalGridSlotLayout(SlotLayout):
     """Creates a grid of slots in the given area centered at 0,0, nx slots wide by nx slots in length"""
-    def __init__(self, area, height, nx, ny, padw = .5, padh = .5):
-        LayoutManager.__init__(self)
+    def __init__(self, parent, area, height, nx, ny, padw = .5, padh = .5):
+        LayoutManager.__init__(self, parent)
         if nx <= 1 and ny <= 1:
             # Create a single slot centered on the item in question
             slots = [(0, 0, height+1)]

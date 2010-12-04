@@ -40,7 +40,8 @@ from ..isis_agents.isis_agent import IsisAgent
 from ..physics.ode.pickables import *
 from ..physics.ode.odeWorldManager import *
 
-class oven(IsisObject, IsisVisual, SpatialStaticBox, Surface, IsisFunctional):
+
+class oven(IsisObject, IsisVisual, SpatialStaticBox, SpatialSurface, IsisFunctional):
 
     def __init__(self):
         self.offsetVec = offsetVec = (0,0,0,0,0,0)

@@ -15,7 +15,7 @@ how it changed.
 
 How to Use:
     Go to a shell, and cd to the directory that viewer.py is in. Then type
-    python viewer.py <full path to model that you want to adjust>
+    python viewer.py /full/path/to/model 
 If no model is provided as an argument, the script defaults to a
 modified copy of a panda model that is in the same directory. 
 

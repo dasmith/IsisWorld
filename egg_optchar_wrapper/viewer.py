@@ -11,8 +11,10 @@ from direct.showbase.ShowBase import ShowBase
 from direct.task import Task
 from direct.actor.Actor import Actor
 from direct.gui.DirectGui import *
+from direct.directtools.DirectGeometry import LineNodePath
 from direct.gui.OnscreenText import OnscreenText
 from pandac.PandaModules import *
+
 
 class ModelDisplayer(ShowBase):
     
@@ -27,34 +29,73 @@ class ModelDisplayer(ShowBase):
         self.environ.setScale(0.25, 0.25, 0.25)
         self.environ.setPos(-8, 42, 0)
         
+        # add Isis Agent
+        self.actor= Actor("../media/models/boxman",
+                          {"walk":"../media/models/boxman-walk", 
+                           "idle": "../media/models/boxman-idle"})
+        self.actor.setScale(1.0)
+        self.actor.setH(0)
+        # move actor to the left
+        self.actor.setPos(0,-6,0)
+
+        self.actor.reparentTo(render)
+        # Expose agent's right hand joint to attach objects to
+        self.player_right_hand = self.actor.exposeJoint(None, 'modelRoot', 'Hand.R')
+        self.player_left_hand  = self.actor.exposeJoint(None, 'modelRoot', 'Hand.L')
+        
+        
+        # add lines 
+        lines = LineNodePath(parent = render, thickness = 4.0, colorVec = Vec4(1, 0, 0, 1))
+        lines.reset()
+        lines.drawLines([((0,0,0),(0,0,5)),
+                         ((0,0,0),(0,5,0)),
+                         ((0,0,0),(5,0,0))])
+        lines.create()
+        
+        self.spinning = True
         # Add the spinCameraTask
+
         self.taskMgr.add(self.spinCameraTask, "SpinCameraTask")
 
-        self.addAModel(modelName)
-
+        self.model = None
+        self.loadModel(modelName)
+        self.model.place()
+        self.camera.lookAt(self.model)
         self.drawGUI()
-
+        self.accept("space", self.toggleSpinning)
+                
+    def toggleSpinning(self):
+        if self.spinning:
+            self.taskMgr.remove("SpinCameraTask")
+            self.camera.setPos(0, 0, 3)
+            self.camera.setHpr(0, 0, 0)
+        else:
+            self.taskMgr.add(self.spinCameraTask, "SpinCameraTask")
+        self.spinning = not self.spinning
     def drawGUI(self):
-        self.reloadButton = DirectButton(text=("Reload Model"), scale=.15,
-                                         command=self.reloadModel,
-                                         pos = (0, 0, -0.85))
 
-        # Clear the text in the DirectEntry field
-        def clearText():
-            self.textInp.enterText('')
-
-        def systemCallText(command):
-            theCmd = "egg-optchar -o " + self.modelName + " " + \
-                     command + " " + self.modelName 
+        def systemCallText():
+            x,y,z = self.model.getPos(render)
+            h,p,r = self.model.getHpr(render)
+            sx,sy,sz = self.model.getScale()
+            newName = self.modelName[0:-4] +"-new.egg"
+            theCmd = "egg-trans -o " + newName + " "
+            theCmd += "-TT %f,%f,%f " % (x,y,z)
+            theCmd += "-TS %f,%f,%f " % (sx,sy,sz)
+            theCmd += "-TR %f,%f,%f " % (h,p,r)
+            #theCmd += "-cs z-up " # Standardize coordinate system
+            theCmd += "-T " # Collapse equivalent texture references.
+            theCmd += "-F " # Flatten out transforms.
+            theCmd += "-C " # Clean out higher-order polygons by subdividing into triangles.
+            theCmd +=  self.modelName
             print theCmd
             os.system(theCmd)
-            self.reloadModel()
-            clearText()
+            self.loadModel(newName)
+    
+        self.transformButton = DirectButton(text=("Transform Model"), scale=.15,
+                                            command=systemCallText,
+                                            pos = (0, 0, -0.85))
 
-        # add button
-        self.textInp = DirectEntry(text = "", scale=.05, command=systemCallText, 
-                initialText="This will go to shell", numLines = 5, focus = 1, 
-                focusInCommand = clearText)
 
     def spinCameraTask(self, task):
         # From the Panda3D tutorial, I left it in because it looks a bit
@@ -66,17 +107,15 @@ class ModelDisplayer(ShowBase):
         self.camera.setHpr(angleDegrees, 0, 0)
         return Task.cont
 
-    def reloadModel(self):
+    def loadModel(self, name):
         # We can refresh models by replacing the model with itself
         # That is, detach the model, and then reload it
-        self.model.detachNode()
-        loader.unloadModel(self.model)
-        self.model = loader.loadModel(self.modelName)
+        if self.model:
+            self.model.detachNode()
+            loader.unloadModel(self.model)
+        self.model = loader.loadModel(name)
         self.model.reparentTo(self.render)
 
-    def addAModel(self, model):
-        self.model = loader.loadModel(model)
-        self.model.reparentTo(self.render)
 
 if __name__ == '__main__':
     if len(sys.argv) != 2:

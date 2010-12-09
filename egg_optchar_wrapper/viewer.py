@@ -56,7 +56,7 @@ class ModelDisplayer(ShowBase):
         self.spinning = False
         # Add the spinCameraTask
         base.camera.setPos(0,20,20) 
-        base.camera.lookAt(0,0,0) 
+        #base.camera.lookAt(0,0,0) 
           # Gives the camera an initial position and rotation. 
 
         #self.taskMgr.add(self.spinCameraTask, "SpinCameraTask")
@@ -73,8 +73,8 @@ class ModelDisplayer(ShowBase):
     def toggleSpinning(self):
         if self.spinning:
             self.taskMgr.remove("SpinCameraTask")
-            self.camera.setPos(0, 0, 3)
-            self.camera.setHpr(0, 0, 0)
+            #self.camera.setPos(0, 0, 3)
+            # self.camera.setHpr(0, 0, 0)
         else:
             self.taskMgr.add(self.spinCameraTask, "SpinCameraTask")
         self.spinning = not self.spinning
@@ -89,7 +89,8 @@ class ModelDisplayer(ShowBase):
             theCmd += "-TT %f,%f,%f " % (x,y,z)
             theCmd += "-TS %f,%f,%f " % (sx,sy,sz)
             theCmd += "-TR %f,%f,%f " % (h,p,r)
-            theCmd += "-cs z-up -t " # Standardize coordinate system
+            #theCmd += "-cs z-up -t " # Standardize coordinate system
+            #theCmd += "-t " # apply exture matricies to UVs
             theCmd += "-T " # Collapse equivalent texture references.
             theCmd += "-F " # Flatten out transforms.
             #theCmd += "-C " # Clean out higher-order polygons by subdividing into triangles.
@@ -121,6 +122,10 @@ class ModelDisplayer(ShowBase):
             loader.unloadModel(self.model)
         self.model = loader.loadModel(name)
         self.model.reparentTo(self.render)
+        bounds = self.model.getBounds()
+        center = self.model.getBounds().getCenter()
+        #print "Z offset", bounds[2]-center[2]
+        
         self.model.place()
 
 if __name__ == '__main__':

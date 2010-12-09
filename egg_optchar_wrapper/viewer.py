@@ -119,14 +119,19 @@ class ModelDisplayer(ShowBase):
         # That is, detach the model, and then reload it
         if self.model:
             self.model.detachNode()
+            print dir(self.placer)
+            #self.placer.getWidget().destroy()
+            self.placer.destroy()#self.placer.destroycomponent()
+            #del self.placer
             loader.unloadModel(self.model)
         self.model = loader.loadModel(name)
         self.model.reparentTo(self.render)
         bounds = self.model.getBounds()
         center = self.model.getBounds().getCenter()
         #print "Z offset", bounds[2]-center[2]
+
         
-        self.model.place()
+        self.placer = self.model.place()
 
 if __name__ == '__main__':
     if len(sys.argv) != 2:

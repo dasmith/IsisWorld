@@ -88,6 +88,7 @@ class ModelDisplayer(ShowBase):
             theCmd = "egg-trans -o " + newName + " "
             theCmd += "-TT %f,%f,%f " % (x,y,z)
             theCmd += "-TS %f,%f,%f " % (sx,sy,sz)
+            theCmd += "-TR %f,%f,%f " % (h,p,r)
             theCmd += "-cs z-up -t " # Standardize coordinate system
             theCmd += "-T " # Collapse equivalent texture references.
             theCmd += "-F " # Flatten out transforms.

@@ -1,4 +1,6 @@
 
+**To download the latest compilations of IsisWorld, go to [http://web.media.mit.edu/~dustin/isisworld](http://web.media.mit.edu/~dustin/isisworld)**
+
 # To Do List
  
   - build tool for normalizing the position and rotations for objects.

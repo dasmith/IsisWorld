@@ -37,7 +37,7 @@ profile:
 
 deploy: package
 	echo "Making cross-platform builds and uploading them"
-	rm -rf builds; mkdir builds
+	rm -rf $(SIM_VERSION); mkdir $(SIM_VERSION)
 	for arg in linux_amd64 linux_i386 osx_i386 osx_ppc win32; do\
 		rm -rf $(SIM_NAME)_$(SIM_VERSION); mkdir $(SIM_NAME)_$(SIM_VERSION) ;\
 	      	echo mv $$arg/* $(SIM_NAME)_$(SIM_VERSION) ;\
@@ -46,7 +46,7 @@ deploy: package
 			cp -rf scenarios $(SIM_NAME)_$(SIM_VERSION) ;\
 		tar cf $(SIM_NAME)_$(SIM_VERSION)_$$arg.tar $(SIM_NAME)_$(SIM_VERSION) ;\
 		gzip $(SIM_NAME)_$(SIM_VERSION)_$$arg.tar ;\
-		mv $(SIM_NAME)_$(SIM_VERSION)_$$arg.tar.gz builds/ ; \
+		mv $(SIM_NAME)_$(SIM_VERSION)_$$arg.tar.gz $(SIM_VERSION)/ ; \
 		done
-	rsync -a builds dustin@ml.media.mit.edu:public_html/isisworld/$(SIM_VERSION)
+	rsync -a $(SIM_VERSION) dustin@ml.media.mit.edu:public_html/isisworld/
 

@@ -11,7 +11,7 @@ from panda3d.core import Filename
 class isisworld(p3d):
     # Metadata of the package
     require('panda3d','ode','morepy') 
-    config(display_name = "IsisWorld", version="0.5")#, keep_user_env=1)
+    config(display_name = "IsisWorld", version="0.5", keep_user_env=1)
 
     # Add the data and configuration files
     #dir('media','media')

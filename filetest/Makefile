@@ -1,35 +1,18 @@
+make:
+	./osx_i386/isisworld
+
+clean:
+	rm *p3d*
 
 p3d:
-	wget http://runtime-dev.panda3d.org/ppackage.p3d
-	wget http://runtime-dev.panda3d.org/packp3d.p3d
-	wget http://runtime-dev.panda3d.org/pdeploy.p3d
-	panda3d ppackage.p3d -i . testbuild.pdef
-	panda3d pdeploy.p3d -i . testbuild.pdef
+	wget http://runtime-dev.panda3d.org/ppackage_dev.p3d
+	wget http://runtime-dev.panda3d.org/packp3d_dev.p3d
+	wget http://runtime-dev.panda3d.org/pdeploy_dev.p3d
 
 package:
-	panda3d ppackage.p3d -i . testbuild.pdef
-	panda3d pdeploy.p3d -N "IsisWorld" -n testbuild -t width=800 -t height=600 -P osx_i386 -v $(SIM_VERSION) tb.p3d standalone
-
-package2:
-	ppackage -i . testbuild.pdef
-	pdeploy -N "IsisWorld" -v $(SIM_VERSION) tb.p3d standalone
-
-package3:
-	panda3d ppackage.p3d -D -i . testbuild.pdef
-	panda3d pdeploy.p3d -N "IsisWorld" -n tb -t width=800 -t height=600 -P osx_i386 -v $(SIM_VERSION) tb.p3d standalone
-	tar cf tb.tar tb.p3d
-
-profile:
-	python -m cProfile -o stats.prof main.py
-	# then run runsnake stats.prof
-
-build: package 
-	echo "Packaging isis_world.p3d"
-	pdeploy -n isis_world -N "IsisWorld v$(SIM_VERSION)"  -a "edu.mmp"  -l "GPL v3" -L COPYING -t width=800 -t height=600  -v $(SIM_VERSION)  -s isis_world.p3d standalone 
-
-install: package 
-	echo "Packaging isis_world.p3d"
-	pdeploy -n isis_world -N "IsisWorld v$(SIM_VERSION)"  -l "GPL v3" -P osx_i386 -L COPYING -t width=800 -t height=600  -v $(SIM_VERSION)  -s isis_world.p3d installer 
+	rm -rf isisworld.0.5.p3d
+	panda3d ppackage_dev.p3d -i . isisworld.pdef
+	panda3d pdeploy_dev.p3d -N "IsisWorld" -n isisworld -t width=800 -t height=600 -P osx_i386 isisworld.0.5.p3d standalone
 
 deploy: build
 	echo "Making cross-platform builds and uploading them"

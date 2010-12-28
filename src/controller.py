@@ -14,7 +14,7 @@ from panda3d.core import ExecutionEnvironment, Filename
 from pandac.PandaModules import Vec3, Vec4, PandaNode, PNMImage, HTTPClient, Ramfile, DocumentSpec
 
 from src.isis_scenario import *
-from utilities import pnm_image__as__xmlrpc_image
+from utilities import pnm_image__as__xmlrpc_image, find_scenarios_directory
 
 class Controller(object, FSM):
 
@@ -22,6 +22,8 @@ class Controller(object, FSM):
         """ This configures all of the GUI states."""
         self.loaded = True
         self.base = base
+        self.scenarios_dir =  find_scenarios_directory()
+
         FSM.__init__(self, 'MainMenuFSM')
         # define the acceptable state transitions
         self.defaultTransitions = {
@@ -47,12 +49,15 @@ class Controller(object, FSM):
         self.scenarioTasks = []
         
         
-        # load files in the scenario directory
-        print "LOADING SCENARIO FILES", self.main.rootDirectory
-        for scenarioPath in os.listdir(self.main.rootDirectory+"scenarios"):
-            scenarioFile = scenarioPath[scenarioPath.rfind("/")+1:]
-            if "__init__" not in scenarioFile:
+        
+        print "LOADING SCENARIO FILES", self.scenarios_dir
+        for scenarioPath in sorted(os.listdir(self.scenarios_dir)):
+            print scenarioPath, scenarioPath[-3:] 
+            if scenarioPath[-3:] == ".py":         
+                scenarioFile = scenarioPath[scenarioPath.rfind("/")+1:]
                 self.scenarioFiles.append(scenarioFile)
+                print "- Adding Scenario File: ", scenarioFile
+
         # display GUI for navigating tasks
         #textObj = OnscreenText(text = "Scenarios:", pos = (1,0.9), scale = 0.05,fg=(1,0.5,0.5,1),align=TextNode.ALeft,mayChange=1)
         # summer theme
@@ -491,27 +496,17 @@ class Controller(object, FSM):
             
             try:
                 print "Selected Scenario", self.selectedScenario
-                #os.chdir(self.main.rootDirectory+"scenarios")
-                #print sys.path[0] 
-                #print os.getcwd()
-                print "NAME", self.selectedScenario[:-3]
                 print "OPENING", "scenarios/"+self.selectedScenario
                 if self.selectedScenario.lower()[-3:] == '.py':
-                    py_mod = imp.load_source(self.selectedScenario[:-3], "scenarios/"+self.selectedScenario)
-                elif self.selectedScenario.lower()[-4:] == '.pyo':
-                    # these files are loaded within the packaged P3D files
-                    import marshal
-                    def loadPYbyte(path): 
-                        # read module file 
-                        marshal_data= VFS.readFile(Filename(path),1)[8:] 
-                        # unmarshal the data 
-                        return marshal.loads(marshal_data)
-                    py_mod = imp.load_compiled(self.selectedScenario[:-4], loadPYbyte(self.selectedScenario))
+                    py_mod = imp.load_source(self.selectedScenario[:-3], scenarios_dir+"/"+self.selectedScenario)
+                #elif self.selectedScenario.lower()[-4:] == '.pyo':
+                #    # these files are loaded within the packaged P3D files
+                #    py_mod = imp.load_compiled(self.selectedScenario[:-4], loadPYbyte(self.selectedScenario))
                 else:
                     raise Exception("Invalid file extension for %s " % (self.selectedScenario))
                 if 'Scenario' in dir(py_mod):
                     self.currentScenario = py_mod.Scenario(self.selectedScenario) 
-                    
+    
                 print "Current scenario methods", dir(self.currentScenario)
                 # setup world
                 self.main.pause_simulation()

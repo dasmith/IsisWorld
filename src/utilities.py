@@ -2,6 +2,46 @@
 
 import struct
 import xmlrpclib
+import os
+from panda3d.core import Filename
+
+def find_scenarios_directory():
+    """ A series of path checks to locate the folder containing the 
+    ISIS SCENARIO files.
+    """
+    print "Finding Scenarios Directory."
+    if base.appRunner:
+        prefix = "../"
+    else:
+        prefix = ""
+    # check environment variable
+    try:
+        print "1. ISIS_SCENARIO_PATH Environment variable...",
+        environ = os.environ["ISIS_SCENARIO_PATH"]
+        print "[%s] " % environ, 
+        if Filename(environ).exist():
+            print "OK"
+            return environ
+        else:
+            print "NOT FOUND"
+    except KeyError, e:
+        print " NONE"
+    locald = Filename(os.path.join(os.getcwd(),'scenarios')).toOsSpecific()
+    print "2. Looking in local directory...[%s] " % locald,
+    if Filename(locald).exists():
+        print "OK"
+        return locald
+    else:
+        print "NOT FOUND"
+    localpd = Filename(os.path.join(prefix+os.getcwd(),'scenarios')).toOsSpecific()
+    print "3. Looking in prefix + local directory...[%s] " % localpd,
+    if Filename(localpd).exists():
+        print "OK"
+        return localpd
+    else:
+        print "NOT FOUND"
+    print "ERROR NO ISISPATH FOUND"
+    return None
 
 def getOrientedBoundedBox(collObj):
     ''' get the Oriented Bounding Box '''

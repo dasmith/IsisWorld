@@ -37,16 +37,16 @@ profile:
 
 deploy: package
 	echo "Making cross-platform builds and uploading them"
+	rm -rf builds; mkdir builds
 	for arg in linux_amd64 linux_i386 osx_i386 osx_ppc win32; do\
 		rm -rf $(SIM_NAME)_$(SIM_VERSION); mkdir $(SIM_NAME)_$(SIM_VERSION) ;\
 	      	echo mv $$arg/* $(SIM_NAME)_$(SIM_VERSION) ;\
 	      	mv $$arg/* $(SIM_NAME)_$(SIM_VERSION) ;\
-	      	cp -rf DIST_README $(SIM_NAME)_$(SIM_VERSION)/README ;\ 
-	      	cp -rf scenarios $(SIM_NAME)_$(SIM_VERSION) ;\
+			cp -rf DIST_README $(SIM_NAME)_$(SIM_VERSION)/README ;\
+			cp -rf scenarios $(SIM_NAME)_$(SIM_VERSION) ;\
 		tar cf $(SIM_NAME)_$(SIM_VERSION)_$$arg.tar $(SIM_NAME)_$(SIM_VERSION) ;\
 		gzip $(SIM_NAME)_$(SIM_VERSION)_$$arg.tar ;\
 		mv $(SIM_NAME)_$(SIM_VERSION)_$$arg.tar.gz builds/ ; \
 		done
 	rsync -a builds dustin@ml.media.mit.edu:public_html/6.868/
-
 

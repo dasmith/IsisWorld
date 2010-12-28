@@ -24,6 +24,6 @@ deploy: build
 		gzip $(SIM_NAME)_$(SIM_VERSION)_$$arg.tar ;\
 		mv $(SIM_NAME)_$(SIM_VERSION)_$$arg.tar.gz builds/ ; \
 		done
-	rsync -a builds dustin@ml.media.mit.edu:public_html/6.868/
+	rsync -a builds dustin@ml.media.mit.edu:public_html/isisworld/$(SIM_VERSION)
 
 

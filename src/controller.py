@@ -291,7 +291,7 @@ class Controller(object, FSM):
         self.menuResetTrainingButton.reparentTo(self.taskFrame)
         self.menuTestButton.reparentTo(self.taskFrame)
         
-
+        """
         def disable_keys(x):
             x.testCommandBox.enterText("")
             x.testCommandBox.suppressKeys=True
@@ -300,6 +300,7 @@ class Controller(object, FSM):
         def enable_keys(x):
             x.testCommandBox["frameColor"]=(0.631, 0.219, 0.247,.25)
             x.testCommandBox.suppressKeys=False
+
 
         def accept_message(message,x):
             message = message.strip()
@@ -324,6 +325,7 @@ class Controller(object, FSM):
                                           focusOutExtraArgs=[self], command=accept_message, extraArgs=[self],  width=15, numLines=1)
         
         self.testCommandBox.reparentTo(self.toolbarFrame)
+        """
         self.loaded = True
         
         self.thought_buttons = {}
@@ -498,7 +500,7 @@ class Controller(object, FSM):
                 print "Selected Scenario", self.selectedScenario
                 print "OPENING", "scenarios/"+self.selectedScenario
                 if self.selectedScenario.lower()[-3:] == '.py':
-                    py_mod = imp.load_source(self.selectedScenario[:-3], scenarios_dir+"/"+self.selectedScenario)
+                    py_mod = imp.load_source(self.selectedScenario[:-3], self.scenarios_dir+"/"+self.selectedScenario)
                 #elif self.selectedScenario.lower()[-4:] == '.pyo':
                 #    # these files are loaded within the packaged P3D files
                 #    py_mod = imp.load_compiled(self.selectedScenario[:-4], loadPYbyte(self.selectedScenario))

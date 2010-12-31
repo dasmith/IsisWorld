@@ -278,7 +278,9 @@ class IsisWorld(DirectObject):
         if not self.__enable_xmlrpc_vision:
             return None
         fbp=FrameBufferProperties(FrameBufferProperties.getDefault())
-        self.offscreen_render_buffer  = base.win.makeTextureBuffer("offscreen_render-buffer", 640, 480, tex=Texture('offscreen_render-texture'), to_ram=True, fbp=fbp)
+        self.offscreen_render_buffer = base.win.makeTextureBuffer("offscreen_render-buffer", 640, 480, tex=Texture('offscreen_render-texture'), to_ram=True, fbp=fbp)
+        self.offscreen_render_buffer.setActive(False)
+        self.offscreen_render_buffer.setOneShot(True)
         print "made Texture Buffer"
         #self.offscreen_render_texture = self.offscreen_render_buffer.getTexture()
         self.offscreen_render_texture = Texture("offscreen_render-texture")
@@ -300,7 +302,10 @@ class IsisWorld(DirectObject):
     def capture_rgb_ram_image(self):
         if not self.__enable_xmlrpc_vision:
             return None
+        self.offscreen_render_buffer.setActive(True)
+        base.graphicsEngine.renderFrame()
         ram_image_data = self.offscreen_render_texture.getRamImageAs('RGB')
+        self.offscreen_render_buffer.setActive(False)
         if (not ram_image_data) or (ram_image_data is None):
             print 'Failed to get ram image from main window texture.'
             return None

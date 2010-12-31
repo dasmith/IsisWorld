@@ -294,6 +294,8 @@ class IsisAgent(kinematicCharacterController,DirectObject):
     def initialize_retina(self):
         fbp=FrameBufferProperties(FrameBufferProperties.getDefault())
         self.retina_buffer = base.win.makeTextureBuffer("retina-buffer-%s" % (self.name), 320, 240, tex=Texture('retina-texture'), to_ram=True, fbp=fbp)
+        self.retina_buffer.setActive(False)
+        self.retina_buffer.setOneShot(True)
         print "initializing agent Texture Buffer"
         #self.retina_texture = self.retina_buffer.getTexture()
         self.retina_texture = Texture("retina-texture-%s" % (self.name))
@@ -308,7 +310,10 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         self.retina_camera.setHpr(0,-90,0)
         
     def capture_retina_rgb_ram_image(self):
+        self.retina_buffer.setActive(True)
+        base.graphicsEngine.renderFrame()
         ram_image_data = self.retina_texture.getRamImageAs('RGB')
+        self.retina_buffer.setActive(False)
         if (not ram_image_data) or (ram_image_data is None):
             print 'Failed to get ram image from retina texture.'
             return None

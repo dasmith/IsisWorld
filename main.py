@@ -77,6 +77,7 @@ class IsisWorld(DirectObject):
         self.__xmlrpc_port_number = 8001
         self.__display_usage_information = False
         self.__use_default_scenario = False
+        self.__request_small_window = False
         
         def usage():
             print "IsisWorld command line options"
@@ -88,7 +89,7 @@ class IsisWorld(DirectObject):
             print "-"*30
         # parse command line options
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "ho:vDpf", ["help", "output=","Default"])
+            opts, args = getopt.getopt(sys.argv[1:], "ho:vDpf", ["help", "output=", "Default", "small_window"])
         except getopt.GetoptError, err:
             # print help information and exit:
             print str(err) # will print something like "option -a not recognized"
@@ -107,6 +108,8 @@ class IsisWorld(DirectObject):
                 self.__display_usage_information = True
             elif o in ("-D", "--default"):
                 self.__use_default_scenario = True
+            elif o == "--small_window":
+                self.__request_small_window = True
             else:
                 assert False, "unhandled option"
         
@@ -131,7 +134,12 @@ class IsisWorld(DirectObject):
             while not self.controller.loaded: time.sleep(0.0001)
             self.controller.request('Scenario')
             self.controller.request('TaskPaused')
-
+        
+        if self.__request_small_window:
+            wp = WindowProperties()
+            wp.setSize(640, 480)
+            base.win.requestProperties(wp)
+        
         self._text_object_visible = True
         # turn off main help menu by default
         self._toggle_instructions_window()
@@ -281,7 +289,6 @@ class IsisWorld(DirectObject):
         self.offscreen_render_buffer = base.win.makeTextureBuffer("offscreen_render-buffer", 640, 480, tex=Texture('offscreen_render-texture'), to_ram=True, fbp=fbp)
         self.offscreen_render_buffer.setActive(False)
         self.offscreen_render_buffer.setOneShot(True)
-        print "made Texture Buffer"
         #self.offscreen_render_texture = self.offscreen_render_buffer.getTexture()
         self.offscreen_render_texture = Texture("offscreen_render-texture")
         self.offscreen_render_buffer.addRenderTexture(self.offscreen_render_texture, GraphicsOutput.RTMCopyRam)
@@ -293,6 +300,7 @@ class IsisWorld(DirectObject):
         self.offscreen_render_camera.reparentTo(base.camera)
         self.offscreen_render_camera.setPos(0, 0, 0)
         self.offscreen_render_camera.setHpr(0, 0, 0)
+        print "made Texture Buffer"
 
     def get_offscreen_render_texture(self):
         if not self.__enable_xmlrpc_vision:

@@ -803,6 +803,9 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         Try to use the object that we aim at, by calling its callback method.
         """
         target = self.__get_object_in_center_of_view()
+	if not target:
+	    print "No target in FOV"
+            return "failure"
         if target.selectionCallback:
             target.selectionCallback(self, dir)
         return "success"

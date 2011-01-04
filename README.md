@@ -15,6 +15,7 @@
   - UI overhaul: clean up, make UI much more thin.
   - re-write layout managers
   - UI triggered exit should first kill xmlrpc (and join thread?) before shutting down
+  - save screenshots in relative path (same relative path as scenarios dir)
   
 ## Model adding tool
 

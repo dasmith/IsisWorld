@@ -19,12 +19,12 @@ class IsisObject(NodePath):
     
     def  __init__(self,name=1,**kwargs):
 
-        # overwrite values with keyword args
+        # replace existing local variables with keyword args
         self.__dict__.update(kwargs)
         
         # generate a unique name for the object. unique id uses GENERATORS ID
         self.name = self.__class__.__name__+"+"+str(id(self))
-        NodePath.__init__(self,self.name)
+        NodePath.__init__(self, self.name)
         
         # store pointer to IsisObject subclass        
         self.setPythonTag("isisobj", self)
@@ -78,9 +78,6 @@ class IsisObject(NodePath):
     def set_layout(self, l):
         self.layout = l
 
-    def get_name(self):
-        return self.name[11:]
-        
     def get_class_name(self):
         return self.__class__.__name__
 

@@ -84,6 +84,13 @@ class fridge(IsisObject, IsisVisual, SpatialStaticBox, SpatialContainer, Functio
         fd.setPos(-.66, .6, 1.68)
         self.door = self.activeModel.find("**/fridgeDoor*")
         self.door.setPos(-0.56, .6, .72)
+        
+        self.doorCollision = kinematicObject(self.physics)
+        self.doorCollision.activeModel = self.door
+        self.doorCollision.setBoxGeomFromNodePath(self.door)
+        self.doorCollision.setCatColBits("pickable")
+        self.physics.addObject(self.doorCollision)
+        
         #fd.setPos(-.70, .5, 1.78)
         # and add the door
         #self.door = self.activeModel.find("**/fridgeDoor*")
@@ -204,7 +211,7 @@ class kitchen(IsisObject,IsisVisual,SpatialRoom,FunctionalCountable):
 
         hw = self.width/2
         hl = self.length/2
-        print "KITCHEN WIDTH/LENTH", hw, hl
+        print "KITCHEN WIDTH/LENGTH", hw, hl
         # walls
         CM.setFrame(-hw,hw,0,self.height)
         self.activeModel.attachNewNode(CM.generate()).setPosHpr(0, hl, 0, 0, 0, 0)

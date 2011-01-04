@@ -1,21 +1,20 @@
 
-**To download the latest compilations of IsisWorld, go to [http://web.media.mit.edu/~dustin/isisworld](http://web.media.mit.edu/~dustin/isisworld)**
+**To download the latest IsisWorld executables, go to [http://web.media.mit.edu/~dustin/isisworld](http://web.media.mit.edu/~dustin/isisworld)**
 
 # To Do List
  
   - build tool for normalizing the position and rotations for objects.
-  - UI triggered exit should first kill xmlrpc (and join thread?) before shutting down
   - Loading and running [IsisScenarios](#IsisScenarios) files:
     - buttons for starting a task, running a training and test scenario
     - recording statistics about the task: how many steps since it started, state of task (failed/completed/ongoing)
     - displaying state of task in the menu
   - documenting a skeleton generator file with all possible superclass attributes, so that other people can work on the project by adding / describing models.
-  - fix problem of dynamically loading scenario files in panda3d packages.
   - separating actions from the `main.py` as a different data structure in a different file.
   - IsisEvent class
   - Storing and resuming game states
   - UI overhaul: clean up, make UI much more thin.
   - re-write layout managers
+  - UI triggered exit should first kill xmlrpc (and join thread?) before shutting down
   
 ## Model adding tool
 
@@ -28,11 +27,11 @@ Another problems is with the arbitrary scale of a model.  Often a model is way t
 
 What IsisWorld needs is a script that allows the user to view the model to tweak it.  I'm thinking something like [pview](http://www.panda3d.org/manual/index.php/Previewing_3D_Models_in_Pview), with an IsisAgent inside for scale and seeing what it looks like when an agent is holding an object, that we could use to compute the scaling parameter and the offset vectors using Panda3D's built-in `model.place()` GUI. Currently, the tedious process involves: loading the scene, having an agent pick it up, figuring out which dimension to rotate/scale it, and then editing the file.
 
-The script could be as a wrapper to [egg-optchar](http://www.panda3d.org/manual/index.php/List_of_Panda3D_Executables), then we could do away with the offset/pickup vectors altogether.
+The script could be as a wrapper to [egg-trans](http://www.panda3d.org/manual/index.php/List_of_Panda3D_Executables), then we could do away with the offset/pickup vectors altogether.
 
 For example, this is how you scale the model by a, rotate it by h,p,r and translate it by x,y,z.
 
-    egg-optchar -o output.egg -TS a -TS h,p,r -TT x,y,z input.egg
+    egg-trans -o output.egg -TS a -TS h,p,r -TT x,y,z input.egg
 
 Resources for adding new models:
 
@@ -46,6 +45,7 @@ Resources for adding new models:
 
 GitHub does not appear to interpret Markdown's ~~strikethrough~~ operator, so here's the list of changes that have been made since the last version:
 
+  - fixed problem of dynamically loading scenario files in panda3d packages. new distributions available!
   - specifying scale ranges for some of the common models sizes, the same way the size of the kitchen is chosen from a random range.
   - in isis_agent:pick_object_up_with, special handling for objects on surfaces and objects in containers: Items being removed from containers first have their parent checked to see if `is_open` is True. If it is not, then the pickup action fails.  Objects like the toaster, have `is_open` as a hidden property, that is turned to `False` iff the toaster `is_on`.
   - creation of `IsisAttribute` with consistency checks.
@@ -72,7 +72,7 @@ To run the source code (non-packaged), you first need to have installed the [Pan
 There are several command-line options:
 
     -D:  loads the first task of the first scenario by default
-    -f:  initializes off-screen frame buffers, enabling the `sense_retina_image' commands through XML-RPC.
+    --small_window: mimizes the window to 640x480
     -p [NUMBER]: changes the port from 8001 to another number for the XML-RPC server.
     -h:  a list of the current command line options.
 

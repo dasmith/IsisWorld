@@ -1,10 +1,9 @@
-ISISWORLD
+Welcome to IsisWorld!
 
-Welcome to IsisWorld
-
-Isis world looks for a "scenarios" folder in three places:
+IsisWorld looks for a "scenarios" folder in three places:
  1. the environment variable ISIS_SCENARIO_PATH
  2. the local directory in which IsisWorld is executed 
  3. the parent of the local directory of the file
 
-For more details, please visit. http://mmp.mit.edu/isisiworld
+For more details, please visit http://mmp.mit.edu/isisworld 
+and https://github.com/dasmith/IsisWorld

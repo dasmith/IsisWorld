@@ -8,7 +8,7 @@ For more information, visit the project's website:  http://mmp.mit.edu/isisworld
 
 """
 # parameters
-ISIS_VERSION = 0.4
+ISIS_VERSION = 0.5
 from pandac.PandaModules import loadPrcFileData
 loadPrcFileData("", """sync-video 0
 win-size 1024 768

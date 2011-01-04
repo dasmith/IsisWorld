@@ -3,15 +3,13 @@
 import struct
 import xmlrpclib
 import os
+import sys
 from panda3d.core import Filename
 
 def find_scenarios_directory():
-    """ A series of path checks to locate the folder containing the 
-    ISIS SCENARIO files.
-    """
     print "Finding Scenarios Directory."
     if base.appRunner:
-        prefix = "../"
+        prefix = "/../"
     else:
         prefix = ""
     # check environment variable
@@ -33,14 +31,14 @@ def find_scenarios_directory():
         return locald
     else:
         print "NOT FOUND"
-    localpd = Filename(os.path.join(prefix+os.getcwd(),'scenarios')).toOsSpecific()
+    localpd = Filename(os.path.join(os.getcwd(),sys.argv[0]+prefix,'scenarios')).toOsSpecific()
     print "3. Looking in prefix + local directory...[%s] " % localpd,
     if Filename(localpd).exists():
         print "OK"
         return localpd
     else:
         print "NOT FOUND"
-    print "ERROR NO ISISPATH FOUND"
+    raise Exception("NO ISISPATH FOUND")
     return None
 
 def getOrientedBoundedBox(collObj):

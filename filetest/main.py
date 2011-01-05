@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 from pandac.PandaModules import loadPrcFileData
-import os
+import os, sys
 import imp
 from panda3d.core import ExecutionEnvironment, Filename
 from pandac.PandaModules import * # TODO: specialize this import
@@ -12,7 +12,7 @@ print "Threads supported?", Thread.isThreadingSupported()
 def find_scenarios_directory():
     print "Finding Scenarios Directory."
     if base.appRunner:
-        prefix = "../"
+        prefix = "/../"
     else:
         prefix = ""
     # check environment variable
@@ -34,7 +34,8 @@ def find_scenarios_directory():
         return locald
     else:
         print "NOT FOUND"
-    localpd = Filename(os.path.join(prefix+os.getcwd(),'scenarios')).toOsSpecific()
+    print "SYS ARGV", sys.argv[0]
+    localpd = Filename(os.path.join(os.getcwd(),sys.argv[0]+prefix,'scenarios')).toOsSpecific()
     print "3. Looking in prefix + local directory...[%s] " % localpd,
     if Filename(localpd).exists():
         print "OK"

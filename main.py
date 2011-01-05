@@ -8,7 +8,7 @@ For more information, visit the project's website:  http://mmp.mit.edu/isisworld
 
 """
 # parameters
-ISIS_VERSION = 0.4
+ISIS_VERSION = 0.5
 from pandac.PandaModules import loadPrcFileData
 loadPrcFileData("", """sync-video 0
 win-size 1024 768
@@ -73,7 +73,7 @@ class IsisWorld(DirectObject):
         self.desired_physics_time = None # simulation unpaused (warning: must be paused while initializing IsisAgents and IsisObjects)
         self.physics_time_step    = 1.0/40.0
         
-        self.__enable_xmlrpc_vision = False
+        self.__enable_xmlrpc_vision = True
         self.__xmlrpc_port_number = 8001
         self.__display_usage_information = False
         self.__use_default_scenario = False
@@ -83,7 +83,7 @@ class IsisWorld(DirectObject):
             print "IsisWorld command line options"
             print "-"*30
             print "-D : loads first Scenario by default"
-            print "-f : include off-screen buffering"
+            print "--small_window : mimizes the window to 640x480"
             print "-p [PORTNUMBER] : launches the XML-RPC server on the specified port. Default 8001"
             print "-h : displays this help menu"
             print "-"*30
@@ -101,7 +101,8 @@ class IsisWorld(DirectObject):
             if o == "-v":
                 self.verbosity = a
             elif o == '-f':
-                self.__enable_xmlrpc_vision = True
+                print "-f option deprecated."
+                #self.__enable_xmlrpc_vision = True
             elif o == '-p':
                 self.__xmlrpc_port_number = a 
             elif o in ("-h", "--help"):

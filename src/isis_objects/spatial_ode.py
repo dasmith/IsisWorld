@@ -17,13 +17,13 @@ class SpatialContainer(object):
 
     def enterContainer(self,entry,fromObj,toObj):
         if fromObj != toObj:
-            print "Entering container", self.name, fromObj, toObj
             if fromObj not in self.containerItems:
+                print "Entering container", self.name, fromObj, toObj
                 self.containerItems.append(fromObj)
 
     def leaveContainer(self,entry,fromObj,toObj):
-        print "Removing %s from container", fromObj
         if fromObj in self.containerItems:
+            print "Removing %s from container", fromObj
             self.containerItems.remove(fromObj)
 
     def isEmpty(self):
@@ -36,7 +36,7 @@ class SpatialContainer(object):
         # TODO: ensure that object can fit in other object
         #  1) internal volume is big enough, 2) vol - vol of other things in there
         pos = self.in_layout.add(obj)
-        print "ADDING", obj, "to", self.name
+        #print "ADDING", obj, "to", self.name
         if not obj:
             return "error: no object specified"
         if pos:
@@ -76,7 +76,7 @@ class SpatialSurface(object):
         #SlotLayout([(.3, .1, .2), (.3, -.1, .2)])
 
     def action__put_on(self, agent, obj):
-        print " CALL TO action__put_on", agent, obj
+        #print " CALL TO action__put_on", agent, obj
         if not obj:
             return "error: no object specified"
         if agent and agent.is_holding(obj.name):
@@ -115,12 +115,8 @@ class SpatialPickable(pickableObject):
         pickableObject.__init__(self,"box",0.5)
         self.geomSize = (1.0,1.0,1.0)
         self.friction = 1.0
-
-        #self.mapObjects["kinematics"].append(self)
     
     def setup(self):
-        
-        self.physics.addObjectToWorld(self,'dynamics')
         pos = self.activeModel.getPos(render)
         quat = self.activeModel.getQuat(render)
         #print "Creating:", self.name
@@ -168,7 +164,7 @@ class SpatialPickableContainer(pickableObject):
         #  1) internal volume is big enough, 2) vol - vol of other things in there
         #print "IN LAYOUT FUNCT", self.in_layout
         pos = self.in_layout.add(obj)
-        print "ADDING", obj, "to", self.name
+        #print "ADDING", obj, "to", self.name
         if pos:
             if agent and agent.is_holding(obj.name):
                 if agent.left_hand_holding_object == obj:

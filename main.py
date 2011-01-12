@@ -73,23 +73,28 @@ class IsisWorld(DirectObject):
         self.desired_physics_time = None # simulation unpaused (warning: must be paused while initializing IsisAgents and IsisObjects)
         self.physics_time_step    = 1.0/40.0
         
+        self.rest_a_little__seconds = 1.0/30.0
+        
         self.__enable_xmlrpc_vision = True
         self.__xmlrpc_port_number = 8001
         self.__display_usage_information = False
         self.__use_default_scenario = False
         self.__request_small_window = False
+        self.__request_lazy_render  = False
         
         def usage():
             print "IsisWorld command line options"
             print "-"*30
-            print "-D : loads first Scenario by default"
-            print "--small_window : mimizes the window to 640x480"
-            print "-p [PORTNUMBER] : launches the XML-RPC server on the specified port. Default 8001"
-            print "-h : displays this help menu"
+            print "-h              : displays this help menu"
+            print "-D              : loads first Scenario by default"
+            print "-p <PORTNUMBER> : launches the XML-RPC server on the specified port. Default 8001"
+            print "--small_window  : mimizes the window to 640x480"
+            print "--lazy_render   : render only at 4 frames per second to use minimal CPU, useful when physics is usually paused."
             print "-"*30
         # parse command line options
+        
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "ho:vDpf", ["help", "output=", "Default", "small_window"])
+            opts, args = getopt.getopt(sys.argv[1:], "ho:vDpf", ["help", "output=", "Default", "small_window", "lazy_render"])
         except getopt.GetoptError, err:
             # print help information and exit:
             print str(err) # will print something like "option -a not recognized"
@@ -111,6 +116,8 @@ class IsisWorld(DirectObject):
                 self.__use_default_scenario = True
             elif o == "--small_window":
                 self.__request_small_window = True
+            elif o == "--lazy_render":
+                self.__request_lazy_render = True
             else:
                 assert False, "unhandled option"
         
@@ -141,6 +148,9 @@ class IsisWorld(DirectObject):
             wp.setSize(640, 480)
             base.win.requestProperties(wp)
         
+        if self.__request_lazy_render:
+            self.rest_a_little__seconds = 1.0/4.0
+
         self._text_object_visible = True
         # turn off main help menu by default
         self._toggle_instructions_window()
@@ -238,9 +248,13 @@ class IsisWorld(DirectObject):
         """ this is executed in order to move the physics time to the desired physics time.""" 
         if self.simulation_is_running():
             #print "stepping simulation:", self.current_physics_time, "seconds"
-            self.physics.step_simulation(self.physics_time_step)
-            self.current_physics_time += self.physics_time_step
-        
+            if self.desired_physics_time is None:
+                self.physics.step_simulation(self.physics_time_step)
+                self.current_physics_time += self.physics_time_step
+            else:
+                while (self.current_physics_time + self.physics_time_step < self.desired_physics_time):
+                    self.physics.step_simulation(self.physics_time_step)
+                    self.current_physics_time += self.physics_time_step
         return task.cont
     
     def step_simulation(self, time_step):
@@ -267,7 +281,8 @@ class IsisWorld(DirectObject):
     
     def rest_a_little(self,task):
         """ Forces the rendering thread to sleep."""
-        time.sleep(1.0/30.0)
+        if self.rest_a_little__seconds is not None:
+            time.sleep(self.rest_a_little__seconds)
         return task.cont
     
     def _setup_cameras(self):

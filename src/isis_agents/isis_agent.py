@@ -216,7 +216,7 @@ class IsisAgent(kinematicCharacterController,DirectObject):
             bounds = o.activeModel.getBounds() 
             bounds.xform(o.activeModel.getMat(self.fov))
             if self.fov.node().isInView(o.activeModel.getPos(self.fov)):
-                pos = o.activeModel.getPos(render)
+                pos = o.activeModel.getPos(self.fov)
                 pos = (pos[0], pos[1], pos[2]+o.getHeight()/2)
                 p1 = self.fov.getRelativePoint(render,pos)
                 p2 = Point2()
@@ -267,7 +267,7 @@ class IsisAgent(kinematicCharacterController,DirectObject):
             bounds = a.actorNodePath.getBounds()
             bounds.xform(a.actorNodePath.getMat(self.fov))
             pos = a.actorNodePath.getPos(self.fov)
-            if self.fov.node().isInView(pos):
+            if a == self or self.fov.node().isInView(pos):
                 p1 = self.fov.getRelativePoint(render,pos)
                 p2 = Point2()
                 self.fov.node().getLens().project(p1, p2)
@@ -888,10 +888,12 @@ class IsisAgent(kinematicCharacterController,DirectObject):
                 kinematicCharacterController.jump(self)
                 # one jump at a time!
                 self.controlMap["jump"] = 0
-        if (self.controlMap["look_left"]!=0):        self.neck.setR(bound(self.neck.getR(),-60,60)+stepSize*80)
-        if (self.controlMap["look_right"]!=0):       self.neck.setR(bound(self.neck.getR(),-60,60)-stepSize*80)
-        if (self.controlMap["look_up"]!=0):          self.neck.setP(bound(self.neck.getP(),-60,80)+stepSize*80)
-        if (self.controlMap["look_down"]!=0):        self.neck.setP(bound(self.neck.getP(),-60,80)-stepSize*80)
+        if (self.controlMap["look_left"]!=0):        self.neck.setR(bound(self.neck.getR(),-60,60)+stepSize*self.speeds[9])
+        if (self.controlMap["look_right"]!=0):       self.neck.setR(bound(self.neck.getR(),-60,60)-stepSize*self.speeds[8])
+        if (self.controlMap["look_up"]!=0):
+            self.neck.setP(bound(self.neck.getP(),-60,80)+stepSize*self.speeds[6])
+        if (self.controlMap["look_down"]!=0):
+            self.neck.setP(bound(self.neck.getP(),-60,80)-stepSize*self.speeds[7])
 
         kinematicCharacterController.update(self, stepSize)
 

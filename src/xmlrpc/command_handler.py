@@ -171,6 +171,8 @@ class IsisCommandHandler(object):
                     return "error: meta_load_task task value '%s' is invalid" % task_name
             else:
                 return "error: meta_load_task requires 'task' argument"
+        elif cmd == "meta_list_agents":
+            return self.simulator.agentsNamesToIDs.keys()
         elif cmd == "meta_train":
             """ Enters training mode """
             return self.simulator.controller.safe_request('TaskTrain')

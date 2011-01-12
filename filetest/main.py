@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 from pandac.PandaModules import loadPrcFileData
-import os
+import os, sys
 import imp
 from panda3d.core import ExecutionEnvironment, Filename
 from pandac.PandaModules import * # TODO: specialize this import
@@ -9,42 +9,59 @@ from direct.stdpy import threading, file
 print "Threads supported?", Thread.isThreadingSupported()
 
 
+def find_scenarios_directory():
+    print "Finding Scenarios Directory."
+    if base.appRunner:
+        prefix = "/../"
+    else:
+        prefix = ""
+    # check environment variable
+    try:
+        print "1. ISIS_SCENARIO_PATH Environment variable...",
+        environ = os.environ["ISIS_SCENARIO_PATH"]
+        print "[%s] " % environ, 
+        if Filename(environ).exist():
+            print "OK"
+            return environ
+        else:
+            print "NOT FOUND"
+    except KeyError, e:
+        print " NONE"
+    locald = Filename(os.path.join(os.getcwd(),'scenarios')).toOsSpecific()
+    print "2. Looking in local directory...[%s] " % locald,
+    if Filename(locald).exists():
+        print "OK"
+        return locald
+    else:
+        print "NOT FOUND"
+    print "SYS ARGV", sys.argv[0]
+    localpd = Filename(os.path.join(os.getcwd(),sys.argv[0]+prefix,'scenarios')).toOsSpecific()
+    print "3. Looking in prefix + local directory...[%s] " % localpd,
+    if Filename(localpd).exists():
+        print "OK"
+        return localpd
+    else:
+        print "NOT FOUND"
+    
 class IsisWorld(ShowBase):
     
     def __init__(self):
         ShowBase.__init__(self)
         self.scenarioFiles = []
-
-        # check users local files and copy them over.
-        print "Local", os.listdir("scenarios")
-        rootDir = "subdir" 
-        for scenarioPath in os.listdir(rootDir):
-            scenarioFile = scenarioPath[scenarioPath.rfind("/")+1:]
-            if "__init__" not in scenarioFile:
-                print "Appending scenario file", scenarioFile
+        scenarios_dir =  find_scenarios_directory()
+        for scenarioPath in sorted(os.listdir(scenarios_dir)):
+            print scenarioPath, scenarioPath[-3:] 
+            if scenarioPath[-3:] == ".py":         
+                scenarioFile = scenarioPath[scenarioPath.rfind("/")+1:]
                 self.scenarioFiles.append(scenarioFile)
+                print "- Adding Scenario File: ", scenarioFile
       
         # user selects one of these files
         self.selectedScenario = self.scenarioFiles[0]
-
-        # try to open the s.o.b.
-        if self.selectedScenario.lower()[-3:] == '.py':
-            print "Loading scenario file [py]", scenarioFile
-            py_mod = imp.load_source(self.selectedScenario[:-3], rootDir+"/"+self.selectedScenario)
-        elif self.selectedScenario.lower()[-4:] == '.pyo':
-            # these files are loaded within the packaged P3D files
-            import marshal
-            def loadPYbyte(path): 
-                # read module file 
-                marshal_data= VFS.readFile(Filename(path),1)[8:] 
-                # unmarshal the data 
-                return marshal.loads(marshal_data)
-            py_mod = imp.load_compiled(self.selectedScenario[:-4], loadPYbyte(self.selectedScenario))
-        else:
-            raise Exception("Invalid file extension for %s " % (self.selectedScenario))
-        if 'Scenario' in dir(py_mod):
-            self.currentScenario = py_mod.Go()
-            print self.currentScenario
-
+        #if self.selectedScenario.lower()[-3:] == '.py':
+        #    print "Loading scenario file [py]", scenarioFile
+        py_mod = imp.load_source(self.selectedScenario[:-3], scenarios_dir+"/"+self.selectedScenario)
+        #elif self.selectedScenario.lower()[-4:] == '.pyo':
+        
 iw = IsisWorld()
 iw.run()

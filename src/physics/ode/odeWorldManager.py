@@ -1058,7 +1058,7 @@ class ODEWorldManager(object):
     Create a ray and do a raycast against the space with it.
     """    
     def doRaycastNew(self, bitMaskName, length, rayAttribs, exclude=[]):
-        print "RAYCASTING new"
+        #print "RAYCASTING new"
         
         ray = OdeRayGeom(self.space, length)
         ray.set(*rayAttribs)

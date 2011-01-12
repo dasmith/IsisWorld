@@ -5,11 +5,11 @@ class Scenario(IsisScenario):
     description = "making toast in isisworld"
     author = "dustin smith"
     version = "1"
-
+    
     def environment():
         k = kitchen(length=15, width=15, height=10)
         put_in_world(k)
-
+        
         
         f = fridge()
         put_in(f, k)
@@ -29,7 +29,7 @@ class Scenario(IsisScenario):
         ta4 = table(scale=7)
         ta4.scale = 1
         put_in(ta4, k)
-
+        
         t = toaster()
         put_on(t, ta)
         
@@ -49,10 +49,13 @@ class Scenario(IsisScenario):
         ralph = IsisAgent("Ralph")
         
         lauren = IsisAgent("Lauren")
-
-        put_in_world(lauren)
+        
+        macy = IsisAgent("Macy")
+        
         put_in_front_of(ralph,f)
-
+        put_in_front_of(macy,ta4)
+        put_in_front_of(lauren,ta)
+        
         # required at the end of the environment setup
         store(locals())
 

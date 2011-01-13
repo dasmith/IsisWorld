@@ -135,7 +135,7 @@ class IsisCommandHandler(object):
                 return 'failure'
             return xmlrpc_image
         elif cmd == 'meta_list_actions':
-            return self.simulator.actionController.actionMap.keys()+self.meta_commands
+            return map(lambda x: x.replace("command__", ""), self.simulator.actionController.actionMap.keys())+self.meta_commands
         elif cmd == 'meta_list_scenarios':
             return self.simulator.controller.scenarioFiles
         elif cmd == 'meta_list_tasks':

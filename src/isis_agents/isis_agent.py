@@ -895,8 +895,8 @@ class IsisAgent(kinematicCharacterController,DirectObject):
                 kinematicCharacterController.jump(self)
                 # one jump at a time!
                 self.controlMap["jump"] = 0
-        if (self.controlMap["look_left"]!=0):        self.neck.setR(bound(self.neck.getR(),-60,60)+stepSize*self.speeds[9])
-        if (self.controlMap["look_right"]!=0):       self.neck.setR(bound(self.neck.getR(),-60,60)-stepSize*self.speeds[8])
+        if (self.controlMap["look_left"]!=0):        self.neck.setR(bound(self.neck.getR(),-180,180)+stepSize*self.speeds[9])
+        if (self.controlMap["look_right"]!=0):       self.neck.setR(bound(self.neck.getR(),-180,180)-stepSize*self.speeds[8])
         if (self.controlMap["look_up"]!=0):
             self.neck.setP(bound(self.neck.getP(),-60,80)+stepSize*self.speeds[6])
         if (self.controlMap["look_down"]!=0):

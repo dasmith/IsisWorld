@@ -235,7 +235,8 @@ class IsisAgent(kinematicCharacterController,DirectObject):
                     object_dict['attributes'] = o.get_all_attributes_and_values(True)
                 if 'isisobject' not in exclude: object_dict['isisobject'] = o
                 if 'class' not in exclude: object_dict['class'] = o.get_class_name()
-                # add item to dinctionary
+                if object_dict['x_pos']>= -1 and object_dict['x_pos']<= 1 
+                # add item to dictionary
                 objects[o] = object_dict
         return objects
     

@@ -237,7 +237,7 @@ class IsisAgent(kinematicCharacterController,DirectObject):
                 if 'class' not in exclude: object_dict['class'] = o.get_class_name()
                 if object_dict['x_pos']>= -1 and object_dict['x_pos']<= 1: 
                 # add item to dictionary
-                objects[o] = object_dict
+                    objects[o] = object_dict
         return objects
     
     def get_objects_spatial_relations(self):

@@ -252,8 +252,9 @@ class IsisAgent(kinematicCharacterController,DirectObject):
                     object_dict['attributes'] = o.get_all_attributes_and_values(True)
                 if 'isisobject' not in exclude: object_dict['isisobject'] = o
                 if 'class' not in exclude: object_dict['class'] = o.get_class_name()
-                # add item to dinctionary
-                objects[o] = object_dict
+                if object_dict['x_pos']>= -1 and object_dict['x_pos']<= 1: 
+                # add item to dictionary
+                    objects[o] = object_dict
         return objects
     
     def get_objects_spatial_relations(self):
@@ -912,8 +913,8 @@ class IsisAgent(kinematicCharacterController,DirectObject):
                 kinematicCharacterController.jump(self)
                 # one jump at a time!
                 self.controlMap["jump"] = 0
-        if (self.controlMap["look_left"]!=0):        self.neck.setR(bound(self.neck.getR(),-60,60)+stepSize*self.speeds[9])
-        if (self.controlMap["look_right"]!=0):       self.neck.setR(bound(self.neck.getR(),-60,60)-stepSize*self.speeds[8])
+        if (self.controlMap["look_left"]!=0):        self.neck.setR(bound(self.neck.getR(),-180,180)+stepSize*self.speeds[9])
+        if (self.controlMap["look_right"]!=0):       self.neck.setR(bound(self.neck.getR(),-180,180)-stepSize*self.speeds[8])
         if (self.controlMap["look_up"]!=0):
             self.neck.setP(bound(self.neck.getP(),-60,80)+stepSize*self.speeds[6])
         if (self.controlMap["look_down"]!=0):

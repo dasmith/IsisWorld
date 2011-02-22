@@ -199,7 +199,8 @@ class IsisAgent(kinematicCharacterController,DirectObject):
     def _set_control(self, control, value):
         """Set the state of one of the character's movement controls.  """
         self.controlMap[control] = value
-    
+   
+   
     def get_objects_in_field_of_vision(self,exclude=None):
         """ This works in an x-ray style. Fast. Works best if you listen to
         http://en.wikipedia.org/wiki/Rock_Art_and_the_X-Ray_Style while
@@ -207,6 +208,28 @@ class IsisAgent(kinematicCharacterController,DirectObject):
        
         needs to exclude isisobjects since they cannot be serialized  
         """
+        def compute2dPosition(nodePath, point = Point3(0, 0, 0)): 
+            """ Computes a 3-d point, relative to the indicated node, into a 
+            2-d point as seen by the camera.  The range of the returned value 
+            is based on the len's current film size and film offset, which is 
+            (-1 .. 1) by default. 
+            
+            Code from http://www.panda3d.org/forums/viewtopic.php?t=259
+            """ 
+            
+            # Convert the point into the camera's coordinate space 
+            p3d = self.fov.getRelativePoint(nodePath, point) 
+
+            # Ask the lens to project the 3-d point to 2-d. 
+            p2d = Point2() 
+            #if base.camLens.project(p3d, p2d): 
+            if self.fov.node().getLens().project(p3d, p2d): 
+                # Got it! 
+                return p2d 
+
+            # If project() returns false, it means the point was behind the 
+            # lens. 
+            return None 
         if exclude == None:
             exclude = ['isisobject', 'all_attributes']
         objects = {}
@@ -216,15 +239,10 @@ class IsisAgent(kinematicCharacterController,DirectObject):
             bounds = o.activeModel.getBounds() 
             bounds.xform(o.activeModel.getMat(self.fov))
             if self.fov.node().isInView(o.activeModel.getPos(self.fov)):
-                pos = o.activeModel.getPos(self.fov)
-                pos = (pos[0], pos[1], pos[2]+o.getHeight()/2)
-                p1 = self.fov.getRelativePoint(render,pos)
-                p2 = Point2()
-                self.fov.node().getLens().project(p1, p2)
-                p3 = aspect2d.getRelativePoint(render2d, Point3(p2[0], 0, p2[1]) )
+                pos = compute2dPosition(o.activeModel, self.fov.getPos(self.fov))
                 object_dict = {}
-                if 'x_pos' not in exclude: object_dict['x_pos'] = p3[0]
-                if 'y_pos' not in exclude: object_dict['y_pos'] = p3[2]
+                if 'x_pos' not in exclude: object_dict['x_pos'] = pos[0] 
+                if 'y_pos' not in exclude: object_dict['y_pos'] = pos[1] 
                 if 'distance' not in exclude: object_dict['distance'] = o.activeModel.getDistance(self.fov)
                 if 'orientation' not in exclude: object_dict['orientation'] = o.activeModel.getH(self.fov)
                 if 'actions' not in exclude: object_dict['actions'] = o.get_all_action_names()

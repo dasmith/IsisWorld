@@ -227,8 +227,7 @@ class IsisAgent(kinematicCharacterController,DirectObject):
                 # Got it! 
                 return p2d 
 
-            # If project() returns false, it means the point was behind the 
-            # lens. 
+            # If project() returns false, it means the point was behind the # lens. 
             return None 
         if exclude == None:
             exclude = ['isisobject', 'all_attributes']

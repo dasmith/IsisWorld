@@ -97,7 +97,8 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         
         self.player_head  = self.actor.exposeJoint(None, 'modelRoot', 'Head')
         self.neck = self.actor.controlJoint(None, 'modelRoot', 'Head')
-        self.neck.setP(bound(self.neck.getP() - 15, -60, 80))
+        self.neck_angle = {'heading':0, 'pitch':-15, 'roll':0}
+        self.apply_neck_angle()
         
         self.controlMap = {"turn_left":0,
                            "turn_right":0,
@@ -157,16 +158,21 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         # position the camera to be infront of Boxman's face.
         self.fov.reparentTo(self.player_head)
         # x,y,z are not in standard orientation when parented to player-Head
-        self.fov.setPos(0, 0.2, 0)
+        self.camera_position_offset_x =  0
+        self.camera_position_offset_y =  0.1
+        self.camera_position_offset_z = -0.3
+        self.fov.setPos(self.camera_position_offset_x, self.camera_position_offset_y, self.camera_position_offset_z)
         # if P=0, canrea is looking directly up. 90 is back of head. -90 is on face.
         self.fov.setHpr(0,-90,0)
-
+        
+        self.field_of_view_horizontal_angle = 160
+        self.field_of_view_vertical_angle   = 135
         lens = self.fov.node().getLens()
-        lens.setFov(60) #  degree field of view (expanded from 40)
-        lens.setNear(0.2)
+        lens.setFov(self.field_of_view_horizontal_angle, self.field_of_view_vertical_angle)
+        lens.setNear(0.002)
         #self.fov.node().showFrustum() # displays a box around his head
         #self.fov.place()
- 
+        
         self.prevtime = 0
         self.current_frame_count = 0
 
@@ -179,6 +185,40 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         self.queueSize = queueSize
         self.lastSense = 0
         
+    def apply_neck_angle(self):
+        neck_heading_quat = Quat()
+        neck_heading_quat.setHpr(Vec3(0, 0, self.neck_angle['heading']))
+        neck_pitch_quat = Quat()
+        neck_pitch_quat.setHpr(Vec3(0, self.neck_angle['pitch'], 0))
+        neck_roll_quat = Quat()
+        neck_roll_quat.setHpr(Vec3(self.neck_angle['roll'], 0, 0))
+        neck_total_quat = Quat()
+        neck_total_quat = neck_total_quat.multiply(neck_roll_quat)
+        neck_total_quat = neck_total_quat.multiply(neck_pitch_quat)
+        neck_total_quat = neck_total_quat.multiply(neck_heading_quat)
+        self.neck.setQuat(neck_total_quat)
+
+    def set_neck_angle(self, heading, pitch, roll):
+        self.neck_angle['heading'] = heading
+        self.neck_angle['pitch']   = pitch
+        self.neck_angle['roll']    = roll
+        self.apply_neck_angle()
+
+    def set_neck_heading(self, heading):
+        self.neck_angle['heading'] = heading
+        self.apply_neck_angle()
+
+    def set_neck_pitch(self, pitch):
+        self.neck_angle['pitch'] = pitch
+        self.apply_neck_angle()
+
+    def set_neck_roll(self, roll):
+        self.neck_angle['roll'] = roll
+        self.apply_neck_angle()
+    
+    def get_neck_hpr(self):
+        return (self.neck_angle['heading'], self.neck_angle['pitch'], self.neck_angle['roll'])
+    
     def setLayout(self,layout):
         """ Dummy method called by spatial methods for use with objects. 
         Doesn't make sense for an agent that can move around."""
@@ -311,18 +351,24 @@ class IsisAgent(kinematicCharacterController,DirectObject):
     
     def initialize_retina(self):
         fbp=FrameBufferProperties(FrameBufferProperties.getDefault())
-        self.retina_buffer = base.win.makeTextureBuffer("retina-buffer-%s" % (self.name), 320, 240, tex=Texture('retina-texture'), to_ram=True, fbp=fbp)
+        if ((self.field_of_view_horizontal_angle / self.field_of_view_vertical_angle) > (4 / 3)):
+            self.retina_buffer_texture_width  = 320
+            self.retina_buffer_texture_height = 320 * self.field_of_view_vertical_angle / self.field_of_view_horizontal_angle
+        else:
+            self.retina_buffer_texture_width  = 240 * self.field_of_view_horizontal_angle / self.field_of_view_vertical_angle
+            self.retina_buffer_texture_height = 240
+        self.retina_buffer = base.win.makeTextureBuffer("retina-buffer-%s" % (self.name), self.retina_buffer_texture_width, self.retina_buffer_texture_height, tex=Texture('retina-texture'), to_ram=True, fbp=fbp)
         self.retina_buffer.setActive(False)
         #self.retina_buffer.setOneShot(True)
         self.retina_texture = Texture("retina-texture-%s" % (self.name))
         self.retina_buffer.addRenderTexture(self.retina_texture, GraphicsOutput.RTMCopyRam)
         self.retina_buffer.setSort(-100)
         self.retina_camera = base.makeCamera(self.retina_buffer)
-        self.retina_camera.node().getLens().setFov(60)
-        self.retina_camera.node().getLens().setNear(0.2)
+        self.retina_camera.node().getLens().setFov(self.field_of_view_horizontal_angle, self.field_of_view_vertical_angle)
+        self.retina_camera.node().getLens().setNear(0.002)
         self.retina_camera.node().setCameraMask(BitMask32.bit(1))
         self.retina_camera.reparentTo(self.player_head)
-        self.retina_camera.setPos(0, 0.2, 0)
+        self.retina_camera.setPos(self.camera_position_offset_x, self.camera_position_offset_y, self.camera_position_offset_z)
         self.retina_camera.setHpr(0,-90,0)
         print "initialized agent Texture Buffer"
         
@@ -842,7 +888,7 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         return {'body_pos' : list(self.actorNodePath.getPos())+list(self.actorNodePath.getHpr()),
                 'left_hand_pos': list(self.player_left_hand.getPos())+list(self.player_left_hand.getHpr()),
                 'right_hand_pos': list(self.player_right_hand.getPos())+list(self.player_right_hand.getHpr()),
-                'neck_pos': list(self.neck.getPos())+list(self.neck.getHpr()),
+                'neck_pos': list(self.neck.getPos())+list(self.get_neck_hpr()), #list(self.neck.getHpr()),
                 'in_left_hand':left_hand_obj,
                 'in_right_hand':right_hand_obj}
 
@@ -913,12 +959,12 @@ class IsisAgent(kinematicCharacterController,DirectObject):
                 kinematicCharacterController.jump(self)
                 # one jump at a time!
                 self.controlMap["jump"] = 0
-        if (self.controlMap["look_left"]!=0):        self.neck.setR(bound(self.neck.getR(),-180,180)+stepSize*self.speeds[9])
-        if (self.controlMap["look_right"]!=0):       self.neck.setR(bound(self.neck.getR(),-180,180)-stepSize*self.speeds[8])
+        if (self.controlMap["look_left"]!=0):        self.set_neck_heading(bound(self.neck_angle['heading']+stepSize*self.speeds[9], -100, 100))
+        if (self.controlMap["look_right"]!=0):       self.set_neck_heading(bound(self.neck_angle['heading']-stepSize*self.speeds[8], -100, 100))
         if (self.controlMap["look_up"]!=0):
-            self.neck.setP(bound(self.neck.getP(),-60,80)+stepSize*self.speeds[6])
+            self.set_neck_pitch(bound(self.neck_angle['pitch']+stepSize*self.speeds[6], -60, 80))
         if (self.controlMap["look_down"]!=0):
-            self.neck.setP(bound(self.neck.getP(),-60,80)-stepSize*self.speeds[7])
+            self.set_neck_pitch(bound(self.neck_angle['pitch']-stepSize*self.speeds[7], -60, 80))
 
         kinematicCharacterController.update(self, stepSize)
 

@@ -14,7 +14,7 @@ class Scenario(IsisScenario):
         kn = knife()
         put_on(kn, ta)
         kn2 = knife()
-        r = IsisAgent("Ralph", pos=(0,3,2))
+        r = IsisAgent("Ralph", position=(0,3,2))
         r.put_in_right_hand(kn2)
 
         put_in_world(r)

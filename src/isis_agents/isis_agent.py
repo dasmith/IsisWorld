@@ -104,6 +104,8 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         if position is not None:
             self.actorNodePath.setPos(Vec3(*position))
        
+        self.originalPos = self.actor.getPos()
+        
         # see update() for functional implementations
         self.controlMap = {"turn_left":0,
                            "turn_right":0,
@@ -140,8 +142,6 @@ class IsisAgent(kinematicCharacterController,DirectObject):
                                    'look_up'      : 720,
                                    'look_down'    : 720}
         
->>>>>>> cee635726a8520e1ade95d186bc79fc299c69bbf
-        self.originalPos = self.actor.getPos()
         
                 
         bubble = loader.loadTexture("media/textures/thought_bubble.png")

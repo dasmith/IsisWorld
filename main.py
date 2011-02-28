@@ -509,7 +509,9 @@ class IsisWorld(DirectObject):
         # position the agent randomly
         try: 
             room = render.find("**/*kitchen*").getPythonTag("isisobj")
+
             agentPos = newAgent.actorNodePath.getPos(render)
+            print newAgent.name, agentPos
             newAgent.actorNodePath.reparentTo(room)
             if self.__enable_xmlrpc_vision:
                 newAgent.initialize_retina()
@@ -520,8 +522,7 @@ class IsisWorld(DirectObject):
                 w,h = roomPos[0]+center[0], roomPos[1]+center[1]
                 newAgent.setPos(Vec3(w,h+(len(self.agents)*1),2))
             else:
-                agentPos[2] = 5
-                newAgent.setPos(agentPos)
+                print "Position predefined for %s" % newAgent.name
         except Exception, e:
             self.display_isis_message("Could not add agent %s to room. Error: %s" % (newAgent.name, e))
         self.controller.setAgentCamera(self.agentCamera)

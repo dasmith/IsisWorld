@@ -50,11 +50,10 @@ class Scenario(IsisScenario):
         
         lauren = IsisAgent("Lauren")
         
-        macy = IsisAgent("Macy")
-        
-        put_in_front_of(ralph,f)
-        put_in_front_of(macy,ta4)
-        put_in_front_of(lauren,ta)
+        macy = IsisAgent("Macy", position=(2,2,1))
+        put_in_world(ralph) 
+        put_in_world(lauren) 
+        put_in_world(macy) 
         
         # required at the end of the environment setup
         store(locals())

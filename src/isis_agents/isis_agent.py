@@ -33,7 +33,7 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         that is required for all IsisObjects """
         cls.physics = physics
 
-    def __init__(self, name, queueSize = 100):
+    def __init__(self, name, position=None, queueSize = 100):
         # load the model and the different animations for the model into an Actor object.
         self.actor= Actor("media/models/boxman",
                           {"walk":"media/models/boxman-walk", 
@@ -113,7 +113,10 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         # see update method for uses, indices are [turn left, turn right, move_forward, move_back, move_right, move_left, look_up, look_down, look_right, look_left]
         # turns are in degrees per second, moves are in units per second
         self.speeds = [270, 270, 5, 5, 5, 5, 60, 60, 60, 60]
-        
+      
+        # allow for a default position
+        if position is not None:
+            self.setPosition(position)
         self.originalPos = self.actor.getPos()
         
                 

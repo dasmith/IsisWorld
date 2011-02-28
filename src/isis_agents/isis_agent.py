@@ -97,8 +97,14 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         
         self.player_head  = self.actor.exposeJoint(None, 'modelRoot', 'Head')
         self.neck = self.actor.controlJoint(None, 'modelRoot', 'Head')
-        self.neck.setP(bound(self.neck.getP() - 15, -60, 80))
+        self.neck_angle = {'heading':0, 'pitch':-15, 'roll':0}
+        self.apply_neck_angle()
         
+        # allow for a default position
+        if position is not None:
+            self.actorNodePath.setPos(Vec3(*position))
+       
+        # see update() for functional implementations
         self.controlMap = {"turn_left":0,
                            "turn_right":0,
                            "move_forward":0,
@@ -110,13 +116,31 @@ class IsisAgent(kinematicCharacterController,DirectObject):
                            "look_left":0,
                            "look_right":0,
                            "jump":0}
-        # see update method for uses, indices are [turn left, turn right, move_forward, move_back, move_right, move_left, look_up, look_down, look_right, look_left]
+     
         # turns are in degrees per second, moves are in units per second
-        self.speeds = [270, 270, 5, 5, 5, 5, 60, 60, 60, 60]
-      
-        # allow for a default position
-        if position is not None:
-            self.actorNodePath.setPos(Vec3(*position))
+        self.current_speed_dict = {'turn_left'    : 270,
+                                   'turn_right'   : 270,
+                                   'move_forward' : 5,
+                                   'move_backward': 5,
+                                   'move_left'    : 5,
+                                   'move_right'   : 5,
+                                   'look_left'    : 60,
+                                   'look_right'   : 60,
+                                   'look_up'      : 60,
+                                   'look_down'    : 60}
+        
+        self.maximum_speed_dict = {'turn_left'    : 360,
+                                   'turn_right'   : 360,
+                                   'move_forward' : 10, # 10 meters per second ~= 20 miles per hour
+                                   'move_backward': 10,
+                                   'move_left'    : 10,
+                                   'move_right'   : 10,
+                                   'look_left'    : 720,
+                                   'look_right'   : 720,
+                                   'look_up'      : 720,
+                                   'look_down'    : 720}
+        
+>>>>>>> cee635726a8520e1ade95d186bc79fc299c69bbf
         self.originalPos = self.actor.getPos()
         
                 
@@ -160,16 +184,21 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         # position the camera to be infront of Boxman's face.
         self.fov.reparentTo(self.player_head)
         # x,y,z are not in standard orientation when parented to player-Head
-        self.fov.setPos(0, 0.2, 0)
+        self.camera_position_offset_x =  0
+        self.camera_position_offset_y =  0.1
+        self.camera_position_offset_z = -0.3
+        self.fov.setPos(self.camera_position_offset_x, self.camera_position_offset_y, self.camera_position_offset_z)
         # if P=0, canrea is looking directly up. 90 is back of head. -90 is on face.
         self.fov.setHpr(0,-90,0)
-
+        
+        self.field_of_view_horizontal_angle = 160
+        self.field_of_view_vertical_angle   = 135
         lens = self.fov.node().getLens()
-        lens.setFov(60) #  degree field of view (expanded from 40)
-        lens.setNear(0.2)
+        lens.setFov(self.field_of_view_horizontal_angle, self.field_of_view_vertical_angle)
+        lens.setNear(0.002)
         #self.fov.node().showFrustum() # displays a box around his head
         #self.fov.place()
- 
+        
         self.prevtime = 0
         self.current_frame_count = 0
 
@@ -182,6 +211,40 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         self.queueSize = queueSize
         self.lastSense = 0
         
+    def apply_neck_angle(self):
+        neck_heading_quat = Quat()
+        neck_heading_quat.setHpr(Vec3(0, 0, self.neck_angle['heading']))
+        neck_pitch_quat = Quat()
+        neck_pitch_quat.setHpr(Vec3(0, self.neck_angle['pitch'], 0))
+        neck_roll_quat = Quat()
+        neck_roll_quat.setHpr(Vec3(self.neck_angle['roll'], 0, 0))
+        neck_total_quat = Quat()
+        neck_total_quat = neck_total_quat.multiply(neck_roll_quat)
+        neck_total_quat = neck_total_quat.multiply(neck_pitch_quat)
+        neck_total_quat = neck_total_quat.multiply(neck_heading_quat)
+        self.neck.setQuat(neck_total_quat)
+
+    def set_neck_angle(self, heading, pitch, roll):
+        self.neck_angle['heading'] = heading
+        self.neck_angle['pitch']   = pitch
+        self.neck_angle['roll']    = roll
+        self.apply_neck_angle()
+
+    def set_neck_heading(self, heading):
+        self.neck_angle['heading'] = heading
+        self.apply_neck_angle()
+
+    def set_neck_pitch(self, pitch):
+        self.neck_angle['pitch'] = pitch
+        self.apply_neck_angle()
+
+    def set_neck_roll(self, roll):
+        self.neck_angle['roll'] = roll
+        self.apply_neck_angle()
+    
+    def get_neck_hpr(self):
+        return (self.neck_angle['heading'], self.neck_angle['pitch'], self.neck_angle['roll'])
+    
     def setLayout(self,layout):
         """ Dummy method called by spatial methods for use with objects. 
         Doesn't make sense for an agent that can move around."""
@@ -314,18 +377,24 @@ class IsisAgent(kinematicCharacterController,DirectObject):
     
     def initialize_retina(self):
         fbp=FrameBufferProperties(FrameBufferProperties.getDefault())
-        self.retina_buffer = base.win.makeTextureBuffer("retina-buffer-%s" % (self.name), 320, 240, tex=Texture('retina-texture'), to_ram=True, fbp=fbp)
+        if ((self.field_of_view_horizontal_angle / self.field_of_view_vertical_angle) > (4 / 3)):
+            self.retina_buffer_texture_width  = 320
+            self.retina_buffer_texture_height = 320 * self.field_of_view_vertical_angle / self.field_of_view_horizontal_angle
+        else:
+            self.retina_buffer_texture_width  = 240 * self.field_of_view_horizontal_angle / self.field_of_view_vertical_angle
+            self.retina_buffer_texture_height = 240
+        self.retina_buffer = base.win.makeTextureBuffer("retina-buffer-%s" % (self.name), self.retina_buffer_texture_width, self.retina_buffer_texture_height, tex=Texture('retina-texture'), to_ram=True, fbp=fbp)
         self.retina_buffer.setActive(False)
         #self.retina_buffer.setOneShot(True)
         self.retina_texture = Texture("retina-texture-%s" % (self.name))
         self.retina_buffer.addRenderTexture(self.retina_texture, GraphicsOutput.RTMCopyRam)
         self.retina_buffer.setSort(-100)
         self.retina_camera = base.makeCamera(self.retina_buffer)
-        self.retina_camera.node().getLens().setFov(60)
-        self.retina_camera.node().getLens().setNear(0.2)
+        self.retina_camera.node().getLens().setFov(self.field_of_view_horizontal_angle, self.field_of_view_vertical_angle)
+        self.retina_camera.node().getLens().setNear(0.002)
         self.retina_camera.node().setCameraMask(BitMask32.bit(1))
         self.retina_camera.reparentTo(self.player_head)
-        self.retina_camera.setPos(0, 0.2, 0)
+        self.retina_camera.setPos(self.camera_position_offset_x, self.camera_position_offset_y, self.camera_position_offset_z)
         self.retina_camera.setHpr(0,-90,0)
         print "initialized agent Texture Buffer"
         
@@ -352,7 +421,10 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         self._set_control("turn_left",  1)
         self._set_control("turn_right", 0)
         if speed:
-            self.speeds[0] = speed
+            use_speed = bound(speed, 0, self.maximum_speed_dict['turn_left'])
+            if use_speed != speed:
+                print 'isis_agent warning: clipping turn_left speed.'
+            self.current_speed_dict['turn_left'] = use_speed
         return "success"
 
     def control__turn_left__stop(self):
@@ -363,7 +435,10 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         self._set_control("turn_left",  0)
         self._set_control("turn_right", 1)
         if speed:
-            self.speeds[1] = speed
+            use_speed = bound(speed, 0, self.maximum_speed_dict['turn_right'])
+            if use_speed != speed:
+                print 'isis_agent warning: clipping turn_right speed.'
+            self.current_speed_dict['turn_right'] = use_speed
         return "success"
 
     def control__turn_right__stop(self):
@@ -374,7 +449,10 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         self._set_control("move_forward",  1)
         self._set_control("move_backward", 0)
         if speed:
-            self.speeds[2] = speed
+            use_speed = bound(speed, 0, self.maximum_speed_dict['move_forward'])
+            if use_speed != speed:
+                print 'isis_agent warning: clipping move_forward speed.'
+            self.current_speed_dict['move_forward'] = use_speed
         return "success"
 
     def control__move_forward__stop(self):
@@ -385,7 +463,10 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         self._set_control("move_forward",  0)
         self._set_control("move_backward", 1)
         if speed:
-            self.speeds[3] = speed
+            use_speed = bound(speed, 0, self.maximum_speed_dict['move_backward'])
+            if use_speed != speed:
+                print 'isis_agent warning: clipping move_backward speed.'
+            self.current_speed_dict['move_backward'] = use_speed
         return "success"
 
     def control__move_backward__stop(self):
@@ -396,7 +477,10 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         self._set_control("move_left",  1)
         self._set_control("move_right", 0)
         if speed:
-            self.speeds[4] = speed
+            use_speed = bound(speed, 0, self.maximum_speed_dict['move_left'])
+            if use_speed != speed:
+                print 'isis_agent warning: clipping move_left speed.'
+            self.current_speed_dict['move_left'] = use_speed
         return "success"
 
     def control__move_left__stop(self):
@@ -407,7 +491,10 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         self._set_control("move_right",  1)
         self._set_control("move_left", 0)
         if speed:
-            self.speeds[5] = speed
+            use_speed = bound(speed, 0, self.maximum_speed_dict['move_right'])
+            if use_speed != speed:
+                print 'isis_agent warning: clipping move_right speed.'
+            self.current_speed_dict['move_right'] = use_speed
         return "success"
 
     def control__move_right__stop(self):
@@ -418,7 +505,10 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         self._set_control("look_left",  1)
         self._set_control("look_right", 0)
         if speed:
-            self.speeds[9] = speed
+            use_speed = bound(speed, 0, self.maximum_speed_dict['look_left'])
+            if use_speed != speed:
+                print 'isis_agent warning: clipping look_left speed.'
+            self.current_speed_dict['look_left'] = use_speed
         return "success"
 
     def control__look_left__stop(self):
@@ -429,7 +519,10 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         self._set_control("look_right",  1)
         self._set_control("look_left", 0)
         if speed:
-            self.speeds[8] = speed
+            use_speed = bound(speed, 0, self.maximum_speed_dict['look_right'])
+            if use_speed != speed:
+                print 'isis_agent warning: clipping look_right speed.'
+            self.current_speed_dict['look_right'] = use_speed
         return "success"
 
     def control__look_right__stop(self):
@@ -440,7 +533,10 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         self._set_control("look_up",  1)
         self._set_control("look_down", 0)
         if speed:
-            self.speeds[6] = speed
+            use_speed = bound(speed, 0, self.maximum_speed_dict['look_up'])
+            if use_speed != speed:
+                print 'isis_agent warning: clipping look_up speed.'
+            self.current_speed_dict['look_up'] = use_speed
         return "success"
 
     def control__look_up__stop(self):
@@ -451,7 +547,10 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         self._set_control("look_down",  1)
         self._set_control("look_up",  0)
         if speed:
-            self.speeds[7] = speed
+            use_speed = bound(speed, 0, self.maximum_speed_dict['look_down'])
+            if use_speed != speed:
+                print 'isis_agent warning: clipping look_down speed.'
+            self.current_speed_dict['look_down'] = use_speed
         return "success"
 
     def control__look_down__stop(self):
@@ -845,7 +944,7 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         return {'body_pos' : list(self.actorNodePath.getPos())+list(self.actorNodePath.getHpr()),
                 'left_hand_pos': list(self.player_left_hand.getPos())+list(self.player_left_hand.getHpr()),
                 'right_hand_pos': list(self.player_right_hand.getPos())+list(self.player_right_hand.getHpr()),
-                'neck_pos': list(self.neck.getPos())+list(self.neck.getHpr()),
+                'neck_pos': list(self.neck.getPos())+list(self.get_neck_hpr()), #list(self.neck.getHpr()),
                 'in_left_hand':left_hand_obj,
                 'in_right_hand':right_hand_obj}
 
@@ -903,25 +1002,25 @@ class IsisAgent(kinematicCharacterController,DirectObject):
         self.speed = [0.0, 0.0]
         self.actorNodePath.setPos(self.geom.getPosition()+Vec3(0,0,-0.70))
         self.actorNodePath.setQuat(self.getQuat())
-        # the values in self.speeds are used as coefficientes for turns and movements
-        if (self.controlMap["turn_left"]!=0):        self.addToH(stepSize*self.speeds[0])
-        if (self.controlMap["turn_right"]!=0):       self.addToH(-stepSize*self.speeds[1])
+        # the values in self.current_speed_dict are used as coefficientes for turns and movements
+        if (self.controlMap["turn_left"]!=0):        self.addToH( stepSize*self.current_speed_dict['turn_left'])
+        if (self.controlMap["turn_right"]!=0):       self.addToH(-stepSize*self.current_speed_dict['turn_right'])
         if self.verticalState == 'ground':
             # these actions require contact with the ground
-            if (self.controlMap["move_forward"]!=0):     self.speed[1] =  self.speeds[2]
-            if (self.controlMap["move_backward"]!=0):    self.speed[1] = -self.speeds[3]
-            if (self.controlMap["move_left"]!=0):        self.speed[0] = -self.speeds[4]
-            if (self.controlMap["move_right"]!=0):       self.speed[0] =  self.speeds[5]
-            if (self.controlMap["jump"]!=0):             
+            if (self.controlMap["move_forward"]!=0):  self.speed[1] =  self.current_speed_dict['move_forward']
+            if (self.controlMap["move_backward"]!=0): self.speed[1] = -self.current_speed_dict['move_backward']
+            if (self.controlMap["move_left"]!=0):     self.speed[0] = -self.current_speed_dict['move_left']
+            if (self.controlMap["move_right"]!=0):    self.speed[0] =  self.current_speed_dict['move_right']
+            if (self.controlMap["jump"]!=0):
                 kinematicCharacterController.jump(self)
                 # one jump at a time!
                 self.controlMap["jump"] = 0
-        if (self.controlMap["look_left"]!=0):        self.neck.setR(bound(self.neck.getR(),-180,180)+stepSize*self.speeds[9])
-        if (self.controlMap["look_right"]!=0):       self.neck.setR(bound(self.neck.getR(),-180,180)-stepSize*self.speeds[8])
+        if (self.controlMap["look_left"]!=0):        self.set_neck_heading(bound(self.neck_angle['heading']+stepSize*self.current_speed_dict['look_left'],  -100, 100))
+        if (self.controlMap["look_right"]!=0):       self.set_neck_heading(bound(self.neck_angle['heading']-stepSize*self.current_speed_dict['look_right'], -100, 100))
         if (self.controlMap["look_up"]!=0):
-            self.neck.setP(bound(self.neck.getP(),-60,80)+stepSize*self.speeds[6])
+            self.set_neck_pitch(bound(self.neck_angle['pitch']+stepSize*self.current_speed_dict['look_up'],   -60, 80))
         if (self.controlMap["look_down"]!=0):
-            self.neck.setP(bound(self.neck.getP(),-60,80)-stepSize*self.speeds[7])
+            self.set_neck_pitch(bound(self.neck_angle['pitch']-stepSize*self.current_speed_dict['look_down'], -60, 80))
 
         kinematicCharacterController.update(self, stepSize)
 

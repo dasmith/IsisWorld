@@ -116,7 +116,7 @@ class IsisAgent(kinematicCharacterController,DirectObject):
       
         # allow for a default position
         if position is not None:
-            self.setPosition(position)
+            self.actorNodePath.setPos(Vec3(*position))
         self.originalPos = self.actor.getPos()
         
                 

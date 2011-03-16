@@ -131,7 +131,7 @@ Additionally, agents can execute actions.  For an up-to-date list of actions ava
 
 ## How to add a new scenario
 
-IsisWorld uses scenario files to define the state of the world and, optionally, a task specification to evaluate the agent's performance.  A scenario file contains  a description of what the generated world will look like along with *tasks* that check to see if a goal state of the world has been reached.   Isis Scenarios are Python files found in the `scenarios/` directory that implement a `Scenario` class.  For example, the file "scenarios/make_toast"
+IsisWorld uses scenario files to define the state of the world and, optionally, a task specification to evaluate the agent's performance.  A scenario file contains  a description of what the generated world will look like along with *tasks* that check to see if a goal state of the world has been reached.   Isis Scenarios are Python files found in the `scenarios/` directory that implement a `Scenario` class.  Here is what the file `scenarios/make_toast` looks like:
 
 
     from src.isis_scenario import IsisScenario
@@ -218,8 +218,14 @@ The typical sequence of meta commands:
    
 Then, you can `meta_pause` or `meta_step` to start the physical (ODE) simulation and issue action commands to the agent.
 
-To facilitate evaluation, tasks can define `train_` and `goal_` functions.  The **training method** is called when the simulator enters a the *testing state*, when the `meta_test` command is issued or the `Test` button is clicked from the simulator GUI.  The 
+To facilitate evaluation, tasks can define `train_` and `goal_` functions.  The training method is called when the simulator enters a the **training state**.  You can enter the training state by issuing the `meta_test` command through XML-RPC or clicking the `Test` on the simulator GUI.  
 
+The **testing state** is entered by issuing `meta_test` or clicking the "Test" button on the GUI.  While in this state, the simulator constantly checks to see if any `IsisScenario.goal_*` methods are returning True, and if so, stops a timer and displays an alert window.
+
+So, to use the training and testing features, your task sequence would include:
+
+   4.  `meta_train`
+   5.  `meta_test`
 
 # How do I add new models to IsisWorld?
 

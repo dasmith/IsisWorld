@@ -30,8 +30,7 @@ IsisWorld was intended to model everyday, *human-level* problems, amenable to re
 
 ## Starting the simulator
 
-If you have downloaded the binary, simply open the `isisworld` executable.  IsisWorld will prompt you to "load a scenario".  If you look in the `scenarios` folder, you will find some default scenarios.  They are Python files containing a subclass of `IsisScenario` and describe how to generate the world and test for particular world states.
-
+If you have downloaded the binary, simply open the `isisworld` executable.  *The first time you load the binary, you will incur a long wait while Panda3D fetches the latest game libraries.  This will only happen once.*  IsisWorld will prompt you to "load a scenario".  If you look in the `scenarios` folder, you will find some default scenarios.  They are Python files containing a subclass of `IsisScenario` and describe how to generate the world and test for particular world states.
 
 If you are running the simulator from source, you first need to have installed the [Panda3D v1.7+](http://panda3d.com) SDK and configured it so that its library files are locatable from your Python's loading path.  Then you can run the simulator:
 

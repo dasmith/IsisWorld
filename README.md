@@ -14,12 +14,14 @@
                 
 </pre>
 
-**IsisWorld** is an open-source microworld generator for grounding and testing multi-agent commonsense reasoning systems.  It is cross-platform, with ODE rigid-body physics, easily extensible in Python and can be controlled by XML-RPC clients (AIs).
+**IsisWorld** is an open-source microworld generator for grounding and testing multi-agent commonsense reasoning systems.  It is cross-platform, with ODE rigid-body physics, easily extensible (in Python using the [Panda3D](http://panda3d.org) game library) and can be controlled using any XML-RPC client.
 
    - **To use the simulator without modifying the source, [download the latest binaries](http://web.media.mit.edu/~dustin/isisworld).** (Note: even with the binaries, you can still change and create your own scenario files.)
-   - **If you plan to make extensive changes to IsisWorld, [follow these instructions](http://web.media.mit.edu/~dustin/simulator_setup/#developing-the-simulator) about installing [Panda3D](http://panda3d.org), avoiding common problems and getting started.**
+   - **If you plan to make extensive changes to IsisWorld, [follow these instructions](http://web.media.mit.edu/~dustin/simulator_setup/#developing-the-simulator) about installing Panda3D, avoiding common problems and getting started.**
 
-For more information about the simulator, including the motivation for this approach to building intelligent agents, please refer to these materials: 
+IsisWorld was developed for **evaluating integrative AI systems**.  A user can define a microworld by editing a *scenario file* and IsisWorld will *generate* a world---choosing particular sizes, scales and positions for the objects in the environment.  This is done in order to obstruct AI systems from overfitting the environment.
+
+IsisWorld was intended to model everyday, *human-level* problems, amenable to reasoning about joint behavior, intention and communication.  The simulator granularity is too coarse for serving as a robotic simulator.  For more information about the simulator, including the indented audience and the motivation behind this approach to building intelligent agents, please refer to these resources: 
 
  * [An open source commonsense simulator for AI researchers](http://web.media.mit.edu/~dustin/simulator_metacog_aaai_2010.pdf).  Dustin Smith and Bo Morgan.  *Proceedings of AAAI-10. Workshop on Metacognition*. 
  * [IsisWorld Presentation](http://web.media.mit.edu/~dustin/isisworld.pdf) *Presented at the AAAI-10 Workshop on Metacognition*. 
@@ -29,6 +31,7 @@ For more information about the simulator, including the motivation for this appr
 ## Starting the simulator
 
 If you have downloaded the binary, simply open the `isisworld` executable.  IsisWorld will prompt you to "load a scenario".  If you look in the `scenarios` folder, you will find some default scenarios.  They are Python files containing a subclass of `IsisScenario` and describe how to generate the world and test for particular world states.
+
 
 If you are running the simulator from source, you first need to have installed the [Panda3D v1.7+](http://panda3d.com) SDK and configured it so that its library files are locatable from your Python's loading path.  Then you can run the simulator:
 

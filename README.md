@@ -19,7 +19,7 @@
    - **To use the simulator without modifying the source, [download the latest binaries](http://web.media.mit.edu/~dustin/isisworld).** (Note: even with the binaries, you can still change and create your own scenario files.)
    - **If you plan to make extensive changes to IsisWorld, [follow these instructions](http://web.media.mit.edu/~dustin/simulator_setup/#developing-the-simulator) about installing Panda3D, avoiding common problems and getting started.**
 
-IsisWorld was developed for **evaluating integrative AI systems**.  A user can define a microworld by editing a *scenario file* and IsisWorld will *generate* a world---choosing particular sizes, scales and positions for the objects in the environment.  Why does it randomly select these properties?  As a way to prevent AI learning systems from overfitting to a static environment.
+IsisWorld was built with the intention of providing **a platform for evaluating integrative AI systems**.  A user can define a microworld by editing a scenario file and IsisWorld will *generate* a world---choosing particular sizes, scales and positions for the objects in the environment.  Why does it randomly select these properties?  As a way to prevent AI learning systems from overfitting to a static environment.
 
 IsisWorld was intended to model everyday social problems that involve reasoning about joint behavior, intention and communication.  The perceptual-motor granularity is too coarse to be adequate for testing robotics problems.  For more information about the simulator, including the indented audience and the motivation behind this approach to building intelligent agents, please refer to these resources: 
 

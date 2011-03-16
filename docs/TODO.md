@@ -32,3 +32,12 @@ Here's the list of changes that have been made since the last version:
   - recording state of task/scenario in logging file
   - exporting screen shots
   - RoomLayout layout manager that puts objects around the walls
+
+## Resources for Developers
+
+Here is a list of resources for developers that are getting started working with IsisWorld.
+
+[Panda3d.org](http://panda3d.org) has a really good manual, though it doesn't have 100% coverage of all the features in the API.  Also [the Panda3D forum](http://Panda3d.org/phpbb2/) is very valuable resource.
+
+To learn about Git, Dustin recommends [GitHub's courses](http://learn.github.com).
+

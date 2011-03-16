@@ -14,7 +14,7 @@
                 
 </pre>
 
-**IsisWorld** is a free and open-source microworld generator for grounding and testing multi-agent commonsense reasoning systems.  It is cross-platform, uses ODE rigid-body physics, is easily extensible (in Python using the [Panda3D](http://panda3d.org) game library) and can be controlled using any XML-RPC client.
+**IsisWorld** is a free and open-source microworld generator for grounding and testing multi-agent commonsense reasoning systems.  It is cross-platform, uses ODE rigid-body physics, is easily extensible (in Python and the [Panda3D](http://panda3d.org) game library) and the agents in IsisWorld can be controlled from any client using XML-RPC.
 
    - **To use the simulator without modifying the source, [download the latest binaries](http://web.media.mit.edu/~dustin/isisworld).** (Note: even with the binaries, you can still change and create your own scenario files.)
    - **If you plan to make extensive changes to IsisWorld, [follow these instructions](http://web.media.mit.edu/~dustin/simulator_setup/#developing-the-simulator) about installing Panda3D, avoiding common problems and getting started.**

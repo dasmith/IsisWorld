@@ -19,9 +19,9 @@
    - **To use the simulator without modifying the source, [download the latest binaries](http://web.media.mit.edu/~dustin/isisworld).** (Note: even with the binaries, you can still change and create your own scenario files.)
    - **If you plan to make extensive changes to IsisWorld, [follow these instructions](http://web.media.mit.edu/~dustin/simulator_setup/#developing-the-simulator) about installing Panda3D, avoiding common problems and getting started.**
 
-IsisWorld was developed for **evaluating integrative AI systems**.  A user can define a microworld by editing a *scenario file* and IsisWorld will *generate* a world---choosing particular sizes, scales and positions for the objects in the environment.  This is done in order to obstruct AI systems from overfitting the environment.
+IsisWorld was developed for **evaluating integrative AI systems**.  A user can define a microworld by editing a *scenario file* and IsisWorld will *generate* a world---choosing particular sizes, scales and positions for the objects in the environment.  Why does it randomly select these properties?  As a way to prevent AI learning systems from overfitting to a static environment.
 
-IsisWorld was intended to model everyday, *human-level* problems, amenable to reasoning about joint behavior, intention and communication.  The simulator granularity is too coarse for serving as a robotic simulator.  For more information about the simulator, including the indented audience and the motivation behind this approach to building intelligent agents, please refer to these resources: 
+IsisWorld was intended to model everyday social problems that involve reasoning about joint behavior, intention and communication.  The perceptual-motor granularity is too coarse to be adequate for testing robotics problems.  For more information about the simulator, including the indented audience and the motivation behind this approach to building intelligent agents, please refer to these resources: 
 
  * [An open source commonsense simulator for AI researchers](http://web.media.mit.edu/~dustin/simulator_metacog_aaai_2010.pdf).  Dustin Smith and Bo Morgan.  *Proceedings of AAAI-10. Workshop on Metacognition*. 
  * [IsisWorld Presentation](http://web.media.mit.edu/~dustin/isisworld.pdf) *Presented at the AAAI-10 Workshop on Metacognition*. 

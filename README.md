@@ -48,7 +48,7 @@ After you have started the agent, you need to 1) load a scenario, and 2) load a 
 
 ## Writing a client / agent
 
-You can control the agent running the key-bindings (press `4` to have a list of all keybindings appear on the screen) or by writing a client that connects to the simulator using [XML-RPC](http://en.wikipedia.org/wiki/XML-RPC).  Examples of Python XML-RCP IsisWorld clients can be found in the `agents` folder, although XML-RPC libraries are available for many other languages.
+You can control the agent from the GUI using key-bindings (press `4` to have a list of all keybindings appear on the screen) or by writing a client that connects to the simulator using [XML-RPC](http://en.wikipedia.org/wiki/XML-RPC).  Examples of Python XML-RCP IsisWorld clients can be found in the `agents` folder, although XML-RPC libraries are available for most common programming languages.
 
 ### Example client in Python
 
@@ -65,15 +65,18 @@ Here are a few helper functions to connect to the simulator:
 
 
     def sense():
+        # return a perceptual "frame" (dict) for the agent named 'Ralph'.
         return e.do('sense', {'agent':'Ralph'})
 
     def step(t):
+        # advance the simulator by t seconds.
         e.do('meta_pause')
         e.do('meta_step', {'seconds':t})
         while e.do('meta_physics_active'):
             time.sleep(0.001)
 
-    def do(command, args = None):
+    def do(command, args=None):
+        # have Ralph do something
         if not args:
             args = {}
         args['agent'] = 'Ralph'
@@ -106,6 +109,9 @@ Here are a few helper functions to connect to the simulator:
     do('pick_up_with_right_hand', {'target':'loaf'})
     step(0.8)
 
+These Python helper functions, and others, can be imported using
+
+    from isis_agent_tools import *
 
 
 ### Running commands through an XML-RPC client:
@@ -126,7 +132,8 @@ The following **meta commands** are defined that allow you to query and change t
     'meta_setup_thought_layers',
     'meta_physics_active'
 
-Additionally, agents can execute actions.  For an up-to-date list of actions available to the agent, use the `meta_list_actions` command to return a list.
+
+The above list is for changing the state of the simulator using XML-RPC.  Agents can also **execute actions**, such as `move_left-start` and `look_down-start`.  For an up-to-date list of actions available to the agent, use the `meta_list_actions` command to return a list, or grep the `main.py' file for actionController.
 
 
 ## How to add a new scenario

@@ -901,7 +901,7 @@ class IsisAgent(kinematicCharacterController,DirectObject):
     def can_grasp(self, isisobject):
         distance = isisobject.activeModel.getDistance(self.fov)
         print "distance = ", distance
-        return distance < 2.0
+        return distance < 3.0
 
     def is_holding(self, object_name):
         return ((self.left_hand_holding_object and (self.left_hand_holding_object.getPythonTag('isisobj').name  == object_name)) \

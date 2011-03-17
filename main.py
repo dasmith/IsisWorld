@@ -544,7 +544,7 @@ class IsisWorld(DirectObject):
             o = obj.getPythonTag("isisobj")
             object_dict = {}
             object_dict['class'] = o.get_class_name()
-            objects[o] = object_dict
+            objects[o.getName()] = object_dict
         return objects
 
     def display_isis_message(self,message):

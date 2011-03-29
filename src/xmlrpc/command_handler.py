@@ -173,6 +173,8 @@ class IsisCommandHandler(object):
                 return "error: meta_load_task requires 'task' argument"
         elif cmd == "meta_list_agents":
             return self.simulator.agentsNamesToIDs.keys()
+        elif cmd == "meta_list_objects":
+            return self.simulator.get_all_objects_summary()
         elif cmd == "meta_train":
             """ Enters training mode """
             return self.simulator.controller.safe_request('TaskTrain')

@@ -538,6 +538,15 @@ class IsisWorld(DirectObject):
             self.text_object.reparentTo(aspect2d)
             self._text_object_visible = True
 
+    def get_all_objects_summary(self):
+        objects = {}
+        # find all objects with 'isisobj' tag.  Doesn't work for Python tags 
+        for obj in base.render.findAllMatches("**/=isisobj"):
+            o = obj.getPythonTag("isisobj")
+            object_dict = {}
+            object_dict['class'] = o.get_class_name()
+            objects[o.getName()] = object_dict
+        return objects
 
     def display_isis_message(self,message):
         print "[IsisWorld] %s %s" % (message, str(time.ctime()))

@@ -497,8 +497,9 @@ class IsisWorld(DirectObject):
             aspect_ratio = 16.0 / 9.0
             window = dr.getWindow()
             pip_size = 0.40 # percentage of width of screen
-            self.agentCamera = window.makeDisplayRegion(1-pip_size,1,0,\
-                 (1.0 / aspect_ratio) * float(dr.getPixelWidth())/float(dr.getPixelHeight()) * pip_size)    
+            self.agentCamera = window.makeDisplayRegion(0, pip_size, 1-pip_size, 1)
+            #self.agentCamera = window.makeDisplayRegion(1-pip_size,1,0,\
+            #     (1.0 / aspect_ratio) * float(dr.getPixelWidth())/float(dr.getPixelHeight()) * pip_size)    
         
             self.agentCamera.setSort(dr.getSort())
             self.agentCamera.setClearColor(VBase4(0, 0, 0, 1))

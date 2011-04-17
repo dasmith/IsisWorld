@@ -17,7 +17,7 @@
 **IsisWorld** is a free and open-source microworld generator for grounding and testing multi-agent commonsense reasoning systems.  It is cross-platform, simulates rigid-body physics using the [Open Dynamics Engine](http://www.ode.org/), is easily extensible (in Python and the [Panda3D](http://panda3d.org) game library) and the agents in IsisWorld can be controlled from any client using XML-RPC.
 
    - **To use the simulator without modifying the source, [download the latest binaries](http://web.media.mit.edu/~dustin/isisworld).** (Note: even with the binaries, you can still change and create your own scenario files.)
-   - **If you plan to make extensive changes to IsisWorld, [follow these instructions](http://web.media.mit.edu/~dustin/simulator_setup/#developing-the-simulator) about installing Panda3D and how to avoid/escape common problems.
+   - **If you plan to make extensive changes to IsisWorld, [follow these instructions](http://web.media.mit.edu/~dustin/simulator_setup/#developing-the-simulator)** about installing Panda3D and how to avoid/escape common problems.
 
 IsisWorld was built with the intention of providing **a platform for evaluating integrative AI systems**.  A user can define a microworld by editing a scenario file and IsisWorld will *generate* a world---choosing particular sizes, scales and positions for the objects in the environment.  It randomly selects objects' property values way to prevent AI learning systems from overfitting to a static environment; however, this feature can be overridden by specifying constructor arguments in the scenario file.
 
@@ -236,7 +236,7 @@ So, to use the training and testing features, your task sequence would include:
 
 # How do I add new models to IsisWorld?
 
-One of the main goals of IsisWorld is to allow end users to easily add new models to the simulator. Thee most tedious and time consuming part of building a scenario is making the objects' positions look realistic.  When loading a new model, the middle point (0,0,0) is arbitrarily defined and sometimes does not even intersect the 3D visual model!  We need a standard: each model should be realistically scaled (with respect to the 2 meter tall Robot), have its bottom center at 0,0,0, being standing upright, with its "Front" facing (1,1,1).    I have been accommodating these differences using two vectors that are added to the default positions of the objects
+One of the main goals of IsisWorld is to allow end users to easily add new models to the simulator. The most tedious and time consuming part of building a scenario is making the objects' positions look realistic.  When loading a new model, the middle point (0,0,0) is arbitrarily defined and sometimes does not even intersect the 3D visual model!  We need a standard: each model should be realistically scaled (with respect to the 2 meter tall Robot), have its bottom center at 0,0,0, being standing upright, with its "Front" facing (1,1,1).    I have been accommodating these differences using two vectors that are added to the default positions of the objects
 
   - **offset_vector** = (x,y,z,h,p,r):  whenever an object is put in, or on, another object.
   - **pickup_vector** = (x,y,z,h,p,r): whenever the object is picked up, i.e., attached to one of the agent's hands.

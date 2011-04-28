@@ -17,18 +17,21 @@ class Scenario(IsisScenario):
         b = butter()
         put_in(b, f)
 
+        ov = oven()
+        put_in(ov, k)
+
         ta = table(scale=7)
         put_in(ta, k)
 
         ta2 = table(scale=7)
         put_in(ta2, k)
 
-        ta3 = table(scale=8)
-        put_in(ta3, k)
+#        ta3 = table(scale=8)
+#        put_in(ta3, k)
 
-        ta4 = table(scale=7)
-        ta4.scale = 1
-        put_in(ta4, k)
+#       ta4 = table(scale=7)
+#       ta4.scale = 1
+#       put_in(ta4, k)
         
         t = toaster()
         put_on(t, ta)
@@ -37,8 +40,7 @@ class Scenario(IsisScenario):
         put_on(kn, ta)
 
         # adding the oven
-        ov = oven()
-        put_in(ov, k)
+
     
         l = loaf()
         put_in(l, f)
@@ -51,7 +53,7 @@ class Scenario(IsisScenario):
         lauren = IsisAgent("Lauren")
         
         macy = IsisAgent("Macy", position=(2,2,1))
-        put_in_world(ralph) 
+        put_in_front_of(ralph, ta2) 
         put_in_world(lauren) 
         put_in_world(macy) 
         

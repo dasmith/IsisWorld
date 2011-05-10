@@ -45,15 +45,15 @@ class Scenario(IsisScenario):
         l = loaf()
         put_in(l, f)
         
-        l = loaf()
-        put_on(l, ta2)
+        l2 = loaf()
+        put_on(l2, ta2)
 
-        ralph = IsisAgent("Ralph")
+        ralph = IsisAgent("Ralph", position = (2, 1, 1))
         
-        lauren = IsisAgent("Lauren")
+        lauren = IsisAgent("Lauren", position = (3, 2, 1))
         
         macy = IsisAgent("Macy", position=(2,2,1))
-        put_in_front_of(ralph, ta2) 
+        put_in_world(ralph) 
         put_in_world(lauren) 
         put_in_world(macy) 
         

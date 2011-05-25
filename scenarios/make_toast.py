@@ -35,7 +35,7 @@ class Scenario(IsisScenario):
         
         t = toaster()
         put_on(t, ta)
-        
+#        put_in_world(t)
         kn = knife()
         put_on(kn, ta)
 

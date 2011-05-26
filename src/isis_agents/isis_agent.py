@@ -901,7 +901,7 @@ class IsisAgent(kinematicCharacterController,DirectObject):
     def can_grasp(self, isisobject):
         distance = isisobject.activeModel.getDistance(self.fov)
         print "distance = ", distance
-        return distance < 3.0
+        return distance < 5.0
 
     def is_holding(self, object_name):
         return ((self.left_hand_holding_object and (self.left_hand_holding_object.getPythonTag('isisobj').name  == object_name)) \
@@ -1015,8 +1015,8 @@ class IsisAgent(kinematicCharacterController,DirectObject):
                 kinematicCharacterController.jump(self)
                 # one jump at a time!
                 self.controlMap["jump"] = 0
-        if (self.controlMap["look_left"]!=0):        self.set_neck_heading(bound(self.neck_angle['heading']+stepSize*self.current_speed_dict['look_left'],  -100, 100))
-        if (self.controlMap["look_right"]!=0):       self.set_neck_heading(bound(self.neck_angle['heading']-stepSize*self.current_speed_dict['look_right'], -100, 100))
+        if (self.controlMap["look_left"]!=0):        self.set_neck_heading(bound(self.neck_angle['heading']+stepSize*self.current_speed_dict['look_left'],  -130, 130))
+        if (self.controlMap["look_right"]!=0):       self.set_neck_heading(bound(self.neck_angle['heading']-stepSize*self.current_speed_dict['look_right'], -130, 130))
         if (self.controlMap["look_up"]!=0):
             self.set_neck_pitch(bound(self.neck_angle['pitch']+stepSize*self.current_speed_dict['look_up'],   -60, 80))
         if (self.controlMap["look_down"]!=0):

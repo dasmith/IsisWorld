@@ -85,11 +85,11 @@ class fridge(IsisObject, IsisVisual, SpatialStaticBox, SpatialContainer, Functio
         self.door = self.activeModel.find("**/fridgeDoor*")
         self.door.setPos(-0.56, .6, .72)
         
-        self.doorCollision = kinematicObject(self.physics)
-        self.doorCollision.activeModel = self.door
-        self.doorCollision.setBoxGeomFromNodePath(self.door)
-        self.doorCollision.setCatColBits("pickable")
-        self.physics.addObject(self.doorCollision)
+        #self.doorCollision = kinematicObject(self.physics)
+        #self.doorCollision.activeModel = self.door
+        #self.doorCollision.setBoxGeomFromNodePath(self.door)
+        #self.doorCollision.setCatColBits("pickable")
+        #self.physics.addObject(self.doorCollision)
         
         #fd.setPos(-.70, .5, 1.78)
         # and add the door
@@ -147,6 +147,57 @@ class toaster(IsisObject, IsisVisual, SpatialPickableContainer, FunctionalCooker
         IsisObject.__init__(self, **kwargs)
         self.in_layout = SlotLayout(self, [(-0.2, 0.2, 0.0), (0.2, 0.2, 0.0)])
         #self.in_layout = SlotLayout([(.3, .1, .5), (.3, -.1, .2)])
+
+class frying_pan(IsisObject, IsisVisual, SpatialPickableContainer, FunctionalCooker):
+
+    def __init__(self, **kwargs):
+        ######### Base Variables ##########
+         # visual offset for the model's position and rotation
+        self.offset_vector = (0,0,0,0,0,0)
+
+        ######## Visual Parameters ###############
+        # store a model, either as a string or a dictionary
+        #self.model = "toaster"
+        self.scale = 0.7
+        ######## Spatial Parameters ##############
+        self.density = 1000
+
+
+        ######## Functional Parameters ############
+        self.cook_in = True
+        self.cook_on = False
+
+        #self.registerState("containsToast", [0,1,2])
+        IsisObject.__init__(self, **kwargs)
+        self.in_layout = SlotLayout(self, [(-0.2, 0.2, 0.0), (0.2, 0.2, 0.0)])
+        #self.in_layout = SlotLayout([(.3, .1, .5), (.3, -.1, .2)])
+
+class egg(IsisObject, IsisVisual, SpatialPickableBox, FunctionalCountable):
+
+    def __init__(self, **kwargs):
+        #self.offset_vector = (0,0,-.1,0,-120,-20)
+        self.pickup_vector=(-.125,.1,0,0,-125,0)
+        self.model={"default":"egg", "cracked":"egg_raw", "fried": "egg_fried"}
+        self.scale = 0.5
+
+        self.density = 200
+        self.functional_cooked_model = "toast"
+
+        IsisObject.__init__(self, **kwargs)
+
+class egg_carton( IsisObject, IsisVisual, SpatialPickableBox, FunctionalDividableCountable):
+
+    def __init__(self, **kwargs):
+        #self.offset_vector = (1.0,1.2,0.0,0,0,0)
+        self.pickup_vector = (0,0,0,90,0,0)
+        #self.model = "egg"
+        self.scale = 0.2
+        #self.create()
+
+        # this is a dividable object, so define a piece
+        self._functional__dividable_piece = egg
+        self.density =1000
+        IsisObject.__init__(self, **kwargs)
 
 class bread(IsisObject, IsisVisual, SpatialPickableBox, FunctionalCountable):
 

@@ -86,7 +86,7 @@ class ModelDisplayer(ShowBase):
             sx,sy,sz = self.model.getScale()
             newName = self.modelName[0:-4] +"-new.egg"
             theCmd = "egg-trans -o " + newName + " "
-            theCmd += "-TT %f,%f,%f " % (x,y,z)
+            theCmd += "-TT %f,%f,%f " % (y,x,z)
             theCmd += "-TS %f,%f,%f " % (sx,sy,sz)
             theCmd += "-TR %f,%f,%f " % (h,p,r)
             #theCmd += "-cs z-up -t " # Standardize coordinate system

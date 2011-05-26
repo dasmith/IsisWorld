@@ -19,7 +19,7 @@ def load_objects(scenario, world):
     generators = __import__("src.isis_objects.generators")
     generators = generators.isis_objects.generators
     # FIXME: hacky definition to filter the generators from the other Panda3d functions in the namespace
-    filterfun = lambda x: x[0] in ['fridge','toaster','bread','butter','loaf','kitchen','knife', 'oven', 'table','IsisAgent']
+    filterfun = lambda x: x[0] in ['fridge','toaster','bread','butter','loaf','kitchen','knife','frying_pan', 'egg', 'egg_carton', 'oven', 'table','IsisAgent']
     generators = dict(filter(filterfun, generators.__dict__.items()))
     for klass, constructor in generators.items():
         constructor.set_physics(physics)

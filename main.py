@@ -94,13 +94,15 @@ class IsisWorld(DirectObject):
         # parse command line options
         
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "ho:vDpf", ["help", "output=", "Default", "small_window", "lazy_render"])
+            opts, args= getopt.getopt(sys.argv[1:], "ho:vDp:f:", ["help", "output=", "Default", "small_window", "lazy_render"])
         except getopt.GetoptError, err:
             # print help information and exit:
             print str(err) # will print something like "option -a not recognized"
             usage()
             sys.exit(2)
-            
+          
+        print "OPTS", opts
+
         self.verbosity = 0
         for o, a in opts:
             if o == "-v":
@@ -109,7 +111,7 @@ class IsisWorld(DirectObject):
                 print "-f option deprecated."
                 #self.__enable_xmlrpc_vision = True
             elif o == '-p':
-                self.__xmlrpc_port_number = a 
+                self.__xmlrpc_port_number = int(a)
             elif o in ("-h", "--help"):
                 self.__display_usage_information = True
             elif o in ("-D", "--default"):

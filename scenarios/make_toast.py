@@ -16,12 +16,17 @@ class Scenario(IsisScenario):
 
         b = butter()
         put_in(b, f)
-
+        
         ta = table(scale=7)
         put_in(ta, k)
+        
+
 
         ta2 = table(scale=7)
         put_in(ta2, k)
+
+        fp = frying_pan()
+        put_on(fp, ta2)
 
         ta3 = table(scale=8)
         put_in(ta3, k)

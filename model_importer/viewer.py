@@ -131,7 +131,7 @@ class ModelDisplayer(ShowBase):
         #print "Z offset", bounds[2]-center[2]
 
         
-        self.placer = self.model.place()
+        #self.placer = self.model.place()
 
 if __name__ == '__main__':
     if len(sys.argv) != 2:

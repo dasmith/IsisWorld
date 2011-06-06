@@ -226,7 +226,7 @@ class FunctionalSharp(FunctionalCountable):
         return "success"
 
 
-class FunctionalElectronic(FunctionalCountable):
+class FunctionalOnOffDevice(FunctionalCountable):
     def __init__(self):
         FunctionalCountable.__init__(self)
         self.add_attribute(BinaryAttribute(name='is_on',visible=True), value=False)
@@ -239,14 +239,44 @@ class FunctionalElectronic(FunctionalCountable):
         self.set_attribute('is_on', False)
         return "success"
 
-class FunctionalCooker(FunctionalElectronic):
+class FunctionalHeatedSurface(FunctionalOnOffDevice):
+    """ Designed for the stove.  WHen turned on, anything on it gets cooked """
+    
+    def __init__(self):
+        self.add_attribute(BinaryAttribute(name='is_hot',visible=False), value=False)
+    
+    def action__turn_on(self, agent, object):
+        self.set_attribute('is_on', True)
+        print "Cooking... in", self.name
+
+        def cook_items():
+            for obj in self.in_layout.getItems():
+                obj.call(None, "cook", None)
+                pos = obj.getPos()
+                new_pos = (pos[0],pos[1],pos[2]+0.3)
+                obj.setFluidPosition(new_pos)
+        delay = Wait(5)
+        seq = Sequence(Func(self.set_attribute, 'is_hot', False),
+                       delay,
+                       Func(cook_items),
+                       Func(self.set_attribute, 'is_open', True),
+                       Func(self.set_attribute, 'is_on', False))
+        seq.start()
+        #self.set_attribute('is_open', False)
+        #self.set_attribute('is_open', True)
+        #self.set_attribute('is_on', False)
+        return "success"
+        # close the box
+
+
+class FunctionalCooker(FunctionalOnOffDevice):
     """ This device must be a container and an on-off device.
     
     When turned on, it increments the cooked value for each item inside of the container.
     
     """
     def __init__(self):
-        FunctionalElectronic.__init__(self)
+        FunctionalOnOffDevice.__init__(self)
         self.add_attribute(BinaryAttribute(name='is_open',visible=False), value=False)
         
 

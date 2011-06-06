@@ -44,11 +44,11 @@ from ..physics.ode.odeWorldManager import *
 class oven(IsisObject, IsisVisual, SpatialStaticBox, SpatialSurface, IsisFunctional):
 
     def __init__(self):
-        self.offsetVec = offsetVec = (0,0,0,0,0,0)
+        self.offset_vector =  (0,0,-0.5,0,0,0)
         self.model = "oven/oven"
-        self.scale = randint(60,90) / 110.0
+        self.scale = 0.6 #randint(60,90) / 130.0
         IsisObject.__init__(self)
-
+        self.on_layout = SlotLayout(self, [(0., -0.5, 6.5), (0, 0, 2.4),(0, 0, 1.5)])
         self.setH(0)
 
 class table(IsisObject,IsisVisual,SpatialStaticBox,SpatialSurface,FunctionalCountable):
@@ -153,35 +153,35 @@ class frying_pan(IsisObject, IsisVisual, SpatialPickableContainer, FunctionalCoo
     def __init__(self, **kwargs):
         ######### Base Variables ##########
          # visual offset for the model's position and rotation
-        self.offset_vector = (0,0,0,0,0,0)
-
+        self.offset_vector = (0,0,0,90,0,0)
+        self.pickup_vector = (0,0,0,180,0,0)
         ######## Visual Parameters ###############
         # store a model, either as a string or a dictionary
-        #self.model = "toaster"
-        self.scale = 0.7
+        self.model = "frying_pan.egg"
+        self.scale = 0.58
         ######## Spatial Parameters ##############
-        self.density = 1000
+        self.density = 2000
 
 
         ######## Functional Parameters ############
-        self.cook_in = True
-        self.cook_on = False
+        self.cook_in = False
+        self.cook_on = True
 
         #self.registerState("containsToast", [0,1,2])
         IsisObject.__init__(self, **kwargs)
-        self.in_layout = SlotLayout(self, [(-0.2, 0.2, 0.0), (0.2, 0.2, 0.0)])
+        self.in_layout = SlotLayout(self, [(0, 0.2, -0.2), (0.2, 0.2, 0.0)])
         #self.in_layout = SlotLayout([(.3, .1, .5), (.3, -.1, .2)])
 
 class egg(IsisObject, IsisVisual, SpatialPickableBox, FunctionalCountable):
 
     def __init__(self, **kwargs):
-        #self.offset_vector = (0,0,-.1,0,-120,-20)
+        self.offset_vector = (0,0,-.3,0,-120,-20)
         self.pickup_vector=(-.125,.1,0,0,-125,0)
-        self.model={"default":"egg", "cracked":"egg_raw", "fried": "egg_fried"}
-        self.scale = 0.5
+        self.model={"default":"egg-inshell", "cracked":"egg-raw", "fried": "egg-fried"}
+        self.scale = 1
 
         self.density = 200
-        self.functional_cooked_model = "toast"
+        self.functional_cooked_model = "egg-fried"
 
         IsisObject.__init__(self, **kwargs)
 

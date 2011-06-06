@@ -27,16 +27,12 @@ print e.do('meta_pause')
 # look for the toast
 print "Looking down to the loaf"
 print do('look_down-start')
-while get_obj_xy('butter') < 0.5:
+while get_obj_xy('egg') < 0.5:
     step(.4)
 do('look_down-stop')
 
-print "picking up butter"
-print do('pick_up_with_left_hand', {'target':'butter'})
-step(.2)
-
-print "picking up loaf"
-do('pick_up_with_right_hand', {'target':'loaf'})
+print "picking up egg"
+do('pick_up_with_right_hand', {'target':'egg'})
 step(0.8)
 
 do('move_backward-start')
@@ -84,6 +80,10 @@ step(.1)
 
 print do('use_left_hand', {'target':full_table_name, 'action':'put_on'})
 step(.1)
+
+print "picking up frying_pan"
+print do('pick_up_with_left_hand', {'target':'frying_pan'})
+step(.2)
 
 print "picking up knife"
 print do('pick_up_with_right_hand', {'target':'knife'})

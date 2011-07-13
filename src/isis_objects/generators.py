@@ -124,6 +124,30 @@ class knife(IsisObject, IsisVisual, SpatialPickableBox, FunctionalSharp):
         self.density = 25
         IsisObject.__init__(self, **kwargs)
 
+class block(IsisObject, IsisVisual, SpatialPickableContainer, FunctionalCountable):
+
+    def __init__(self, **kwargs):
+        ######### Base Variables ##########
+         # visual offset for the model's position and rotation
+        #self.offset_vector = (.5,.16,.19,-8,0,0)
+
+        if 'color' in kwargs:
+            print "Setting color to %s" % color
+        
+        ######## Visual Parameters ###############
+        # store a model, either as a string or a dictionary
+        self.model = "box"
+        self.scale = 0.7
+        ######## Spatial Parameters ##############
+        self.density = 1000
+
+        #self.model.setColorScale(random.random(), random.random(), random.random(), 1.0)
+        
+        IsisObject.__init__(self, **kwargs)
+        self.on_layout = SlotLayout(self, [(-0.2, 0.2, 0.0), (0.2, 0.2, 0.0)])
+        #self.in_layout = SlotLayout([(.3, .1, .5), (.3, -.1, .2)])
+        
+        
 class toaster(IsisObject, IsisVisual, SpatialPickableContainer, FunctionalCooker):
     
     def __init__(self, **kwargs):

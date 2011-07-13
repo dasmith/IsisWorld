@@ -521,10 +521,15 @@ class Controller(object, FSM):
             else:
                 # define pointer to base scene.
                 room = render.find("**/*kitchen*").getPythonTag("isisobj")
-                # position the camera in the room
-                base.camera.reparentTo(room)
-                base.camera.setPos(room.getWidth()/4,room.getLength()/4,room.getHeight()*3/4)
-                base.camera.setHpr(145,-30,0)
+                if room:
+                    # position the camera in the room
+                    base.camera.reparentTo(room)
+                    base.camera.setPos(room.getWidth()/4,room.getLength()/4,room.getHeight()*3/4)
+                    base.camera.setHpr(145,-30,0)
+                else:
+                    base.camera.reparentTo(render)
+                    base.camera.setZ(10)
+                    base.camera.setHpr(145,-80,0)
                 # add list of tasks to the GUI
                 self.scenarioTasks =  self.currentScenario.getTaskList()
                 self.menuTaskOptions['items'] = self.scenarioTasks

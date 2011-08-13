@@ -8,7 +8,11 @@ For more information, visit the project's website:  http://mmp.mit.edu/isisworld
 
 """
 # parameters
+import sys
+sys.path.append("/usr/share/panda3d/")
+sys.path.append("/usr/lib/panda3d/")
 ISIS_VERSION = 0.5
+
 from pandac.PandaModules import loadPrcFileData
 loadPrcFileData("", """sync-video 0
 win-size 1024 768

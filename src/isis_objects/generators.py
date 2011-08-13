@@ -67,7 +67,7 @@ class fridge(IsisObject, IsisVisual, SpatialStaticBox, SpatialContainer, Functio
 
     def  __init__(self, **kwargs):
 
-        self.model={'default':"Fridge/Fridge"}
+        self.model={'default':"Fridge/Fridge.egg"}
         self.offset_vector = (0.0,0.0,-0.28,0,0,0)
         self.generate_scale_between(.16,.20)
         self.density = 4000

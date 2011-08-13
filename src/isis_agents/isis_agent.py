@@ -35,9 +35,9 @@ class IsisAgent(kinematicCharacterController,DirectObject):
 
     def __init__(self, name, position=None, queueSize = 100):
         # load the model and the different animations for the model into an Actor object.
-        self.actor= Actor("media/models/boxman",
-                          {"walk":"media/models/boxman-walk", 
-                           "idle": "media/models/boxman-idle"})
+        self.actor= Actor("media/models/boxman.egg",
+                          {"walk":"media/models/boxman-walk.egg", 
+                           "idle": "media/models/boxman-idle.egg"})
         self.actor.setScale(1.0)
         self.actor.setH(0)
         #self.actor.setLODAnimation(10,5,2) # slows animation framerate when actor is far from camera, if you can figure out reasonable params

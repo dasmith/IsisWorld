@@ -144,7 +144,7 @@ class SkyDome1(Att_base):
         texturescale=(1000,1000),
         scale=(40,40,10), texturefile=None):
         Att_base.__init__(self,False, "Sky Dome 1")
-        self.skybox = loader.loadModel("../media/models/dome2")
+        self.skybox = loader.loadModel("../media/models/dome2.egg")
         self.skybox.setCollideMask(BitMask32().allOff())
         self.skybox.setTwoSided(False)
         self.skybox.setScale(scale[0],scale[1],scale[2])
@@ -182,7 +182,7 @@ class SkyDome2(Att_base):
         scale=(4000,4000,1000),
         texturefile=None):
         Att_base.__init__(self,False, "Sky Dome 2")
-        self.skybox = loader.loadModel("./media/models/dome2")
+        self.skybox = loader.loadModel("./media/models/dome2.egg")
         self.skybox.reparentTo(scene)
         self.skybox.setScale(scale[0],scale[1],scale[2])
         self.skybox.setLightOff()

@@ -1205,7 +1205,7 @@ class ODEWorldManager(object):
             """
             # Enable a more accurate friction model (approx)
             # Flags: mu2, fdir1, bounce, softERP, softCFM, motion1, motion2, slip1, slip2, approx1, approx2, approx
-            surfaceParams.setMode(0b110000000111)
+            surfaceParams.setMode(1)
             
             surfaceParams.setMu(object1.surfaceFriction)
             surfaceParams.setMu2(object2.surfaceFriction)

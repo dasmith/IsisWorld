@@ -45,7 +45,7 @@ class oven(IsisObject, IsisVisual, SpatialStaticBox, SpatialSurface, IsisFunctio
 
     def __init__(self):
         self.offset_vector =  (0,0,-0.5,0,0,0)
-        self.model = "oven/oven"
+        self.model = "oven/oven.egg"
         self.scale = 0.6 #randint(60,90) / 130.0
         IsisObject.__init__(self)
         self.on_layout = SlotLayout(self, [(0., -0.5, 6.5), (0, 0, 2.4),(0, 0, 1.5)])
@@ -55,7 +55,7 @@ class table(IsisObject,IsisVisual,SpatialStaticBox,SpatialSurface,FunctionalCoun
 
     def __init__(self, **kwargs):
 
-        self.model = "table/table"
+        self.model = "table/table.egg"
         self.generate_scale_between(6,9)
         
         self.offset_vector = (0,0,0,180,0,0)
@@ -119,7 +119,7 @@ class knife(IsisObject, IsisVisual, SpatialPickableBox, FunctionalSharp):
     def  __init__(self, **kwargs):
         self.offset_vector = (0,0,0.0,0,0,0)
         self.pickup_vector = (0,.15,0,0,75,0)
-        self.model="knife"
+        self.model="knife.egg"
         self.scale=0.01
         self.density = 25
         IsisObject.__init__(self, **kwargs)
@@ -136,7 +136,7 @@ class block(IsisObject, IsisVisual, SpatialPickableContainer, FunctionalCountabl
         
         ######## Visual Parameters ###############
         # store a model, either as a string or a dictionary
-        self.model = "box"
+        self.model = "box.egg"
         self.scale = 0.7
         ######## Spatial Parameters ##############
         self.density = 1000
@@ -157,7 +157,7 @@ class toaster(IsisObject, IsisVisual, SpatialPickableContainer, FunctionalCooker
         
         ######## Visual Parameters ###############
         # store a model, either as a string or a dictionary
-        self.model = "toaster"
+        self.model = "toaster.egg"
         self.scale = 0.7
         ######## Spatial Parameters ##############
         self.density = 1000
@@ -201,11 +201,12 @@ class egg(IsisObject, IsisVisual, SpatialPickableBox, FunctionalCountable):
     def __init__(self, **kwargs):
         self.offset_vector = (0,0,-.3,0,-120,-20)
         self.pickup_vector=(-.125,.1,0,0,-125,0)
-        self.model={"default":"egg-inshell", "cracked":"egg-raw", "fried": "egg-fried"}
+        self.model={"default":"egg-inshell.egg", "cracked":"egg-raw.egg",
+                "fried": "egg-fried.egg"}
         self.scale = 1
 
         self.density = 200
-        self.functional_cooked_model = "egg-fried"
+        self.functional_cooked_model = "egg-fried.egg"
 
         IsisObject.__init__(self, **kwargs)
 
@@ -228,11 +229,11 @@ class bread(IsisObject, IsisVisual, SpatialPickableBox, FunctionalCountable):
     def __init__(self, **kwargs):
         #self.offset_vector = (0,0,-.1,0,-120,-20)
         self.pickup_vector=(-.125,.1,0,0,-125,0)
-        self.model={"default":"slice_of_bread", "toast":"piece_of_toast"}
+        self.model={"default":"slice_of_bread.egg", "toast":"piece_of_toast.egg"}
         self.scale = 0.5
         
         self.density = 200
-        self.functional_cooked_model = "toast"
+        self.functional_cooked_model = "toast.egg"
 
         IsisObject.__init__(self, **kwargs)
 
@@ -242,7 +243,7 @@ class butter(IsisObject, IsisVisual, SpatialPickableBox, FunctionalDividableMass
         self.offset_vector = (-0.6,0.0,-0.3,90,270,90)
         # +x was do the lift
         self.pickup_vector=(0.3,-0.8,-0.3,0,90,0)
-        self.model={"default":"butter"}
+        self.model={"default":"butter.egg"}
         self.scale = 0.05
         
         self.density = 200
@@ -254,7 +255,7 @@ class loaf( IsisObject, IsisVisual, SpatialPickableBox, FunctionalDividableCount
     def __init__(self, **kwargs):
         #self.offset_vector = (1.0,1.2,0.0,0,0,0)
         self.pickup_vector = (0,0,0,90,0,0)
-        self.model = "loaf_of_bread"
+        self.model = "loaf_of_bread.egg"
         self.scale = 0.2
         #self.create()
 

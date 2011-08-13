@@ -22,7 +22,7 @@ class ModelDisplayer(ShowBase):
         ShowBase.__init__(self)
         self.modelName = modelName
         # Load the environment model (right now using models/environment)
-        self.environ = self.loader.loadModel("models/environment")
+        self.environ = self.loader.loadModel("models/environment.egg")
         # Reparent model to render
         self.environ.reparentTo(self.render)
         # Apply scale and position transforms
@@ -30,9 +30,9 @@ class ModelDisplayer(ShowBase):
         self.environ.setPos(-8, 42, 0)
         
         # add Isis Agent
-        self.actor= Actor("../media/models/boxman",
-                          {"walk":"../media/models/boxman-walk", 
-                           "idle": "../media/models/boxman-idle"})
+        self.actor= Actor("../media/models/boxman.egg",
+                          {"walk":"../media/models/boxman-walk.egg", 
+                           "idle": "../media/models/boxman-idle.egg"})
         self.actor.setScale(1.0)
         self.actor.setH(0)
         # move actor to the left
